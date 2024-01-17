@@ -1,0 +1,332 @@
+/* General rules for HTML basics*/
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Nunito Sans", Arial, sans-serif;
+    font-size: 1.25rem;
+}
+
+h1, h2 {
+    font-family: "Raleway", Helvetica, sans-serif;
+    font-weight: 300;
+    margin-top: 0;
+    margin-bottom: .5rem;
+}
+
+h1 {
+    font-size: 3.5rem;
+}
+
+h2 {
+    font-size: 2rem;
+}
+
+span.material-icons {
+    position: relative;
+    top: 5px;
+}
+
+.container {
+    max-width: 960px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 1rem;
+}
+
+p, dl {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+/*  Saving this for the hamburger menu we will implement when we learn react and JS.
+ul#inline-menu{
+    display: none;
+}
+
+div#hamburger-menu{
+    display: block;
+
+
+
+div#tabs {
+    display: none;
+}
+} */
+
+/* Navigation bar rules */
+nav {
+    position: fixed;
+    width: 100%;
+    color: white;
+    background-color: #f68700;
+    padding: .5rem;
+    padding-bottom: 1rem;
+    top: 0;
+    left: 0;
+    text-shadow: 1px 1px 2px black;
+}
+
+nav ul {
+    margin: 0;
+    padding: 0 0 .5rem 0;
+}
+
+nav img {
+    padding: 0 1rem 0 2.25rem;
+    margin-top: .5rem;
+}
+
+nav li {
+    display: inline;
+    margin: 0 1rem;
+}
+
+nav a {
+    color: white;
+    font-size: .8em;
+    margin-right: .5em;
+    text-decoration: none;
+}
+
+nav li a:hover, nav li a:active, nav li a:focus {
+    color: rgb(168, 255, 158);
+    border-bottom: solid .8rem rgb(168, 255, 158);
+    font-weight: 1000;
+}
+
+/* Header, main and section rules */
+
+header {
+    color: white;
+    padding-top: 6rem;
+    padding-bottom: 1rem;
+    background-image: url('../img/background-cover.jpg');
+    background-size: cover;
+    background-position: center;
+    background-color: #0084af;
+    text-shadow: 1.5px 1.5px 2.5px black;
+}
+
+header p {
+    font-style: italic;
+    font-size: 1.25rem;
+}
+
+.about-caring img, .about-infrastructures img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    height: 30vw;
+    width: 45vw;
+}
+
+p.credit {
+    font-size: 16px;
+    text-align: center;
+}
+
+section.main-content dt {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-top: 1rem;
+}
+
+section.main-content dd {
+    margin: 0;
+}
+
+section.main-content img {
+    height: auto;
+    max-width: 100%;
+    border-radius: 15px;
+}
+
+section {
+    background-color: #ffeee1;
+    line-height: 1.5;
+}
+
+section.about-infrastructures {
+    background-image: linear-gradient(rgb(168, 255, 158), rgb(159, 239, 255));
+    line-height: 1.5;
+}
+
+.button {
+    font-size: 1.35rem;
+    text-align: center;
+    background-color: #f68700;
+    width: auto;
+    height: 40px;
+    line-height: 35px;
+    color: white;
+    margin: 20px auto;
+    box-shadow: 4px 4px rgba(44, 44, 44, 0.2), -4px 4px rgba(44, 44, 44, 0.2);
+    border-radius: 12px;
+    border-style: solid;
+    border-color: black;
+    border-width: 2px;
+}
+
+.search-box {
+    margin-top: 20px;
+    padding: 40px;
+    display: flex;
+    justify-content: center;
+}
+
+.shrunk-img{
+    height:20vw;
+    width:50vw;
+}
+
+/* general rules for head, body and footer */
+
+.head {
+    display: flex;
+    background-color: #c3bfbc;
+    padding: 5px;
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.authors {
+    flex: 20%;
+}
+
+.content {
+    flex: 80%;
+}
+
+.body {
+    display: flex;
+    background-image: linear-gradient(rgb(168, 255, 158), rgb(159, 239, 255));
+    padding: 10px;
+    margin-top: 5px;
+}
+
+.body .authors img {
+    max-width: 50px;
+    max-height: 80px;
+}
+
+footer {
+    color: white;
+    background-color: #f68700;
+    text-shadow: 1px 1px 2px black;
+}
+
+footer a {
+    color: white;
+    text-decoration: none;
+}
+
+footer p {
+    margin: 0;
+    line-height: 1.25;
+}
+
+footer p:last-of-type {
+    padding-top: 8px;
+}
+
+
+/* Comment box rules */
+.comment-area {
+    margin-bottom: 50px;
+}
+
+.comment-area textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 10px;
+    margin-block: 10px;
+}
+
+section.search-box-area, section.post-area {
+    background-color: #ffeee1;
+    line-height: 1.5;
+}
+
+section.navigate-area {
+    background-color: #f68700;
+    line-height: 1.5;
+}
+
+.navigate {
+    margin-block: 20px;
+    font-weight: lighter;
+    font-size: 24px;
+}
+
+.navigate a {
+    color: white;
+    font-weight: bolder;
+    text-decoration: none;
+}
+
+.navigate a:hover {
+    color: #FF0042;
+    font-weight: bold;
+}
+
+.username a {
+    color: #FF0042;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.content p {
+    margin: 0 0 10px;
+}
+
+/* Responsiveness rules */
+
+@media (min-width: 600px) {
+    nav a {
+        font-size: 1em;
+    }
+}
+
+@media (min-width:800px) {
+
+    /* ul#inline-menu{ Saving this for when we learn JS and react for a hamburger menu
+        display:inline-block;
+    }
+
+    div#hamburger-menu{
+        display:none;
+    } */
+
+    .button {
+        font-size: 1.35rem;
+        width: 700px;
+        height: 50px;
+        line-height: 45px;
+    }
+
+    .row {
+        display: flex;
+    }
+
+    .column {
+        flex-grow: 1;
+    }
+
+}
+
+@media (min-width: 992px) {
+
+    nav a {
+        font-size: 1.25em;
+    }
+
+    .button {
+        font-size: 1.50rem;
+        width: 900px;
+        height: 60px;
+        line-height: 55px;
+    }
+
+}

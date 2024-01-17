@@ -1,0 +1,17 @@
+body {
+    font-size: 16px;
+    font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+    padding: 1.5em;
+  }
+
+p {
+    line-height: 1.5;
+  }
+
+h1 {
+    color: rgb(214, 122, 127);
+  }
+
+h2 {
+    color: rgba(17, 70, 150, 0.863);
+  }

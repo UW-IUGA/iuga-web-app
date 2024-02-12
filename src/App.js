@@ -1,7 +1,8 @@
+import HomePage from "./pages/Home";
+
 function App() {
   return (
-    <div className="baseContainer">
-    </div>
+    <HomePage />
   );
 }
 

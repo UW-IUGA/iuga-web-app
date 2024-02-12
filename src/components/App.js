@@ -1,6 +1,6 @@
 function App() {
   return (
-    <div>
+    <div className="baseContainer">
     </div>
   );
 }

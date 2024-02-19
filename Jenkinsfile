@@ -1,6 +1,7 @@
 void setBuildStatus(String credential_id, String context, String state, String message) {
     def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
-    def data = """{"state":"${state}", "description":"${message}", "context":"${context}"}"""
+    def targetUrl = env.RUN_DISPLAY_URL
+    def data = """{"state":"${state}", "target_url": "${targetUrl}", "description":"${message}", "context":"${context}"}"""
     withCredentials([usernamePassword(credentialsId: credential_id, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
         sh "curl -X POST --user $USERNAME:$PASSWORD --data '${data}' --url https://api.github.com/repos/UW-IUGA/iuga-web-client/statuses/$gitCommit"
     }

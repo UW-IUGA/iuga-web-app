@@ -14,12 +14,13 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                setBuildStatus("Pipline running...", "PENDING");
+                setBuildStatus("Pipeline running...", "PENDING");
                 checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'github_classic', url: 'https://github.com/UW-IUGA/iuga-web-client.git']])
             }
         }
         stage('Build') {
             steps {
+                setBuildStatus("Building...", "PENDING");
                 sh 'docker build . -t "iuga/iuga-web-app"'
             }
         }
@@ -33,6 +34,7 @@ pipeline {
         }
         stage('Deploy') {
             steps {
+                setBuildStatus("Deploying...", "PENDING");
                 sh 'docker pull iuga/iuga-web-app'
                 sh 'docker rm -f iuga-web || true'
                 sh 'docker run -d -p "127.0.0.1:7272:80" --name iuga-web iuga/iuga-web-app'
@@ -42,10 +44,10 @@ pipeline {
     
     post {
         success {
-            setBuildStatus("Build succeeded", "SUCCESS");
+            setBuildStatus("Pipeline succeeded", "SUCCESS");
         }
         failure {
-            setBuildStatus("Build failed", "FAILURE");
+            setBuildStatus("Pipeline failed", "FAILURE");
         }
     }
 }

@@ -1,7 +1,7 @@
 function HomePage() {
     return (
         <div className="baseContainer">
-            Home
+            Test Deployment
         </div>
     );
 }

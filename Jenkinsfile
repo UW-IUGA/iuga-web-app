@@ -10,11 +10,11 @@ void setBuildStatus(String message, String state) {
 
 pipeline {
     agent any
-    setBuildStatus("Pipline running...", "PENDING");
     
     stages {
         stage('Checkout') {
             steps {
+                setBuildStatus("Pipline running...", "PENDING");
                 checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'github_classic', url: 'https://github.com/UW-IUGA/iuga-web-client.git']])
             }
         }

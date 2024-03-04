@@ -6,11 +6,11 @@ import { msalConfig } from './authConfig'
 import { MsalProvider } from '@azure/msal-react' 
 import { PublicClientApplication } from '@azure/msal-browser'
 
-const msalInstance = new PublicClientApplication({msalConfig});
+const msalInstance = new PublicClientApplication(msalConfig);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
 
+root.render(
   <React.StrictMode>
     <MsalProvider instance={msalInstance}>
       <App />

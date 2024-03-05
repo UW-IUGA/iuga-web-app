@@ -10,7 +10,7 @@ function Navbar() {
             <Link to="/events">Events</Link>
             <Link to="/resources">Resources</Link>
             <Link to="/about">About</Link>
-            <Link to="/contact">Contact</Link>
+            <Link to="/contact">Contact Us</Link>
             <DottedButton>Login</DottedButton>
         </nav>
     )

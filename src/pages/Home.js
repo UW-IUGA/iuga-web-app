@@ -50,6 +50,7 @@ function HomePage() {
     } else {
         return (
             <>
+                <h1>Home</h1>
                 <span>There are currently no users signed in!</span>
                 <button onClick={() => signin()}>Login</button>
             </>

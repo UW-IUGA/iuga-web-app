@@ -1,8 +1,8 @@
 function HomePage() {
     return (
-        <div className="baseContainer">
-            Test Deployment
-        </div>
+        <>
+            <h1>Home</h1>
+        </>
     );
 }
   

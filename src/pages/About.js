@@ -1,8 +1,8 @@
 function ContactPage() {
     return (
-        <div className="baseContainer">
-            About
-        </div>
+        <>
+            <h1>About</h1>
+        </>
     );
 }
   

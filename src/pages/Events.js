@@ -1,8 +1,8 @@
 function EventsPage() {
     return (
-        <div className="baseContainer">
-            Events
-        </div>
+        <>
+            <h1>Events</h1>
+        </>
     );
 }
   

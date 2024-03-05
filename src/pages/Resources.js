@@ -1,8 +1,8 @@
 function ResourcesPage() {
     return (
-        <div className="baseContainer">
-            Resources
-        </div>
+        <>
+            <h1>Resources</h1>
+        </>
     );
 }
   

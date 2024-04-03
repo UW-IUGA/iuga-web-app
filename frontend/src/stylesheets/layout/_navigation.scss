@@ -1,10 +1,12 @@
 nav {
+    margin: 0 auto;
     background-color: white;
     color: black;
     border: 1px solid black;
     overflow: hidden;
     align-items: center;
     height: 50px;
+    max-width: 2000px;
     display: flex;
     padding: 20px 120px;
     gap: 50px;

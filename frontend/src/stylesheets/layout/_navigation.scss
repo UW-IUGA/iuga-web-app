@@ -1,0 +1,32 @@
+nav {
+    background-color: white;
+    color: black;
+    border: 1px solid black;
+    overflow: hidden;
+    align-items: center;
+    height: 50px;
+    display: flex;
+    padding: 20px 120px;
+    gap: 50px;
+}
+
+nav a {
+    font-size: 16px;
+    color: inherit;
+    text-align: center;
+    text-decoration: none;
+    padding: 12px 24px;
+}
+
+nav a:not(:first-child):hover {
+    background-color: $gray;
+    border-radius: $radius;
+}
+
+nav img {
+    width: 60px;
+}
+
+nav span {
+    flex: 1;
+}

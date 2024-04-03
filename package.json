@@ -1,44 +1,17 @@
 {
-  "name": "iuga-app",
-  "version": "0.1.0",
-  "private": true,
-  "dependencies": {
-    "@azure/msal-react": "^2.0.12",
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
-    "js-cookie": "^3.0.5",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.22.2",
-    "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4"
-  },
+  "name": "iuga-web-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "debug": "cd frontend; npm install && npm run build && cd ../backend; npm install && npm run debug",
+    "dev": "cd frontend; npm install && npm run build && cd ../backend; npm install && npm start",
+    "frontend": "cd frontend; npm install && npm start",
+    "backend": "cd backend; npm install && npm start",
+    "backend-dev": "cd backend; npm install && npm start",
+    "backend-debug": "cd backend; npm install && npm run debug"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "devDependencies": {
-    "sass": "^1.70.0"
-  }
+  "author": "",
+  "license": "ISC"
 }

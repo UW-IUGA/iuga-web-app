@@ -4,13 +4,13 @@ let models = {};
 
 async function connectToDatabase(){
     console.log('connecting to mongodb')
-    // if (process.env.DEPLOY === "true") {
-    //     await mongoose.connect(``)
-    //     console.log("successfully connected to deployment mongodb")
-    // } else {
-    //     await mongoose.connect('')
-    //     console.log("successfully connected to dev mongodb")
-    // }
+    if (process.env.DEPLOY) {
+        await mongoose.connect(``)
+        console.log("successfully connected to deployment mongodb")
+    } else {
+        await mongoose.connect('mongodb+srv://iuga:78B5aJunY5ZrypC1@cluster0.ejo8heu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
+        console.log("successfully connected to dev mongodb")
+    }
     
     /* Calendars Schema:
         If a user makes a calendar or event, they must input all fields.

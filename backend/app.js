@@ -1,7 +1,6 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
-import cors from 'cors';
 import sessions from 'express-session';
 
 

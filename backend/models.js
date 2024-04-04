@@ -5,7 +5,7 @@ let models = {};
 async function connectToDatabase(){
     console.log('connecting to mongodb')
     if (process.env.DEPLOY) {
-        await mongoose.connect(``)
+        console.log(process.env.TEST_ENV_VAR)
         console.log("successfully connected to deployment mongodb")
     } else {
         await mongoose.connect('mongodb+srv://iuga:78B5aJunY5ZrypC1@cluster0.ejo8heu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')

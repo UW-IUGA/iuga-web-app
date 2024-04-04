@@ -36,7 +36,15 @@ pipeline {
                 setBuildStatus("github_classic", "iuga/jenkins/cicd", "pending", "Deploying application...");
                 sh 'docker pull iuga/iuga-web-app'
                 sh 'docker rm -f iuga-web || true'
-                sh 'docker run -d -p "127.0.0.1:7272:80" --name iuga-web iuga/iuga-web-app'
+                withCredentials([
+                    string(credentialsId: 'testCred', variable: 'TEST_VAR'),
+                ]) {
+                    sh '''
+                    docker run -d -p "127.0.0.1:7777:80" --name iuga-web \
+                    -e TEST_ENV_VAR="$TEST_VAR" \
+                    iuga/iuga-web-app
+                    '''
+                }
             }
         }
     }

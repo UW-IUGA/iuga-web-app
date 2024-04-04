@@ -40,7 +40,7 @@ pipeline {
                     string(credentialsId: 'testCred', variable: 'TEST_VAR'),
                 ]) {
                     sh '''
-                    docker run -d -p "127.0.0.1:7777:80" --name iuga-web \
+                    docker run -d -p "127.0.0.1:7777:7777" --name iuga-web \
                     -e TEST_ENV_VAR="$TEST_VAR" \
                     iuga/iuga-web-app
                     '''

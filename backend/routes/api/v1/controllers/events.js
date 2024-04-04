@@ -7,7 +7,6 @@ Schemas addressed in events.js:
 */
 
 import express from 'express';
-import { models } from '../../../../models';
 
 var router = express.Router();
 //-------------------------------Event Endpoints----------------------------------------------
@@ -48,7 +47,7 @@ router.get("/", async function(req, res) {
         //Once filter type selected for the specific query or queries, find the docs that match the filter.
         let events;
         if (filter) { 
-            events = await models.Events.aggregate([
+            events = await req.models.Events.aggregate([
                 {
                     //Match finds the specified docs
                     $match: { 
@@ -59,7 +58,7 @@ router.get("/", async function(req, res) {
                 }
             ]);
         } else {
-            events = await models.Events.find({})
+            events = await req.models.Events.find({})
         }
 
         //Package the data in a variable and send back to client.    
@@ -87,7 +86,7 @@ router.get("/:eId", async function(req,res) {
     //When getting an event based on an id, get all info about the event asked for
     try {
         const eId = req.params.eId
-        const event = await models.Events.findById({eId})
+        const event = await req.models.Events.findById({eId})
 
         const eventData = {
             id:event._id,
@@ -125,7 +124,7 @@ router.post("/", async function(req, res) {
 router.delete("/:eId", async function(req,res) {
     try {
         const eId = req.params.eId;
-        const event = await models.Events.findByIdAndDelete({eId});
+        const event = await req.models.Events.findByIdAndDelete({eId});
 
         res.json({event:event, status:"Success"});
     } catch (error) {
@@ -141,7 +140,7 @@ router.post("/addParticipant", async function(req,res) {
     try {
         const pId = req.pId;
         const eId = req.eId;
-        const event = await models.Events.findById({eId});
+        const event = await req.models.Events.findById({eId});
 
         event.participants.push(pId);
         await event.save();
@@ -159,7 +158,7 @@ router.delete("/removeParticipant", async function(req,res) {
     try {
         const pId = req.pId;
         const eId = req.eId;
-        const event = await models.Events.findById({eId});
+        const event = await req.models.Events.findById({eId});
         
         let newParticipants = [] 
         event.participants.forEach(participant => { 

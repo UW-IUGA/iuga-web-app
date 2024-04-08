@@ -21,6 +21,8 @@ router.get("/", async function(req, res) {
             query.year = req.query.year;
         }
         
+        //Do a double check for bad month/year queries passed in by the user.
+
         //Find the correct staging operators based on the query filters available.
         let filter = true;
         let exprExpression = {}
@@ -33,15 +35,17 @@ router.get("/", async function(req, res) {
             } 
         } else if (query.year != undefined) {
             exprExpression = {
-                            $eq: [{ $month: 'eStartDate'}, query.month]
+                            $eq: [{ $year: 'eStartDate'}, query.year]
                         }
         } else if (query.month != undefined) {
             exprExpression = {
-                $eq: [{ $month: 'eStartDate'}, query.year]
+                $eq: [{ $month: 'eStartDate'}, query.month]
             }
         } else {
             //What should the default return of the docs be? All of the docs? Or only the docs in the current month?
             filter = false;
+            //Just display no events is another option
+
         }
         
         //Once filter type selected for the specific query or queries, find the docs that match the filter.
@@ -59,6 +63,7 @@ router.get("/", async function(req, res) {
             ]);
         } else {
             events = await req.models.Events.find({})
+            //Just display no events is another option
         }
 
         //Package the data in a variable and send back to client.    
@@ -66,11 +71,12 @@ router.get("/", async function(req, res) {
         const eventsData = await Promise.all(
             events.map(async event => {
             return {
+                //Assume that this endpoint is for retrieving events from the calendar when the user loads the page or flips teh calendar.
                 id:event._id,
                 name:event.eName,
                 startDate:event.eStartDate,
                 endDate:event.eEndDate,
-                location:event.eLocation,
+                location:event.eLocation
             };
             })
         );

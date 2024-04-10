@@ -144,17 +144,24 @@ router.delete("/:eId", async function(req,res) {
 router.post("/RSVP", async function(req,res) { 
     //Using the given event id and user id parameters, create a participant profile for the user and this pId into the event's participant list
     try {
-        const uId = req.uId;
-        const eId = req.eId;
+        const uId = req.body.uId;
+        const eId = req.body.eId;
         const event = await req.models.Events.findById({eId});
 
+        //Fit the new participant data into a new Participant Schema Object
+        const newParticipant = new req.models.Participants({
+            pUID: uId,
+            aList: req.body.aList,
+            isAnon: req.body.isAnon
+        })
         
+        //Save the new Participant object into the database.
+        await newParticipant.save(); //doublecheck to see if this means we can still use the newParticipant doc now.
 
-        event.participants.push(pId);
+        event.participants.push(newParticipant._id);
         await event.save();
 
         res.json({status:"Success"});
-
     } catch (error) {
         console.log(error);
         res.status(500).json({status:"error", message:error.message});
@@ -165,8 +172,8 @@ router.post("/RSVP", async function(req,res) {
 router.delete("/withdraw", async function(req,res) {
     //Using the given participant id parameter, remove the participant from the event's participant list
     try {
-        const pId = req.pId;
-        const eId = req.eId;
+        const pId = req.body.pId;
+        const eId = req.body.eId;
         const event = await req.models.Events.findById({eId});
         
         let newParticipants = [] 

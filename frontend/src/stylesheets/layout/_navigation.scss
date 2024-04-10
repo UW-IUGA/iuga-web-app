@@ -17,7 +17,7 @@ nav a {
     color: inherit;
     text-align: center;
     text-decoration: none;
-    padding: 12px 24px;
+    padding: $padding-box-y $padding-box-x;
 }
 
 nav a:not(:first-child):hover {

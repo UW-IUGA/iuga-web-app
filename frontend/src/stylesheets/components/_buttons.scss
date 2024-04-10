@@ -1,12 +1,12 @@
 button {
     border-radius: $radius;
-    background-color: $primary-color;
+    background-color: $color-primary;
     color: white;
     border: 0px;
     padding: 12px 24px;
     font-weight: bold;
     outline: 1px solid;
-    outline-color: $primary-color;
+    outline-color: $color-primary;
     outline-offset: 0px;
     text-shadow: none;
     transition: all 500ms cubic-bezier(0.19, 1, 0.22, 1);

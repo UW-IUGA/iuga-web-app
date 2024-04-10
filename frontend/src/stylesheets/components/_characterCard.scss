@@ -1,0 +1,88 @@
+.characterCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: end;
+}
+
+
+.characterCardBox {
+    position: relative;
+    width: 220px;
+    height: 220px;
+    border-radius: $radius;
+    background-color: white;
+}
+
+.career {
+    img {
+        width: 160px;
+        margin-bottom: -12px;
+        z-index: 2;
+    }
+
+    .characterCardBox {
+        border: 4px solid $color-career-secondary;
+    }
+
+    .characterCardBackground {
+        position: absolute;
+        z-index: -1;
+        top: 30%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        display: block;
+        width: 500px;
+        height: 350px;
+        border-radius: 100%;
+        background: radial-gradient(ellipse at center, rgba(255,201,63,0.5) 0%, rgba(48,66,233,0) 68%);
+    }
+}
+
+.social {
+    img {
+        margin-left: 24px;
+        margin-bottom: 24px;
+        width: 200px;
+    }
+
+    .characterCardBox {
+        border: 4px solid $color-social-secondary;
+    }
+
+    .characterCardBackground {
+        position: absolute;
+        z-index: -2;
+        top: 70%;
+        left: 30%;
+        transform: translate(-50%, -50%);
+        display: block;
+        width: 300px;
+        height: 250px;
+        border-radius: 100%;
+        background: radial-gradient(ellipse at center, rgba(248,166,255,0.5) 0%, rgba(48,66,233,0) 70%);
+    }
+}
+
+.academic {
+    img {
+        width: 150px;
+    }
+
+    .characterCardBox {
+        border: 4px solid $color-academic-secondary;
+    }
+
+    .characterCardBackground {
+        position: absolute;
+        z-index: -1;
+        top: 30%;
+        left: 40%;
+        transform: translate(-50%, -50%);
+        display: block;
+        width: 400px;
+        height: 300px;
+        border-radius: 100%;
+        background: radial-gradient(ellipse at center, rgba(48,66,233,0.8) 0%, rgba(48,66,233,0) 60%);
+    }
+}

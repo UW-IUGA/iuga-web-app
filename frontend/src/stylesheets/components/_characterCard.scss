@@ -2,16 +2,54 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: end;
+    justify-content: flex-end;
 }
 
 
 .characterCardBox {
     position: relative;
+    text-align: left;
     width: 220px;
     height: 220px;
     border-radius: $radius;
     background-color: white;
+    padding: $padding-content;
+    box-sizing: border-box;
+
+    button {
+        background-color: white;
+        padding: 4px 8px;
+        font-weight: bold;
+        border-width: 1px;
+        border-style: solid;
+    }
+
+    button:hover {
+        background-color: white;
+        outline-color: rgba(255, 255, 255, 0);
+        outline-offset: 8px;
+    }
+}
+
+.characterCardHeader{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+
+    & > div {
+        width: 36px;
+        height: 36px;
+        border-radius: $radius;
+    }
+
+    h1 {
+        font-family: $sans-serif;
+        font-weight: bold;
+        font-size: 1.2rem;
+        margin: 0;
+        margin-top: 4px;
+    }
 }
 
 .career {
@@ -36,6 +74,25 @@
         height: 350px;
         border-radius: 100%;
         background: radial-gradient(ellipse at center, rgba(255,201,63,0.5) 0%, rgba(48,66,233,0) 68%);
+    }
+
+    .characterCardHeader > div {
+        background-color: $color-career-primary;
+    }
+
+    .characterCardHeader > h1 {
+        color: $color-career-primary;
+    }
+
+    button {
+        color: $color-career-primary;
+        outline-color: white;
+        border-color: $color-career-secondary;
+    }
+
+    button:hover {
+        background-color: $color-career-primary;
+        color: white;
     }
 }
 
@@ -62,6 +119,25 @@
         border-radius: 100%;
         background: radial-gradient(ellipse at center, rgba(248,166,255,0.5) 0%, rgba(48,66,233,0) 70%);
     }
+
+    .characterCardHeader > div {
+        background-color: $color-social-primary;
+    }
+
+    .characterCardHeader > h1 {
+        color: $color-social-primary;
+    }
+
+    button {
+        color: $color-social-primary;
+        border-color: $color-social-secondary;
+        outline-color: white;
+    }
+
+    button:hover {
+        background-color: $color-social-primary;
+        color: white;
+    }
 }
 
 .academic {
@@ -84,5 +160,25 @@
         height: 300px;
         border-radius: 100%;
         background: radial-gradient(ellipse at center, rgba(48,66,233,0.8) 0%, rgba(48,66,233,0) 60%);
+    }
+
+    .characterCardHeader > div {
+        background-color: $color-academic-primary;
+    }
+
+    .characterCardHeader > h1 {
+        color: $color-academic-primary;
+    }
+
+
+    button {
+        color: $color-academic-primary;
+        border-color: $color-academic-secondary;
+        outline-color: white;
+    }
+
+    button:hover {
+        background-color: $color-academic-primary;
+        color: white;
     }
 }

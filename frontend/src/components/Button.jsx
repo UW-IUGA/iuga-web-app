@@ -1,6 +1,6 @@
 const DottedButton = ({callback, text}) => {
     return (
-      <button onClick={callback}>
+      <button className="primary-button" onClick={callback}>
         {text}
       </button>
     );

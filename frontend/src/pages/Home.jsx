@@ -1,7 +1,7 @@
 import CharacterCard from "../components/CharacterCard";
 
 function HomePage() {
-    const categories = ["academic", "social", "career"];
+    const categories = ["Academic", "Social", "Career"];
 
     return (
         <div className="baseContainer">

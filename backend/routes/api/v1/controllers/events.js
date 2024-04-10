@@ -148,18 +148,38 @@ router.post("/RSVP", async function(req,res) {
         const eId = req.body.eId;
         const event = await req.models.Events.findById({eId});
 
-        //Fit the new participant data into a new Participant Schema Object
-        const newParticipant = new req.models.Participants({
-            pUID: uId,
-            aList: req.body.aList,
-            isAnon: req.body.isAnon
-        })
+        //Loop through the event participants, and check if they are already a participant
+            //Another option instead of this check, is to make a separate endpoint to update the participant, given event id and user id.
+        let isParticipant = false;
+        let pId;
+        event.participants.forEach(p => {
+            if(req.models.Participants.findById({p}).pUID == uId) {
+                isParticipant = true;
+                pId = p; //also grab their pId
+            }
+        });
         
-        //Save the new Participant object into the database.
-        await newParticipant.save(); //doublecheck to see if this means we can still use the newParticipant doc now.
+        //If the user is already a participant, check to see what was sent in, update the values for the participant accordingly.
+        if(isParticipant==true) {
+            const participant = await req.models.Participants.findById({pId});
+            participant.aList = req.body.aList;
+            participant.isAnon = req.body.isAnon;
 
-        event.participants.push(newParticipant._id);
-        await event.save();
+            await participant.save();
+        } else { 
+            //Else make them a new participant, and save their info to the database and event participant list.
+            //Fit the new participant data into a new Participant Schema Object
+            const newParticipant = new req.models.Participants({
+                pUID: uId,
+                aList: req.body.aList,
+                isAnon: req.body.isAnon
+            })
+
+            //Save the new Participant object into the database.
+            await newParticipant.save(); //doublecheck to see if this means we can still use the newParticipant doc now.
+            event.participants.push(newParticipant._id);
+            await event.save();
+        }
 
         res.json({status:"Success"});
     } catch (error) {

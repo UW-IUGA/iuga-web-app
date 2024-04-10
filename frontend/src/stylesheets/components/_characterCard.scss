@@ -16,6 +16,10 @@
     padding: $padding-content;
     box-sizing: border-box;
 
+    p {
+        color: black;
+    }
+
     button {
         background-color: white;
         padding: 4px 8px;

@@ -4,11 +4,14 @@
 
 @import 'base/reset';
 @import 'base/typography';
+@import 'base/colors';
 
 @import 'layout/container';
 @import 'layout/navigation';
 
 @import 'components/buttons';
 @import 'components/characterCard';
+@import 'components/eventCard';
+@import 'components/tag';
 
 @import 'pages/home';

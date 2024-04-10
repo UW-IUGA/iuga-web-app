@@ -1,0 +1,24 @@
+.tagText {
+    font-size: 1rem;
+    border-radius: $radius;
+    padding: 4px 16px;
+    margin: 0;
+}
+
+.social { 
+    .tagText {
+        background-color: #FAE5FF;
+    }
+}
+
+.career { 
+    .tagText {
+        background-color: #CFDFF5;
+    }
+}
+
+.academic { 
+    .tagText {
+        background-color: #FEEFCD;
+    }
+}

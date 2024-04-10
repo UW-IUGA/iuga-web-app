@@ -129,6 +129,7 @@ router.post("/", async function(req, res) {
 //router.delete will just filter by id and delete the found docs of events
 router.delete("/:eId", async function(req,res) {
     try {
+        //Check if admin before deletion?
         const eId = req.params.eId;
         const event = await req.models.Events.findByIdAndDelete({eId});
 
@@ -140,18 +141,20 @@ router.delete("/:eId", async function(req,res) {
 })
 
 //User signs up as a participant (Make a new particpant schema and assign the user as one.)
-//maybe change pId param to uId, so that we can also have this section create the participant account as the first thing done.
-router.post("/addParticipant", async function(req,res) { 
-    //Using the given event id parameter, add the participant into the event's participant list
+router.post("/RSVP", async function(req,res) { 
+    //Using the given event id and user id parameters, create a participant profile for the user and this pId into the event's participant list
     try {
-        const pId = req.pId;
+        const uId = req.uId;
         const eId = req.eId;
         const event = await req.models.Events.findById({eId});
+
+        
 
         event.participants.push(pId);
         await event.save();
 
         res.json({status:"Success"});
+
     } catch (error) {
         console.log(error);
         res.status(500).json({status:"error", message:error.message});
@@ -159,7 +162,7 @@ router.post("/addParticipant", async function(req,res) {
 })
 
 //User withdraws from an event
-router.delete("/removeParticipant", async function(req,res) {
+router.delete("/withdraw", async function(req,res) {
     //Using the given participant id parameter, remove the participant from the event's participant list
     try {
         const pId = req.pId;
@@ -184,10 +187,21 @@ router.delete("/removeParticipant", async function(req,res) {
 })
 
 router.get("/getParticipant", async function(req,res) {
+//This is specfically for a list of participants from the admins point of view, so when you 
+//frontend needs to do the admin check.
+
+//Based on the list of pIds retreived, find the participant docs in the db, and return a list of their names to the client.
 
 })
-//-------------------------------Participant Endpoints----------------------------------------------
 
+//Given a participant's id, pull their answer list, user profile, and other info about them
+router.get("/:pId", async function(req, res) {
+
+})
+
+
+
+//-------------------------------Participant Endpoints----------------------------------------------
 //User answers RSVP questions, update answer list
 
 

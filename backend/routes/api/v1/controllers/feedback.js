@@ -6,7 +6,7 @@ Schema addressed in feedback.js:
 */
 
 import express from 'express';
-import models from '../../../../models.js'
+
 var router = express.Router();
 
 /*
@@ -21,7 +21,7 @@ Assumed req variables (Will need to check back with frontend for what is sent in
 router.get('/', async (req,res) => {
     try {
         //Find the requested feedbackform based on the given req data.
-        const rawForm = await models.Feedback.findById(req.query.fID);
+        const rawForm = await req.models.Feedback.findById(req.query.fID);
 
         //Package up all the data from the feedback form
         const feedbackForm = {
@@ -58,7 +58,7 @@ Assumed req variables (Will need to check back with frontend for what is sent in
 router.post('/', async (req,res) => {
     try {
         //Fit the new feedback data into a new Feedback Schema Object
-        const newFeedback = new models.Feedback({
+        const newFeedback = new req.models.Feedback({
             fUID: req.body.fUID,
             fType: req.body.fType,
             fTopic: req.body.fTopic,
@@ -90,7 +90,7 @@ Assumed req variables (Will need to check back with frontend for what is sent in
 router.delete('/', async (req,res) => {
     try{
         //Delete the given feedback form        
-        await models.Feedback.deleteOne({ _id:fID});
+        await req.models.Feedback.deleteOne({ _id:fID});
         
         //Tell the client it worked
         res.json({status:"success"})

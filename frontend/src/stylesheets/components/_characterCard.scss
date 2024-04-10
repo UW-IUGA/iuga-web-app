@@ -67,11 +67,11 @@
         position: absolute;
         z-index: -1;
         top: 30%;
-        left: 50%;
+        left: 30%;
         transform: translate(-50%, -50%);
         display: block;
-        width: 500px;
-        height: 350px;
+        width: 600px;
+        height: 450px;
         border-radius: 100%;
         background: radial-gradient(ellipse at center, rgba(255,201,63,0.5) 0%, rgba(48,66,233,0) 68%);
     }
@@ -115,7 +115,7 @@
         transform: translate(-50%, -50%);
         display: block;
         width: 300px;
-        height: 250px;
+        height: 270px;
         border-radius: 100%;
         background: radial-gradient(ellipse at center, rgba(248,166,255,0.5) 0%, rgba(48,66,233,0) 70%);
     }
@@ -157,9 +157,9 @@
         transform: translate(-50%, -50%);
         display: block;
         width: 400px;
-        height: 300px;
+        height: 350px;
         border-radius: 100%;
-        background: radial-gradient(ellipse at center, rgba(48,66,233,0.8) 0%, rgba(48,66,233,0) 60%);
+        background: radial-gradient(ellipse at center, rgba(68, 84, 231, 0.8) 0%, rgba(48,66,233,0) 70%);
     }
 
     .characterCardHeader > div {

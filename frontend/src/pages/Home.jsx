@@ -57,14 +57,14 @@ function HomePage() {
             <div className="gallery">
                 <h1>Gallery</h1>
                 <div className="galleryImageContainer">
-                    <div></div>
-                    <div></div>
-                    <div></div>
-                    <div></div>
-                    <div></div>
-                    <div></div>
-                    <div></div>
-                    <div></div>
+                    <div><img src="/assets/gallery/groups.png" alt="" /></div>
+                    <div><img src="/assets/gallery/gamenight.png" alt="" /></div>
+                    <div><img src="/assets/gallery/merch.jpeg" alt="" /></div>
+                    <div><img src="/assets/gallery/gamenight.png" alt="" /></div>
+                    <div><img src="/assets/gallery/panelists.png" alt="" /></div>
+                    <div><img src="/assets/gallery/heart.jpeg" alt="" /></div>
+                    <div><img src="/assets/gallery/gamenight-2.png" alt="" /></div>
+                    <div><img src="/assets/gallery/officers-22.png" alt="" /></div>
                 </div>
                 <div>
                     <img src="/assets/campfire.svg" alt="characters around a campfire" />

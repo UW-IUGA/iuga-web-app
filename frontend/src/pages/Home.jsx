@@ -1,15 +1,12 @@
+import Button from "../components/Button";
 import CharacterCard from "../components/CharacterCard";
 import EventCard from "../components/EventCard";
+import { useNavigate } from "react-router-dom";
 
 function HomePage() {
+    const navigate = useNavigate();
     const categories = ["Academic", "Social", "Career"];
     const events = [
-        {
-            "title": "Networking + Industry Panel",
-            "organizer": "UX@UW and HCDEsa",
-            "short_description": "Eager to learn more about how to get your foot in the door with big tech companies fo...",
-            "categories": ["Academic", "Career"]
-        },
         {
             "title": "Networking + Industry Panel",
             "organizer": "UX@UW and HCDEsa",
@@ -17,10 +14,16 @@ function HomePage() {
             "categories": ["Social", "Career"]
         },
         {
-            "title": "Networking + Industry Panel",
-            "organizer": "UX@UW and HCDEsa",
+            "title": "Hack for Social Good 2024",
+            "organizer": "IUGA, Winfo, binfo",
             "short_description": "Eager to learn more about how to get your foot in the door with big tech companies fo...",
-            "categories": ["Academic"]
+            "categories": ["Social", "Academic", "Career"]
+        },
+        {
+            "title": "Coffee & Coloring",
+            "organizer": "IUGA",
+            "short_description": "Eager to learn more about how to get your foot in the door with big tech companies fo...",
+            "categories": ["Social"]
         },
         {
             "title": "Networking + Industry Panel",
@@ -43,11 +46,12 @@ function HomePage() {
             </div>
             <div className="upcomingEvents">
                 <h1>Upcoming Events</h1>
-                <div className="upcomingEventsContainer">
+                <div className="upcomingEventsCardContainer">
                     { events.slice(0, 3).map(event => {
                         return <EventCard key={event.title} event={event} />;
                     })}
                 </div>
+                <Button text="More Events" style="right-arrow" callback={() => {navigate("/events")}}/>
             </div>
         </div>
     )

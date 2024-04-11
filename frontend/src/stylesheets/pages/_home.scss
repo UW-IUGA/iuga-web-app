@@ -1,7 +1,7 @@
 .introduction {
     text-align: center;
     width: 60%;
-    margin: $margin-content*2 auto;
+    margin: $margin-content auto;
 
     & > h1 {
         font-size: 2.4rem;
@@ -15,19 +15,26 @@
 .characterCardContainer {
     display: flex;
     flex-direction: row;
-    margin: $margin-content 0;
     justify-content: space-between;
 }
 
 .upcomingEvents {
+    margin: $margin-content*2 0;
+    
     h1 {
-        margin-bottom: 0;
+        margin: 0;
+    }
+
+    button {
+        display: block;
+        margin-left: auto;
+        margin-right: 0;
+        margin-top: $margin-content;
     }
 }
 
-.upcomingEventsContainer {
+.upcomingEventsCardContainer {
     display: flex;
-    margin: $margin-content 0;
     justify-content: space-between;
     gap: $margin-content;
 }

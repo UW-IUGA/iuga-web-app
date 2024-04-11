@@ -2,12 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Link } from 'react-router-dom';
 import Button from "../components/Button.jsx"
 
-function useScrollTop() {
-    const [scrollTop, setScrollTop] = useState(0);
-    const onScroll = event => setScrollTop(event.target.scrollTop);
-    return [scrollTop, { onScroll }];
-}
-
 function Navbar({signIn, signOut, isAuthenticated}) {
     const [isScrolledDown, setScrolledDown] = useState(false);
 

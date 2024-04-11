@@ -16,6 +16,7 @@
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+    margin-top: $margin-content;
 }
 
 .upcomingEvents {
@@ -37,4 +38,82 @@
     justify-content: space-between;
     margin: $margin-content 0;
     gap: $margin-content;
+}
+
+.gallery {
+    position: relative;
+    width: 100%;
+    margin-bottom: $margin-content*3;
+
+    h1 {
+        margin-bottom: 64px;
+    }
+
+    & > div:last-of-type {
+        height: 350px;
+    }
+}
+
+.galleryImageContainer {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    left: 50%;
+    transform: translate(-50%, 0);
+    white-space: nowrap;
+    text-align: center;
+
+    & > div {
+        display: inline-block;
+        border-width: 3;
+        border-style: solid;
+        border-radius: $radius;
+        border-color: black;
+    }
+
+    & > div:nth-of-type(1) {
+        transform: rotate(20deg);
+        width: 240px;
+        height: 300px;
+        margin-right: -40px;
+    }
+    & > div:nth-of-type(2) {
+        transform: rotate(-20deg);
+        width: 250px;
+        height: 180px;
+        margin-right: -40px;
+    }
+    & > div:nth-of-type(3) {
+        transform: rotate(15deg);
+        width: 240px;
+        height: 320px;
+    }
+    & > div:nth-of-type(4) {
+        transform: rotate(-20deg);
+        width: 200px;
+        height: 280px;
+    }
+    & > div:nth-of-type(5) {
+        transform: rotate(-30deg);
+        width: 340px;
+        height: 230px;
+    }
+    & > div:nth-of-type(6) {
+        transform: rotate(10deg);
+        width: 300px;
+        height: 300px;
+    }
+    & > div:nth-of-type(7) {
+        transform: rotate(-18deg);
+        width: 280px;
+        height: 240px;
+        margin-top: -80px;
+    }
+    & > div:nth-of-type(8) {
+        transform: rotate(30deg);
+        width: 300px;
+        height: 230px;
+        margin-left: -40px;
+    }
+
 }

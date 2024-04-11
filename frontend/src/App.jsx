@@ -9,6 +9,7 @@ import { useMsal, useAccount } from "@azure/msal-react";
 import { useState, useEffect } from "react";
 import { loginRequest } from "./authConfig";
 import Cookies from "js-cookie";
+import Footer from "./layouts/Footer";
 
 
 function App() {
@@ -80,6 +81,7 @@ function App() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
         </Routes>
+        <Footer />
     </div>
   );
 }

@@ -3,7 +3,7 @@ import Tag from "../components/Tag";
 const EventCard = ({ event, decorate }) => {
     return (
         <div className="eventCard">
-            { decorate ? <img src="/assets/events-decoration.svg" /> : "" }
+            { decorate ? <img src="/assets/events-decoration.svg" alt="event card decoration" /> : "" }
             <div>
                 <img src={``} alt={`${event.title} event`} ></img>
             </div>

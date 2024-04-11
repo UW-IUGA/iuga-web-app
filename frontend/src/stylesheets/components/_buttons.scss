@@ -3,7 +3,7 @@ button {
     background-color: $color-primary;
     color: white;
     border: 0px;
-    padding: 12px 24px;
+    padding: $padding-box-y $padding-box-x;
     font-weight: bold;
     outline: 1px solid;
     outline-offset: 0px;
@@ -21,9 +21,4 @@ button:hover {
     box-shadow: inset 0 0 20px rgba(255, 255, 255, .3), 0 0 20px rgba(255, 255, 255, .1);
     outline-color: rgba(255, 255, 255, 0);
     outline-offset: 8px;
-}
-
-.primary-button {
-    background-color: $color-primary;
-    outline-color: $color-primary;
 }

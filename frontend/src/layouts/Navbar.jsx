@@ -18,6 +18,7 @@ function Navbar({signIn, signOut, isAuthenticated}) {
     return (
         <nav className={`${isScrolledDown > 0 ? "navBorder" : ""}`}>
             <Link to="/"><img src="/iuga-logo.png" alt="logo"></img></Link>
+            <span></span>
             <Link to="/events">Events</Link>
             <Link to="/resources">Resources</Link>
             <Link to="/about">About</Link>
@@ -25,8 +26,8 @@ function Navbar({signIn, signOut, isAuthenticated}) {
             <span></span>
             {
                 isAuthenticated
-                    ? <Button callback={signOut} text="Logout" /> 
-                    : <Button callback={signIn} text="UW NetID Login" />
+                    ? <Button color="primary" callback={signOut} text="Logout" /> 
+                    : <Button color="primary" callback={signIn} text="UW NetID Login" />
             }
         </nav>
     )

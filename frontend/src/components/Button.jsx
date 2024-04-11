@@ -1,6 +1,6 @@
-const Button = ({callback, text, type}) => {
+const Button = ({callback, text, type, color}) => {
     return (
-      <button className="primary-button" onClick={callback}>
+      <button className={color} onClick={callback}>
         {text}
         {type === "right-arrow" ? <img className="right-arrow" src="/assets/right-arrow.svg" alt="right arrow" /> : "" }
       </button>

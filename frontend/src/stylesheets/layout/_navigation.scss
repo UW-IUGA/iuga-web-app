@@ -16,11 +16,17 @@ nav {
     gap: 12px;
     border-bottom: 1px solid white;
     transition: all 500ms cubic-bezier(0.19, 1, 0.22, 1);
+
+    & > span:first-of-type {
+        display: block;
+        height: 50%;
+        border-left: 1px solid black;
+    }
 }
 
 .navBorder {
-    height: 24px;
-    border-bottom: 1px solid lightgray;
+    height: 40px;
+    border-bottom: 1px solid rgb(228, 228, 228);
 }
 
 nav a {
@@ -40,7 +46,7 @@ nav img {
     width: 60px;
 }
 
-nav span {
+nav span:last-of-type {
     flex: 1;
 }
 
@@ -70,7 +76,7 @@ footer {
         margin-bottom: $margin-content*1;
 
         img {
-            width: 150px;
+            width: 100px;
         }
 
         & > div:nth-of-type(1) {

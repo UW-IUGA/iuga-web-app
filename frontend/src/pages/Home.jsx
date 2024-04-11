@@ -51,7 +51,7 @@ function HomePage() {
                         return <EventCard key={event.title} event={event} decorate={i === 2 ? true : false }/>;
                     })}
                 </div>
-                <Button text="More Events" type="right-arrow" callback={() => {navigate("/events")}}/>
+                <Button text="More Events" type="right-arrow" color="black" callback={() => {navigate("/events")}}/>
             </div>
             <div className="gallery">
                 <h1>Gallery</h1>

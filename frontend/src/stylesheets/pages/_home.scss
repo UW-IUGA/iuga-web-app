@@ -104,6 +104,10 @@
         width: 250px;
         height: 180px;
         margin-right: -40px;
+
+        img {
+            margin-top: -70px;
+        }
     }
     & > div:nth-of-type(3) {
         transform: rotate(15deg);

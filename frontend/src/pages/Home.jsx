@@ -58,7 +58,7 @@ function HomePage() {
                 <h1>Gallery</h1>
                 <div className="galleryImageContainer">
                     <div><img src="/assets/gallery/groups.png" alt="" /></div>
-                    <div><img src="/assets/gallery/gamenight.png" alt="" /></div>
+                    <div><img src="/assets/gallery/bowling.jpeg" alt="" /></div>
                     <div><img src="/assets/gallery/merch.jpeg" alt="" /></div>
                     <div><img src="/assets/gallery/gamenight.png" alt="" /></div>
                     <div><img src="/assets/gallery/panelists.png" alt="" /></div>

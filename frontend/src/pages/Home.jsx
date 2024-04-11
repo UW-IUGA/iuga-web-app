@@ -66,6 +66,7 @@ function HomePage() {
                     <div></div>
                 </div>
                 <div>
+                    <img src="/assets/campfire.svg" alt="characters around a campfire" />
                 </div>
             </div>
         </div>

@@ -43,14 +43,20 @@
 .gallery {
     position: relative;
     width: 100%;
-    margin-bottom: $margin-content*3;
 
     h1 {
         margin-bottom: 64px;
     }
 
     & > div:last-of-type {
-        height: 350px;
+        height: 500px;
+
+        img {
+            position: absolute;
+            bottom: -20px;
+            z-index: 4;
+            width: 320px;
+        }
     }
 }
 

@@ -1,10 +1,28 @@
-import React from 'react';
+import React, { useState, useEffect } from "react";
 import { Link } from 'react-router-dom';
 import Button from "../components/Button.jsx"
 
+function useScrollTop() {
+    const [scrollTop, setScrollTop] = useState(0);
+    const onScroll = event => setScrollTop(event.target.scrollTop);
+    return [scrollTop, { onScroll }];
+}
+
 function Navbar({signIn, signOut, isAuthenticated}) {
+    const [isScrolledDown, setScrolledDown] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setScrolledDown(window.scrollY > 0);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
     return (
-        <nav>
+        <nav className={`${isScrolledDown > 0 ? "navBorder" : ""}`}>
             <Link to="/"><img src="/iuga-logo.png" alt="logo"></img></Link>
             <Link to="/events">Events</Link>
             <Link to="/resources">Resources</Link>

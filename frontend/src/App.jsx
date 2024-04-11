@@ -72,7 +72,7 @@ function App() {
   }
 
   return (
-    <div>
+    <div id="rootContainer">
         <Navbar signIn={signIn} signOut={signOut} isAuthenticated={isAuthenticated} />
         <Routes>
           <Route path="/" element={<HomePage />} />

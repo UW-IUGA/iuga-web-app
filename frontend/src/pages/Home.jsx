@@ -36,8 +36,9 @@ function HomePage() {
     return (
         <div className="baseContainer">
             <div className="introduction">
-                <h1>Informatics <br/> Undergraduate Association</h1>
-                <p>IUGA is a student-led RSO that communicates between the Informatics student body, faculty, and administration of the University of Washington Information School.</p>
+                <h1>Informatics</h1>
+                <h1>Undergraduate Association</h1>
+                <p>IUGA is a student-led RSO that communicates between the Informatics student body, faculty, and administration of the <span className="uw-purple"><strong>University of Washington</strong></span> Information School.</p>
                 <div className="characterCardContainer">
                     { categories.map(category => {
                         return <CharacterCard key={category} category={category} />;

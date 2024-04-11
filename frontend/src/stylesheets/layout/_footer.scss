@@ -1,0 +1,85 @@
+
+footer {
+    position: relative;
+    border-top: 1px solid rgb(201, 201, 201);
+    width: 100%;
+
+    a {
+        font-size: 16px;
+        color: black;
+        text-align: center;
+        text-decoration: none;
+        padding: $padding-box-y 0;
+    }
+}
+
+.footerContainer {
+    margin: 0 auto;
+    max-width: 1400px;
+    padding: $padding-content*2;
+
+    & > div:first-of-type {
+        display: flex;
+        box-sizing: border-box;
+        background-color: white;
+        margin-bottom: $margin-content*1;
+
+        img {
+            width: 100px;
+        }
+
+        & > div:nth-of-type(1) {
+            flex: 1;
+        }
+
+        & > div:nth-of-type(2) {
+            display: grid;
+            grid-template-columns: min-content auto;
+            width: 300px;
+            
+            & > a {
+                color: rgb(71, 71, 71);
+            }
+
+            & > a:hover {
+                color: black;
+            }
+        }
+    }
+
+    & > div:last-of-type {
+        display: flex;
+        box-sizing: border-box;
+        background-color: white;
+
+        & > div:nth-of-type(1) {
+            flex: 1;
+        }
+
+        & > div:nth-of-type(2) {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 300px;
+        }
+
+        a {
+            display: inline-block;
+            padding: 0;
+            cursor: pointer;
+        }
+
+        img {
+            width: 32px;
+            padding: 0;
+        }
+    }
+}
+
+#discord-footer-item {
+    width: 28px;
+}
+
+#linkedin-footer-item {
+    width: 24px;
+}

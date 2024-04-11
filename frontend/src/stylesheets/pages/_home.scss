@@ -19,7 +19,7 @@
 }
 
 .upcomingEvents {
-    margin: $margin-content*2 0;
+    margin: $margin-content*3 0;
     
     h1 {
         margin: 0;
@@ -29,12 +29,12 @@
         display: block;
         margin-left: auto;
         margin-right: 0;
-        margin-top: $margin-content;
     }
 }
 
 .upcomingEventsCardContainer {
     display: flex;
     justify-content: space-between;
+    margin: $margin-content 0;
     gap: $margin-content;
 }

@@ -1,8 +1,9 @@
 import Tag from "../components/Tag";
 
-const EventCard = ({ event }) => {
+const EventCard = ({ event, decorate }) => {
     return (
         <div className="eventCard">
+            { decorate ? <img src="/assets/events-decoration.svg" /> : "" }
             <div>
                 <img src={``} alt={`${event.title} event`} ></img>
             </div>

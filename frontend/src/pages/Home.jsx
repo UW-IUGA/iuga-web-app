@@ -67,7 +67,7 @@ function HomePage() {
                     <div><img src="/assets/gallery/officers-22.png" alt="" /></div>
                 </div>
                 <div>
-                    <img src="/assets/campfire.svg" alt="characters around a campfire" />
+                    <img src="/assets/campfire.png" alt="characters around a campfire" />
                 </div>
             </div>
         </div>

@@ -93,11 +93,12 @@
         color: $color-career-primary;
         outline-color: white;
         border-color: $color-career-secondary;
+        border-width: 2px;
     }
 
     button:hover {
-        background-color: $color-career-primary;
-        color: white;
+        background-color: $color-career-secondary;
+        border-color: $color-career-primary;
     }
 }
 
@@ -137,11 +138,12 @@
         color: $color-social-primary;
         border-color: $color-social-secondary;
         outline-color: white;
+        border-width: 2px;
     }
 
     button:hover {
-        background-color: $color-social-primary;
-        color: white;
+        background-color: $color-social-secondary;
+        border-color: $color-social-primary;
     }
 }
 
@@ -180,10 +182,11 @@
         color: $color-academic-primary;
         border-color: $color-academic-secondary;
         outline-color: white;
+        border-width: 2px;
     }
 
     button:hover {
-        background-color: $color-academic-primary;
-        color: white;
+        background-color: $color-academic-secondary;
+        border-color: $color-academic-primary;
     }
 }

@@ -37,6 +37,10 @@ async function connectToDatabase(){
                 data: Buffer,
                 contentType: String
             },
+            eThumbnail: {
+                data: Buffer,
+                contentType: String
+            },
             eLabels: [String],
             qList: [{
                 qNumber: { type: Number, required: true},

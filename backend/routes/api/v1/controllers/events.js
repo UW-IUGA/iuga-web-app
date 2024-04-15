@@ -10,6 +10,7 @@ import express from 'express';
 
 var router = express.Router();
 //-------------------------------Event Endpoints----------------------------------------------
+//For the calendar display of an event
 router.get("/", async function(req, res) {
     try{
         //First check to see if any queries were passed in to filter with.
@@ -70,14 +71,17 @@ router.get("/", async function(req, res) {
         //Default returned info for events: title, start/end date, location
         const eventsData = await Promise.all(
             events.map(async event => {
-            return {
-                //Assume that this endpoint is for retrieving events from the calendar when the user loads the page or flips teh calendar.
-                id:event._id,
-                name:event.eName,
-                startDate:event.eStartDate,
-                endDate:event.eEndDate,
-                location:event.eLocation
-            };
+                return {
+                    //Assume that this endpoint is for retrieving events from the calendar when the user loads the page or flips teh calendar.
+                    id:event._id,
+                    name:event.eName,
+                    startDate:event.eStartDate,
+                    endDate:event.eEndDate,
+                    location:event.eLocation,
+                    organizers: event.eOrganizers,
+                    short_description: event.eDescription,
+                    categories: event.eLabels
+                };
             })
         );
 
@@ -88,6 +92,7 @@ router.get("/", async function(req, res) {
     }
 });
 
+//Selecting a specific event on the calendar
 router.get("/:eId", async function(req,res) {
     //When getting an event based on an id, get all info about the event asked for
     try {
@@ -105,7 +110,8 @@ router.get("/:eId", async function(req,res) {
             pictures:event.ePics,
             labels:event.eLabels,
             questions:event.qList,
-            participants:event.participants
+            participants:event.participants,
+            thumbnail: event.eThumbnail
         };
 
         res.json(eventData);
@@ -113,6 +119,11 @@ router.get("/:eId", async function(req,res) {
         console.log(error);
         res.status(500).json({status:"error", message:error.message});
     }
+})
+
+//For the homepage's 3 displayed latest events
+router.get("/spotlight", async (req,res) => {
+
 })
 
 router.post("/", async function(req, res) {

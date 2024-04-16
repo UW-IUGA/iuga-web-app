@@ -6,7 +6,7 @@ Schemas addressed in events.js:
 - Participants
 */
 
-import express from 'express';
+import express, { raw } from 'express';
 
 var router = express.Router();
 //-------------------------------Event Endpoints----------------------------------------------
@@ -79,8 +79,8 @@ router.get("/", async function(req, res) {
                     endDate:event.eEndDate,
                     location:event.eLocation,
                     organizers: event.eOrganizers,
-                    short_description: event.eDescription,
-                    categories: event.eLabels
+                    description: event.eDescription,
+                    labels: event.eLabels
                 };
             })
         );
@@ -122,7 +122,35 @@ router.get("/:eId", async function(req,res) {
 })
 
 //For the homepage's 3 displayed latest events
-router.get("/spotlight", async (req,res) => {
+router.get("/upcoming", async function(req,res) {
+    try {
+        //sort the result by descending
+        const rawEvents = req.models.Events.find({}).sort({"eStartDate":-1}); 
+        
+        //get the 3 latest events
+        let events = [rawEvents[0], rawEvents[1], rawEvents[2]]; 
+
+        //package them
+        const eventsData = await Promise.all( 
+            events.map(async event => {
+                return {
+                    id:event._id,
+                    name:event.eName,
+                    organizers:event.eOrganizers,
+                    description:event.eDescription,
+                    labels:event.eLabels,
+                    thumbnail: event.eThumbnail,
+                    startDate: event.eStartDate,
+                    endDate: event.eEndDate
+                }
+            })
+        )
+
+        res.json(eventsData) //send the 3 events back
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({status:"error", message:error.message});    
+    }
 
 })
 

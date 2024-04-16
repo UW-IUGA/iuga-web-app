@@ -151,7 +151,6 @@ router.get("/upcoming", async function(req,res) {
         console.log(error);
         res.status(500).json({status:"error", message:error.message});    
     }
-
 })
 
 router.post("/", async function(req, res) {

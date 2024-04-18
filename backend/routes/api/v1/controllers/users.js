@@ -34,7 +34,10 @@ router.post('/login', async function(req, res, next) {
         req.session.email = userData.mail;
         req.session.firstName = userData.givenName;
         req.session.lastName = userData.surname;
-   
+        //req.session.id = userData.id; ???
+        //req.session.major = userData.major; ???
+        //req.session.picture = userData.pic ???
+
         console.log(req.session);
     
         try {
@@ -43,7 +46,24 @@ router.post('/login', async function(req, res, next) {
                     message: "success"
                 }
             )
-            // const newUser = new req.models.Users(parsedUser);        
+
+            const userId = req.session.id 
+            //Check if user is already in database, if not then make them an account
+            const user = await req.models.Users.findOne({uId:userId})
+            if (user == null) {
+                const newUser = new req.models.Users({
+                    uId: userId,
+                    uPic: "TBD", //Choose a default user pic to show from the response info, or somewhere else
+                    uFirstName: req.session.firstName,
+                    uLastName: req.session.lastName,
+                    uDisplayName: req.session.displayName,
+                    uEmail: req.session.email,
+                    uBio: "Write about yourself here!",
+                    uMajor: "TBD", //Need to verify from the response info
+                    uType: "TBD", //Either this comes from the response info, or we need a different system for this
+                })
+            }
+
         } catch (err) {
             console.log(err);
             res.status(500).json(
@@ -79,5 +99,62 @@ router.post('/logout', function(req, res, next) {
         )
     }
 });
+
+//Get the user's specific information from the user's perspective, from an outsider perspective, and from the admin perspective
+router.get("/:uId", async function(req,res) {
+    if(req.session.isAuthenticated) {
+        try {
+            const uId = req.params.uId;
+            const currId = req.session.id;
+            const currUser = await req.models.Users.findById({currId})
+
+            if (currId == uId) { //Current user is viewing their own account (account owner view)
+                
+            } else if (currId != uId && currUser.uType === "Admin") { //An admin is viewing a users account (admin view)
+
+            } else { //An outside user is viewing another user's account (Outside user view)
+
+            }
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({status:"error", message:error.message});
+        }
+    } else {
+        res.status(400).json({
+            status: "error",
+            error: "User is not logged in"
+        })
+    }    
+})
+
+//User wants to update their own profile information, or an admin is trying to change a user's information. 
+router.post("/:uId", async function(req,res) {
+    if(req.session.isAuthenticated) {
+        try {
+            const uId = req.params.uId;
+            const currId = req.session.id;
+            const currUser = await req.models.Users.findById({currId})
+            if (currId == uId) { //If current user edits their own account
+
+            } else if (currId != uId && currUser.uType === "Admin") { //if admin edits user account
+
+            } else {
+                res.status(400).json({
+                    status:"error",
+                    error: "Access denied"
+                })
+            }
+            
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({status:"error", message:error.message});
+        }
+    } else {
+        res.status(400).json({
+            status: "error",
+            error: "User is not logged in"
+        })
+    }
+})
 
 export default router

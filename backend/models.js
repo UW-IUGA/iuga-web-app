@@ -77,14 +77,17 @@ async function connectToDatabase(){
         Default user account type is Member, unless otherwise noted.
     */
         const usersSchema = new mongoose.Schema({
+            uId: Number,
             uPic: {
                 data: Buffer,
                 contentType: String
             },
-            uName: {type: String, required: true},
+            uFirstName: {type: String, required: true},
+            uLastName: {type: String, required: true},
+            uDisplayName: String,
             uEmail: String,
             uBio: String,
-            uMajor: String,
+            uMajor: {type:String, default: ""},
             uType: {type: String, default: "Member"},
             uPrivate: { type: Boolean, default: false }
         }) 

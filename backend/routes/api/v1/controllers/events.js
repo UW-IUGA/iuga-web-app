@@ -251,20 +251,71 @@ router.delete("/withdraw", async function(req,res) {
     }
 })
 
-router.get("/getParticipant", async function(req,res) {
+router.get("/getParticipant/:eId", async function(req,res) {
 //This is specfically for a list of participants from the admins point of view, so when you 
 //frontend needs to do the admin check.
 
 //Based on the list of pIds retreived, find the participant docs in the db, and return a list of their names to the client.
-
+    try {
+        const currUser = await req.models.Users.findById({/*getID*/})
+        if(req.session.isAuthenticated) {
+            if(currUser.uType === "Admin") {
+                const eID = req.params.eId;
+                const event = await req.models.Events.findById({eID});
+                if (!event) {
+                    return res.status(404).json({status:"error", message:"Event not found."});
+                }
+                let participantNames = [];
+                let participant;
+                let userID;
+                let users;
+                let userFirstName;
+                let userLastName;
+                event.participants.forEach(async p => {
+                    participant = await req.models.Participants.findById({p})
+                    userID = participant.pUID
+                    users = await req.models.Users.findById({userID});
+                    userFirstName = users.uFirstName;
+                    userLastName = users.uLastName;
+                    participantNames.push({uFirstName: userFirstName, uLastName: userLastName});
+                });
+                res.json({status: "Success", participants: participantNames});
+            } else {
+                res.json({status:"error", message:"Access denied."})
+            }
+        } else {
+            res.status(400).json({
+                status: "error",
+                error: "User is not logged in"
+            })
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({status:"error", message:error.message});
+    }
 })
 
 //Given a participant's id, pull their answer list, user profile, and other info about them
 router.get("/:pId", async function(req, res) {
-
+    try {
+        const pId = req.params.pId;
+        const participant = await req.models.Participants.findById({pId});
+        if (!participant) {
+            return res.status(404).json({status:"error", message:"Participant not found."});
+        }
+        const participantData = {
+            id: pId,
+            userId: participant.pUID,
+            aList: participant.aList,
+            isAnon: participant.isAnon
+        }
+        // fix this
+        res.json({status:"Success", participant: participantData});
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({status:"error", message:error.message});
+    }
 })
-
-
 
 //-------------------------------Participant Endpoints----------------------------------------------
 //User answers RSVP questions, update answer list

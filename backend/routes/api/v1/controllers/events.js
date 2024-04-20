@@ -10,20 +10,39 @@ import express, { raw } from 'express';
 
 var router = express.Router();
 //-------------------------------Event Endpoints----------------------------------------------
-//For the calendar display of an event
+
+/*
+Purpose: Get information for events to display on the calendar for a given month/year.
+Authentication/Authorization Requirements: None
+
+Expected Request Information (<r> indicates a required field to include in the call):
+- Parameters: N/A
+- Queries: ?year=####&month=##
+- Body: N/A
+
+Expected Response Information:
+- return [{
+            eId: event id,
+            eName: String event name,
+            eStartDate: Date event starts,
+            eEndDate: Date event ends,
+            eLocation: String event location,
+            eOrganizers: String event organizer(s),
+            eDescription: String event description,
+            eLabels: Array of String event category label(s)
+        }]
+*/
 router.get("/", async function(req, res) {
     try{
-        //First check to see if any queries were passed in to filter with.
+        //First check to see if any queries were passed in to filter with, and check for bad values.
         const query = {};
         if(req.query.month) {
             query.month = req.query.month;
         }
-        if(req.query.year) {
+        if(req.query.year && req.query.year <= new Date().getFullYear()) {
             query.year = req.query.year;
         }
         
-        //Do a double check for bad month/year queries passed in by the user.
-
         //Find the correct staging operators based on the query filters available.
         let filter = true;
         let exprExpression = {}
@@ -64,23 +83,22 @@ router.get("/", async function(req, res) {
             ]);
         } else {
             events = await req.models.Events.find({})
-            //Just display no events is another option
+            //Just displaying no events is another option
         }
 
         //Package the data in a variable and send back to client.    
-        //Default returned info for events: title, start/end date, location
         const eventsData = await Promise.all(
             events.map(async event => {
                 return {
-                    //Assume that this endpoint is for retrieving events from the calendar when the user loads the page or flips teh calendar.
-                    id:event._id,
-                    name:event.eName,
-                    startDate:event.eStartDate,
-                    endDate:event.eEndDate,
-                    location:event.eLocation,
-                    organizers: event.eOrganizers,
-                    description: event.eDescription,
-                    labels: event.eLabels
+                    //Assume that this endpoint is for retrieving events from the calendar when the user loads the page or flips the calendar.
+                    eId:event._id,
+                    eName:event.eName,
+                    eStartDate:event.eStartDate,
+                    eEndDate:event.eEndDate,
+                    eLocation:event.eLocation,
+                    eOrganizers: event.eOrganizers,
+                    eDescription: event.eDescription,
+                    eLabels: event.eLabels
                 };
             })
         );
@@ -92,7 +110,31 @@ router.get("/", async function(req, res) {
     }
 });
 
-//Selecting a specific event on the calendar
+/*
+Purpose: Selecting a specific event on the calendar
+Authentication/Authorization Requirements: None
+
+Expected Request Information (<r> indicates a required field to include in the call):
+- Parameters: <r> eId
+- Queries: N/A
+- Body: N/A
+
+Expected Response Information:
+- return [{
+            eId: event id,
+            eName: String event name,
+            eStartDate: Date event starts,
+            eEndDate: Date event ends,
+            eLocation: String event location,
+            eOrganizers: Array of String event organizer(s),
+            eDescription: String event description,
+            eLabels: Array of String event category label(s),
+            ePics: Array of Image event pics,
+            qList: Array of key:value pairs representing RSVP question number and question string,
+            participants: Array of participant ids,
+            eThumbnail: a Image of event
+        }]
+*/
 router.get("/:eId", async function(req,res) {
     //When getting an event based on an id, get all info about the event asked for
     try {
@@ -100,18 +142,18 @@ router.get("/:eId", async function(req,res) {
         const event = await req.models.Events.findById({eId})
 
         const eventData = {
-            id:event._id,
-            name:event.eName,
-            organizers:event.eOrganizers,
-            startDate:event.eStartDate,
-            endDate:event.eEndDate,
-            location:event.eLocation,
-            description:event.eDescription,
-            pictures:event.ePics,
-            labels:event.eLabels,
-            questions:event.qList,
+            eId:event._id,
+            eName:event.eName,
+            eOrganizers:event.eOrganizers,
+            eStartDate:event.eStartDate,
+            eEndDate:event.eEndDate,
+            eLocation:event.eLocation,
+            eDescription:event.eDescription,
+            ePics:event.ePics,
+            eLabels:event.eLabels,
+            qList:event.qList,
             participants:event.participants,
-            thumbnail: event.eThumbnail
+            eThumbnail: event.eThumbnail
         };
 
         res.json(eventData);
@@ -121,11 +163,31 @@ router.get("/:eId", async function(req,res) {
     }
 })
 
-//For the homepage's 3 displayed latest events
+/*
+Purpose: For the homepage's 3 displayed latest events
+Authentication/Authorization Requirements: None
+
+Expected Request Information (<r> indicates a required field to include in the call):
+- Parameters: N/A
+- Queries: N/A
+- Body: N/A
+
+Expected Response Information:
+- return [{
+            eId: event id,
+            eName: String event name,
+            eStartDate: Date event starts,
+            eEndDate: Date event ends,
+            eOrganizers: Array of String event organizer(s),
+            eDescription: String event description,
+            eLabels: Array of String event category label(s),
+            eThumbnail: a Image of event
+        }]
+*/
 router.get("/upcoming", async function(req,res) {
     try {
         //sort the result by descending
-        const rawEvents = req.models.Events.find({}).sort({"eStartDate":-1}); 
+        const rawEvents = await req.models.Events.find({}).sort({"eStartDate":-1}); 
         
         //get the 3 latest events
         let events = [rawEvents[0], rawEvents[1], rawEvents[2]]; 
@@ -134,14 +196,14 @@ router.get("/upcoming", async function(req,res) {
         const eventsData = await Promise.all( 
             events.map(async event => {
                 return {
-                    id:event._id,
-                    name:event.eName,
-                    organizers:event.eOrganizers,
-                    description:event.eDescription,
-                    labels:event.eLabels,
-                    thumbnail: event.eThumbnail,
-                    startDate: event.eStartDate,
-                    endDate: event.eEndDate
+                    eId:event._id,
+                    eName:event.eName,
+                    eOrganizers:event.eOrganizers,
+                    eDescription:event.eDescription,
+                    eLabels:event.eLabels,
+                    eThumbnail: event.eThumbnail,
+                    eStartDate: event.eStartDate,
+                    eEndDate: event.eEndDate
                 }
             })
         )
@@ -155,8 +217,9 @@ router.get("/upcoming", async function(req,res) {
 
 /*
 Purpose: Make a new event, or edit a preexisting one.
-Requirements: Logged in, and an admin user.
-Request Information (<r> indicates a required field to include in the call):
+Authentication/Authorization Requirements: Logged in, and an admin user.
+
+Expected Request Information (<r> indicates a required field to include in the call):
 - Parameters: N/A
 - Queries: N/A
 - Body: { 
@@ -177,7 +240,6 @@ Request Information (<r> indicates a required field to include in the call):
 
 Expected Response Information:
 - {status:"Sucess"}
-
 */
 router.post("/", req.upload.fields([{ name: 'ePics', maxCount: 10 }, { name: 'eThumbnail', maxCount: 1 }]), async function(req, res) {
     try{
@@ -222,7 +284,7 @@ router.post("/", req.upload.fields([{ name: 'ePics', maxCount: 10 }, { name: 'eT
 
                 await event.save();
                 res.json({status:"Success"});
-            } else { //Otherwise create a new event as intended.
+            } else { //Otherwise create a new event as intended. (Similar process more or less)
                 const event = new req.models.Events({
                     eName: req.body.eName, 
                     eOrganizers: req.body.eOrganizers,
@@ -267,92 +329,161 @@ router.post("/", req.upload.fields([{ name: 'ePics', maxCount: 10 }, { name: 'eT
     }
 });
 
-//router.delete will just filter by id and delete the found docs of events
+/*
+Purpose: Delete a specific event.
+Authentication/Authorization Requirements: Logged in, and an admin user.
+
+Expected Request Information (<r> indicates a required field to include in the call):
+- Parameters: <r> eId
+- Queries: N/A
+- Body: N/A
+
+Expected Response Information:
+- {
+    event:event, 
+    status:"Success"
+  }
+*/
 router.delete("/:eId", async function(req,res) {
     try {
-        //Check if admin before deletion?
-        const eId = req.params.eId;
-        const event = await req.models.Events.findByIdAndDelete({eId});
+        if(req.session.isAuthenticated) {
+            const uId = req.params.uId;
+            const currId = req.session.id;
+            const currUser = await req.models.Users.findById({currId})
 
-        res.json({event:event, status:"Success"});
+            if(currUser.uType ==="Admin"){    
+                const eId = req.params.eId;
+                const event = await req.models.Events.findByIdAndDelete({eId});
+
+                res.json({event:event, status:"Success"});
+            } else {
+                res.json({status:"error", message:"Access denied."})
+            }
+        }
     } catch (error) {
         console.log(error);
         res.status(500).json({status:"error", message:error.message});
     }
 })
 
-//User signs up as a participant (Make a new particpant schema and assign the user as one.)
+/*
+Purpose: User signs up as a participant to an event
+Authentication/Authorization Requirements: Logged in
+
+Expected Request Information (<r> indicates a required field to include in the call):
+- Parameters: N/A
+- Queries: N/A
+- Body: {
+            <r> uId: Current user's id to add them to event,
+            <r> eId: find the event,
+            aList: Array of key:value pairs with question number and answer string,
+            isAnon: Boolean if user is participating anon or not 
+        }
+
+Expected Response Information:
+- {
+    status:"Success"
+  }
+*/
 router.post("/RSVP", async function(req,res) { 
     //Using the given event id and user id parameters, create a participant profile for the user and this pId into the event's participant list
     try {
-        const uId = req.body.uId;
-        const eId = req.body.eId;
-        const event = await req.models.Events.findById({eId});
+        if(req.session.isAuthenticated) {
+            const uId = req.body.uId;
+            const eId = req.body.eId;
+            const event = await req.models.Events.findById({eId});
 
-        //Loop through the event participants, and check if they are already a participant
-            //Another option instead of this check, is to make a separate endpoint to update the participant, given event id and user id.
-        let isParticipant = false;
-        let pId;
-        event.participants.forEach(p => {
-            if(req.models.Participants.findById({p}).pUID == uId) {
-                isParticipant = true;
-                pId = p; //also grab their pId
+            //Loop through the event participants, and check if they are already a participant
+                //Another option instead of this check, is to make a separate endpoint to update the participant, given event id and user id.
+            let isParticipant = false;
+            let pId;
+            event.participants.forEach(p => {
+                if(req.models.Participants.findById({p}).pUID == uId) {
+                    isParticipant = true;
+                    pId = p; //also grab their pId
+                }
+            });
+            
+            //If the user is already a participant, check to see what was sent in, update the values for the participant accordingly.
+            if(isParticipant==true) {
+                const participant = await req.models.Participants.findById({pId});
+                participant.aList = req.body.aList;
+                participant.isAnon = req.body.isAnon;
+
+                await participant.save();
+            } else { 
+                //Else make them a new participant, and save their info to the database and event participant list.
+                //Fit the new participant data into a new Participant Schema Object
+                const newParticipant = new req.models.Participants({
+                    pUID: uId,
+                    aList: req.body.aList,
+                    isAnon: req.body.isAnon
+                })
+
+                //Save the new Participant object into the database.
+                await newParticipant.save(); //doublecheck to see if this means we can still use the newParticipant doc now.
+                event.participants.push(newParticipant._id);
+                await event.save();
             }
-        });
-        
-        //If the user is already a participant, check to see what was sent in, update the values for the participant accordingly.
-        if(isParticipant==true) {
-            const participant = await req.models.Participants.findById({pId});
-            participant.aList = req.body.aList;
-            participant.isAnon = req.body.isAnon;
 
-            await participant.save();
-        } else { 
-            //Else make them a new participant, and save their info to the database and event participant list.
-            //Fit the new participant data into a new Participant Schema Object
-            const newParticipant = new req.models.Participants({
-                pUID: uId,
-                aList: req.body.aList,
-                isAnon: req.body.isAnon
+            res.json({status:"Success"});
+        } else {
+            res.status(400).json({
+                status: "error",
+                error: "User is not logged in"
             })
-
-            //Save the new Participant object into the database.
-            await newParticipant.save(); //doublecheck to see if this means we can still use the newParticipant doc now.
-            event.participants.push(newParticipant._id);
-            await event.save();
         }
-
-        res.json({status:"Success"});
     } catch (error) {
         console.log(error);
         res.status(500).json({status:"error", message:error.message});
     }
 })
 
-//User withdraws from an event
-router.delete("/withdraw", async function(req,res) {
-    //Using the given participant id parameter, remove the participant from the event's participant list
+
+/*
+Purpose: User withdraws from an event
+Authentication/Authorization Requirements: Logged in, (optional) is admin
+
+Expected Request Information (<r> indicates a required field to include in the call):
+- Parameters: eId, pId
+- Queries: N/A
+- Body: N/A
+
+Expected Response Information:
+- {
+    status:"Success"
+  }
+*/
+router.delete("/withdraw/:eId/:pId", async function(req,res) {
     try {
-        const pId = req.body.pId;
-        const eId = req.body.eId;
-        const event = await req.models.Events.findById({eId});
-        
-        let newParticipants = [] 
-        event.participants.forEach(participant => { 
-            if(participant != pId) { 
-                newParticipants.push(participant); 
-            }
-        });
+        if(req.session.isAuthenticated) {
+            const pId = req.params.pId;
+            const eId = req.params.eId;
+            const event = await req.models.Events.findById({eId});
+            
+            let newParticipants = [] 
+            event.participants.forEach(participant => { 
+                if(participant != pId) { 
+                    newParticipants.push(participant); 
+                }
+            });
 
-        event.participants = newParticipants;
-        await event.save();
+            event.participants = newParticipants;
+            await event.save();
 
-        res.json({status:"Success"});
+            res.json({status:"Success"});
+        } else {
+            res.status(400).json({
+                status: "error",
+                error: "User is not logged in"
+            })        
+        } 
     } catch (error) {
         console.log(error);
         res.status(500).json({status:"error", message:error.message});
     }
 })
+
 
 router.get("/getParticipant/:eId", async function(req,res) {
 //This is specfically for a list of participants from the admins point of view, so when you 

@@ -317,10 +317,4 @@ router.get("/:pId", async function(req, res) {
     }
 })
 
-//-------------------------------Participant Endpoints----------------------------------------------
-//User answers RSVP questions, update answer list
-
-
-//
-
 export default router;

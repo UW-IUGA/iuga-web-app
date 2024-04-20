@@ -153,15 +153,118 @@ router.get("/upcoming", async function(req,res) {
     }
 })
 
-router.post("/", async function(req, res) {
-    if(req.session.isAuthenticated && req.session.isAdmin) {
-        //Can make new events because they are admin
-    } else
-    {
-        //error handling
+/*
+Purpose: Make a new event, or edit a preexisting one.
+Requirements: Logged in, and an admin user.
+Request Information (<r> indicates a required field to include in the call):
+- Parameters: N/A
+- Queries: N/A
+- Body: { 
+            <r> uId: Current user's id,
+            eId: if editting an event provide the event id,
+            <r> eName: String event name,
+            <r> eOrganizers: String event organizer(s),
+            <r> eStartDate: Date event starting date/time,
+            eEndDate: Date event ending date/time,
+            <r> eLocation: String event location,
+            <r> eDescription: String event description,
+            ePics: Array of Images of the event,
+            eThumbnail: Image thumbnail of the event,
+            eLabels: Array of String categorey/categories the event falls under,
+            <r> qList: Array List of String RSVP questions,
+            participants: Array List of participant ids, 
+        }
+
+Expected Response Information:
+- {status:"Sucess"}
+
+*/
+router.post("/", req.upload.fields([{ name: 'ePics', maxCount: 10 }, { name: 'eThumbnail', maxCount: 1 }]), async function(req, res) {
+    try{
+        const uId = req.body.uID; //Other ways to get this would be to call req.session.id if that is available.
+        const user = await req.models.Users.findById({uId})
+
+        if(req.session.isAuthenticated && user.uType === "Admin") {
+            //if an event id was given, then update the event with the given information instead
+            if(req.body.eId) { 
+                const eId = req.body.eId; 
+                const event = await req.models.Events.findById({eId});
+                
+                //Update required body information
+                event.eName = req.body.eName; 
+                event.eOrganizers = req.body.eOrganizers;
+                event.eStartDate  = req.body.eStartDate;
+                event.eLocation = req.body.eLocation; 
+                event.eDescription = req.body.eDescription;
+                event.qList = req.body.qList;
+
+                //Check if the optional body info is here too, if so then update the event.
+                if(req.body.eLabels) {
+                    event.eLabels = req.body.eLabels; 
+                }
+                if(req.body.eEndDate) {
+                    event.eEndDate = req.body.eEndDate; 
+                }
+                if(req.body.participants) {
+                    event.participants = req.body.participants; 
+                }
+
+                //Check if there were any images uploaded for the event thumbnail and pictures
+                if (req.files) { 
+                    //If so then populate the event with the givens.
+                    if (req.files['ePics']) {
+                        event.ePics = req.files['ePics'].map(file => file.path);
+                    }
+                    if (req.files['eThumbnail']) {
+                        event.eThumbnail = req.files['eThumbnail'][0].path;
+                    }
+                }
+
+                await event.save();
+                res.json({status:"Success"});
+            } else { //Otherwise create a new event as intended.
+                const event = new req.models.Events({
+                    eName: req.body.eName, 
+                    eOrganizers: req.body.eOrganizers,
+                    eStartDate: req.body.eStartDate,
+                    eLocation: req.body.eLocation,
+                    eDescription: req.body.eDescription,
+                    qList: req.body.qList
+                })
+
+                if(req.body.eLabels) {
+                    event.eLabels = req.body.eLabels; 
+                }
+                if(req.body.eEndDate) {
+                    event.eEndDate = req.body.eEndDate; 
+                }
+                if(req.body.participants) {
+                    event.participants = req.body.participants; 
+                }
+
+                if (req.files) { 
+                    //If so then populate the event with the givens.
+                    if (req.files['ePics']) {
+                        event.ePics = req.files['ePics'].map(file => file.path);
+                    }
+                    if (req.files['eThumbnail']) {
+                        event.eThumbnail = req.files['eThumbnail'][0].path;
+                    }
+                }
+
+                await event.save();
+                res.json({status:"Success"})
+            }
+        } else {
+            res.status(400).json({
+                status: "error",
+                error: "Access denied"
+            })
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(400).json({status:"error", message:error.message})
     }
-    
-    res.send("events");
 });
 
 //router.delete will just filter by id and delete the found docs of events

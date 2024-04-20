@@ -76,8 +76,6 @@ router.post('/login', async function(req, res, next) {
     }
 })
 
-
-
 /* 
     @endpoint: /logout
     @method: POST

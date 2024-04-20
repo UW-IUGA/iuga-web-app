@@ -28,7 +28,7 @@ async function connectToDatabase(){
     */
         const eventsSchema = new mongoose.Schema({
             eName: {type: String, required: true },
-            eOrganizers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Organizations'}],
+            eOrganizers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Organizations', required: true}],
             eStartDate: { type: Date, required: true },
             eEndDate: Date,
             eLocation: { type: String, required: true },

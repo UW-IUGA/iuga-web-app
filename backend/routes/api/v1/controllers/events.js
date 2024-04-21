@@ -32,83 +32,84 @@ Expected Response Information:
             eLabels: Array of String event category label(s)
         }]
 */
-// router.get("/", async function(req, res) {
-//     try{
-//         //First check to see if any queries were passed in to filter with, and check for bad values.
-//         const query = {};
-//         if(req.query.month) {
-//             query.month = req.query.month;
-//         }
-//         if(req.query.year && req.query.year <= new Date().getFullYear()) {
-//             query.year = req.query.year;
-//         }
+router.get("/", async function(req, res) {
+    try{
+        //First check to see if any queries were passed in to filter with, and check for bad values.
+        const query = {};
+        if(req.query.month) {
+            query.month = req.query.month;
+        }
         
-//         //Find the correct staging operators based on the query filters available.
-//         let filter = true;
-//         let exprExpression = {}
-//         if (query.year != undefined && query.month != undefined) {
-//             exprExpression = {
-//                 $and: [
-//                     { $eq: [{ $month: '$eStartDate' }, query.month] },
-//                     { $eq: [{ $year: '$eStartDate' }, query.year] }
-//                 ]
-//             } 
-//         } else if (query.year != undefined) {
-//             exprExpression = {
-//                             $eq: [{ $year: 'eStartDate'}, query.year]
-//                         }
-//         } else if (query.month != undefined) {
-//             exprExpression = {
-//                 $eq: [{ $month: 'eStartDate'}, query.month]
-//             }
-//         } else {
-//             //What should the default return of the docs be? All of the docs? Or only the docs in the current month?
-//             filter = false;
-//             //Just display no events is another option
-
-//         }
+        if(req.query.year && req.query.year <= new Date().getFullYear()) {
+            query.year = req.query.year;
+        }
         
-//         //Once filter type selected for the specific query or queries, find the docs that match the filter.
-//         let events;
-//         if (filter) { 
-//             events = await req.models.Events.aggregate([
-//                 {
-//                     //Match finds the specified docs
-//                     $match: { 
-//                         //Expr allows for the use of a complex comparison inside the match stage
-//                         //exprExpression will handle actually identifying the docs based on requested month and or year
-//                         $expr: exprExpression 
-//                     }
-//                 }
-//             ]);
-//         } else {
-//             events = await req.models.Events.find({})
-//             //Just displaying no events is another option
-//         }
+        //Find the correct staging operators based on the query filters available.
+        let filter = true;
+        let exprExpression = {}
+        if (query.year != undefined && query.month != undefined) {
+            exprExpression = {
+                $and: [
+                    { $eq: [{ $month: '$eStartDate' }, query.month] },
+                    { $eq: [{ $year: '$eStartDate' }, query.year] }
+                ]
+            } 
+        } else if (query.year != undefined) {
+            exprExpression = {
+                            $eq: [{ $year: 'eStartDate'}, query.year]
+                        }
+        } else if (query.month != undefined) {
+            exprExpression = {
+                $eq: [{ $month: 'eStartDate'}, query.month]
+            }
+        } else {
+            //What should the default return of the docs be? All of the docs? Or only the docs in the current month?
+            filter = false;
+            //Just display no events is another option
 
-//         //Package the data in a variable and send back to client.    
-//         const eventsData = await Promise.all(
-//             events.map(async event => {
-//                 return {
-//                     //Assume that this endpoint is for retrieving events from the calendar when the user loads the page or flips the calendar.
-//                     eId:event._id,
-//                     eName:event.eName,
-//                     eStartDate:event.eStartDate,
-//                     eEndDate:event.eEndDate,
-//                     eLocation:event.eLocation,
-//                     eOrganizers: event.eOrganizers,
-//                     eDescription: event.eDescription,
-//                     eLabels: event.eLabels
-//                 };
-//             })
-//         );
+        }
+        
+        //Once filter type selected for the specific query or queries, find the docs that match the filter.
+        let events;
+        if (filter) { 
+            events = await req.models.Events.aggregate([
+                {
+                    //Match finds the specified docs
+                    $match: { 
+                        //Expr allows for the use of a complex comparison inside the match stage
+                        //exprExpression will handle actually identifying the docs based on requested month and or year
+                        $expr: exprExpression 
+                    }
+                }
+            ]);
+        } else {
+            events = await req.models.Events.find({})
+            //Just displaying no events is another option
+        }
 
-//         res.json(eventsData);
-//     } catch (error) {
-//         console.log(error);
-//         res.status(500).json({status:"error", message:error.message});
-//     }
-// });
+        //Package the data in a variable and send back to client.    
+        const eventsData = await Promise.all(
+            events.map(async event => {
+                return {
+                    //Assume that this endpoint is for retrieving events from the calendar when the user loads the page or flips the calendar.
+                    eId:event._id,
+                    eName:event.eName,
+                    eStartDate:event.eStartDate,
+                    eEndDate:event.eEndDate,
+                    eLocation:event.eLocation,
+                    eOrganizers: event.eOrganizers,
+                    eDescription: event.eDescription,
+                    eLabels: event.eLabels
+                };
+            })
+        );
+
+        res.json(eventsData);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({status:"error", message:error.message});
+    }
+});
 
 /*
 Purpose: Selecting a specific event on the calendar

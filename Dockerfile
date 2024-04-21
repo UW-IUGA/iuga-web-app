@@ -5,7 +5,7 @@ WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm install
 COPY frontend/ ./
-RUN sed -i 's#http://localhost:7777/#https://dev.iuga.info/#' src/authConfig.js
+RUN sed -i 's#http://localhost:7777/#https://dev.iuga.info/#' src/authConfig.js src/App.jsx
 RUN npm run build
 
 

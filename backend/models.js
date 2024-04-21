@@ -28,7 +28,7 @@ async function connectToDatabase(){
     */
         const eventsSchema = new mongoose.Schema({
             eName: {type: String, required: true },
-            eOrganizers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Organizations', required: true}],
+            eOrganizers: {type: String, required: true },
             eStartDate: { type: Date, required: true },
             eEndDate: Date,
             eLocation: { type: String, required: true },
@@ -72,22 +72,23 @@ async function connectToDatabase(){
             fDescription: { type: String, required: true},
             fRating: Number
         }) 
+
     /* Users Schema:
         Basic information when a user signs up
         Default user account type is Member, unless otherwise noted.
     */
         const usersSchema = new mongoose.Schema({
             uId: Number,
-            uPic: {
-                data: Buffer,
-                contentType: String
-            },
-            uFirstName: {type: String, required: true},
-            uLastName: {type: String, required: true},
+            // uPic: {
+            //     data: Buffer,
+            //     contentType: String
+            // },
+            uFirstName: String,
+            uLastName: String,
             uDisplayName: String,
             uEmail: String,
-            uBio: String,
-            uMajor: {type:String, default: ""},
+            // uBio: String,
+            // uMajor: {type:String, default: ""},
             uType: {type: String, default: "Member"},
             uPrivate: { type: Boolean, default: false }
         }) 

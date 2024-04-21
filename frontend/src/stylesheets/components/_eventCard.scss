@@ -3,6 +3,7 @@
     padding: $padding-content;
     border-radius: $radius;
     transition: all 500ms cubic-bezier(0.19, 1, 0.22, 1);
+    flex: 1;
 
     & > img {
         width: 110px;
@@ -44,4 +45,11 @@
 .eventCardCategories {
     display: flex;
     gap: 12px;
+}
+
+.eventCardBody p {
+    width: 330px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
 }

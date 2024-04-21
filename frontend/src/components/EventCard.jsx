@@ -1,21 +1,24 @@
 import Tag from "../components/Tag";
+import dateFormat from "dateformat";
 
 const EventCard = ({ event, decorate }) => {
+    const parsedTimestamp = Date.parse(event.eStartDate);
+
     return (
         <div className="eventCard">
             { decorate ? <img src="/assets/events-decoration.svg" alt="event card decoration" /> : "" }
             <div>
-                <img src={``} alt={`${event.title} event`} ></img>
+                <img src={``} alt={`${event.eName} event`} ></img>
             </div>
             <div className="eventCardHeader">
-                <h1>{event.title}</h1>
-                <p>{event.organizer}</p>
+                <h1>{event.eName}</h1>
+                <p>{dateFormat(new Date(parsedTimestamp), "ddd, mmm dd")} | {event.eOrganizers}</p>
             </div>
             <div className="eventCardBody">
-                <p>{event.short_description}</p>
+                <p>{event.eDescription}</p>
             </div>
             <div className="eventCardCategories">
-                { event.categories.map(category => {
+                { event.eLabels.map(category => {
                     return <Tag key={category} text={category} style={category} />;
                 })}
             </div>

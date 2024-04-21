@@ -3,35 +3,10 @@ import CharacterCard from "../components/CharacterCard";
 import EventCard from "../components/EventCard";
 import { useNavigate } from "react-router-dom";
 
-function HomePage() {
+function HomePage({upcomingEvents}) {
     const navigate = useNavigate();
     const categories = ["Academic", "Social", "Career"];
-    const events = [
-        {
-            "title": "Networking + Industry Panel",
-            "organizer": "UX@UW and HCDEsa",
-            "short_description": "Eager to learn more about how to get your foot in the door with big tech companies fo...",
-            "categories": ["Social", "Career"]
-        },
-        {
-            "title": "Hack for Social Good 2024",
-            "organizer": "IUGA, Winfo, binfo",
-            "short_description": "Eager to learn more about how to get your foot in the door with big tech companies fo...",
-            "categories": ["Social", "Academic", "Career"]
-        },
-        {
-            "title": "Coffee & Coloring",
-            "organizer": "IUGA",
-            "short_description": "Eager to learn more about how to get your foot in the door with big tech companies fo...",
-            "categories": ["Social"]
-        },
-        {
-            "title": "Networking + Industry Panel",
-            "organizer": "UX@UW and HCDEsa",
-            "short_description": "Eager to learn more about how to get your foot in the door with big tech companies fo...",
-            "categories": ["Academic", "Social", "Career"]
-        }
-    ];
+    console.log(upcomingEvents)
 
     return (
         <div className="baseContainer">
@@ -46,9 +21,9 @@ function HomePage() {
                 </div>
             </div>
             <div className="upcomingEvents">
-                <h1>Upcoming Events</h1>
+                <h1>Latest Events</h1>
                 <div className="upcomingEventsCardContainer">
-                    { events.slice(0, 3).map((event, i) => {
+                    { upcomingEvents.slice(0, 3).map((event, i) => {
                         return <EventCard key={event.title} event={event} decorate={i === 2 ? true : false }/>;
                     })}
                 </div>

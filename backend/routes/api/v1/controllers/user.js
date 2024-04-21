@@ -16,7 +16,7 @@ var router = express.Router();
                   get information about the user using Graph API. Save information
                   about the user if already exists. Create user session.
 */ 
-router.post('/login', async function(req, res, next) {
+router.post('/login', async function(req, res) {
     const authorizationHeader = req.headers.authorization;
     const accessToken = authorizationHeader.split(' ')[1];
     const response = await fetch('https://graph.microsoft.com/v1.0/me', {
@@ -34,36 +34,25 @@ router.post('/login', async function(req, res, next) {
         req.session.email = userData.mail;
         req.session.firstName = userData.givenName;
         req.session.lastName = userData.surname;
-        //req.session.id = userData.id; ???
-        //req.session.major = userData.major; ???
-        //req.session.picture = userData.pic ???
-
-        console.log(req.session);
     
         try {
-            res.status(200).json(
-                {
-                    message: "success"
-                }
-            )
-
-            const userId = req.session.id 
             //Check if user is already in database, if not then make them an account
-            const user = await req.models.Users.findOne({uId:userId})
-            if (user == null) {
+            let user = await req.models.Users.findOne({uEmail:req.session.email})
+            if (!user) {
                 const newUser = new req.models.Users({
-                    uId: userId,
-                    uPic: "TBD", //Choose a default user pic to show from the response info, or somewhere else
                     uFirstName: req.session.firstName,
                     uLastName: req.session.lastName,
                     uDisplayName: req.session.displayName,
                     uEmail: req.session.email,
-                    uBio: "Write about yourself here!",
-                    uMajor: "TBD", //Need to verify from the response info
-                    uType: "TBD", //Either this comes from the response info, or we need a different system for this
                 })
+
+                user = await newUser.save();
             }
 
+            req.session.userId = user._id;
+            req.session.memberType = user.uType;
+            req.session.isAdmin = user.uType === "Admin";
+            res.status(200).json(user);
         } catch (err) {
             console.log(err);
             res.status(500).json(
@@ -97,6 +86,24 @@ router.post('/logout', function(req, res, next) {
         )
     }
 });
+
+//Get the user's specific information from the user's perspective, from an outsider perspective, and from the admin perspective
+router.get("/", async function(req,res) {
+    if(req.session.isAuthenticated) {
+        res.status(200).json({
+            firstName: req.session.firstName,
+            lastName: req.session.lastName,
+            displayName: req.session.displayName,
+            email: req.session.email,
+            memberType: req.session.memberType
+        });  
+    } else {
+        res.status(400).json({
+            status: "error",
+            error: "User is not logged in"
+        })
+    } 
+})
 
 //Get the user's specific information from the user's perspective, from an outsider perspective, and from the admin perspective
 router.get("/:uId", async function(req,res) {

@@ -2,7 +2,7 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
 import sessions from 'express-session';
-
+import cors from 'cors';
 
 import { models, connectToDatabase } from './models.js'
 import apiv1Router from './routes/api/v1/apiv1.js';
@@ -27,7 +27,11 @@ const __dirname = dirname(__filename);
 // var upload = multer({ storage: storage }); //We can use this upload variable to store/retrieve images.
 
 await connectToDatabase();
-var app = express();
+const app = express();
+
+if (!process.env.DEPLOY) {
+    app.use(cors());
+}
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -45,10 +49,10 @@ app.use(sessions({
     resave: false,
 }))
 
-app.use((req, res, next) => {
-    req.upload = upload
-    next();
-});
+// app.use((req, res, next) => {
+//     req.upload = upload
+//     next();
+// });
 
 app.use((req, res, next) => {
     req.models = models;

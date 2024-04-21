@@ -8,30 +8,41 @@ import Navbar from "./layouts/Navbar";
 import { useMsal, useAccount } from "@azure/msal-react";
 import { useState, useEffect } from "react";
 import { loginRequest } from "./authConfig";
+import { mockEvents } from "./assets/MockData";
 import Cookies from "js-cookie";
 import Footer from "./layouts/Footer";
 
 
 function App() {
-  const [isAuthenticated, setAuthenticated] = useState(false);
-  const [user, setUser] = useState({});
+  const [isAuthenticated, setAuthenticated] = useState(true);
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
   const { instance, accounts } = useMsal();
   const account = useAccount(accounts[0] || {});
 
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") {
+      fetch('http://localhost:7777/api/v1/events/upcoming', {
+        method: "GET"
+      }).then(res => res.json()).then(upcomingEvents => {
+        setUpcomingEvents(upcomingEvents);
+      }).catch((error) => {
+          console.log(error);
+      })
+    } else {
+      setUpcomingEvents(mockEvents);
+    }
+  }, []);
+
   // Re-run effect if account state changes
   useEffect(() => {
-    if (account) {
-      console.log(account)
-      setAuthenticated(true);
-      setUser({
-        given_name: account.idTokenClaims.given_name,
-        family_name: account.idTokenClaims.family_name,
-        email: account.idTokenClaims.email,
-        auth_time: account.idTokenClaims.auth_time,
-        username: account.idTokenClaims.preferred_username
-      });
+    if (process.env.NODE_ENV === "production") {
+      if (account) {
+        setAuthenticated(true);
+      } else {
+        setAuthenticated(false);
+      }
     } else {
-      setAuthenticated(false);
+      setAuthenticated(true);
     }
   }, [account]);
 
@@ -49,7 +60,8 @@ function App() {
               headers: {
                   'Authorization': `Bearer ${accessToken}`
               }
-          }).catch((error) => {
+          }).then((res => res.json()))
+          .catch((error) => {
               console.log(error);
           })
         })
@@ -58,13 +70,13 @@ function App() {
 
   const signOut = async (event) => {
     const interactionIncomplete = Cookies.get('msal.interaction.status');
-
+    
     if (interactionIncomplete) {
       console.log("Microsoft sign out was incomplete.");
       console.log(interactionIncomplete);
     } else {
       await instance.logoutPopup().then(res => {
-        fetch('http://localhost:7777/api/v1/users/logout').catch(e => {
+        fetch('http://localhost:7777/api/v1/users/logout', { method: "POST" }).catch(e => {
           console.log(e);
         });
       }).catch(e => { console.log(e) });
@@ -75,8 +87,8 @@ function App() {
     <div id="rootContainer">
         <Navbar signIn={signIn} signOut={signOut} isAuthenticated={isAuthenticated} />
         <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/events" element={<EventsPage />} />
+          <Route path="/" element={<HomePage upcomingEvents={upcomingEvents} />} />
+          <Route path="/events" element={<EventsPage isAuthenticated={isAuthenticated} />} />
           <Route path="/resources" element={<ResourcesPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />

@@ -14,19 +14,6 @@ import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// multer middleware used for handling the image uploads on posts
-// all images are added to the /uploads directory with randomized filenames
-// var storage = multer.diskStorage({
-//     destination: (req, file, cb) => {
-//       cb(null, './routes/api/v1/uploads')
-//     },
-//     filename: (req, file, cb) => {
-//       cb(null, file.fieldname + '-' + Date.now())
-//     }
-//   });
-
-// var upload = multer({ storage: storage }); //We can use this upload variable to store/retrieve images.
-
 await connectToDatabase();
 const app = express();
 
@@ -50,17 +37,45 @@ app.use(sessions({
     resave: false,
 }))
 
-// app.use((req, res, next) => {
-//     req.upload = upload
-//     next();
-// });
 
 app.use((req, res, next) => {
     req.models = models;
     next();
 })
 
-app.get('/*', function(req, res) {
+app.get('/', function(req, res) {
+    res.sendFile(path.join(__dirname, '../frontend/build/index.html'), function(err) {
+      if (err) {
+        res.status(500).send(err)
+      }
+    })
+})
+
+app.get('/events', function(req, res) {
+    res.sendFile(path.join(__dirname, '../frontend/build/index.html'), function(err) {
+      if (err) {
+        res.status(500).send(err)
+      }
+    })
+})
+
+app.get('/resources', function(req, res) {
+    res.sendFile(path.join(__dirname, '../frontend/build/index.html'), function(err) {
+      if (err) {
+        res.status(500).send(err)
+      }
+    })
+})
+
+app.get('/about', function(req, res) {
+    res.sendFile(path.join(__dirname, '../frontend/build/index.html'), function(err) {
+      if (err) {
+        res.status(500).send(err)
+      }
+    })
+})
+
+app.get('/contact', function(req, res) {
     res.sendFile(path.join(__dirname, '../frontend/build/index.html'), function(err) {
       if (err) {
         res.status(500).send(err)

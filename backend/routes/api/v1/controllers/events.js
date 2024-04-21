@@ -39,7 +39,7 @@ router.get("/", async function(req, res) {
         if(req.query.month) {
             query.month = req.query.month;
         }
-        
+
         if(req.query.year && req.query.year <= new Date().getFullYear()) {
             query.year = req.query.year;
         }
@@ -107,7 +107,7 @@ router.get("/", async function(req, res) {
         res.json(eventsData);
     } catch (error) {
         console.log(error);
-        res.status(500).json({status:"error", message:error.message});
+        res.status(500).json({status:"error", message: "There was an error on our side :("});
     }
 });
 

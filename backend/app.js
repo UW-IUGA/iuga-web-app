@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser';
 import logger from 'morgan';
 import sessions from 'express-session';
 import cors from 'cors';
+import path from 'path';
 
 import { models, connectToDatabase } from './models.js'
 import apiv1Router from './routes/api/v1/apiv1.js';
@@ -59,6 +60,13 @@ app.use((req, res, next) => {
     next();
 })
 
+app.get('/*', function(req, res) {
+    res.sendFile(path.join(__dirname, '../frontend/build/index.html'), function(err) {
+      if (err) {
+        res.status(500).send(err)
+      }
+    })
+})
 
 app.use('/api/v1', apiv1Router);
 

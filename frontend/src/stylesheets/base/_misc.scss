@@ -1,0 +1,12 @@
+.left-arrow {
+    filter: invert(100%);
+    transform: rotate(180deg);
+    padding: 12px;
+    cursor: pointer;
+}
+
+.right-arrow {
+    filter: invert(100%);
+    padding: 12px;
+    cursor: pointer;
+}

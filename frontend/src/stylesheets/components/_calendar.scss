@@ -6,9 +6,13 @@
 }
 
 .calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
     font-size: 1.2rem;
     font-weight: lighter;
+    gap: 24px;
 }
 
 .calendar-wrapper {

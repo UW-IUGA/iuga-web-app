@@ -3,22 +3,32 @@ import { useState, useRef, useEffect } from "react";
 import { startOfMonth, endOfMonth, eachDayOfInterval, format, getDay } from "date-fns";
 
 const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-const currentDate = new Date()
-const firstDayOfMonth = startOfMonth(currentDate);
-const lastDayOfMonth = endOfMonth(currentDate);
-const daysInMonth = eachDayOfInterval({
-    start: firstDayOfMonth,
-    end: lastDayOfMonth
-})
-const startingDayIndex = getDay(firstDayOfMonth);
+const currentDate = new Date();
 
 const Calendar = () => {
     const wrapperRef = useRef(null);
     const [isActive, setActive] = useState(false);
+    const [calendarDate, setDate] = useState(new Date(currentDate.getFullYear(), currentDate.getMonth()));
+
+    let firstDayOfMonth = startOfMonth(calendarDate);
+    let lastDayOfMonth = endOfMonth(calendarDate);
+    let daysInMonth = eachDayOfInterval({
+        start: firstDayOfMonth,
+        end: lastDayOfMonth
+    })
+    let startingDayIndex = getDay(firstDayOfMonth);
 
     const toggle = () => {
         setActive(true); 
     };
+
+    const prevMonth = () => {
+        setDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth()-1));
+    }   
+
+    const nextMonth = () => {
+        setDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth()+1));
+    }
 
     useEffect(() => {
         document.addEventListener("click", handleClickOutside, false);
@@ -37,7 +47,9 @@ const Calendar = () => {
     return (
         <div className="calendar">
             <div className="calendar-header">
-                <h1>{dateFormat(currentDate, "mmmm yyyy")}</h1>
+                <img className="left-arrow" src="/assets/right-arrow.svg" alt="right arrow" onClick={prevMonth} />
+                <h1>{dateFormat(calendarDate, "mmmm yyyy")}</h1>
+                <img className="right-arrow" src="/assets/right-arrow.svg" alt="right arrow" onClick={nextMonth} />
             </div>
             <div className="calendar-wrapper" ref={wrapperRef}>
                 <div className="calendar-item-container">

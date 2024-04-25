@@ -13,7 +13,7 @@ const daysInMonth = eachDayOfInterval({
 
 const Calendar = () => {
     const wrapperRef = useRef(null);
-    const [isActive, setActive] = useState("false");
+    const [isActive, setActive] = useState(false);
 
     const toggle = () => {
         setActive(true); 
@@ -34,34 +34,33 @@ const Calendar = () => {
     };
 
     return (
-    <div className="calendar">
-        <div className="calendar-header">
-            <h1>{dateFormat(currentDate, "mmmm yyyy")}</h1>
-        </div>
-        <div className="calendar-wrapper" ref={wrapperRef}>
-            <div className="calendar-item-container">
-                {
-                    WEEKDAYS.map((weekday) => {
-                        return <div key={weekday} className="calendar-item calendar-weekday">{weekday}</div>
-                    })
-                }
-                {
-                    daysInMonth.map((day, index) => {
-                        return <div key={index} className="calendar-item calendar-day-wrapper" onClick={toggle}>
-                            <span className="calendar-day">{format(day, "d")}</span>
-                            <span className="calendar-day-event-name">Event Name</span>
-                            <span className="calendar-day-organizer-name">Organizer Name</span>
-                        </div>
-                    })
-                }
-                <img className="calendar-decoration" src="/assets/calendar-decoration.svg" alt="calendar decoration" />
+        <div className="calendar">
+            <div className="calendar-header">
+                <h1>{dateFormat(currentDate, "mmmm yyyy")}</h1>
             </div>
-            <div className={`eventDetails ${isActive ? "displayDetails" : ""}`}>
+            <div className="calendar-wrapper" ref={wrapperRef}>
+                <div className="calendar-item-container">
+                    {
+                        WEEKDAYS.map((weekday) => {
+                            return <div key={weekday} className="calendar-item calendar-weekday">{weekday}</div>
+                        })
+                    }
+                    {
+                        daysInMonth.map((day, index) => {
+                            return <div key={index} className="calendar-item calendar-day-wrapper" onClick={() => toggle()}>
+                                <span className="calendar-day">{format(day, "d")}</span>
+                                <span className="calendar-day-event-name">Event Name</span>
+                                <span className="calendar-day-organizer-name">Organizer Name</span>
+                            </div>
+                        })
+                    }
+                    <img className="calendar-decoration" src="/assets/calendar-decoration.svg" alt="calendar decoration" />
+                </div>
+                <div className={`eventDetails ${isActive ? "displayDetails" : ""}`}>
 
+                </div>
             </div>
         </div>
-    </div>
-
     );
   };
 

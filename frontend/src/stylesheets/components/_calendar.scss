@@ -1,18 +1,27 @@
 .calendar {
-    width: 1000px;
+    width: 1300px;
     margin: 0 auto;
+    left: 0;
+    right: 0;
 }
 
 .calendar-header {
     text-align: center;
-    font-size: 1.6rem;
+    font-size: 1.2rem;
     font-weight: lighter;
 }
 
+.calendar-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 60px;
+}
+
 .calendar-item-container {
+    width: 1000px;
+    flex-shrink: 0;
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    margin-bottom: 60px;
 }
 
 .calendar-item {
@@ -58,4 +67,19 @@
 .calendar-weekday {
     text-align: center;
     font-weight: bold;
+}
+
+.eventDetails {
+    display: none;
+    width: 300px;
+    height: 632px;
+    margin-top: 30px;
+    margin-left: $margin-content;
+    border-radius: $radius;
+    flex-shrink: 0;
+    @include debug-border;
+}
+
+.displayDetails {
+    display: block;
 }

@@ -1,6 +1,6 @@
 import dateFormat from "dateformat";
 import { useState, useRef, useEffect } from "react";
-import { startOfMonth, endOfMonth, eachDayOfInterval, format } from "date-fns";
+import { startOfMonth, endOfMonth, eachDayOfInterval, format, getDay } from "date-fns";
 
 const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const currentDate = new Date()
@@ -10,6 +10,7 @@ const daysInMonth = eachDayOfInterval({
     start: firstDayOfMonth,
     end: lastDayOfMonth
 })
+const startingDayIndex = getDay(firstDayOfMonth);
 
 const Calendar = () => {
     const wrapperRef = useRef(null);
@@ -42,7 +43,12 @@ const Calendar = () => {
                 <div className="calendar-item-container">
                     {
                         WEEKDAYS.map((weekday) => {
-                            return <div key={weekday} className="calendar-item calendar-weekday">{weekday}</div>
+                            return <div key={weekday} className="calendar-weekday">{weekday}</div>
+                        })
+                    }
+                    {
+                        Array.from({ length: startingDayIndex }).map((_, index) => {
+                            return <div key={`empty${index}`} className="calendar-item calendar-day-empty"></div>
                         })
                     }
                     {

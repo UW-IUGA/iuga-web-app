@@ -1,7 +1,9 @@
+import Calendar from "../components/Calendar";
+
 function EventsPage() {
     return (
         <div className="baseContainer">
-            <h1>Events</h1>
+            <Calendar />
         </div>
     );
 }

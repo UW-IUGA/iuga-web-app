@@ -18,6 +18,7 @@
 }
 
 .calendar-item-container {
+    position: relative; 
     width: 1000px;
     flex-shrink: 0;
     display: grid;
@@ -25,6 +26,7 @@
 }
 
 .calendar-item {
+    background-color: white;
 }
 
 .calendar-day-wrapper {
@@ -82,4 +84,12 @@
 
 .displayDetails {
     display: block;
+}
+
+.calendar-decoration {
+    width: 200px;
+    position: absolute;
+    left: -140px;
+    bottom: 100px;
+    z-index: -1;
 }

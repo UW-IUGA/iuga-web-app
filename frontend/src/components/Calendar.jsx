@@ -54,6 +54,7 @@ const Calendar = () => {
                         </div>
                     })
                 }
+                <img className="calendar-decoration" src="/assets/calendar-decoration.svg" alt="calendar decoration" />
             </div>
             <div className={`eventDetails ${isActive ? "displayDetails" : ""}`}>
 

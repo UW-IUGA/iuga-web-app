@@ -139,28 +139,34 @@ Expected Response Information:
 router.get("/id/:eId", async function(req,res) {
     //When getting an event based on an id, get all info about the event asked for
     try {
-        const eId = req.params.eId
-        const regex = new RegExp("/^[0-9A-Fa-f]{48}$/");
+        const eId = req.params.eId;
+        const regex = new RegExp("[0-9A-Fa-f]");
         if (regex.test(eId)) {
-            const event = await req.models.Events.findById({eId})
-
-            const eventData = {
-                eId:event._id,
-                eName:event.eName,
-                eOrganizers:event.eOrganizers,
-                eStartDate:event.eStartDate,
-                eEndDate:event.eEndDate,
-                eLocation:event.eLocation,
-                eDescription:event.eDescription,
-                ePics:event.ePics,
-                eLabels:event.eLabels,
-                qList:event.qList,
-                participants:event.participants,
-                eThumbnail: event.eThumbnail
-            };
-    
-            res.json(eventData);
+            req.models.Events.findById(eId, function(err, event) {
+                if (err) {
+                    console.error(err);
+                    res.status(400);
+                } else {
+                    const eventData = {
+                        eId:event._id,
+                        eName:event.eName,
+                        eOrganizers:event.eOrganizers,
+                        eStartDate:event.eStartDate,
+                        eEndDate:event.eEndDate,
+                        eLocation:event.eLocation,
+                        eDescription:event.eDescription,
+                        ePics:event.ePics,
+                        eLabels:event.eLabels,
+                        qList:event.qList,
+                        participants:event.participants,
+                        eThumbnail: event.eThumbnail
+                    };
+            
+                    res.json(eventData);
+                }
+            });
         } else {
+            console.error(`/events/id/${eId} Failed regex test!`);
             res.status(400).json({status:"error", message: "Bad request..."});
         }
     } catch (error) {

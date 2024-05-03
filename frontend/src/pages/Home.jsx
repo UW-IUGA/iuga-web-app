@@ -6,7 +6,6 @@ import { useNavigate } from "react-router-dom";
 function HomePage({upcomingEvents}) {
     const navigate = useNavigate();
     const categories = ["Academic", "Social", "Career"];
-    console.log(upcomingEvents)
 
     return (
         <div className="baseContainer">

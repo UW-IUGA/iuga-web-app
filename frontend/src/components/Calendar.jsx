@@ -6,9 +6,8 @@ import Tag from "./Tag";
 const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const currentDate = new Date();
 
-const Calendar = () => {
+const Calendar = ({callback}) => {
     const wrapperRef = useRef(null);
-    const [isActive, setActive] = useState(false);
     const [calendarDate, setDate] = useState(new Date(currentDate.getFullYear(), currentDate.getMonth()));
 
     let firstDayOfMonth = startOfMonth(calendarDate);
@@ -19,10 +18,6 @@ const Calendar = () => {
     })
     let startingDayIndex = getDay(firstDayOfMonth);
 
-    const toggle = () => {
-        setActive(true); 
-    };
-
     const prevMonth = () => {
         setDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth()-1));
     }   
@@ -31,24 +26,10 @@ const Calendar = () => {
         setDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth()+1));
     }
 
-    useEffect(() => {
-        document.addEventListener("click", handleClickOutside, false);
-
-        return () => {
-            document.removeEventListener("click", handleClickOutside, false);
-        };
-    }, []);
-
-    const handleClickOutside = event => {
-        if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
-            setActive(false);
-        }
-    };
-
     return (
         <div className="calendar">
             <div className="calendar-header">
-                <img className="left-arrow" src="/assets/right-arrow.svg" alt="right arrow" onClick={prevMonth} />
+                <img className="left-arrow" src="/assets/right-arrow.svg" alt="left arrow" onClick={prevMonth} />
                 <div>
                     <h1>{dateFormat(calendarDate, "mmmm yyyy")}</h1>
                     <p>Click a highlighted date to learn more about that event!</p>
@@ -75,7 +56,7 @@ const Calendar = () => {
                         }
                         {
                             daysInMonth.map((day, index) => {
-                                return <div key={index} className="calendar-item calendar-day-wrapper" onClick={() => toggle()}>
+                                return <div key={index} className="calendar-item calendar-day-wrapper" onClick={() => callback("passIDHere")}>
                                     <span className="calendar-day">{format(day, "d")}</span>
                                     <span className="calendar-day-event-name">Event Name</span>
                                     <span className="calendar-day-organizer-name">Organizer Name</span>
@@ -84,8 +65,6 @@ const Calendar = () => {
                         }
                         <img className="calendar-decoration" src="/assets/calendar-decoration.svg" alt="calendar decoration" />
                     </div>
-                </div>
-                <div className={`eventDetails ${isActive ? "displayDetails" : ""}`}>
                 </div>
             </div>
         </div>

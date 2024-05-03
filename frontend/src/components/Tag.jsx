@@ -1,6 +1,6 @@
 const Tag = ({text, style}) => {
     return (
-      <div className={`${style.toLowerCase()}`}>
+      <div className={`tag ${style.toLowerCase()}`}>
         <p className="tagText">{text}</p>
       </div>
     );

@@ -26,8 +26,8 @@ function Navbar({signIn, signOut, isAuthenticated}) {
             <span></span>
             {
                 isAuthenticated
-                    ? <Button color="primary" callback={signOut} text="Logout" /> 
-                    : <Button color="primary" callback={signIn} text="UW NetID Login" />
+                    ? <Button className="secondary-button" callback={signOut} text="Logout" /> 
+                    : <Button className="secondary-button" callback={signIn} text="UW NetID Login" />
             }
         </nav>
     )

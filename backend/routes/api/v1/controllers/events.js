@@ -140,7 +140,7 @@ router.get("/id/:eId", async function(req,res) {
     //When getting an event based on an id, get all info about the event asked for
     try {
         const eId = req.params.eId;
-        const regex = new RegExp("[0-9A-Fa-f]");
+        const regex = new RegExp("[0-9A-Fa-f]{24}");
         if (regex.test(eId)) {
             req.models.Events.findById(eId, function(err, event) {
                 if (err) {

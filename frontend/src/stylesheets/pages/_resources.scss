@@ -1,10 +1,41 @@
-.resourceSum {
+h3 {
+  margin: 0 0 0.6rem 0;
+}
+
+.resourceSum, .resourceContainer {
   display: flex;
   width: 80%;
   margin: 32px auto;
   border: 2px solid red;
 }
 
-.summary {
+.resourceSum {
+  align-items: center;
+}
 
+.resourceImg {
+  width: 30%;
+  height: auto;
+  padding-right: 4rem;
+}
+
+.summary {
+  width: 70%;
+}
+
+/*resources section (where the components will go) styling*/
+
+.legend {
+  display: flex;
+  flex-direction: column;
+  width: 25%;
+}
+
+.legend ul {
+  margin: 0;
+  padding: 0 0 0 1.25rem;
+}
+
+.resources {
+  width: 75%;
 }

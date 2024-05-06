@@ -7,9 +7,11 @@ h3 {
   width: 80%;
   margin: 32px auto;
   border: 2px solid red;
+  box-sizing: border-box;
 
   &.resourceSum {
     align-items: center;
+    padding-right: 20px;
   }
 
   &.resourceContainer {

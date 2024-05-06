@@ -2,11 +2,11 @@ import Button from "./Button";
 
 const ResourceCard = () => {
     return (
-        <div>
-            <div>
+        <div className="resourceBox">
+            <div className="resourceIcon">
                 <img src="/assets/resource-iuga-icon.svg" alt="iuga icon" />
             </div>
-            <div>
+            <div className="resourceContent">
                 <h3>Informatics Undergraduate Association</h3>
                 <p>
                     IUGA is a student-led RSO that communicates between the

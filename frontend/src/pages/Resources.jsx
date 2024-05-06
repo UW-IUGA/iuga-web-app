@@ -1,4 +1,5 @@
 import ResourceCard from "../components/ResourceCard";
+import GradientLine from "../components/GradientLine";
 
 function ResourcesPage() {
     return (
@@ -33,11 +34,16 @@ function ResourcesPage() {
                 </div>
                 <div className="resources">
                     <h2>Academic</h2>
+                    <GradientLine />
                     <ResourceCard />
                     <h2>Career</h2>
+                    <GradientLine />
                     <h2>Community</h2>
+                    <GradientLine />
                     <h2>Mental Health</h2>
+                    <GradientLine />
                     <h2>Diversity, Equity, and Inclusion (DEI)</h2>
+                    <GradientLine />
                 </div>
             </div>
         </div>

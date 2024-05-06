@@ -1,10 +1,12 @@
+import ResourceCard from "../components/ResourceCard";
+
 function ResourcesPage() {
     return (
         <div className="baseContainer">
             <div className="resourceSum">
                 <img
                     className="resourceImg"
-                    src="/assets/resources.png"
+                    src="/assets/resources-main.png"
                     alt="student looking for resources"
                 />
                 <div className="summary">
@@ -31,6 +33,7 @@ function ResourcesPage() {
                 </div>
                 <div className="resources">
                     <h2>Academic</h2>
+                    <ResourceCard />
                     <h2>Career</h2>
                     <h2>Community</h2>
                     <h2>Mental Health</h2>

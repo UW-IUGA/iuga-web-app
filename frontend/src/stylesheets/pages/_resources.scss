@@ -7,10 +7,10 @@ h3 {
   width: 80%;
   margin: 32px auto;
   border: 2px solid red;
-}
 
-.resourceSum {
-  align-items: center;
+  &.resourceSum {
+    align-items: center;
+  }
 }
 
 .resourceImg {
@@ -23,17 +23,17 @@ h3 {
   width: 70%;
 }
 
-/*resources section (where the components will go) styling*/
+/* Resources section (where the components will go) styling */
 
 .legend {
   display: flex;
   flex-direction: column;
   width: 25%;
-}
 
-.legend ul {
-  margin: 0;
-  padding: 0 0 0 1.25rem;
+  ul {
+    margin: 0;
+    padding: 0 0 0 1.25rem;
+  }
 }
 
 .resources {

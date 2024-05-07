@@ -22,11 +22,10 @@ function Navbar({signIn, signOut, isAuthenticated}) {
             <Link to="/events">Events</Link>
             <Link to="/resources">Resources</Link>
             <Link to="/about">About</Link>
-            <Link to="/contact">Contact Us</Link>
             <span></span>
             {
                 isAuthenticated
-                    ? <Button className="secondary-button" callback={signOut} text="Logout" /> 
+                    ? <Button className="secondary-button" callback={signOut} text="Logout" />
                     : <Button className="secondary-button" callback={signIn} text="UW NetID Login" />
             }
         </nav>

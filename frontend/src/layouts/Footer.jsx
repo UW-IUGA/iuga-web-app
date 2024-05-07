@@ -12,7 +12,6 @@ function Footer() {
                         <Link to="/events">Events</Link>
                         <Link to="/resources">Resources</Link>
                         <Link to="/about">About</Link>
-                        <Link to="/contact">Contact Us</Link>
                     </div>
                 </div>
                 <div>

@@ -33,10 +33,12 @@ footer {
         }
 
         & > div:nth-of-type(2) {
-            display: grid;
-            grid-template-columns: min-content auto;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
             width: 300px;
-            
+
             & > a {
                 color: rgb(71, 71, 71);
             }

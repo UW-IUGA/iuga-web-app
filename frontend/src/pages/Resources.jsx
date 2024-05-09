@@ -1,5 +1,6 @@
 import ResourceCard from "../components/ResourceCard";
 import GradientLine from "../components/GradientLine";
+import { useEffect, useRef } from "react";
 
 function ResourcesPage({ resources }) {
     const categories = [
@@ -9,6 +10,23 @@ function ResourcesPage({ resources }) {
         "Mental Health",
         "Diversity, Equity, and Inclusion (DEI)",
     ];
+
+    const categoryRefs = useRef({});
+
+    const handleClick = (category) => {
+        const categoryRef = categoryRefs.current[category];
+        if (categoryRef) {
+            const yOffset = -100;
+            const y =
+                categoryRef.getBoundingClientRect().top +
+                window.pageYOffset +
+                yOffset;
+            window.scrollTo({ top: y, behavior: "smooth" });
+        }
+    };
+
+    useEffect(() => {}, []);
+
     return (
         <div className="baseContainer">
             <div className="resourceSum">
@@ -33,7 +51,10 @@ function ResourcesPage({ resources }) {
                     <h3>Categories</h3>
                     <ul>
                         {categories.map((category) => (
-                            <li key={category}>
+                            <li
+                                key={category}
+                                onClick={() => handleClick(category)}
+                            >
                                 {category ===
                                 "Diversity, Equity, and Inclusion (DEI)"
                                     ? "DEI"
@@ -44,7 +65,10 @@ function ResourcesPage({ resources }) {
                 </div>
                 <div className="resources">
                     {categories.map((category) => (
-                        <div key={category}>
+                        <div
+                            key={category}
+                            ref={(el) => (categoryRefs.current[category] = el)}
+                        >
                             {category ===
                             "Diversity, Equity, and Inclusion (DEI)" ? (
                                 <>

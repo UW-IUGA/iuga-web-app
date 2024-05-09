@@ -65,9 +65,18 @@ function EventsPage() {
                             <FontAwesomeIcon icon={faUsers} />
                             <span>24 Attending</span>
                         </div>
-                        <p>form</p>
-                        <Button text="RSVP" className="primary-button" />
-
+                        <form className="event-details-rsvp-form" onsubmit="return false;">
+                            <div>
+                                <label html="eventqa" class="form-label">Question #1</label>
+                                <input type="text" name="eventqa" id="eventqa" placeholder="Your answer" class="form-input" required />
+                                <label html="eventqa" class="form-label">Question #2</label>
+                                <input type="text" name="eventqa" id="eventqa" placeholder="Your answer" class="form-input" required />
+                                <label html="eventqa" class="form-label">Question #3</label>
+                                <input type="text" name="eventqa" id="eventqa" placeholder="Your answer" class="form-input" required />
+                            </div>
+                            <span className="filler" />
+                            <Button text="RSVP" className="primary-button" />
+                        </form>
                     </div>
                 </div>
             </div>

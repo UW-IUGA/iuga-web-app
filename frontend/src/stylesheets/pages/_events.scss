@@ -74,7 +74,7 @@
     display: flex;
     align-items: center;
     color: darkgray;
-    margin-bottom: 8px;
+    margin-bottom: 24px;
     
     span {
         margin-top: 3px;
@@ -104,4 +104,14 @@
 
 .divider {
     border-left: 1px solid lightgray;
+}
+
+.event-details-rsvp-form {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+
+    & > div {
+        flex: 1;
+    }
 }

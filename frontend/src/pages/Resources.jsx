@@ -1,7 +1,14 @@
 import ResourceCard from "../components/ResourceCard";
 import GradientLine from "../components/GradientLine";
 
-function ResourcesPage() {
+function ResourcesPage({ resources }) {
+    const categories = [
+        "Academic",
+        "Career",
+        "Community",
+        "Mental Health",
+        "Diversity, Equity, and Inclusion (DEI)",
+    ];
     return (
         <div className="baseContainer">
             <div className="resourceSum">
@@ -25,25 +32,57 @@ function ResourcesPage() {
                 <div className="legend">
                     <h3>Categories</h3>
                     <ul>
-                        <li>Academic</li>
-                        <li>Career</li>
-                        <li>Community</li>
-                        <li>Mental Health</li>
-                        <li>DEI</li>
+                        {categories.map((category) => (
+                            <li key={category}>
+                                {category ===
+                                "Diversity, Equity, and Inclusion (DEI)"
+                                    ? "DEI"
+                                    : category}
+                            </li>
+                        ))}
                     </ul>
                 </div>
                 <div className="resources">
-                    <h2>Academic</h2>
-                    <GradientLine />
-                    <ResourceCard />
-                    <h2>Career</h2>
-                    <GradientLine />
-                    <h2>Community</h2>
-                    <GradientLine />
-                    <h2>Mental Health</h2>
-                    <GradientLine />
-                    <h2>Diversity, Equity, and Inclusion (DEI)</h2>
-                    <GradientLine />
+                    {categories.map((category) => (
+                        <div key={category}>
+                            {category ===
+                            "Diversity, Equity, and Inclusion (DEI)" ? (
+                                <>
+                                    <h2>
+                                        Diversity, Equity, and Inclusion (DEI)
+                                    </h2>
+                                    <GradientLine />
+                                    {resources
+                                        .filter(
+                                            (resource) => resource.tag === "dei"
+                                        )
+                                        .map((filteredResource) => (
+                                            <ResourceCard
+                                                key={filteredResource.rName}
+                                                resource={filteredResource}
+                                            />
+                                        ))}
+                                </>
+                            ) : (
+                                <>
+                                    <h2>{category}</h2>
+                                    <GradientLine />
+                                    {resources
+                                        .filter(
+                                            (resource) =>
+                                                resource.tag ===
+                                                category.toLowerCase()
+                                        )
+                                        .map((filteredResource) => (
+                                            <ResourceCard
+                                                key={filteredResource.rName}
+                                                resource={filteredResource}
+                                            />
+                                        ))}
+                                </>
+                            )}
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>

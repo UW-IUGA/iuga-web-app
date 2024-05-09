@@ -8,6 +8,7 @@ import { useMsal, useAccount } from "@azure/msal-react";
 import { useState, useEffect } from "react";
 import { loginRequest } from "./authConfig";
 import { mockEvents } from "./assets/MockData";
+import { mockResources } from "./assets/MockResourcesData";
 import Cookies from "js-cookie";
 import Footer from "./layouts/Footer";
 
@@ -94,21 +95,11 @@ function App() {
 
     return (
         <div id="rootContainer">
-            <Navbar
-                signIn={signIn}
-                signOut={signOut}
-                isAuthenticated={isAuthenticated}
-            />
+            <Navbar signIn={signIn} signOut={signOut} isAuthenticated={isAuthenticated} />
             <Routes>
-                <Route
-                    path="/"
-                    element={<HomePage upcomingEvents={upcomingEvents} />}
-                />
-                <Route
-                    path="/events"
-                    element={<EventsPage isAuthenticated={isAuthenticated} />}
-                />
-                <Route path="/resources" element={<ResourcesPage />} />
+                <Route path="/" element={<HomePage upcomingEvents={upcomingEvents} />}/>
+                <Route path="/events" element={<EventsPage isAuthenticated={isAuthenticated} />}/>
+                <Route path="/resources" element={<ResourcesPage resources={mockResources}/>}/>
                 <Route path="/about" element={<AboutPage />} />
             </Routes>
             <Footer />

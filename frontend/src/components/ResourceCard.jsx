@@ -1,6 +1,6 @@
 import Button from "./Button";
 
-const ResourceCard = ({resource}) => {
+const ResourceCard = ({ resource }) => {
     return (
         <div className="resourceBox">
             <div className="resourceIcon">
@@ -8,16 +8,8 @@ const ResourceCard = ({resource}) => {
             </div>
             <div className="resourceContent">
                 <h3>{resource.rName}</h3>
-                <p>
-                  {resource.rDescription}
-                </p>
-                <Button
-                    text="Learn More"
-                    className="primary-button"
-                    type="right-arrow"
-                    color="black"
-                    link="#"
-                />
+                <p>{resource.rDescription}</p>
+                <Button text="Learn More" className="primary-button" type="right-arrow" color="black" link="#" />
             </div>
         </div>
     );

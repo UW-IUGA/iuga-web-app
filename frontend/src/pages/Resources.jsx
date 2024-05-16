@@ -33,7 +33,7 @@ function ResourcesPage({ resources }) {
             </div>
             <div className="resourceContainer">
                 <div className="legend">
-                    <h3>Categories</h3>
+                    <h3 className="legendHeader">Categories</h3>
                     <ul>
                         {categories.map((category) => (
                             <li key={category} onClick={() => handleClick(category)}>

@@ -36,6 +36,11 @@ h3 {
   flex-direction: column;
   width: 25%;
 
+  .legendHeader {
+    text-transform: uppercase;
+    font-family: $serif;
+  }
+
   ul {
     margin: 0;
     padding: 0 0 0 1.25rem;
@@ -45,3 +50,5 @@ h3 {
 .resources {
   width: 75%;
 }
+
+

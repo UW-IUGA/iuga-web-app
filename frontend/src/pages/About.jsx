@@ -1,7 +1,7 @@
 // import AboutCard from "../components/AboutCard";
 import GradientLine from "../components/GradientLine";
 // import { useEffect, useRef } from "react";
-// import Dropdown from "react-bootstrap/Dropdown";
+// import Dropdown from "../components/Dropdown";
 import ResourceCard from "../components/ResourceCard";
 
 function AboutPage({ members }) {
@@ -23,17 +23,7 @@ function AboutPage({ members }) {
             <div className="aboutContainer">
                 <div>
                     <h2>Officers</h2>
-                    {/* <Dropdown>
-                        <Dropdown.Toggle variant="success" id="dropdown-basic">
-                            Dropdown Button
-                        </Dropdown.Toggle>
-
-                        <Dropdown.Menu>
-                            <Dropdown.Item href="#/action-1">Action</Dropdown.Item>
-                            <Dropdown.Item href="#/action-2">Another action</Dropdown.Item>
-                            <Dropdown.Item href="#/action-3">Something else</Dropdown.Item>
-                        </Dropdown.Menu>
-                    </Dropdown> */}
+                    {/* <Dropdown /> */}
                 </div>
                 <GradientLine className="fullWidth" />
                 <h2>WebDev Committee</h2>

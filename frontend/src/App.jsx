@@ -7,7 +7,7 @@ import Navbar from "./layouts/Navbar";
 import { useMsal, useAccount } from "@azure/msal-react";
 import { useState, useEffect } from "react";
 import { loginRequest } from "./authConfig";
-import { mockEvents } from "./assets/mock-data/MockData";
+import { mockCalendarData } from "./assets/mock-data/MockCalendarData";
 import { mockResources } from "./assets/mock-data/MockResourcesData";
 import { mockMembers } from "./assets/mock-data/MockAboutData";
 import Cookies from "js-cookie";
@@ -32,7 +32,7 @@ function App() {
                     console.log(error);
                 });
         } else {
-            setUpcomingEvents(mockEvents);
+            setUpcomingEvents(mockCalendarData);
         }
     }, []);
 

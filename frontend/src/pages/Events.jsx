@@ -1,12 +1,14 @@
 import Calendar from "../components/Calendar";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faLocationDot, faCalendar, faClock, faUsers } from '@fortawesome/free-solid-svg-icons'
+import { useLocation } from 'react-router-dom';
 import { useState, useRef, useEffect } from "react";
 import { mockCalendarData } from "../assets/mock-data/MockCalendarData";
 import Tag from "../components/Tag";
 import Button from "../components/Button";
 
 function EventsPage() {
+    const {state, pathname} = useLocation();
     const [showCalendar, setCalendar] = useState(true);
     const [calendarEvents, setCalendarEvents] = useState([])
 
@@ -14,6 +16,10 @@ function EventsPage() {
         console.log(eid);
         setCalendar(false);
     }
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [pathname]);
 
     useEffect(() => {
         if (process.env.NODE_ENV === "production") {
@@ -32,7 +38,7 @@ function EventsPage() {
 
     return (
         <div>
-            {showCalendar ? <Calendar callback={showEventDetails} calendarEvents={calendarEvents} /> : 
+            {showCalendar ? <Calendar callback={showEventDetails} calendarEvents={calendarEvents} highlightDate={state} /> : 
             <div className="event-details-container">
                 <div className="event-details-header" onClick={() => setCalendar(true)}>
                     <img className="left-arrow" src="/assets/right-arrow.svg" alt="left arrow" />

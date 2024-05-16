@@ -1,10 +1,9 @@
 import dateFormat from "dateformat";
 import { useState, useRef, useMemo } from "react";
-import { startOfMonth, endOfMonth, eachDayOfInterval, format, getDay, isSameDay } from "date-fns";
+import { startOfMonth, endOfMonth, eachDayOfInterval, format, getDay, parseISO } from "date-fns";
 import Tag from "./Tag";
 
 const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-const currentDate = new Date();
 const eventPlaceholder = {
     "isPlaceholder": true,
     "eName": "Event Name",
@@ -13,9 +12,10 @@ const eventPlaceholder = {
     "eDescription": ""
 }
 
-const Calendar = ({ callback, calendarEvents }) => {
+const Calendar = ({ callback, calendarEvents, highlightDate }) => {
     const wrapperRef = useRef(null);
-    const [calendarDate, setDate] = useState(new Date(currentDate.getFullYear(), currentDate.getMonth()));
+    const currentDate = highlightDate ? parseISO(highlightDate): new Date();
+    const [calendarDate, setDate] = useState(currentDate);
 
     const eventsByDate = useMemo(() => {
         return calendarEvents.reduce((accumulator, event) => {

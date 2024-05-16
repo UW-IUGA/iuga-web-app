@@ -27,7 +27,7 @@ function EventsPage() {
                 method: "GET",
             }).then((res) => res.json())
             .then((calendarEvents) => {
-                console.log(calendarEvents);
+                setCalendarEvents(calendarEvents);
             }).catch((error) => {
                 console.log(error);
             });

@@ -7,8 +7,9 @@ import Navbar from "./layouts/Navbar";
 import { useMsal, useAccount } from "@azure/msal-react";
 import { useState, useEffect } from "react";
 import { loginRequest } from "./authConfig";
-import { mockEvents } from "./assets/MockData";
-import { mockResources } from "./assets/MockResourcesData";
+import { mockCalendarData } from "./assets/mock-data/MockCalendarData";
+import { mockResources } from "./assets/mock-data/MockResourcesData";
+import { mockMembers } from "./assets/mock-data/MockAboutData";
 import Cookies from "js-cookie";
 import Footer from "./layouts/Footer";
 
@@ -31,7 +32,7 @@ function App() {
                     console.log(error);
                 });
         } else {
-            setUpcomingEvents(mockEvents);
+            setUpcomingEvents(mockCalendarData);
         }
     }, []);
 
@@ -97,10 +98,10 @@ function App() {
         <div id="rootContainer">
             <Navbar signIn={signIn} signOut={signOut} isAuthenticated={isAuthenticated} />
             <Routes>
-                <Route path="/" element={<HomePage upcomingEvents={upcomingEvents} />}/>
-                <Route path="/events" element={<EventsPage isAuthenticated={isAuthenticated} />}/>
-                <Route path="/resources" element={<ResourcesPage resources={mockResources}/>}/>
-                <Route path="/about" element={<AboutPage />} />
+                <Route path="/" element={<HomePage upcomingEvents={upcomingEvents} />} />
+                <Route path="/events" element={<EventsPage isAuthenticated={isAuthenticated} />} />
+                <Route path="/resources" element={<ResourcesPage resources={mockResources} />} />
+                <Route path="/about" element={<AboutPage members={mockMembers} />} />
             </Routes>
             <Footer />
         </div>

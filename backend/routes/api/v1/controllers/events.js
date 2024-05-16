@@ -33,7 +33,7 @@ Expected Response Information:
         }]
 */
 router.get("/", async function(req, res) {
-    try{
+    try {
         //First check to see if any queries were passed in to filter with, and check for bad values.
         const query = {};
         if(req.query.month) {
@@ -66,7 +66,6 @@ router.get("/", async function(req, res) {
             //What should the default return of the docs be? All of the docs? Or only the docs in the current month?
             filter = false;
             //Just display no events is another option
-
         }
         
         //Once filter type selected for the specific query or queries, find the docs that match the filter.

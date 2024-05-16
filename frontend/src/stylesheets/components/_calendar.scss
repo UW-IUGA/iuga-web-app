@@ -66,7 +66,9 @@
     display: flex;
     flex-direction: column;
     transition: all 300ms cubic-bezier(0.19, 1, 0.22, 1);
-    border: 2px solid #AEAEAE;
+}
+
+.calendar-day-academic, .calendar-day-career, .calendar-day-social {
     cursor: pointer;
 
     span {
@@ -78,19 +80,40 @@
     }
 }
 
+.calendar-day-academic {
+    border: 2px solid $color-academic-primary;
+    color: $color-academic-primary;
+    background-color: $color-academic-light;
+}
+
+.calendar-day-social {
+    border: 2px solid $color-social-primary;
+    color: $color-social-primary;
+    background-color: $color-social-light;
+}
+
+.calendar-day-career {
+    border: 2px solid $color-career-primary;
+    color:  $color-career-primary;
+    background-color: $color-career-light;
+}
+
+.calendar-day-none {
+    border: 2px solid #AEAEAE;
+    color: #AEAEAE;
+}
+
 .calendar-day {
     text-align: end;
 }
 
 .calendar-day-event-name {
     font-weight: bold;
-    color: #AEAEAE;
     font-size: 1rem;
     margin-top: auto;
 }
 
 .calendar-day-organizer-name {
-    color: #AEAEAE;
     font-size: 0.8rem;
 }
 

@@ -1,20 +1,44 @@
 import Calendar from "../components/Calendar";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faLocationDot, faCalendar, faClock, faUsers } from '@fortawesome/free-solid-svg-icons'
+import { useLocation } from 'react-router-dom';
 import { useState, useRef, useEffect } from "react";
+import { mockCalendarData } from "../assets/mock-data/MockCalendarData";
 import Tag from "../components/Tag";
 import Button from "../components/Button";
 
 function EventsPage() {
+    const {state, pathname} = useLocation();
     const [showCalendar, setCalendar] = useState(true);
+    const [calendarEvents, setCalendarEvents] = useState([])
 
     const showEventDetails = (eid) => {
+        console.log(eid);
         setCalendar(false);
     }
 
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [pathname]);
+
+    useEffect(() => {
+        if (process.env.NODE_ENV === "production") {
+            fetch("http://localhost:7777/api/v1/events/", {
+                method: "GET",
+            }).then((res) => res.json())
+            .then((calendarEvents) => {
+                console.log(calendarEvents);
+            }).catch((error) => {
+                console.log(error);
+            });
+        } else {
+            setCalendarEvents(mockCalendarData);
+        }
+      },[])
+
     return (
         <div>
-            {showCalendar ? <Calendar callback={showEventDetails} /> : 
+            {showCalendar ? <Calendar callback={showEventDetails} calendarEvents={calendarEvents} highlightDate={state} /> : 
             <div className="event-details-container">
                 <div className="event-details-header" onClick={() => setCalendar(true)}>
                     <img className="left-arrow" src="/assets/right-arrow.svg" alt="left arrow" />
@@ -65,14 +89,14 @@ function EventsPage() {
                             <FontAwesomeIcon icon={faUsers} />
                             <span>24 Attending</span>
                         </div>
-                        <form className="event-details-rsvp-form" onsubmit="return false;">
+                        <form className="event-details-rsvp-form" onSubmit={() => false}>
                             <div>
-                                <label html="eventqa" class="form-label">Question #1</label>
-                                <input type="text" name="eventqa" id="eventqa" placeholder="Your answer" class="form-input" required />
-                                <label html="eventqa" class="form-label">Question #2</label>
-                                <input type="text" name="eventqa" id="eventqa" placeholder="Your answer" class="form-input" required />
-                                <label html="eventqa" class="form-label">Question #3</label>
-                                <input type="text" name="eventqa" id="eventqa" placeholder="Your answer" class="form-input" required />
+                                <label html="eventqa" className="form-label">Question #1</label>
+                                <input type="text" name="eventqa" id="eventqa" placeholder="Your answer" className="form-input" required />
+                                <label html="eventqa" className="form-label">Question #2</label>
+                                <input type="text" name="eventqa" id="eventqa" placeholder="Your answer" className="form-input" required />
+                                <label html="eventqa" className="form-label">Question #3</label>
+                                <input type="text" name="eventqa" id="eventqa" placeholder="Your answer" className="form-input" required />
                             </div>
                             <span className="filler" />
                             <Button text="RSVP" className="primary-button" />

@@ -1,11 +1,12 @@
+import { useNavigate } from "react-router-dom";
 import Tag from "../components/Tag";
 import dateFormat from "dateformat";
 
 const EventCard = ({ event, decorate }) => {
     const parsedTimestamp = Date.parse(event.eStartDate);
-
+    const navigate = useNavigate();
     return (
-        <div className="eventCard">
+        <div className="eventCard" onClick={() => navigate('/events',{state: event.eStartDate})}>
             { decorate ? <img src="/assets/events-decoration.svg" alt="event card decoration" /> : "" }
             <div>
                 <img src={``} alt={`${event.eName} event`} ></img>

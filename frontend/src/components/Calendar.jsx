@@ -1,14 +1,33 @@
 import dateFormat from "dateformat";
-import { useState, useRef, useEffect } from "react";
-import { startOfMonth, endOfMonth, eachDayOfInterval, format, getDay } from "date-fns";
+import { useState, useRef, useMemo } from "react";
+import { startOfMonth, endOfMonth, eachDayOfInterval, format, getDay, isSameDay } from "date-fns";
 import Tag from "./Tag";
 
 const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const currentDate = new Date();
+const eventPlaceholder = {
+    "isPlaceholder": true,
+    "eName": "Event Name",
+    "eLocation": "Location",
+    "eOrganizers": "Organizer Name",
+    "eDescription": ""
+}
 
-const Calendar = ({callback}) => {
+const Calendar = ({ callback, calendarEvents }) => {
     const wrapperRef = useRef(null);
     const [calendarDate, setDate] = useState(new Date(currentDate.getFullYear(), currentDate.getMonth()));
+
+    const eventsByDate = useMemo(() => {
+        return calendarEvents.reduce((accumulator, event) => {
+            const date = format(event.eStartDate, "yyyy-MM-dd");
+            if (!accumulator[date]) {
+                accumulator[date] = {}
+            }
+
+            accumulator[date] = event;
+            return accumulator;
+        }, {});
+    }, [calendarEvents])
 
     let firstDayOfMonth = startOfMonth(calendarDate);
     let lastDayOfMonth = endOfMonth(calendarDate);
@@ -19,11 +38,11 @@ const Calendar = ({callback}) => {
     let startingDayIndex = getDay(firstDayOfMonth);
 
     const prevMonth = () => {
-        setDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth()-1));
-    }   
+        setDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() - 1));
+    }
 
     const nextMonth = () => {
-        setDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth()+1));
+        setDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1));
     }
 
     return (
@@ -39,7 +58,7 @@ const Calendar = ({callback}) => {
             <div className="calendar-wrapper" ref={wrapperRef}>
                 <div className="calendar-content-wrapper">
                     <div>
-                        { ["Career", "Social", "Academic"].map(category => {
+                        {["Career", "Social", "Academic"].map(category => {
                             return <Tag key={category} text={category} style={category} />;
                         })}
                     </div>
@@ -56,10 +75,13 @@ const Calendar = ({callback}) => {
                         }
                         {
                             daysInMonth.map((day, index) => {
-                                return <div key={index} className="calendar-item calendar-day-wrapper" onClick={() => callback("passIDHere")}>
+                                const dateKey = format(day, "yyyy-MM-dd");
+                                const currentEvent = eventsByDate[dateKey] || eventPlaceholder;
+                                const eventClassName = "eLabels" in currentEvent ? `calendar-day-${currentEvent.eLabels[0].toLowerCase()}` : "calendar-day-none"
+                                return <div key={index} className={`calendar-item calendar-day-wrapper ${eventClassName}`} onClick={!currentEvent["isPlaceholder"] ? () => callback(currentEvent.eId) : null}>
                                     <span className="calendar-day">{format(day, "d")}</span>
-                                    <span className="calendar-day-event-name">Event Name</span>
-                                    <span className="calendar-day-organizer-name">Organizer Name</span>
+                                    <span className="calendar-day-event-name">{currentEvent.eName}</span>
+                                    <span className="calendar-day-organizer-name">{currentEvent.eOrganizers}</span>
                                 </div>
                             })
                         }
@@ -69,6 +91,6 @@ const Calendar = ({callback}) => {
             </div>
         </div>
     );
-  };
+};
 
-  export default Calendar;
+export default Calendar;

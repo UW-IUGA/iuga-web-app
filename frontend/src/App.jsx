@@ -7,9 +7,9 @@ import Navbar from "./layouts/Navbar";
 import { useMsal, useAccount } from "@azure/msal-react";
 import { useState, useEffect } from "react";
 import { loginRequest } from "./authConfig";
-import { mockEvents } from "./assets/MockData";
-import { mockResources } from "./assets/MockResourcesData";
-import { mockMembers } from "./assets/MockAboutData";
+import { mockEvents } from "./assets/mock-data/MockData";
+import { mockResources } from "./assets/mock-data/MockResourcesData";
+import { mockMembers } from "./assets/mock-data/MockAboutData";
 import Cookies from "js-cookie";
 import Footer from "./layouts/Footer";
 

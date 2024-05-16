@@ -159,7 +159,9 @@ router.get("/id/:eId", async function(req,res) {
                         eLabels:event.eLabels,
                         qList:event.qList,
                         participants:event.participants,
-                        eThumbnail: event.eThumbnail
+                        eThumbnail: event.eThumbnail,
+                        rsvp: event.rsvp,
+                        eAltLink: event.eAltLink
                     };
             
                     res.json(eventData);

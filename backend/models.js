@@ -48,7 +48,8 @@ async function connectToDatabase(){
                 qNumber: { type: Number, required: true},
                 qString: { type: String, required: true}
             }],
-            participants: [Number] 
+            participants: [Number],
+            rsvp: Boolean,
         })
 
     /* Participants Schema:

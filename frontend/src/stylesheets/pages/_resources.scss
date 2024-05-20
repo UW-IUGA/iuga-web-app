@@ -8,6 +8,7 @@ h3 {
   margin: 32px auto;
   border: 2px solid red;
   box-sizing: border-box;
+  position: relative;
 
   &.resourceSum {
     align-items: center;
@@ -23,10 +24,12 @@ h3 {
   width: 30%;
   height: auto;
   padding-right: 4rem;
+  z-index: 2;
 }
 
 .summary {
   width: 70%;
+  z-index: 2;
 }
 
 /* Resources section (where the components will go) styling */
@@ -35,15 +38,18 @@ h3 {
   display: flex;
   flex-direction: column;
   width: 25%;
+  position: relative;
 
   .legendHeader {
     text-transform: uppercase;
     font-family: $serif;
+    z-index: 2;
   }
 
   ul {
     margin: 0;
     padding: 0 0 0 1.25rem;
+    z-index: 2;
   }
 }
 
@@ -51,4 +57,31 @@ h3 {
   width: 75%;
 }
 
+/* Blobs styling, in chronological order */
+.blob1 {
+  background: radial-gradient(ellipse at center, #F8A6FF 0%, #FAE5FF 40%, rgba(109, 37, 100, 0) 70%);
+  position: absolute;
+  width: 500px;
+  left: -110px;
+  height: 300px;
+  z-index: 1;
+}
 
+.blob2 {
+  background: radial-gradient(ellipse at center, #fee8b3 0%, #fff4db 40%, rgba(109, 37, 100, 0) 70%);
+  position: absolute;
+  width: 700px;
+  left: 150px;
+  height: 300px;
+  z-index: 1;
+}
+
+.blob3 {
+  background: radial-gradient(ellipse at center, #d8e4f5 0%, rgba(109, 37, 100, 0) 65%);
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  left: -100px;
+  top: -90px;
+  z-index: 1;
+}

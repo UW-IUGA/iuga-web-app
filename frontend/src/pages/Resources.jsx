@@ -21,6 +21,8 @@ function ResourcesPage({ resources }) {
     return (
         <div className="baseContainer">
             <div className="resourceSum">
+                <div className="blob1"></div>
+                <div className="blob2"></div>
                 <img className="resourceImg" src="/assets/resources-main.png" alt="student looking for resources" />
                 <div className="summary">
                     <h1>Resources</h1>
@@ -33,6 +35,7 @@ function ResourcesPage({ resources }) {
             </div>
             <div className="resourceContainer">
                 <div className="legend">
+                    <div className="blob3"></div>
                     <h3 className="legendHeader">Categories</h3>
                     <ul>
                         {categories.map((category) => (

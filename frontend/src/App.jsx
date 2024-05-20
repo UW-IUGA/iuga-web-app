@@ -25,13 +25,12 @@ function App() {
         if (process.env.NODE_ENV === "production") {
             fetch("http://localhost:7777/api/v1/events/upcoming", {
                 method: "GET",
-            })
-                .then((res) => res.json())
-                .then((events) => {
-                    setUpcomingEvents(events);
-                }).catch((error) => {
-                    console.log(error);
-                });
+            }).then((res) => res.json())
+            .then((events) => {
+                setUpcomingEvents(events);
+            }).catch((error) => {
+                console.log(error);
+             });
         } else {
             setUpcomingEvents(mockCalendarData);
         }
@@ -59,16 +58,17 @@ function App() {
         } else {
             instance.loginPopup(loginRequest).then((res) => {
                 const accessToken = res.accessToken;
-                fetch("http://localhost:7777/api/v1/users/login", {
+                fetch("http://localhost:7777/api/v1/user/login", {
                     method: "POST",
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
                     },
-                })
-                    .then((res) => res.json())
-                    .catch((error) => {
-                        console.log(error);
-                    });
+                }).then((res) => res.json())
+                .then((data) => {
+                
+                }).catch((error) => {
+                    console.log(error);
+                });
             });
         }
     };
@@ -83,7 +83,7 @@ function App() {
             await instance
                 .logoutPopup()
                 .then((res) => {
-                    fetch("http://localhost:7777/api/v1/users/logout", {
+                    fetch("http://localhost:7777/api/v1/user/logout", {
                         method: "POST",
                     }).catch((e) => {
                         console.log(e);

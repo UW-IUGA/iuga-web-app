@@ -10,32 +10,32 @@ import express from 'express';
 var router = express.Router();
 
 /* 
-    @endpoint: /ms-login
-    @method: POST
+    @endpoint: /login
+    @method: GET
     @description: Given the Microsoft Access Token in the Authorization header,
                   get information about the user using Graph API. Save information
                   about the user if already exists. Create user session.
 */ 
 router.post('/login', async function(req, res) {
     const authorizationHeader = req.headers.authorization;
-    const accessToken = authorizationHeader.split(' ')[1];
-    const response = await fetch('https://graph.microsoft.com/v1.0/me', {
-        headers: {
-            'Authorization': `Bearer ${accessToken}`
-        }
-    });
+    try {
+        const accessToken = authorizationHeader.split(' ')[1];
+        const response = await fetch('https://graph.microsoft.com/v1.0/me', {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`
+            }
+        });
 
-    if (response.ok) {
-        const userData = await response.json();
+        if (response.ok) {
+            const userData = await response.json();
 
-        // Create a new session with the user
-        req.session.isAuthenticated = true;
-        req.session.displayName = userData.displayName;
-        req.session.email = userData.mail;
-        req.session.firstName = userData.givenName;
-        req.session.lastName = userData.surname;
-    
-        try {
+            // Create a new session with the user
+            req.session.isAuthenticated = true;
+            req.session.displayName = userData.displayName;
+            req.session.email = userData.mail;
+            req.session.firstName = userData.givenName;
+            req.session.lastName = userData.surname;
+
             //Check if user is already in database, if not then make them an account
             let user = await req.models.Users.findOne({uEmail:req.session.email})
             if (!user) {
@@ -53,15 +53,15 @@ router.post('/login', async function(req, res) {
             req.session.memberType = user.uType;
             req.session.isAdmin = user.uType === "Admin";
             res.status(200).json(user);
-        } catch (err) {
-            console.log(err);
-            res.status(500).json(
-                {
-                    status: "error",
-                    error: "Error from our side :("
-                 }
-            )
         }
+    } catch (err) {
+        console.log(err);
+        res.status(500).json(
+            {
+                status: "error",
+                error: "Error from our side :("
+             }
+        )
     }
 })
 

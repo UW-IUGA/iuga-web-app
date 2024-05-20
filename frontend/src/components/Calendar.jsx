@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faLocationDot, faUser, faClock, faUsers, faParagraph } from '@fortawesome/free-solid-svg-icons'
 import { useState, useRef, useMemo, useEffect } from "react";
 import { startOfMonth, endOfMonth, eachDayOfInterval, format, getDay, parseISO } from "date-fns";
+import { useIsAuthenticated } from "@azure/msal-react";
 import { toast} from 'react-toastify';
 import EventDetailsLoader from "./EventDetailsLoader";
 import Tag from "../components/Tag";
@@ -18,6 +19,7 @@ const eventPlaceholder = {
 }
 
 const Calendar = ({ calendarEvents, highlightEvent }) => {
+    const isAuthenticated = useIsAuthenticated();
     const wrapperRef = useRef(null);
     const currentDate = highlightEvent ? parseISO(highlightEvent.eStartDate) : new Date();
     const [selectedDate, setSelectedDate] = useState(null);
@@ -25,6 +27,7 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
     const [selectedEvent, setEvent] = useState({});
     const [isActive, setActive] = useState(false);
     const [showLoader, setShowLoader] = useState(false);
+    const [buttonDisabled, setButtonDisabled] = useState(false);
     const firstDayOfMonth = startOfMonth(calendarDate);
     const lastDayOfMonth = endOfMonth(calendarDate);
     const daysInMonth = eachDayOfInterval({
@@ -99,9 +102,32 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
     };
 
 
-    const handleRSVP = (event) => {
+    const handleRSVP = async (event, eId) => {
         event.preventDefault();
-        toast.success("RSVP Successful!");
+        if (isAuthenticated) {
+            setButtonDisabled(true);
+            fetch('http://localhost:7777/api/v1/events/rsvp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ eId: eId }),
+            }).then((res) => res.json())
+            .then(data => {
+                setButtonDisabled(false);
+                if (data.status === "error") {
+                    toast.error(data.message);
+                } else {
+                    toast.success(data.message);
+                }
+            }).catch(err => {
+                setButtonDisabled(false);
+                toast.error("RSVP was not successful :( Please try again.");
+                console.log(err);
+            });
+        } else {
+            toast.error("Please login first to RSVP!");
+        }
     };
 
     useEffect(() => {
@@ -179,9 +205,10 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
                                                 <FontAwesomeIcon icon={faUser} />
                                                 <p>{selectedEvent.eOrganizers ? selectedEvent.eOrganizers : "Organizers"}</p>
                                             </div>
-                                            { selectedEvent.participants && (<div className="event-details-section-header">
+                                            { selectedEvent.showParticipants && 
+                                            (<div className="event-details-section-header">
                                                 <FontAwesomeIcon icon={faUsers} />
-                                                <p>{selectedEvent.participants.length} Participants</p>
+                                                <p>{selectedEvent.participants} Participants</p>
                                             </div>)}
                                         </div>
                                     </div>
@@ -218,21 +245,21 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
                                         </div>
                                     </div>
 
+                                    { selectedEvent.rsvpEnabled && (
                                     <div className="event-details-rsvp">
-                                        <h1>Come Join Us!</h1>
-                                        <form className="event-details-rsvp-form" onSubmit={handleRSVP}>
-                                            <div>
-                                                <label html="eventqa" className="form-label">Question #1</label>
-                                                <input type="text" name="eventqa" id="eventqa1" placeholder="Your answer" className="form-input" required />
-                                                <label html="eventqa" className="form-label">Question #2</label>
-                                                <input type="text" name="eventqa" id="eventqa2" placeholder="Your answer" className="form-input" required />
-                                                <label html="eventqa" className="form-label">Question #3</label>
-                                                <input type="text" name="eventqa" id="eventqa3" placeholder="Your answer" className="form-input" required />
-                                            </div>
+                                        { selectedEvent.rsvpQuestions.length != 0 && (<h1>Come Join Us!</h1>) }
+                                        <form className="event-details-rsvp-form" onSubmit={(event) => handleRSVP(event, selectedEvent.eId)}>
+                                            { selectedEvent.rsvpQuestions.map((question, i) => {
+                                                <div>
+                                                    <label html="eventqa" className="form-label">{question.qString}</label>
+                                                    <input type="text" name="eventqa" id={i} placeholder="Your answer" className="form-input" required />
+                                                </div>
+                                            })}
                                             <span className="filler" />
-                                            <Button text="RSVP" className="primary-button" isDisabled={false}/>
+                                            <Button text="RSVP" className="primary-button" isDisabled={buttonDisabled}/>
                                         </form>
                                     </div>
+                                    )}
                                 </div>
                             </div>
                         </div>)

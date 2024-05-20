@@ -6,7 +6,8 @@ Schemas addressed in events.js:
 - Participants
 */
 
-import express, { raw } from 'express';
+import express from 'express';
+import mongoose from 'mongoose';
 
 var router = express.Router();
 //-------------------------------Event Endpoints----------------------------------------------
@@ -158,10 +159,11 @@ router.get("/id/:eId", async function(req,res) {
                         eDescription:event.eDescription,
                         ePics:event.ePics,
                         eLabels:event.eLabels,
-                        qList:event.qList,
-                        participants:event.participants,
+                        rsvpQuestions: event.rsvpQuestions,
+                        participants: event.eShowParticipants ? event.eParticipants.length : null,
+                        showParticipants: event.eShowParticipants,
                         eThumbnail: event.eThumbnail,
-                        rsvp: event.rsvp,
+                        rsvpEnabled: event.eRsvpEnabled,
                         eAltLink: event.eAltLink
                     };
             
@@ -249,50 +251,44 @@ Expected Response Information:
     status:"Success"
   }
 */
-router.post("/RSVP", async function(req,res) { 
+router.post("/rsvp", async function(req,res) { 
     //Using the given event id and user id parameters, create a participant profile for the user and this pId into the event's participant list
     try {
         if(req.session.isAuthenticated) {
-            const uId = req.body.uId;
-            const eId = req.body.eId;
-            const event = await req.models.Events.findById({eId});
+            const { eId, answers } = req.body;
+            const event = await req.models.Events.findById(eId).populate('eParticipants').exec();
+            const userObjectId = mongoose.Types.ObjectId(req.session.userId);
 
-            //Loop through the event participants, and check if they are already a participant
-                //Another option instead of this check, is to make a separate endpoint to update the participant, given event id and user id.
-            let isParticipant = false;
-            let pId;
-            event.participants.forEach(p => {
-                if(req.models.Participants.findById({p}).pUID == uId) {
-                    isParticipant = true;
-                    pId = p; //also grab their pId
-                }
-            });
-            
-            //If the user is already a participant, check to see what was sent in, update the values for the participant accordingly.
-            if(isParticipant==true) {
-                const participant = await req.models.Participants.findById({pId});
-                participant.aList = req.body.aList;
-                participant.isAnon = req.body.isAnon;
-
-                await participant.save();
-            } else { 
-                //Else make them a new participant, and save their info to the database and event participant list.
-                //Fit the new participant data into a new Participant Schema Object
-                const newParticipant = new req.models.Participants({
-                    pUID: uId,
-                    aList: req.body.aList,
-                    isAnon: req.body.isAnon
-                })
-
-                //Save the new Participant object into the database.
-                await newParticipant.save(); //doublecheck to see if this means we can still use the newParticipant doc now.
-                event.participants.push(newParticipant._id);
-                await event.save();
+            if (!event) {
+                return res.status(400).json({ status: 'error', message: 'Event not found' });
             }
 
-            res.json({status:"Success"});
+            // Check if RSVP is enabled for this event
+            if (!event.eRsvpEnabled) {
+                return res.status(400).json({ status: 'error', message: 'RSVP is not enabled for this event' });
+            }
+    
+            // Check if the user is already a participant
+            const userIsParticipant = event.eParticipants.some(participant => participant.pUID.equals(userObjectId));
+            if (userIsParticipant) {
+                return res.status(400).json({ status: 'success', message: 'You already RSVPd!' });
+            }
+
+            const newParticipant = new req.models.Participants({
+                pUID: userObjectId,
+                rsvpAnswers: answers,
+            });
+    
+
+            const savedParticipant = await newParticipant.save();
+
+            event.eParticipants.push(savedParticipant);
+
+            await event.save();
+
+            res.status(200).json({ status: 'success', message: 'RSVP successful!' });
         } else {
-            res.status(400).json({
+            res.status(401).json({
                 status: "error",
                 error: "User is not logged in"
             })

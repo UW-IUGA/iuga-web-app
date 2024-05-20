@@ -36,21 +36,18 @@ async function connectToDatabase(){
             eAltLink: String,
             eLocation: { type: String, required: true },
             eDescription: { type: String, required: true },
-            ePics: {
-                data: Buffer,
-                contentType: String
-            },
             eThumbnail: {
                 data: Buffer,
                 contentType: String
             },
             eLabels: [String],
-            qList: [{
+            eParticipants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Participants' }],
+            eShowParticipants: { type: Boolean, default: true },
+            eRsvpEnabled: { type: Boolean, default: true },
+            rsvpQuestions: [{
                 qNumber: { type: Number, required: true},
                 qString: { type: String, required: true}
-            }],
-            participants: [Number],
-            rsvp: Boolean,
+            }]
         })
 
     /* Participants Schema:
@@ -59,11 +56,10 @@ async function connectToDatabase(){
     */
         const participantsSchema = new mongoose.Schema({
             pUID: { type: mongoose.Schema.Types.ObjectId, ref: 'Users', required: true},
-            aList: [{
+            rsvpAnswers: [{
                 aNumber: {type: Number, required: true},
                 aString: { type: String, required: true}
-            }],
-            isAnon: {type: Boolean, default: false}
+            }]
         }) 
 
     /* Feedback Schema:

@@ -145,6 +145,8 @@ router.get("/id/:eId", async function(req,res) {
                 if (err) {
                     console.error(err);
                     res.status(400);
+                } else if (event == null) {
+                    res.status(400).json({status:"error", message: "Bad request..."});;
                 } else {
                     const eventData = {
                         eId:event._id,

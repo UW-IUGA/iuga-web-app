@@ -56,20 +56,38 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
         setShowLoader(true);
         setActive(true);
         setSelectedDate(date);
-        fetch(`http://localhost:7777/api/v1/events/id/${eid}`, {
-            method: "GET",
-        }).then((res) => res.json())
-        .then((event) => {
-            setTimeout(() => {
-                const formattedDate = format(new Date(event.eStartDate), "LLL dd, hh:mm aa");
-                event.eStartDate = formattedDate;
-                setEvent(event);
+        if (process.env.NODE_ENV === "production") {
+            fetch(`http://localhost:7777/api/v1/events/id/${eid}`, {
+                method: "GET",
+            }).then((res) => res.json())
+            .then((event) => {
+                setTimeout(() => {
+                    const formattedDate = format(new Date(event.eStartDate), "LLL dd, hh:mm aa");
+                    event.eStartDate = formattedDate;
+                    setEvent(event);
+                    setShowLoader(false);
+                }, 500);
+            }).catch((error) => {
                 setShowLoader(false);
-            }, 1000);
-        }).catch((error) => {
-            setShowLoader(false);
-            console.log(error);
-        }); 
+                console.log(error);
+            });
+        } else {
+            setTimeout(() => {
+                setEvent(    {
+                    "eId": "662450848a5036a39183aa2e",
+                    "eName": "Mock Event",
+                    "eStartDate": "2024-03-01T00:00:00.000Z",
+                    "eEndDate": "2024-03-01T00:00:00.000Z",
+                    "eLocation": "MGH120",
+                    "eOrganizers": "IUGA",
+                    "eDescription": "Eager to learn more about how to get your foot in the door with big tech companies for free?",
+                    "eLabels": [
+                      "Career"
+                    ]
+                });
+                setShowLoader(false);
+            }, 500);
+        }
     };
 
     const handleClickOutside = event => {

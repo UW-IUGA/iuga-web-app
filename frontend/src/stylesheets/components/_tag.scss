@@ -26,3 +26,12 @@
         background-color: #FEEFCD;
     }
 }
+
+.tag-small {
+    .tagText {
+        font-size: 0.8rem;
+        border-radius: $radius;
+        padding: 2px 8px;
+        margin: 0;
+    }
+}

@@ -27,6 +27,16 @@ button:hover {
     outline-offset: 8px;
 }
 
+button:disabled,
+button[disabled]{
+  border: 1px solid #999999;
+  background: #e8e8e8;
+  color: #464646;
+  border: 1px solid #464646;
+  outline-width: 0px;
+  cursor: not-allowed;
+}
+
 .primary-button {
     color: #8458CA;
     border: 2px solid #A276E9;

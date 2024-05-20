@@ -101,7 +101,7 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
 
     const handleRSVP = (event) => {
         event.preventDefault();
-        toast.success("RSVO Successful!");
+        toast.success("RSVP Successful!");
     };
 
     useEffect(() => {
@@ -230,7 +230,7 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
                                                 <input type="text" name="eventqa" id="eventqa3" placeholder="Your answer" className="form-input" required />
                                             </div>
                                             <span className="filler" />
-                                            <Button text="RSVP" className="primary-button"/>
+                                            <Button text="RSVP" className="primary-button" isDisabled={false}/>
                                         </form>
                                     </div>
                                 </div>

@@ -261,6 +261,28 @@
     }
 }
 
+.event-details-info {
+    width: 100%;
+    display: flex;
+    gap: 16px;
+
+    & > div {
+        gap: 8px;
+        align-items: center;
+        justify-content: center;
+
+        svg {
+            padding: 6px 0;
+        }
+
+        p {
+            margin-top: 2px;
+            font-size: 14px;
+            color: black;
+        }
+    }
+}
+
 .event-details-tags {
     display: flex;
     gap: 6px;

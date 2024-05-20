@@ -167,6 +167,16 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
                                     <img></img>
                                     <div className="event-details-header">
                                         <h1>{selectedEvent.eName ? selectedEvent.eName : "Event Name"}</h1>
+                                        <div className="event-details-info">
+                                            <div className="event-details-section-header">
+                                                <FontAwesomeIcon icon={faUser} />
+                                                <p>{selectedEvent.eOrganizers ? selectedEvent.eOrganizers : "Organizers"}</p>
+                                            </div>
+                                            { selectedEvent.participants && (<div className="event-details-section-header">
+                                                <FontAwesomeIcon icon={faUsers} />
+                                                <p>{selectedEvent.participants.length} Participants</p>
+                                            </div>)}
+                                        </div>
                                     </div>
                                     <div className="event-details-tags">
                                         {selectedEvent.eLabels ? selectedEvent.eLabels.map(category => {
@@ -175,22 +185,6 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
                                     </div>
                                     <div className="event-details-body">
                                         <div className="event-details-section-wrapper">
-                                            <div>
-                                                <div className="event-details-section">
-                                                    <div className="event-details-section-header">
-                                                        <FontAwesomeIcon icon={faUser} />
-                                                        <span>Organizers</span>
-                                                    </div>
-                                                    <p>{selectedEvent.eOrganizers ? selectedEvent.eOrganizers : "Organizers"}</p>
-                                                </div>
-                                                <div className="event-details-section">
-                                                    <div className="event-details-section-header">
-                                                        <FontAwesomeIcon icon={faUsers} />
-                                                        <span>Participants</span>
-                                                    </div>
-                                                    <p>{selectedEvent.participants ? selectedEvent.participants.length : 10}</p>
-                                                </div>
-                                            </div>
                                             <div>
                                                 <div className="event-details-section">
                                                     <div className="event-details-section-header">

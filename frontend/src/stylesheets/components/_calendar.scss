@@ -98,6 +98,24 @@
     background-color: $color-career-light;
 }
 
+.calendar-day-selected-academic {
+    border: 2px solid $color-academic-primary;
+    color: white;
+    background-color: $color-academic-primary;
+}
+
+.calendar-day-selected-social {
+    border: 2px solid $color-social-primary;
+    color: white;
+    background-color: $color-social-primary;
+}
+
+.calendar-day-selected-career {
+    border: 2px solid $color-career-primary;
+    color:  white;
+    background-color: $color-career-primary;
+}
+
 .calendar-day-none {
     border: 2px solid #AEAEAE;
     color: #AEAEAE;

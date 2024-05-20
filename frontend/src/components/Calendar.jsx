@@ -17,10 +17,11 @@ const eventPlaceholder = {
 
 const Calendar = ({ calendarEvents, highlightEvent }) => {
     const wrapperRef = useRef(null);
-    const currentDate = new Date();
+    const currentDate = highlightEvent ? parseISO(highlightEvent.eStartDate): new Date();
+    const [selectedDate, setSelectedDate] = useState(null);
     const [calendarDate, setDate] = useState(currentDate);
     const [selectedEvent, setEvent] = useState({});
-    const [isActive, setActive] = useState(true);
+    const [isActive, setActive] = useState(false);
     const firstDayOfMonth = startOfMonth(calendarDate);
     const lastDayOfMonth = endOfMonth(calendarDate);
     const daysInMonth = eachDayOfInterval({
@@ -49,8 +50,9 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
         setDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1));
     }
 
-    const showEventDetails = (eid) => {
+    const showEventDetails = (eid, date) => {
         setActive(true);
+        setSelectedDate(date);
         fetch(`http://localhost:7777/api/v1/events/id/${eid}`, {
             method: "GET",
         }).then((res) => res.json())
@@ -66,12 +68,13 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
     const handleClickOutside = event => {
         if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
             setActive(false);
+            setSelectedDate(null);  // Reset selected date
         }
     };
 
     useEffect(() => {
         if (highlightEvent) {
-            showEventDetails(highlightEvent);
+            showEventDetails(highlightEvent.eId, format(highlightEvent.eStartDate, "yyyy-MM-dd"));
         }
 
         const timer = setTimeout(() => {
@@ -118,7 +121,8 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
                                 const dateKey = format(day, "yyyy-MM-dd");
                                 const currentEvent = eventsByDate[dateKey] || eventPlaceholder;
                                 const eventClassName = "eLabels" in currentEvent ? `calendar-day-${currentEvent.eLabels[0].toLowerCase()}` : "calendar-day-none"
-                                return <div key={index} className={`calendar-item calendar-day-wrapper ${eventClassName}`} onClick={!currentEvent["isPlaceholder"] ? () => showEventDetails(currentEvent.eId) : null}>
+                                const isSelectedClass = "eLabels" in currentEvent && dateKey === selectedDate ? `calendar-day-selected-${currentEvent.eLabels[0].toLowerCase()}` : "";
+                                return <div key={index} className={`calendar-item calendar-day-wrapper ${eventClassName} ${isSelectedClass}`} onClick={!currentEvent["isPlaceholder"] ? () => showEventDetails(currentEvent.eId, dateKey) : null}>
                                     <span className="calendar-day">{format(day, "d")}</span>
                                     <span className="calendar-day-event-name">{currentEvent.eName}</span>
                                     <span className="calendar-day-organizer-name">{currentEvent.eOrganizers}</span>
@@ -129,8 +133,8 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
                     </div>
                 </div>
                 {
-                    isActive && selectedEvent ?
-                        <div className="event-details-container">
+                    isActive && selectedEvent &&
+                        (<div className="event-details-container">
                             <div className="event-details-wrapper">
                                 <div className="event-details-content">
                                     <img></img>
@@ -185,11 +189,11 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
                                         <form className="event-details-rsvp-form" onSubmit={() => false}>
                                             <div>
                                                 <label html="eventqa" className="form-label">Question #1</label>
-                                                <input type="text" name="eventqa" id="eventqa" placeholder="Your answer" className="form-input" required />
+                                                <input type="text" name="eventqa" id="eventqa1" placeholder="Your answer" className="form-input" required />
                                                 <label html="eventqa" className="form-label">Question #2</label>
-                                                <input type="text" name="eventqa" id="eventqa" placeholder="Your answer" className="form-input" required />
+                                                <input type="text" name="eventqa" id="eventqa2" placeholder="Your answer" className="form-input" required />
                                                 <label html="eventqa" className="form-label">Question #3</label>
-                                                <input type="text" name="eventqa" id="eventqa" placeholder="Your answer" className="form-input" required />
+                                                <input type="text" name="eventqa" id="eventqa3" placeholder="Your answer" className="form-input" required />
                                             </div>
                                             <span className="filler" />
                                             <Button text="RSVP" className="primary-button" />
@@ -197,7 +201,7 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
                                     </div>
                                 </div>
                             </div>
-                        </div> : null
+                        </div>)
                 }
             </div>
         </div>

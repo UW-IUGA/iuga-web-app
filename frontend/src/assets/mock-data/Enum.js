@@ -6,5 +6,6 @@ export const resourceTags = {
   DEI: "dei"
 }
 
-// export const aboutTags = {
-// }
+export const aboutTags = {
+  RSO: "rso",
+}

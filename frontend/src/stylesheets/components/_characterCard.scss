@@ -160,13 +160,13 @@
         position: absolute;
         z-index: -1;
         top: 30%;
-        left: 40%;
+        left: 20%;
         transform: translate(-50%, -50%);
         display: block;
         width: 400px;
-        height: 350px;
+        height: 400px;
         border-radius: 100%;
-        background: radial-gradient(ellipse at center, rgba(68, 84, 231, 0.8) 0%, rgba(48,66,233,0) 70%);
+        background: radial-gradient(ellipse at center, rgba(112, 124, 232, 0.8) 0%, rgba(48,66,233,0) 70%);
     }
 
     .characterCardHeader > div {

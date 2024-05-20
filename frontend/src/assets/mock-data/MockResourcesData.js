@@ -1,52 +1,54 @@
+import { resourceTags } from './Enum';
+
 export const mockResources = [
   {
     "rName": "Informatics Undergraduate Association",
     "rDescription": "IUGA is a student-led RSO that communicates between the Informatics student body, faculty, and administration of the University of Washington Information School. We host fun, community building events as well as events for professional development.",
-    "tag": "academic",
+    "tag": resourceTags.ACADEMIC,
   },
   {
     "rName": "Informatics Undergraduate Association",
     "rDescription": "IUGA is a student-led RSO that communicates between the Informatics student body, faculty, and administration of the University of Washington Information School. We host fun, community building events as well as events for professional development.",
-    "tag": "academic",
+    "tag": resourceTags.ACADEMIC,
   },
   {
     "rName": "Informatics Undergraduate Association",
     "rDescription": "IUGA is a student-led RSO that communicates between the Informatics student body, faculty, and administration of the University of Washington Information School. We host fun, community building events as well as events for professional development.",
-    "tag": "career",
+    "tag": resourceTags.CAREER,
   },
   {
     "rName": "Informatics Undergraduate Association",
     "rDescription": "IUGA is a student-led RSO that communicates between the Informatics student body, faculty, and administration of the University of Washington Information School. We host fun, community building events as well as events for professional development.",
-    "tag": "career",
+    "tag": resourceTags.CAREER,
   },
   {
     "rName": "Informatics Undergraduate Association",
     "rDescription": "IUGA is a student-led RSO that communicates between the Informatics student body, faculty, and administration of the University of Washington Information School. We host fun, community building events as well as events for professional development.",
-    "tag": "community",
+    "tag": resourceTags.COMMUNITY,
   },
   {
     "rName": "Informatics Undergraduate Association",
     "rDescription": "IUGA is a student-led RSO that communicates between the Informatics student body, faculty, and administration of the University of Washington Information School. We host fun, community building events as well as events for professional development.",
-    "tag": "community",
+    "tag": resourceTags.COMMUNITY,
   },
   {
     "rName": "Informatics Undergraduate Association",
     "rDescription": "IUGA is a student-led RSO that communicates between the Informatics student body, faculty, and administration of the University of Washington Information School. We host fun, community building events as well as events for professional development.",
-    "tag": "mental health",
+    "tag": resourceTags.MENTAL_HEALTH,
   },
   {
     "rName": "Informatics Undergraduate Association",
     "rDescription": "IUGA is a student-led RSO that communicates between the Informatics student body, faculty, and administration of the University of Washington Information School. We host fun, community building events as well as events for professional development.",
-    "tag": "mental health",
+    "tag": resourceTags.MENTAL_HEALTH,
   },
   {
     "rName": "Informatics Undergraduate Association",
     "rDescription": "IUGA is a student-led RSO that communicates between the Informatics student body, faculty, and administration of the University of Washington Information School. We host fun, community building events as well as events for professional development.",
-    "tag": "dei",
+    "tag": resourceTags.DEI,
   },
   {
     "rName": "Informatics Undergraduate Association",
     "rDescription": "IUGA is a student-led RSO that communicates between the Informatics student body, faculty, and administration of the University of Washington Information School. We host fun, community building events as well as events for professional development.",
-    "tag": "dei",
+    "tag": resourceTags.DEI,
   },
 ]

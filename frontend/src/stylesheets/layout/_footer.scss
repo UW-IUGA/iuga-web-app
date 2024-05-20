@@ -1,7 +1,7 @@
 
 footer {
     position: relative;
-    border-top: 1px solid rgb(201, 201, 201);
+    @include top-gradient-border;
     width: 100%;
 
     a {

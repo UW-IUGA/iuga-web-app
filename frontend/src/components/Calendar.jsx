@@ -15,12 +15,12 @@ const eventPlaceholder = {
     "eDescription": ""
 }
 
-const Calendar = ({ calendarEvents, highlightDate }) => {
+const Calendar = ({ calendarEvents, highlightEvent }) => {
     const wrapperRef = useRef(null);
-    const currentDate = highlightDate ? parseISO(highlightDate) : new Date();
+    const currentDate = new Date();
     const [calendarDate, setDate] = useState(currentDate);
     const [selectedEvent, setEvent] = useState({});
-    const [isActive, setActive] = useState(false);
+    const [isActive, setActive] = useState(true);
     const firstDayOfMonth = startOfMonth(calendarDate);
     const lastDayOfMonth = endOfMonth(calendarDate);
     const daysInMonth = eachDayOfInterval({
@@ -54,13 +54,13 @@ const Calendar = ({ calendarEvents, highlightDate }) => {
         fetch(`http://localhost:7777/api/v1/events/id/${eid}`, {
             method: "GET",
         }).then((res) => res.json())
-            .then((event) => {
-                const date = format(event.eStartDate, "LLL dd, hh mm aa");
-                event.eStartDate = date;
-                setEvent(event);
-            }).catch((error) => {
-                console.log(error);
-            });
+        .then((event) => {
+            const date = format(event.eStartDate, "LLL dd, hh mm aa");
+            event.eStartDate = date;
+            setEvent(event);
+        }).catch((error) => {
+            console.log(error);
+        });
     };
 
     const handleClickOutside = event => {
@@ -70,10 +70,18 @@ const Calendar = ({ calendarEvents, highlightDate }) => {
     };
 
     useEffect(() => {
-        document.addEventListener("click", handleClickOutside, false);
+        if (highlightEvent) {
+            showEventDetails(highlightEvent);
+        }
+
+        const timer = setTimeout(() => {
+            document.addEventListener("click", handleClickOutside);
+        }, 0);
+       
 
         return () => {
-            document.removeEventListener("click", handleClickOutside, false);
+            clearTimeout(timer);
+            document.removeEventListener("click", handleClickOutside);
         };
     }, []);
 

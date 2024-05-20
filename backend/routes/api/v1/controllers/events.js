@@ -201,11 +201,27 @@ Expected Response Information:
 */
 router.get("/upcoming", async function(req, res) {
     try {
-        //sort the result by descending
-        const events = await req.models.Events.find(
-            {}, 
-            ["eName", "eOrganizers", "eDescription", "eLabels", "eStartDate", "eThumbnail"]
-        ).sort({"eStartDate":-1}).limit(3); 
+        const events = await req.models.Events.aggregate([
+            {
+                $project: {
+                    eId: "$_id",
+                    eName: 1,
+                    eOrganizers: 1,
+                    eDescription: 1,
+                    eLabels: 1,
+                    eStartDate: 1,
+                    eThumbnail: 1,
+                    _id: 0 // Exclude the original _id field
+                }
+            },
+            {
+                $sort: { eStartDate: -1 }
+            },
+            {
+                $limit: 3
+            }
+        ]);
+        
         res.json(events);
     } catch (error) {
         console.log(error);

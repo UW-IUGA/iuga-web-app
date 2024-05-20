@@ -1,11 +1,10 @@
 import Calendar from "../components/Calendar";
 import { useLocation } from 'react-router-dom';
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { mockCalendarData } from "../assets/mock-data/MockCalendarData";
 
 function EventsPage() {
     const {state, pathname} = useLocation();
-    const [showCalendar, setCalendar] = useState(true);
     const [calendarEvents, setCalendarEvents] = useState([])
 
     useEffect(() => {
@@ -28,7 +27,7 @@ function EventsPage() {
     },[])
 
     return (
-        <Calendar calendarEvents={calendarEvents} highlightDate={state} />
+        <Calendar calendarEvents={calendarEvents} highlightEvent={state} />
     );
 }
   

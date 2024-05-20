@@ -28,14 +28,13 @@ function EventsPage() {
             }).then((res) => res.json())
             .then((events) => {
                 setCalendarEvents(events);
-                console.log(events);
             }).catch((error) => {
                 console.log(error);
             });
         } else {
             setCalendarEvents(mockCalendarData);
         }
-      },[])
+    },[])
 
     return (
         <div>

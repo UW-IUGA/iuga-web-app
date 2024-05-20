@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faLocationDot, faUser, faClock, faUsers } from '@fortawesome/free-solid-svg-icons'
 import { useState, useRef, useMemo, useEffect } from "react";
 import { startOfMonth, endOfMonth, eachDayOfInterval, format, getDay, parseISO } from "date-fns";
+import EventDetailsLoader from "./EventDetailsLoader";
 import Tag from "../components/Tag";
 import Button from "../components/Button";
 
@@ -17,11 +18,12 @@ const eventPlaceholder = {
 
 const Calendar = ({ calendarEvents, highlightEvent }) => {
     const wrapperRef = useRef(null);
-    const currentDate = highlightEvent ? parseISO(highlightEvent.eStartDate): new Date();
+    const currentDate = highlightEvent ? parseISO(highlightEvent.eStartDate) : new Date();
     const [selectedDate, setSelectedDate] = useState(null);
     const [calendarDate, setDate] = useState(currentDate);
     const [selectedEvent, setEvent] = useState({});
     const [isActive, setActive] = useState(false);
+    const [showLoader, setShowLoader] = useState(false);
     const firstDayOfMonth = startOfMonth(calendarDate);
     const lastDayOfMonth = endOfMonth(calendarDate);
     const daysInMonth = eachDayOfInterval({
@@ -50,19 +52,22 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
         setDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1));
     }
 
-    const showEventDetails = (eid, date) => {
+    const showEventDetails = async (eid, date) => {
+        setShowLoader(true);
         setActive(true);
         setSelectedDate(date);
         fetch(`http://localhost:7777/api/v1/events/id/${eid}`, {
             method: "GET",
         }).then((res) => res.json())
         .then((event) => {
-            const date = format(event.eStartDate, "LLL dd, hh mm aa");
-            event.eStartDate = date;
+            const formattedDate = format(new Date(event.eStartDate), "LLL dd, hh:mm aa");
+            event.eStartDate = formattedDate;
             setEvent(event);
+            setShowLoader(false);
         }).catch((error) => {
+            setShowLoader(false);
             console.log(error);
-        });
+        }); 
     };
 
     const handleClickOutside = event => {
@@ -80,7 +85,7 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
         const timer = setTimeout(() => {
             document.addEventListener("click", handleClickOutside);
         }, 0);
-       
+
 
         return () => {
             clearTimeout(timer);
@@ -134,7 +139,9 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
                 </div>
                 {
                     isActive && selectedEvent &&
-                        (<div className="event-details-container">
+                    (showLoader ?
+                        <EventDetailsLoader /> :
+                        <div className="event-details-container">
                             <div className="event-details-wrapper">
                                 <div className="event-details-content">
                                     <img></img>

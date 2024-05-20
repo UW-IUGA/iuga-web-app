@@ -25,10 +25,9 @@ function App() {
                 method: "GET",
             })
                 .then((res) => res.json())
-                .then((upcomingEvents) => {
-                    setUpcomingEvents(upcomingEvents);
-                })
-                .catch((error) => {
+                .then((events) => {
+                    setUpcomingEvents(events);
+                }).catch((error) => {
                     console.log(error);
                 });
         } else {

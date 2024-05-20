@@ -101,6 +101,12 @@
 .calendar-day-none {
     border: 2px solid #AEAEAE;
     color: #AEAEAE;
+
+    .calendar-day-event-name {
+        font-weight: normal!important;
+        font-size: 1rem;
+        margin-top: auto;
+    }
 }
 
 .calendar-day {

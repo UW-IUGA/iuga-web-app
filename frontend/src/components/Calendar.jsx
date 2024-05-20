@@ -6,9 +6,9 @@ import Tag from "./Tag";
 const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const eventPlaceholder = {
     "isPlaceholder": true,
-    "eName": "Event Name",
+    "eName": "No Event",
     "eLocation": "Location",
-    "eOrganizers": "Organizer Name",
+    "eOrganizers": "",
     "eDescription": ""
 }
 

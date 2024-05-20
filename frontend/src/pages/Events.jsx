@@ -26,8 +26,9 @@ function EventsPage() {
             fetch("http://localhost:7777/api/v1/events/", {
                 method: "GET",
             }).then((res) => res.json())
-            .then((calendarEvents) => {
-                setCalendarEvents(calendarEvents);
+            .then((events) => {
+                setCalendarEvents(events);
+                console.log(events);
             }).catch((error) => {
                 console.log(error);
             });

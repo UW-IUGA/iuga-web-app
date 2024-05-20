@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faLocationDot, faUser, faClock, faUsers, faParagraph } from '@fortawesome/free-solid-svg-icons'
 import { useState, useRef, useMemo, useEffect } from "react";
 import { startOfMonth, endOfMonth, eachDayOfInterval, format, getDay, parseISO } from "date-fns";
+import { toast} from 'react-toastify';
 import EventDetailsLoader from "./EventDetailsLoader";
 import Tag from "../components/Tag";
 import Button from "../components/Button";
@@ -95,6 +96,12 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
             setActive(false);
             setSelectedDate(null);  // Reset selected date
         }
+    };
+
+
+    const handleRSVP = (event) => {
+        event.preventDefault();
+        toast.success("RSVO Successful!");
     };
 
     useEffect(() => {
@@ -213,7 +220,7 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
 
                                     <div className="event-details-rsvp">
                                         <h1>Come Join Us!</h1>
-                                        <form className="event-details-rsvp-form" onSubmit={() => false}>
+                                        <form className="event-details-rsvp-form" onSubmit={handleRSVP}>
                                             <div>
                                                 <label html="eventqa" className="form-label">Question #1</label>
                                                 <input type="text" name="eventqa" id="eventqa1" placeholder="Your answer" className="form-input" required />
@@ -223,7 +230,7 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
                                                 <input type="text" name="eventqa" id="eventqa3" placeholder="Your answer" className="form-input" required />
                                             </div>
                                             <span className="filler" />
-                                            <Button text="RSVP" className="primary-button" />
+                                            <Button text="RSVP" className="primary-button"/>
                                         </form>
                                     </div>
                                 </div>

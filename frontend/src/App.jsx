@@ -2,6 +2,8 @@ import HomePage from "./pages/Home";
 import EventsPage from "./pages/Events";
 import ResourcesPage from "./pages/Resources";
 import AboutPage from "./pages/About";
+import { ToastContainer, Bounce } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { Route, Routes } from "react-router-dom";
 import Navbar from "./layouts/Navbar";
 import { useMsal, useAccount } from "@azure/msal-react";
@@ -95,6 +97,19 @@ function App() {
 
     return (
         <div id="rootContainer">
+            <ToastContainer
+                position="bottom-center"
+                autoClose={2000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="light"
+                transition={Bounce}
+            />
             <Navbar signIn={signIn} signOut={signOut} isAuthenticated={isAuthenticated} />
             <Routes>
                 <Route path="/" element={<HomePage upcomingEvents={upcomingEvents} />} />

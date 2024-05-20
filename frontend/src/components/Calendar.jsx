@@ -1,6 +1,6 @@
 import dateFormat from "dateformat";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faLocationDot, faCalendar, faClock, faUsers } from '@fortawesome/free-solid-svg-icons'
+import { faLocationDot, faUser, faClock, faUsers } from '@fortawesome/free-solid-svg-icons'
 import { useState, useRef, useMemo, useEffect } from "react";
 import { startOfMonth, endOfMonth, eachDayOfInterval, format, getDay, parseISO } from "date-fns";
 import Tag from "../components/Tag";
@@ -19,6 +19,7 @@ const Calendar = ({ calendarEvents, highlightDate }) => {
     const wrapperRef = useRef(null);
     const currentDate = highlightDate ? parseISO(highlightDate) : new Date();
     const [calendarDate, setDate] = useState(currentDate);
+    const [selectedEvent, setEvent] = useState({});
     const [isActive, setActive] = useState(false);
     const firstDayOfMonth = startOfMonth(calendarDate);
     const lastDayOfMonth = endOfMonth(calendarDate);
@@ -48,8 +49,18 @@ const Calendar = ({ calendarEvents, highlightDate }) => {
         setDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1));
     }
 
-    const showEventDetails = () => {
+    const showEventDetails = (eid) => {
         setActive(true);
+        fetch(`http://localhost:7777/api/v1/events/id/${eid}`, {
+            method: "GET",
+        }).then((res) => res.json())
+            .then((event) => {
+                const date = format(event.eStartDate, "LLL dd, hh mm aa");
+                event.eStartDate = date;
+                setEvent(event);
+            }).catch((error) => {
+                console.log(error);
+            });
     };
 
     const handleClickOutside = event => {
@@ -109,68 +120,77 @@ const Calendar = ({ calendarEvents, highlightDate }) => {
                         <img className="calendar-decoration" src="/assets/calendar-decoration.svg" alt="calendar decoration" />
                     </div>
                 </div>
-                <div className={`event-details-container ${isActive ? "displayDetails" : ""}`}>
-                    <div className="event-details-wrapper">
-                        <div className="event-details-content">
-                            <img></img>
-                            <div className="event-details-header">
-                                <h1>Title</h1>
-                                <h2>Organizers</h2>
-                            </div>
-                            <div className="event-details-section-header">
-                                    <FontAwesomeIcon icon={faUsers} />
-                                    <span>24 Attending</span>
-                            </div>
-                            <div className="event-details-tags">
-                                {["Career", "Social", "Academic"].map(category => {
-                                    return <Tag key={category} text={category} style={category} isSmall={true} />;
-                                })}
-                            </div>
-                            <div className="event-details-body">
-                                <div className="event-details-section-wrapper">
-                                    <div className="event-details-section">
-                                        <div className="event-details-section-header">
-                                            <FontAwesomeIcon icon={faLocationDot} />
-                                            <span>Location</span>
-                                        </div>
-                                        <p>Location</p>
+                {
+                    isActive && selectedEvent ?
+                        <div className="event-details-container">
+                            <div className="event-details-wrapper">
+                                <div className="event-details-content">
+                                    <img></img>
+                                    <div className="event-details-header">
+                                        <h1>{selectedEvent.eName ? selectedEvent.eName : "Event Name"}</h1>
                                     </div>
-                                    {/* <div className="event-details-section">
-                                        <div className="event-details-section-header">
-                                            <FontAwesomeIcon icon={faCalendar} />
-                                            <span>Date</span>
+                                    <div className="event-details-tags">
+                                        {selectedEvent.eLabels ? selectedEvent.eLabels.map(category => {
+                                            return <Tag key={category} text={category} style={category} isSmall={true} />;
+                                        }) : <Tag key={"social"} text={"social"} style={"social"} isSmall={true} />}
+                                    </div>
+                                    <div className="event-details-body">
+                                        <div className="event-details-section-wrapper">
+                                            <div>
+                                                <div className="event-details-section">
+                                                    <div className="event-details-section-header">
+                                                        <FontAwesomeIcon icon={faUser} />
+                                                        <span>Organizers</span>
+                                                    </div>
+                                                    <p>{selectedEvent.eOrganizers ? selectedEvent.eOrganizers : "Organizers"}</p>
+                                                </div>
+                                                <div className="event-details-section">
+                                                    <div className="event-details-section-header">
+                                                        <FontAwesomeIcon icon={faUsers} />
+                                                        <span>Participants</span>
+                                                    </div>
+                                                    <p>{selectedEvent.participants ? selectedEvent.participants.length : 10}</p>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div className="event-details-section">
+                                                    <div className="event-details-section-header">
+                                                        <FontAwesomeIcon icon={faLocationDot} />
+                                                        <span>Location</span>
+                                                    </div>
+                                                    <p>{selectedEvent.eLocation ? selectedEvent.eLocation : "MGH120"}</p>
+                                                </div>
+                                                <div className="event-details-section">
+                                                    <div className="event-details-section-header">
+                                                        <FontAwesomeIcon icon={faClock} />
+                                                        <span>Date</span>
+                                                    </div>
+                                                    <p>{selectedEvent.eStartDate ? selectedEvent.eStartDate : "Jan 12, 12 30 PM"}</p>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <p>Date</p>
-                                    </div> */}
-                                    <div className="event-details-section">
-                                        <div className="event-details-section-header">
-                                            <FontAwesomeIcon icon={faClock} />
-                                            <span>Time</span>
-                                        </div>
-                                        <p>Time</p>
+                                        <p>{selectedEvent.eDescription ? selectedEvent.eDescription : "Event Description"}</p>
+                                    </div>
+
+                                    <div className="event-details-rsvp">
+                                        <h1>Come Join Us!</h1>
+                                        <form className="event-details-rsvp-form" onSubmit={() => false}>
+                                            <div>
+                                                <label html="eventqa" className="form-label">Question #1</label>
+                                                <input type="text" name="eventqa" id="eventqa" placeholder="Your answer" className="form-input" required />
+                                                <label html="eventqa" className="form-label">Question #2</label>
+                                                <input type="text" name="eventqa" id="eventqa" placeholder="Your answer" className="form-input" required />
+                                                <label html="eventqa" className="form-label">Question #3</label>
+                                                <input type="text" name="eventqa" id="eventqa" placeholder="Your answer" className="form-input" required />
+                                            </div>
+                                            <span className="filler" />
+                                            <Button text="RSVP" className="primary-button" />
+                                        </form>
                                     </div>
                                 </div>
-                                <p>Description</p>
                             </div>
-
-                            <div className="event-details-rsvp">
-                                <h1>Come Join Us!</h1>
-                                <form className="event-details-rsvp-form" onSubmit={() => false}>
-                                    <div>
-                                        <label html="eventqa" className="form-label">Question #1</label>
-                                        <input type="text" name="eventqa" id="eventqa" placeholder="Your answer" className="form-input" required />
-                                        <label html="eventqa" className="form-label">Question #2</label>
-                                        <input type="text" name="eventqa" id="eventqa" placeholder="Your answer" className="form-input" required />
-                                        <label html="eventqa" className="form-label">Question #3</label>
-                                        <input type="text" name="eventqa" id="eventqa" placeholder="Your answer" className="form-input" required />
-                                    </div>
-                                    <span className="filler" />
-                                    <Button text="RSVP" className="primary-button" />
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                        </div> : null
+                }
             </div>
         </div>
     );

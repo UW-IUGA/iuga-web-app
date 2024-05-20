@@ -137,7 +137,6 @@
 }
 
 .event-details-container {
-    display: none;
     width: 300px;
     height: 632px;
     margin-top: 88px;
@@ -150,21 +149,17 @@
     background: 
         linear-gradient(#ffffff 33%, rgba(255,255,255, 0)),
         linear-gradient(rgba(255,255,255, 0), #ffffff 66%) 0 100%,
-        radial-gradient(farthest-side at 50% 0, rgba(199,199,199, 0.5), rgba(0,0,0,0)),
-        radial-gradient(farthest-side at 50% 100%, rgba(199,199,199, 0.5), rgba(0,0,0,0)) 0 100%;
+        radial-gradient(farthest-side at 50% 0, rgba(154, 154, 154, 0.5), rgba(0,0,0,0)),
+        radial-gradient(farthest-side at 50% 100%, rgba(149, 149, 149, 0.5), rgba(0,0,0,0)) 0 100%;
     background-color: #ffffff;
     background-repeat: no-repeat;
     background-attachment: local, local, scroll, scroll;
     background-size: 100% 51px, 100% 51px, 100% 17px, 100% 17px;
 }
 
-.displayDetails {
-    display: block;
-}
-
 .event-details-wrapper {
     width: 100%;
-    padding: 16px;
+    padding: 18px;
     box-sizing: border-box;
 }
 
@@ -212,8 +207,15 @@
 .event-details-section-wrapper {
     position: relative;
     display: flex;
-    gap: 8px;
+    gap: 18px;
     padding: 12px 0;
+    flex-direction: column;
+
+    & > div {
+        flex: 1;
+        display: flex;
+        gap: 8px;
+    }
 
     @include top-gradient-border;
     @include bottom-gradient-border;
@@ -221,13 +223,18 @@
 
 .event-details-section {
     flex: 1;
+    
+    & > p {
+        margin-top: 8px;
+        font-size: 1rem;
+    }
 }
 
 .event-details-section-header {
     display: flex;
     align-items: center;
     color: darkgray;
-    
+
     span {
         margin-top: 3px;
         margin-left: 8px;

@@ -60,10 +60,12 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
             method: "GET",
         }).then((res) => res.json())
         .then((event) => {
-            const formattedDate = format(new Date(event.eStartDate), "LLL dd, hh:mm aa");
-            event.eStartDate = formattedDate;
-            setEvent(event);
-            setShowLoader(false);
+            setTimeout(() => {
+                const formattedDate = format(new Date(event.eStartDate), "LLL dd, hh:mm aa");
+                event.eStartDate = formattedDate;
+                setEvent(event);
+                setShowLoader(false);
+            }, 1000);
         }).catch((error) => {
             setShowLoader(false);
             console.log(error);

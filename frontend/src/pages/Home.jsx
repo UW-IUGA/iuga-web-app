@@ -2,6 +2,14 @@ import Button from "../components/Button";
 import CharacterCard from "../components/CharacterCard";
 import EventCard from "../components/EventCard";
 import { useNavigate } from "react-router-dom";
+import groups from "../assets/gallery/groups.png";
+import bowling from "../assets/gallery/bowling.jpeg";
+import merch from "../assets/gallery/merch.jpeg";
+import gamenight from "../assets/gallery/gamenight.png";
+import panelists from "../assets/gallery/panelists.png";
+import heart from "../assets/gallery/heart.jpeg";
+import gamenight2 from "../assets/gallery/gamenight-2.png";
+import officers22 from "../assets/gallery/officers-22.png";
 
 function HomePage({upcomingEvents}) {
     const navigate = useNavigate();
@@ -31,14 +39,14 @@ function HomePage({upcomingEvents}) {
             <div className="gallery">
                 <h1>Gallery</h1>
                 <div className="galleryImageContainer">
-                    <div><img src="/assets/gallery/groups.png" alt="" /></div>
-                    <div><img src="/assets/gallery/bowling.jpeg" alt="" /></div>
-                    <div><img src="/assets/gallery/merch.jpeg" alt="" /></div>
-                    <div><img src="/assets/gallery/gamenight.png" alt="" /></div>
-                    <div><img src="/assets/gallery/panelists.png" alt="" /></div>
-                    <div><img src="/assets/gallery/heart.jpeg" alt="" /></div>
-                    <div><img src="/assets/gallery/gamenight-2.png" alt="" /></div>
-                    <div><img src="/assets/gallery/officers-22.png" alt="" /></div>
+                    <div><img src={groups} alt="" /></div>
+                    <div><img src={bowling} alt="" /></div>
+                    <div><img src={merch} alt="" /></div>
+                    <div><img src={gamenight} alt="" /></div>
+                    <div><img src={panelists} alt="" /></div>
+                    <div><img src={heart} alt="" /></div>
+                    <div><img src={gamenight2} alt="" /></div>
+                    <div><img src={officers22} alt="" /></div>
                 </div>
                 <div>
                     <img src="/assets/campfire.png" alt="characters around a campfire" />

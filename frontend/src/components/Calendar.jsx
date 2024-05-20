@@ -1,6 +1,6 @@
 import dateFormat from "dateformat";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faLocationDot, faUser, faClock, faUsers } from '@fortawesome/free-solid-svg-icons'
+import { faLocationDot, faUser, faClock, faUsers, faParagraph } from '@fortawesome/free-solid-svg-icons'
 import { useState, useRef, useMemo, useEffect } from "react";
 import { startOfMonth, endOfMonth, eachDayOfInterval, format, getDay, parseISO } from "date-fns";
 import EventDetailsLoader from "./EventDetailsLoader";
@@ -208,7 +208,13 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <p>{selectedEvent.eDescription ? selectedEvent.eDescription : "Event Description"}</p>
+                                        <div className="event-details-section">
+                                            <div className="event-details-section-header">
+                                                <FontAwesomeIcon icon={faParagraph} />
+                                                <span>Description</span>
+                                            </div>
+                                            <p>{selectedEvent.eDescription ? selectedEvent.eDescription : "Event Description"}</p>
+                                        </div>
                                     </div>
 
                                     <div className="event-details-rsvp">

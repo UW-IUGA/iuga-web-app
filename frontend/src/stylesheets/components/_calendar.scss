@@ -216,7 +216,7 @@
     gap: 12px;
     flex: 1;
 
-    & > p {
+    & > div:last-child {
         margin-top: 12px;
         padding-bottom: 34px;
     }

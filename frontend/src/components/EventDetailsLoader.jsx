@@ -4,7 +4,7 @@ import ContentLoader from "react-content-loader";
 const EventDetailsLoader = (props) => (
     <div className="event-details-container">
         <ContentLoader 
-            speed={2}
+            speed={1}
             width={280}
             height={600}
             viewBox="0 0 300 632"

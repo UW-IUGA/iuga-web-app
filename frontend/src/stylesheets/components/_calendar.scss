@@ -102,18 +102,21 @@
     border: 2px solid $color-academic-primary;
     color: white;
     background-color: $color-academic-primary;
+    box-shadow: rgba(0, 0, 0, 0.45) 0px 5px 15px 0px;
 }
 
 .calendar-day-selected-social {
     border: 2px solid $color-social-primary;
     color: white;
     background-color: $color-social-primary;
+    box-shadow: rgba(0, 0, 0, 0.45) 0px 5px 15px 0px;
 }
 
 .calendar-day-selected-career {
     border: 2px solid $color-career-primary;
     color:  white;
     background-color: $color-career-primary;
+    box-shadow: rgba(0, 0, 0, 0.45) 0px 5px 15px 0px;
 }
 
 .calendar-day-none {

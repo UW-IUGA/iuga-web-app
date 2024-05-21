@@ -5,6 +5,7 @@ WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm install
 COPY frontend/ ./
+ENV API_URL="https://dev.iuga.info"
 RUN npm run build
 
 
@@ -17,6 +18,5 @@ COPY backend/package*.json ./
 RUN npm install --production
 COPY backend/ ./
 COPY --from=build /app/frontend/build /app/frontend/build
-ENV API_URL="https://dev.iuga.info"
 EXPOSE $PORT
 CMD ["npm", "run", "deploy"]

@@ -6,20 +6,19 @@ import { ToastContainer, Bounce } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Route, Routes } from "react-router-dom";
 import Navbar from "./layouts/Navbar";
-import { useMsal, useAccount } from "@azure/msal-react";
+import { useIsAuthenticated } from "@azure/msal-react";
 import { useState, useEffect } from "react";
-import { loginRequest } from "./authConfig";
 import { mockCalendarData } from "./assets/mock-data/MockCalendarData";
 import { mockResources } from "./assets/mock-data/MockResourcesData";
 import { mockMembers } from "./assets/mock-data/MockAboutData";
-import Cookies from "js-cookie";
+import { useAuthContext } from './context/AuthContext';
 import Footer from "./layouts/Footer";
 
 function App() {
-    const [isAuthenticated, setAuthenticated] = useState(true);
+    const { signIn, signOut } = useAuthContext();
     const [upcomingEvents, setUpcomingEvents] = useState([]);
-    const { instance, accounts } = useMsal();
-    const account = useAccount(accounts[0] || {});
+    const isAuthenticated = useIsAuthenticated();
+
 
     useEffect(() => {
         if (process.env.NODE_ENV === "production") {
@@ -35,65 +34,6 @@ function App() {
             setUpcomingEvents(mockCalendarData);
         }
     }, []);
-
-    // Re-run effect if account state changes
-    useEffect(() => {
-        if (process.env.NODE_ENV === "production") {
-            if (account) {
-                setAuthenticated(true);
-            } else {
-                setAuthenticated(false);
-            }
-        } else {
-            setAuthenticated(true);
-        }
-    }, [account]);
-
-    const signIn = async () => {
-        const interactionIncomplete = Cookies.get("msal.interaction.status");
-
-        if (interactionIncomplete) {
-            console.log("Microsoft sign out was incomplete.");
-            console.log(interactionIncomplete);
-        } else {
-            instance.loginPopup(loginRequest).then((res) => {
-                const accessToken = res.accessToken;
-                fetch("http://localhost:7777/api/v1/user/login", {
-                    method: "POST",
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                    },
-                }).then((res) => res.json())
-                .then((data) => {
-                
-                }).catch((error) => {
-                    console.log(error);
-                });
-            });
-        }
-    };
-
-    const signOut = async (event) => {
-        const interactionIncomplete = Cookies.get("msal.interaction.status");
-
-        if (interactionIncomplete) {
-            console.log("Microsoft sign out was incomplete.");
-            console.log(interactionIncomplete);
-        } else {
-            await instance
-                .logoutPopup()
-                .then((res) => {
-                    fetch("http://localhost:7777/api/v1/user/logout", {
-                        method: "POST",
-                    }).catch((e) => {
-                        console.log(e);
-                    });
-                })
-                .catch((e) => {
-                    console.log(e);
-                });
-        }
-    };
 
     return (
         <div id="rootContainer">

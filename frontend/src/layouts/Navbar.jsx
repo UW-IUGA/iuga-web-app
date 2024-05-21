@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Link } from 'react-router-dom';
+import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import Button from "../components/Button.jsx"
 
-function Navbar({signIn, signOut, isAuthenticated}) {
+function Navbar({signIn, signOut}) {
+    const { accounts } = useMsal();
+    const isAuthenticated = useIsAuthenticated();
     const [isScrolledDown, setScrolledDown] = useState(false);
 
     useEffect(() => {
@@ -23,11 +26,14 @@ function Navbar({signIn, signOut, isAuthenticated}) {
             <Link to="/resources">Resources</Link>
             <Link to="/about">About</Link>
             <span></span>
+            <div>
+            { isAuthenticated && (<p>{accounts[0]?.username}</p>) }
             {
                 isAuthenticated
                     ? <Button className="secondary-button" callback={signOut} text="Logout" />
                     : <Button className="secondary-button" callback={signIn} text="UW NetID Login" />
             }
+            </div>
         </nav>
     )
 }

@@ -50,10 +50,10 @@ function App() {
                 theme="light"
                 transition={Bounce}
             />
-            <Navbar signIn={signIn} signOut={signOut} isAuthenticated={isAuthenticated} />
+            <Navbar signIn={signIn} signOut={signOut} />
             <Routes>
                 <Route path="/" element={<HomePage upcomingEvents={upcomingEvents} />} />
-                <Route path="/events" element={<EventsPage isAuthenticated={isAuthenticated} />} />
+                <Route path="/events" element={<EventsPage />} />
                 <Route path="/resources" element={<ResourcesPage resources={mockResources} />} />
                 <Route path="/about" element={<AboutPage members={mockMembers} />} />
             </Routes>

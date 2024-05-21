@@ -130,6 +130,28 @@
     }
 }
 
+.calendar-day-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    & > div {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+
+        svg {
+            margin-top: -2px;
+        }
+    }
+}
+
+.calendar-rsvp-status {
+    font-size: 0.6rem;
+    text-align: end;
+}
+
 .calendar-day {
     text-align: end;
 }
@@ -170,8 +192,8 @@
     background: 
         linear-gradient(#ffffff 33%, rgba(255,255,255, 0)),
         linear-gradient(rgba(255,255,255, 0), #ffffff 66%) 0 100%,
-        radial-gradient(farthest-side at 50% 0, rgba(154, 154, 154, 0.5), rgba(0,0,0,0)),
-        radial-gradient(farthest-side at 50% 100%, rgba(149, 149, 149, 0.5), rgba(0,0,0,0)) 0 100%;
+        radial-gradient(farthest-side at 50% 0, rgba(79, 79, 79, 0.5), rgba(0,0,0,0)),
+        radial-gradient(farthest-side at 50% 100%, rgba(79, 79, 79, 0.5), rgba(0,0,0,0)) 0 100%;
     background-color: #ffffff;
     background-repeat: no-repeat;
     background-attachment: local, local, scroll, scroll;

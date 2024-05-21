@@ -1,5 +1,5 @@
 # Build stage
-FROM node:21-alpine AS build
+FROM node:22-alpine AS build
 ENV PORT=7777
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
@@ -10,7 +10,9 @@ RUN npm run build
 
 
 # Production stage
-FROM node:14-alpine
+FROM node:22-alpine
+RUN apk add --no-cache tzdata
+ENV TZ=America/Los_Angeles
 WORKDIR /app/backend
 COPY backend/package*.json ./
 RUN npm install --production

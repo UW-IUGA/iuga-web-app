@@ -9,30 +9,41 @@ export const AuthProvider = ({ children }) => {
   const { ensureBackendAuthentication } = useAuth();
   const [authLoading, setAuthLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
+  const [isAuthenticated, setLoginState] = useState(false);
+  const [user, setUser] = useState({});
 
-  useEffect(() => {
-    const authenticate = async () => {
-      if (accounts.length > 0 ) {
+  const authenticate = () => {
+    return new Promise(async (resolve, reject) => {
+      if (accounts.length > 0) {
         try {
-          await ensureBackendAuthentication();
+          const user = await ensureBackendAuthentication();
+          setUser(user);
+          setLoginState(true);
+          resolve();
         } catch (error) {
           setAuthError(error);
+          setLoginState(false);
+          reject(error);
         } finally {
           setAuthLoading(false);
         }
       } else {
         setAuthLoading(false);
       }
-    };
+    });
+  };
 
+  useEffect(() => {
     authenticate();
   }, [accounts]);
 
   const signIn = async () => {
     try {
       await instance.loginPopup();
-      await ensureBackendAuthentication();
+      await authenticate();
     } catch (error) {
+      setUser({});
+      setLoginState(false)
       setAuthError(error);
     }
   };
@@ -46,13 +57,15 @@ export const AuthProvider = ({ children }) => {
           'Content-Type': 'application/json',
         },
       });
+      setUser({});
+      setLoginState(false);
     } catch (error) {
       setAuthError(error);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ authLoading, authError, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, authLoading, authError, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,13 +1,11 @@
 import dateFormat from "dateformat";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faLocationDot, faUser, faClock, faUsers, faParagraph } from '@fortawesome/free-solid-svg-icons'
+import { faCheck } from '@fortawesome/free-solid-svg-icons'
 import { useState, useRef, useMemo, useEffect } from "react";
 import { startOfMonth, endOfMonth, eachDayOfInterval, format, getDay, parseISO } from "date-fns";
-import { useIsAuthenticated } from "@azure/msal-react";
-import { toast} from 'react-toastify';
 import EventDetailsLoader from "./EventDetailsLoader";
 import Tag from "../components/Tag";
-import Button from "../components/Button";
+import EventDetailsCard from "./EventDetailsCard";
 
 const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const eventPlaceholder = {
@@ -19,15 +17,14 @@ const eventPlaceholder = {
 }
 
 const Calendar = ({ calendarEvents, highlightEvent }) => {
-    const isAuthenticated = useIsAuthenticated();
     const wrapperRef = useRef(null);
     const currentDate = highlightEvent ? parseISO(highlightEvent.eStartDate) : new Date();
     const [selectedDate, setSelectedDate] = useState(null);
     const [calendarDate, setDate] = useState(currentDate);
+    const [eventsByDate, setEventsByDate] = useState({});
     const [selectedEvent, setEvent] = useState({});
     const [isActive, setActive] = useState(false);
     const [showLoader, setShowLoader] = useState(false);
-    const [buttonDisabled, setButtonDisabled] = useState(false);
     const firstDayOfMonth = startOfMonth(calendarDate);
     const lastDayOfMonth = endOfMonth(calendarDate);
     const daysInMonth = eachDayOfInterval({
@@ -36,8 +33,8 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
     })
     const startingDayIndex = getDay(firstDayOfMonth);
 
-    const eventsByDate = useMemo(() => {
-        return calendarEvents.reduce((accumulator, event) => {
+    useMemo(() => {
+        const eventsObj = calendarEvents.reduce((accumulator, event) => {
             const date = format(event.eStartDate, "yyyy-MM-dd");
             if (!accumulator[date]) {
                 accumulator[date] = {}
@@ -46,6 +43,8 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
             accumulator[date] = event;
             return accumulator;
         }, {});
+
+        setEventsByDate(eventsObj);
     }, [calendarEvents]);
 
     const prevMonth = () => {
@@ -67,7 +66,7 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
             .then((event) => {
                 setTimeout(() => {
                     const formattedDate = format(new Date(event.eStartDate), "LLL dd, hh:mm aa");
-                    event.eStartDate = formattedDate;
+                    event.eStartDateFormatted = formattedDate;
                     setEvent(event);
                     setShowLoader(false);
                 }, 500);
@@ -101,34 +100,13 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
         }
     };
 
-
-    const handleRSVP = async (event, eId) => {
-        event.preventDefault();
-        if (isAuthenticated) {
-            setButtonDisabled(true);
-            fetch('http://localhost:7777/api/v1/events/rsvp', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ eId: eId }),
-            }).then((res) => res.json())
-            .then(data => {
-                setButtonDisabled(false);
-                if (data.status === "error") {
-                    toast.error(data.message);
-                } else {
-                    toast.success(data.message);
-                }
-            }).catch(err => {
-                setButtonDisabled(false);
-                toast.error("RSVP was not successful :( Please try again.");
-                console.log(err);
-            });
-        } else {
-            toast.error("Please login first to RSVP!");
-        }
-    };
+    const handleRSVP = () => {
+        const dateKey = format(selectedEvent.eStartDate, "yyyy-MM-dd");
+        eventsByDate[dateKey].hasRSVPd = true;
+        selectedEvent.hasRSVPd = true;
+        setEvent(selectedEvent);
+        setEventsByDate(eventsByDate);
+    }
 
     useEffect(() => {
         if (highlightEvent) {
@@ -181,7 +159,15 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
                                 const eventClassName = "eLabels" in currentEvent ? `calendar-day-${currentEvent.eLabels[0].toLowerCase()}` : "calendar-day-none"
                                 const isSelectedClass = "eLabels" in currentEvent && dateKey === selectedDate ? `calendar-day-selected-${currentEvent.eLabels[0].toLowerCase()}` : "";
                                 return <div key={index} className={`calendar-item calendar-day-wrapper ${eventClassName} ${isSelectedClass}`} onClick={!currentEvent["isPlaceholder"] ? () => showEventDetails(currentEvent.eId, dateKey) : null}>
-                                    <span className="calendar-day">{format(day, "d")}</span>
+                                    <div className="calendar-day-container">
+                                        {currentEvent.hasRSVPd && (
+                                            <div>
+                                                <FontAwesomeIcon size="xs" icon={faCheck} />
+                                                <span className="calendar-rsvp-status">RSVPd</span>
+                                            </div>
+                                        )}
+                                        <span className="calendar-day">{format(day, "d")}</span>
+                                    </div>
                                     <span className="calendar-day-event-name">{currentEvent.eName}</span>
                                     <span className="calendar-day-organizer-name">{currentEvent.eOrganizers}</span>
                                 </div>
@@ -194,75 +180,8 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
                     isActive && selectedEvent &&
                     (showLoader ?
                         <EventDetailsLoader /> :
-                        <div className="event-details-container">
-                            <div className="event-details-wrapper">
-                                <div className="event-details-content">
-                                    <img></img>
-                                    <div className="event-details-header">
-                                        <h1>{selectedEvent.eName ? selectedEvent.eName : "Event Name"}</h1>
-                                        <div className="event-details-info">
-                                            <div className="event-details-section-header">
-                                                <FontAwesomeIcon icon={faUser} />
-                                                <p>{selectedEvent.eOrganizers ? selectedEvent.eOrganizers : "Organizers"}</p>
-                                            </div>
-                                            { selectedEvent.showParticipants && 
-                                            (<div className="event-details-section-header">
-                                                <FontAwesomeIcon icon={faUsers} />
-                                                <p>{selectedEvent.participants} Participants</p>
-                                            </div>)}
-                                        </div>
-                                    </div>
-                                    <div className="event-details-tags">
-                                        {selectedEvent.eLabels ? selectedEvent.eLabels.map(category => {
-                                            return <Tag key={category} text={category} style={category} isSmall={true} />;
-                                        }) : <Tag key={"social"} text={"social"} style={"social"} isSmall={true} />}
-                                    </div>
-                                    <div className="event-details-body">
-                                        <div className="event-details-section-wrapper">
-                                            <div>
-                                                <div className="event-details-section">
-                                                    <div className="event-details-section-header">
-                                                        <FontAwesomeIcon icon={faLocationDot} />
-                                                        <span>Location</span>
-                                                    </div>
-                                                    <p>{selectedEvent.eLocation ? selectedEvent.eLocation : "MGH120"}</p>
-                                                </div>
-                                                <div className="event-details-section">
-                                                    <div className="event-details-section-header">
-                                                        <FontAwesomeIcon icon={faClock} />
-                                                        <span>Date</span>
-                                                    </div>
-                                                    <p>{selectedEvent.eStartDate ? selectedEvent.eStartDate : "Jan 12, 12 30 PM"}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="event-details-section">
-                                            <div className="event-details-section-header">
-                                                <FontAwesomeIcon icon={faParagraph} />
-                                                <span>Description</span>
-                                            </div>
-                                            <p>{selectedEvent.eDescription ? selectedEvent.eDescription : "Event Description"}</p>
-                                        </div>
-                                    </div>
-
-                                    { selectedEvent.rsvpEnabled && (
-                                    <div className="event-details-rsvp">
-                                        { selectedEvent.rsvpQuestions.length != 0 && (<h1>Come Join Us!</h1>) }
-                                        <form className="event-details-rsvp-form" onSubmit={(event) => handleRSVP(event, selectedEvent.eId)}>
-                                            { selectedEvent.rsvpQuestions.map((question, i) => {
-                                                <div>
-                                                    <label html="eventqa" className="form-label">{question.qString}</label>
-                                                    <input type="text" name="eventqa" id={i} placeholder="Your answer" className="form-input" required />
-                                                </div>
-                                            })}
-                                            <span className="filler" />
-                                            <Button text="RSVP" className="primary-button" isDisabled={buttonDisabled}/>
-                                        </form>
-                                    </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>)
+                        <EventDetailsCard selectedEvent={selectedEvent} handleRSVP={handleRSVP} />
+                    )
                 }
             </div>
         </div>

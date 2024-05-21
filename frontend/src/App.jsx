@@ -6,7 +6,6 @@ import { ToastContainer, Bounce } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Route, Routes } from "react-router-dom";
 import Navbar from "./layouts/Navbar";
-import { useIsAuthenticated } from "@azure/msal-react";
 import { useState, useEffect } from "react";
 import { mockCalendarData } from "./assets/mock-data/MockCalendarData";
 import { mockResources } from "./assets/mock-data/MockResourcesData";
@@ -17,7 +16,6 @@ import Footer from "./layouts/Footer";
 function App() {
     const { signIn, signOut } = useAuthContext();
     const [upcomingEvents, setUpcomingEvents] = useState([]);
-    const isAuthenticated = useIsAuthenticated();
 
 
     useEffect(() => {

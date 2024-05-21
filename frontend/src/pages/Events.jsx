@@ -2,16 +2,14 @@ import Calendar from "../components/Calendar";
 import { useLocation } from 'react-router-dom';
 import { useState, useEffect } from "react";
 import { mockCalendarData } from "../assets/mock-data/MockCalendarData";
+import { useAuthContext } from "../context/AuthContext";
 
 function EventsPage() {
+    const { isAuthenticated } = useAuthContext();
     const {state, pathname} = useLocation();
     const [calendarEvents, setCalendarEvents] = useState([])
 
-    useEffect(() => {
-        window.scrollTo(0, 0);
-    }, [pathname]);
-
-    useEffect(() => {
+    const fetchCalendarData = () => {
         if (process.env.NODE_ENV === "production") {
             fetch("http://localhost:7777/api/v1/events/", {
                 method: "GET",
@@ -24,10 +22,18 @@ function EventsPage() {
         } else {
             setCalendarEvents(mockCalendarData);
         }
-    },[])
+    }
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [pathname]);
+
+    useEffect(() => {
+        fetchCalendarData();
+    },[isAuthenticated]);
 
     return (
-        <Calendar calendarEvents={calendarEvents} highlightEvent={state} />
+        <Calendar calendarEvents={calendarEvents} highlightEvent={state} setCalendarEvents={setCalendarEvents} />
     );
 }
   

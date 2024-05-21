@@ -37,6 +37,10 @@ nav a {
     padding: $padding-box-y $padding-box-x;
 }
 
+.nav-logo {
+    padding: 0 12px 0 0;;
+}
+
 nav a:not(:first-child):hover {
     background-color: $gray;
     border-radius: $radius;

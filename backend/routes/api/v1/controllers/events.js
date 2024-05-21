@@ -35,76 +35,48 @@ Expected Response Information:
 */
 router.get("/", async function(req, res) {
     try {
-        //First check to see if any queries were passed in to filter with, and check for bad values.
-        const query = {};
-        if(req.query.month) {
-            query.month = req.query.month;
-        }
+        if (req.session.isAuthenticated) {
+            const events = await req.models.Events.find({}).populate('eParticipants').exec();
+            const userObjectId = mongoose.Types.ObjectId(req.session.userId);
 
-        if(req.query.year && req.query.year <= new Date().getFullYear()) {
-            query.year = req.query.year;
-        }
-        
-        //Find the correct staging operators based on the query filters available.
-        let filter = true;
-        let exprExpression = {}
-        if (query.year != undefined && query.month != undefined) {
-            exprExpression = {
-                $and: [
-                    { $eq: [{ $month: '$eStartDate' }, query.month] },
-                    { $eq: [{ $year: '$eStartDate' }, query.year] }
-                ]
-            } 
-        } else if (query.year != undefined) {
-            exprExpression = {
-                            $eq: [{ $year: 'eStartDate'}, query.year]
-                        }
-        } else if (query.month != undefined) {
-            exprExpression = {
-                $eq: [{ $month: 'eStartDate'}, query.month]
-            }
+            const eventsData = await Promise.all(
+                events.map(async event => {
+                    const hasRSVPd = event.eParticipants.some(participant => participant.pUID.equals(userObjectId));
+                    return {
+                        eId:event._id,
+                        eName:event.eName,
+                        eStartDate:event.eStartDate,
+                        eEndDate:event.eEndDate,
+                        eLocation:event.eLocation,
+                        eOrganizers: event.eOrganizers,
+                        eDescription: event.eDescription,
+                        eLabels: event.eLabels,
+                        hasRSVPd: hasRSVPd
+                    };
+                })
+            );
+
+            res.json(eventsData);
         } else {
-            //What should the default return of the docs be? All of the docs? Or only the docs in the current month?
-            filter = false;
-            //Just display no events is another option
-        }
-        
-        //Once filter type selected for the specific query or queries, find the docs that match the filter.
-        let events;
-        if (filter) { 
-            events = await req.models.Events.aggregate([
-                {
-                    //Match finds the specified docs
-                    $match: { 
-                        //Expr allows for the use of a complex comparison inside the match stage
-                        //exprExpression will handle actually identifying the docs based on requested month and or year
-                        $expr: exprExpression 
-                    }
-                }
-            ]);
-        } else {
-            events = await req.models.Events.find({})
-            //Just displaying no events is another option
-        }
+            const events = await req.models.Events.find({})  
+            const eventsData = await Promise.all(
+                events.map(async event => {
+                    return {
+                        eId:event._id,
+                        eName:event.eName,
+                        eStartDate:event.eStartDate,
+                        eEndDate:event.eEndDate,
+                        eLocation:event.eLocation,
+                        eOrganizers: event.eOrganizers,
+                        eDescription: event.eDescription,
+                        eLabels: event.eLabels,
+                        hasRSVPd: false
+                    };
+                })
+            );
 
-        //Package the data in a variable and send back to client.    
-        const eventsData = await Promise.all(
-            events.map(async event => {
-                return {
-                    //Assume that this endpoint is for retrieving events from the calendar when the user loads the page or flips the calendar.
-                    eId:event._id,
-                    eName:event.eName,
-                    eStartDate:event.eStartDate,
-                    eEndDate:event.eEndDate,
-                    eLocation:event.eLocation,
-                    eOrganizers: event.eOrganizers,
-                    eDescription: event.eDescription,
-                    eLabels: event.eLabels
-                };
-            })
-        );
-
-        res.json(eventsData);
+            res.json(eventsData);
+        }
     } catch (error) {
         console.log(error);
         res.status(500).json({status:"error", message: "There was an error on our side :("});
@@ -142,34 +114,37 @@ router.get("/id/:eId", async function(req,res) {
         const eId = req.params.eId;
         const regex = new RegExp("[0-9A-Fa-f]{24}");
         if (regex.test(eId)) {
-            req.models.Events.findById(eId, function(err, event) {
-                if (err) {
-                    console.error(err);
-                    res.status(400);
-                } else if (event == null) {
-                    res.status(400).json({status:"error", message: "Bad request..."});;
-                } else {
-                    const eventData = {
-                        eId:event._id,
-                        eName:event.eName,
-                        eOrganizers:event.eOrganizers,
-                        eStartDate:event.eStartDate,
-                        eEndDate:event.eEndDate,
-                        eLocation:event.eLocation,
-                        eDescription:event.eDescription,
-                        ePics:event.ePics,
-                        eLabels:event.eLabels,
-                        rsvpQuestions: event.rsvpQuestions,
-                        participants: event.eShowParticipants ? event.eParticipants.length : null,
-                        showParticipants: event.eShowParticipants,
-                        eThumbnail: event.eThumbnail,
-                        rsvpEnabled: event.eRsvpEnabled,
-                        eAltLink: event.eAltLink
-                    };
-            
-                    res.json(eventData);
+            const event = await req.models.Events.findById(eId).populate('eParticipants', 'pUID').exec();
+            if (event == null) {
+                res.status(400).json({status:"error", message: "Bad request..."});
+            } else {
+                let hasRSVPd = false;
+                if (req.session.isAuthenticated) {
+                    const userObjectId = mongoose.Types.ObjectId(req.session.userId);
+                    hasRSVPd = event.eParticipants.some(participant => participant.pUID.equals(userObjectId));
                 }
-            });
+
+                const eventData = {
+                    eId:event._id,
+                    eName:event.eName,
+                    eOrganizers:event.eOrganizers,
+                    eStartDate:event.eStartDate,
+                    eEndDate:event.eEndDate,
+                    eLocation:event.eLocation,
+                    eDescription:event.eDescription,
+                    ePics:event.ePics,
+                    eLabels:event.eLabels,
+                    rsvpQuestions: event.rsvpQuestions,
+                    participants: event.eShowParticipants ? event.eParticipants.length : null,
+                    showParticipants: event.eShowParticipants,
+                    eThumbnail: event.eThumbnail,
+                    rsvpEnabled: event.eRsvpEnabled,
+                    eAltLink: event.eAltLink,
+                    hasRSVPd: hasRSVPd
+                };
+
+                res.json(eventData);
+            }
         } else {
             console.error(`/events/id/${eId} Failed regex test!`);
             res.status(400).json({status:"error", message: "Bad request..."});
@@ -267,11 +242,18 @@ router.post("/rsvp", async function(req,res) {
             if (!event.eRsvpEnabled) {
                 return res.status(400).json({ status: 'error', message: 'RSVP is not enabled for this event' });
             }
+
+            // Check if today's date is past the start date
+            const today = new Date();
+            const eventStartDate = new Date(event.eStartDate);
+            if (today > eventStartDate) {
+                return res.status(400).json({ status: 'error', message: 'The event has already started or passed.' });
+            }
     
             // Check if the user is already a participant
             const userIsParticipant = event.eParticipants.some(participant => participant.pUID.equals(userObjectId));
             if (userIsParticipant) {
-                return res.status(400).json({ status: 'success', message: 'You already RSVPd!' });
+                return res.status(400).json({ status: 'error', message: 'You already RSVPd!' });
             }
 
             const newParticipant = new req.models.Participants({

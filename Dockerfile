@@ -5,7 +5,7 @@ WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm install
 COPY frontend/ ./
-RUN sed -i 's#http://localhost:7777/#https://dev.iuga.info/#' src/authConfig.js src/context/*.jsx src/hooks/*.jsx src/App.jsx src/pages/Events.jsx src/components/Calendar.jsx
+ENV REACT_APP_API_URL="https://dev.iuga.info"
 RUN npm run build
 
 

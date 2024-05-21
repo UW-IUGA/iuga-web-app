@@ -11,7 +11,7 @@ function EventsPage() {
 
     const fetchCalendarData = () => {
         if (process.env.NODE_ENV === "production") {
-            fetch("http://localhost:7777/api/v1/events/", {
+            fetch(`${process.env.API_URL || 'http://localhost:7777'}/api/v1/events/`, {
                 method: "GET",
             }).then((res) => res.json())
             .then((events) => {

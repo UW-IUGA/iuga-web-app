@@ -5,7 +5,6 @@ WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm install
 COPY frontend/ ./
-RUN sed -i 's#http://localhost:7777/#https://dev.iuga.info/#' src/authConfig.js src/context/*.jsx src/hooks/*.jsx src/App.jsx src/pages/Events.jsx src/components/Calendar.jsx
 RUN npm run build
 
 
@@ -18,5 +17,6 @@ COPY backend/package*.json ./
 RUN npm install --production
 COPY backend/ ./
 COPY --from=build /app/frontend/build /app/frontend/build
+ENV API_URL="https://dev.iuga.info"
 EXPOSE $PORT
 CMD ["npm", "run", "deploy"]

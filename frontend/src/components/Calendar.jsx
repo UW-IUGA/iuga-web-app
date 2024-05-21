@@ -60,7 +60,7 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
         setActive(true);
         setSelectedDate(date);
         if (process.env.NODE_ENV === "production") {
-            fetch(`http://localhost:7777/api/v1/events/id/${eid}`, {
+            fetch(`${process.env.API_URL || 'http://localhost:7777'}/api/v1/events/id/${eid}`, {
                 method: "GET",
             }).then((res) => res.json())
             .then((event) => {

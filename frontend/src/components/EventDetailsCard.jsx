@@ -16,6 +16,11 @@ const EventDetailsCard = ({selectedEvent, handleRSVP}) => {
         return event.rsvpEnabled && today <= eventStartDate;
     };
 
+    const showRSVPStatus = event => {
+        const today = new Date();
+        const eventStartDate = new Date(event.eStartDate);
+        return !event.rsvpEnabled && today <= eventStartDate;
+    };
 
     const rsvp = async (event, eId) => {
         event.preventDefault();
@@ -97,26 +102,28 @@ const EventDetailsCard = ({selectedEvent, handleRSVP}) => {
                         <p>{selectedEvent.eDescription ? selectedEvent.eDescription : "Event Description"}</p>
                     </div>
                 </div>
-
-                { isRSVPAllowed(selectedEvent) && (
                 <div className="event-details-rsvp">
-                    { selectedEvent.rsvpQuestions.length != 0 && (<h1>Come Join Us!</h1>) }
-                    <form className="event-details-rsvp-form" onSubmit={(event) => rsvp(event, selectedEvent.eId)}>
-                        { selectedEvent.rsvpQuestions.map((question, i) => {
-                            <div>
-                                <label html="eventqa" className="form-label">{question.qString}</label>
-                                <input type="text" name="eventqa" id={i} placeholder="Your answer" className="form-input" required />
-                            </div>
-                        })}
-                        <span className="filler" />
-                        {selectedEvent.hasRSVPd ?
-                            <Button text="You are RSVPd!" className="secondary-button" onSubmit={() => {}}/>
-                            :
-                            <Button text="RSVP" className="primary-button" isDisabled={buttonDisabled}/>
-                        }
-                    </form>
+                    { showRSVPStatus(selectedEvent) && (<p className="rsvp-status">RSVP Disabled</p>)}
+                    { isRSVPAllowed(selectedEvent) && (
+                    <div>
+                        { selectedEvent.rsvpQuestions.length != 0 && (<h1>Come Join Us!</h1>) }
+                        <form className="event-details-rsvp-form" onSubmit={(event) => rsvp(event, selectedEvent.eId)}>
+                            { selectedEvent.rsvpQuestions.map((question, i) => {
+                                <div>
+                                    <label html="eventqa" className="form-label">{question.qString}</label>
+                                    <input type="text" name="eventqa" id={i} placeholder="Your answer" className="form-input" required />
+                                </div>
+                            })}
+                            <span className="filler" />
+                            {selectedEvent.hasRSVPd ?
+                                <Button text="You are RSVPd!" className="secondary-button" onSubmit={() => {}}/>
+                                :
+                                <Button text="RSVP" className="primary-button" isDisabled={buttonDisabled}/>
+                            }
+                        </form>
+                    </div>
+                    )}
                 </div>
-                )}
             </div>
         </div>
     </div>

@@ -158,12 +158,14 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
                                 const currentEvent = eventsByDate[dateKey] || eventPlaceholder;
                                 const eventClassName = "eLabels" in currentEvent ? `calendar-day-${currentEvent.eLabels[0].toLowerCase()}` : "calendar-day-none"
                                 const isSelectedClass = "eLabels" in currentEvent && dateKey === selectedDate ? `calendar-day-selected-${currentEvent.eLabels[0].toLowerCase()}` : "";
+                                const today = new Date();
+                                const eventStartDate = new Date(currentEvent.eStartDate);
                                 return <div key={index} className={`calendar-item calendar-day-wrapper ${eventClassName} ${isSelectedClass}`} onClick={!currentEvent["isPlaceholder"] ? () => showEventDetails(currentEvent.eId, dateKey) : null}>
                                     <div className="calendar-day-container">
                                         {currentEvent.hasRSVPd && (
                                             <div>
                                                 <FontAwesomeIcon size="xs" icon={faCheck} />
-                                                <span className="calendar-rsvp-status">RSVPd</span>
+                                                <span className="calendar-rsvp-status">{eventStartDate < today ? "" : "RSVPd"}</span>
                                             </div>
                                         )}
                                         <span className="calendar-day">{format(day, "d")}</span>

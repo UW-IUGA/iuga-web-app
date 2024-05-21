@@ -9,14 +9,12 @@ export const AuthProvider = ({ children }) => {
   const { ensureBackendAuthentication } = useAuth();
   const [authLoading, setAuthLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     const authenticate = async () => {
-      if (accounts.length > 0 && !isAuthenticated) {
+      if (accounts.length > 0 ) {
         try {
           await ensureBackendAuthentication();
-          setIsAuthenticated(true);
         } catch (error) {
           setAuthError(error);
         } finally {
@@ -28,13 +26,12 @@ export const AuthProvider = ({ children }) => {
     };
 
     authenticate();
-  }, [accounts, ensureBackendAuthentication, isAuthenticated]);
+  }, [accounts]);
 
   const signIn = async () => {
     try {
       await instance.loginPopup();
       await ensureBackendAuthentication();
-      setIsAuthenticated(true);
     } catch (error) {
       setAuthError(error);
     }
@@ -49,7 +46,6 @@ export const AuthProvider = ({ children }) => {
           'Content-Type': 'application/json',
         },
       });
-      setIsAuthenticated(false);
     } catch (error) {
       setAuthError(error);
     }

@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }) => {
   const signOut = async () => {
     try {
       await instance.logoutPopup();
-      await fetch(`${process.env.API_URL || 'http://localhost:7777'}/api/v1/user/logout`, {
+      await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:7777'}/api/v1/user/logout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

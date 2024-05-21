@@ -21,7 +21,7 @@ const EventDetailsCard = ({selectedEvent, handleRSVP}) => {
         event.preventDefault();
         if (isAuthenticated) {
             setButtonDisabled(true);
-            fetch(`${process.env.API_URL || 'http://localhost:7777'}/api/v1/events/rsvp`, {
+            fetch(`${process.env.REACT_APP_API_URL}/api/v1/events/rsvp`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -20,7 +20,7 @@ function App() {
 
     useEffect(() => {
         if (process.env.NODE_ENV === "production") {
-            fetch(`${process.env.API_URL || 'http://localhost:7777'}/api/v1/events/upcoming`, {
+            fetch(`${process.env.REACT_APP_API_URL}/api/v1/events/upcoming`, {
                 method: "GET",
             }).then((res) => res.json())
             .then((events) => {

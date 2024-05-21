@@ -5,7 +5,6 @@ WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm install
 COPY frontend/ ./
-ENV REACT_APP_API_URL="https://dev.iuga.info"
 RUN npm run build
 
 

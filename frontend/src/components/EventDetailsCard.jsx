@@ -26,12 +26,22 @@ const EventDetailsCard = ({selectedEvent, handleRSVP}) => {
         event.preventDefault();
         if (isAuthenticated) {
             setButtonDisabled(true);
+            const form = event.target;
+            const formData = new FormData(form);
+            const answers = [];
+            selectedEvent.rsvpQuestions.forEach((question) => {
+                answers.push({
+                    qId: question.qId,
+                    aString: formData.get(`eventqa-${question.qId}`)
+                });
+            });
+
             fetch(`${process.env.REACT_APP_API_URL}/api/v1/events/rsvp`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ eId: eId }),
+                body: JSON.stringify({ eId: eId, rsvpAnswers: answers }),
             }).then((res) => res.json())
             .then(data => {
                 setButtonDisabled(false);
@@ -109,10 +119,19 @@ const EventDetailsCard = ({selectedEvent, handleRSVP}) => {
                         { selectedEvent.rsvpQuestions.length != 0 && (<h1>Come Join Us!</h1>) }
                         <form className="event-details-rsvp-form" onSubmit={(event) => rsvp(event, selectedEvent.eId)}>
                             { selectedEvent.rsvpQuestions.map((question, i) => {
-                                <div>
-                                    <label html="eventqa" className="form-label">{question.qString}</label>
-                                    <input type="text" name="eventqa" id={i} placeholder="Your answer" className="form-input" required />
-                                </div>
+                                const userAnswer = selectedEvent.rsvpAnswers ? selectedEvent.rsvpAnswers.find(answer => answer.qId === question.qId) : null;
+                                return (<div key={question.qId}>
+                                    <label html={`eventqa-${question.qId}`} for={`eventqa-${question.qId}`} className="form-label">{question.qString}</label>
+                                    <input 
+                                        type="text" 
+                                        name={`eventqa-${question.qId}`} 
+                                        id={`eventqa-${question.qId}`} 
+                                        defaultValue={userAnswer ? userAnswer.aString : ''}
+                                        disabled={selectedEvent.hasRSVPd}
+                                        placeholder="Your answer"
+                                        className="form-input" 
+                                        required />
+                                </div>)
                             })}
                             <span className="filler" />
                             {selectedEvent.hasRSVPd ?

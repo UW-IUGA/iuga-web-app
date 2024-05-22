@@ -56,10 +56,13 @@ async function connectToDatabase(){
     */
         const participantsSchema = new mongoose.Schema({
             pUID: { type: mongoose.Schema.Types.ObjectId, ref: 'Users', required: true},
+            eID: { type: mongoose.Schema.Types.ObjectId, ref: 'Events', required: true },  //
             rsvpAnswers: [{
                 qId: {type: String, required: true},
                 aString: { type: String, required: true}
-            }]
+            }],
+            confirmationEmailSent: { type: Boolean, default: false },
+            reminderEmailSent: { type: Boolean, default: false },
         }) 
 
     /* Feedback Schema:

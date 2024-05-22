@@ -119,9 +119,17 @@ router.get("/id/:eId", async function(req,res) {
                 res.status(400).json({status:"error", message: "Bad request..."});
             } else {
                 let hasRSVPd = false;
+                let rsvpAnswers = [];
                 if (req.session.isAuthenticated) {
                     const userObjectId = mongoose.Types.ObjectId(req.session.userId);
-                    hasRSVPd = event.eParticipants.some(participant => participant.pUID.equals(userObjectId));
+                    const participant = await req.models.Participants.findOne({ pUID: userObjectId, eID: eId }).exec();
+                    if (participant) {
+                        hasRSVPd = true;
+                        rsvpAnswers = participant.rsvpAnswers.map(answer => ({
+                            qId: answer.qId,
+                            aString: answer.aString
+                        }));
+                    }
                 }
 
                 const eventData = {
@@ -135,6 +143,7 @@ router.get("/id/:eId", async function(req,res) {
                     ePics:event.ePics,
                     eLabels:event.eLabels,
                     rsvpQuestions: event.rsvpQuestions,
+                    rsvpAnswers: rsvpAnswers,
                     participants: event.eShowParticipants ? event.eParticipants.length : null,
                     showParticipants: event.eShowParticipants,
                     eThumbnail: event.eThumbnail,
@@ -230,7 +239,7 @@ router.post("/rsvp", async function(req,res) {
     //Using the given event id and user id parameters, create a participant profile for the user and this pId into the event's participant list
     try {
         if(req.session.isAuthenticated) {
-            const { eId, answers } = req.body;
+            const { eId, rsvpAnswers } = req.body;
             const event = await req.models.Events.findById(eId).populate('eParticipants').exec();
             const userObjectId = mongoose.Types.ObjectId(req.session.userId);
 
@@ -258,7 +267,8 @@ router.post("/rsvp", async function(req,res) {
 
             const newParticipant = new req.models.Participants({
                 pUID: userObjectId,
-                rsvpAnswers: answers,
+                eID: eId, 
+                rsvpAnswers: rsvpAnswers,
             });
     
 

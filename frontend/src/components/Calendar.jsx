@@ -22,7 +22,7 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
     const [selectedDate, setSelectedDate] = useState(null);
     const [calendarDate, setDate] = useState(currentDate);
     const [eventsByDate, setEventsByDate] = useState({});
-    const [selectedEvent, setEvent] = useState({});
+    const [selectedEvent, setEvent] = useState(null);
     const [isActive, setActive] = useState(false);
     const [showLoader, setShowLoader] = useState(false);
     const firstDayOfMonth = startOfMonth(calendarDate);

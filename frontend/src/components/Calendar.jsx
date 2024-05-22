@@ -96,7 +96,7 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
     const handleClickOutside = event => {
         if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
             setActive(false);
-            setSelectedDate(null);  // Reset selected date
+            setSelectedDate(null);
         }
     };
 
@@ -179,7 +179,7 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
                     </div>
                 </div>
                 {
-                    isActive && selectedEvent &&
+                    isActive &&
                     (showLoader ?
                         <EventDetailsLoader /> :
                         <EventDetailsCard selectedEvent={selectedEvent} handleRSVP={handleRSVP} />

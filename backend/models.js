@@ -33,7 +33,10 @@ async function connectToDatabase(){
             eOrganizers: {type: String, required: true },
             eStartDate: { type: Date, required: true },
             eEndDate: Date,
-            eAltLink: String,
+            eAltLink: {
+                title: { type: String, required: false },
+                url: { type: String, required: false }
+            },
             eLocation: { type: String, required: true },
             eDescription: { type: String, required: true },
             eThumbnail: {

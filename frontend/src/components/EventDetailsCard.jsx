@@ -19,7 +19,7 @@ const EventDetailsCard = ({selectedEvent, handleRSVP}) => {
     const showRSVPStatus = event => {
         const today = new Date();
         const eventStartDate = new Date(event.eStartDate);
-        return !event.rsvpEnabled && today <= eventStartDate;
+        return !event.rsvpEnabled && today <= eventStartDate && !event.eAltLink.title && !event.eAltLink.url;
     };
 
     const rsvp = async (event, eId) => {
@@ -114,7 +114,7 @@ const EventDetailsCard = ({selectedEvent, handleRSVP}) => {
                 </div>
                 <div className="event-details-rsvp">
                     { showRSVPStatus(selectedEvent) && (<p className="rsvp-status">RSVP Disabled</p>)}
-                    { isRSVPAllowed(selectedEvent) && (
+                    { isRSVPAllowed(selectedEvent) ? (
                     <div>
                         { selectedEvent.rsvpQuestions.length != 0 && (<h1>Come Join Us!</h1>) }
                         <form className="event-details-rsvp-form" onSubmit={(event) => rsvp(event, selectedEvent.eId)}>
@@ -141,7 +141,11 @@ const EventDetailsCard = ({selectedEvent, handleRSVP}) => {
                             }
                         </form>
                     </div>
-                    )}
+                    ) : selectedEvent.eAltLink?.title && selectedEvent.eAltLink?.url 
+                        && <Button 
+                            text={selectedEvent.eAltLink.title} 
+                            className="primary-button" 
+                            onClick={() => {window.open(selectedEvent.eAltLink.url, '_blank');}} />}
                 </div>
             </div>
         </div>

@@ -34,7 +34,7 @@ function HomePage({upcomingEvents}) {
                         return <EventCard key={event.title} event={event} decorate={i === 2 ? true : false }/>;
                     })}
                 </div>
-                <Button text="More Events" className="primary-button" type="right-arrow" color="black" callback={() => {navigate("/events")}}/>
+                <Button text="More Events" className="primary-button" type="right-arrow" color="black" onClick={() => {navigate("/events")}}/>
             </div>
             <div className="gallery">
                 <h1>Gallery</h1>

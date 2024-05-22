@@ -29,8 +29,8 @@ function Navbar({signIn, signOut}) {
             { isAuthenticated && user && (<p>Hi, {user.uFirstName ? user.uFirstName : user.uDisplayName}!</p>) }
             {
                 isAuthenticated
-                    ? <Button className="secondary-button" callback={signOut} text="Logout" />
-                    : <Button className="secondary-button" callback={signIn} text="UW NetID Login" />
+                    ? <Button className="secondary-button" onClick={signOut} text="Logout" />
+                    : <Button className="secondary-button" onClick={signIn} text="UW NetID Login" />
             }
             </div>
         </nav>

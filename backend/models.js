@@ -57,7 +57,7 @@ async function connectToDatabase(){
         const participantsSchema = new mongoose.Schema({
             pUID: { type: mongoose.Schema.Types.ObjectId, ref: 'Users', required: true},
             rsvpAnswers: [{
-                qId: {type: Number, required: true},
+                qId: {type: String, required: true},
                 aString: { type: String, required: true}
             }]
         }) 

@@ -45,7 +45,7 @@ async function connectToDatabase(){
             eShowParticipants: { type: Boolean, default: true },
             eRsvpEnabled: { type: Boolean, default: true },
             rsvpQuestions: [{
-                qNumber: { type: Number, required: true},
+                qId: { type: String, required: true},
                 qString: { type: String, required: true}
             }]
         })
@@ -57,7 +57,7 @@ async function connectToDatabase(){
         const participantsSchema = new mongoose.Schema({
             pUID: { type: mongoose.Schema.Types.ObjectId, ref: 'Users', required: true},
             rsvpAnswers: [{
-                aNumber: {type: Number, required: true},
+                qId: {type: Number, required: true},
                 aString: { type: String, required: true}
             }]
         }) 

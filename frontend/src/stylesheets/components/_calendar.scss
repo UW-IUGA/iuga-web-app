@@ -102,21 +102,21 @@
     border: 2px solid $color-academic-primary;
     color: white;
     background-color: $color-academic-calendar-selected;
-    box-shadow: rgba(0, 0, 0, 0.45) 0px 5px 15px 0px;
+    // box-shadow: rgba(0, 0, 0, 0.45) 0px 5px 15px 0px;
 }
 
 .calendar-day-selected-social {
     border: 2px solid $color-social-primary;
     color: white;
     background-color: $color-social-calendar-selected;
-    box-shadow: rgba(0, 0, 0, 0.45) 0px 5px 15px 0px;
+    // box-shadow: #c955e3 0px 5px 15px 0px;
 }
 
 .calendar-day-selected-career {
     border: 2px solid $color-career-primary;
     color:  white;
     background-color: $color-career-calendar-selected;
-    box-shadow: rgba(0, 0, 0, 0.45) 0px 5px 15px 0px;
+    // box-shadow: rgba(0, 0, 0, 0.45) 0px 5px 15px 0px;
 }
 
 .calendar-day-none {

@@ -101,21 +101,21 @@
 .calendar-day-selected-academic {
     border: 2px solid $color-academic-primary;
     color: white;
-    background-color: $color-academic-primary;
+    background-color: $color-academic-calendar-selected;
     box-shadow: rgba(0, 0, 0, 0.45) 0px 5px 15px 0px;
 }
 
 .calendar-day-selected-social {
     border: 2px solid $color-social-primary;
     color: white;
-    background-color: $color-social-primary;
+    background-color: $color-social-calendar-selected;
     box-shadow: rgba(0, 0, 0, 0.45) 0px 5px 15px 0px;
 }
 
 .calendar-day-selected-career {
     border: 2px solid $color-career-primary;
     color:  white;
-    background-color: $color-career-primary;
+    background-color: $color-career-calendar-selected;
     box-shadow: rgba(0, 0, 0, 0.45) 0px 5px 15px 0px;
 }
 
@@ -189,7 +189,7 @@
     overflow-y: auto;
 
     border: 2px solid $color-primary;
-    background: 
+    background:
         linear-gradient(#ffffff 33%, rgba(255,255,255, 0)),
         linear-gradient(rgba(255,255,255, 0), #ffffff 66%) 0 100%,
         radial-gradient(farthest-side at 50% 0, rgba(79, 79, 79, 0.5), rgba(0,0,0,0)),
@@ -225,7 +225,7 @@
     }
 
     & > h1 {
-        font-size: 1.6rem; 
+        font-size: 1.6rem;
     }
 
     h2 {
@@ -266,7 +266,7 @@
 
 .event-details-section {
     flex: 1;
-    
+
     & > p {
         margin-top: 8px;
         font-size: 1rem;

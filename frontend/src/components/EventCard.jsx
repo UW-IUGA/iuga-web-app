@@ -20,7 +20,7 @@ const EventCard = ({ event, decorate }) => {
             </div>
             <div className="eventCardCategories">
                 { event.eLabels.map(category => {
-                    return <Tag key={category} text={category} style={category} />;
+                    return <Tag key={category} text={category} type={category} />;
                 })}
             </div>
     </div>

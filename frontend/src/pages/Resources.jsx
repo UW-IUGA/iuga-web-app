@@ -1,11 +1,14 @@
 import ResourceCard from "../components/ResourceCard";
 import GradientLine from "../components/GradientLine";
 import { useEffect, useRef } from "react";
+import { useLocation } from 'react-router-dom';
 
 function ResourcesPage({ resources }) {
     const categories = ["Academic", "Career", "Community", "Mental Health", "Diversity, Equity, and Inclusion (DEI)"];
 
     const categoryRefs = useRef({});
+
+    const {pathname} = useLocation();
 
     const handleClick = (category) => {
         const categoryRef = categoryRefs.current[category];
@@ -16,7 +19,9 @@ function ResourcesPage({ resources }) {
         }
     };
 
-    useEffect(() => {}, []);
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [pathname]);
 
     return (
         <div className="baseContainer">

@@ -2,6 +2,8 @@ import Button from "../components/Button";
 import CharacterCard from "../components/CharacterCard";
 import EventCard from "../components/EventCard";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useLocation } from 'react-router-dom';
 import groups from "../assets/gallery/groups.png";
 import bowling from "../assets/gallery/bowling.jpeg";
 import merch from "../assets/gallery/merch.jpeg";
@@ -13,7 +15,12 @@ import officers22 from "../assets/gallery/officers-22.png";
 
 function HomePage({upcomingEvents}) {
     const navigate = useNavigate();
+    const {pathname} = useLocation();
     const categories = ["Academic", "Social", "Career"];
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [pathname]);
 
     return (
         <div className="baseContainer">

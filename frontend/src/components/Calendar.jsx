@@ -1,7 +1,7 @@
 import dateFormat from "dateformat";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheck } from '@fortawesome/free-solid-svg-icons'
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { startOfMonth, endOfMonth, eachDayOfInterval, format, getDay, parseISO } from "date-fns";
 import EventDetailsLoader from "./EventDetailsLoader";
 import Tag from "../components/Tag";
@@ -93,10 +93,10 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
         }
     };
 
-    const deselectEventDetails = () => {
+    const deselectEventDetails = useCallback(() => {
         setActive(false);
         setSelectedDate(null);
-    };
+    }, []);
 
     const handleRSVP = () => {
         const dateKey = format(selectedEvent.eStartDate, "yyyy-MM-dd");
@@ -110,7 +110,7 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
         if (highlightEvent) {
             showEventDetails(highlightEvent.eId, format(highlightEvent.eStartDate, "yyyy-MM-dd"));
         }
-    }, []);
+    }, [highlightEvent]);
 
     return (
         <div className="calendar">
@@ -126,7 +126,7 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
                 <div className="calendar-content-wrapper">
                     <div>
                         {["Career", "Social", "Academic"].map(category => {
-                            return <Tag key={category} text={category} style={category} />;
+                            return <Tag key={category} text={category} type={category} />;
                         })}
                     </div>
                     <div className="calendar-item-container">

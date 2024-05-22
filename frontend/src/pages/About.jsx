@@ -1,10 +1,17 @@
 // import AboutCard from "../components/AboutCard";
 import GradientLine from "../components/GradientLine";
-// import { useEffect, useRef } from "react";
+import { useEffect } from "react";
+import { useLocation } from 'react-router-dom';
 // import Dropdown from "../components/Dropdown";
 import ResourceCard from "../components/ResourceCard";
 
 function AboutPage({ members }) {
+    const {pathname} = useLocation();
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [pathname]);
+    
     return (
         <div className="baseContainer">
             <div className="aboutSum">

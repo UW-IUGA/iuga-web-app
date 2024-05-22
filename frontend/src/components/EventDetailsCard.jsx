@@ -62,13 +62,13 @@ const EventDetailsCard = ({selectedEvent, handleRSVP, deselectEventDetails}) => 
         }
     };
 
-    const handleClickOutside = event => {
-        if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
-            deselectEventDetails();
-        }
-    };
-
     useEffect(() => {
+        const handleClickOutside = event => {
+            if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+                deselectEventDetails();
+            }
+        };
+
         const timer = setTimeout(() => {
             document.addEventListener("click", handleClickOutside);
         }, 0);
@@ -78,13 +78,13 @@ const EventDetailsCard = ({selectedEvent, handleRSVP, deselectEventDetails}) => 
             clearTimeout(timer);
             document.removeEventListener("click", handleClickOutside);
         };
-    }, []);
+    }, [deselectEventDetails]);
 
     return(
     <div className="event-details-container" ref={wrapperRef}>
         <div className="event-details-wrapper">
             <div className="event-details-content">
-                <img></img>
+                <img alt='event thumbnail'></img>
                 <div className="event-details-header">
                     <h1>{selectedEvent.eName ? selectedEvent.eName : "Event Name"}</h1>
                     <div className="event-details-info">
@@ -101,8 +101,8 @@ const EventDetailsCard = ({selectedEvent, handleRSVP, deselectEventDetails}) => 
                 </div>
                 <div className="event-details-tags">
                     {selectedEvent.eLabels ? selectedEvent.eLabels.map(category => {
-                        return <Tag key={category} text={category} style={category} isSmall={true} />;
-                    }) : <Tag key={"social"} text={"social"} style={"social"} isSmall={true} />}
+                        return <Tag key={category} text={category} type={category} isSmall={true} />;
+                    }) : <Tag key={"social"} text={"social"} type={"social"} isSmall={true} />}
                 </div>
                 <div className="event-details-body">
                     <div className="event-details-section-wrapper">
@@ -135,7 +135,7 @@ const EventDetailsCard = ({selectedEvent, handleRSVP, deselectEventDetails}) => 
                     { showRSVPStatus(selectedEvent) && (<p className="rsvp-status">RSVP Disabled</p>)}
                     { isRSVPAllowed(selectedEvent) ? (
                     <div>
-                        { selectedEvent.rsvpQuestions.length != 0 && (<h1>Come Join Us!</h1>) }
+                        { selectedEvent.rsvpQuestions.length !== 0 && (<h1>Come Join Us!</h1>) }
                         <form className="event-details-rsvp-form" onSubmit={(event) => rsvp(event, selectedEvent.eId)}>
                             { selectedEvent.rsvpQuestions.map((question, i) => {
                                 const userAnswer = selectedEvent.rsvpAnswers ? selectedEvent.rsvpAnswers.find(answer => answer.qId === question.qId) : null;

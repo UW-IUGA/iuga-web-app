@@ -135,7 +135,7 @@ const EventDetailsCard = ({selectedEvent, handleRSVP}) => {
                             })}
                             <span className="filler" />
                             {selectedEvent.hasRSVPd ?
-                                <Button text="You are RSVPd!" className="secondary-button" onSubmit={() => {}}/>
+                                <Button text="You are registered!" className="secondary-button" onSubmit={() => {}}/>
                                 :
                                 <Button text="RSVP" className="primary-button" isDisabled={buttonDisabled}/>
                             }

@@ -1,12 +1,13 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faLocationDot, faUser, faClock, faUsers, faParagraph } from '@fortawesome/free-solid-svg-icons'
-import { useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { toast} from 'react-toastify';
 import { useAuthContext } from "../context/AuthContext";
 import Tag from "./Tag";
 import Button from "./Button";
 
-const EventDetailsCard = ({selectedEvent, handleRSVP}) => {
+const EventDetailsCard = ({selectedEvent, handleRSVP, deselectEventDetails}) => {
+    const wrapperRef = useRef(null);
     const { isAuthenticated } = useAuthContext();
     const [buttonDisabled, setButtonDisabled] = useState(false);
 
@@ -61,8 +62,26 @@ const EventDetailsCard = ({selectedEvent, handleRSVP}) => {
         }
     };
 
+    const handleClickOutside = event => {
+        if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+            deselectEventDetails();
+        }
+    };
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            document.addEventListener("click", handleClickOutside);
+        }, 0);
+
+
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener("click", handleClickOutside);
+        };
+    }, []);
+
     return(
-    <div className="event-details-container">
+    <div className="event-details-container" ref={wrapperRef}>
         <div className="event-details-wrapper">
             <div className="event-details-content">
                 <img></img>

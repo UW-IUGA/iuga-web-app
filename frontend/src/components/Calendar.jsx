@@ -1,7 +1,7 @@
 import dateFormat from "dateformat";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheck } from '@fortawesome/free-solid-svg-icons'
-import { useState, useRef, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { startOfMonth, endOfMonth, eachDayOfInterval, format, getDay, parseISO } from "date-fns";
 import EventDetailsLoader from "./EventDetailsLoader";
 import Tag from "../components/Tag";
@@ -17,7 +17,7 @@ const eventPlaceholder = {
 }
 
 const Calendar = ({ calendarEvents, highlightEvent }) => {
-    const wrapperRef = useRef(null);
+
     const currentDate = highlightEvent ? parseISO(highlightEvent.eStartDate) : new Date();
     const [selectedDate, setSelectedDate] = useState(null);
     const [calendarDate, setDate] = useState(currentDate);
@@ -93,11 +93,9 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
         }
     };
 
-    const handleClickOutside = event => {
-        if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
-            setActive(false);
-            setSelectedDate(null);
-        }
+    const deselectEventDetails = () => {
+        setActive(false);
+        setSelectedDate(null);
     };
 
     const handleRSVP = () => {
@@ -112,16 +110,6 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
         if (highlightEvent) {
             showEventDetails(highlightEvent.eId, format(highlightEvent.eStartDate, "yyyy-MM-dd"));
         }
-
-        const timer = setTimeout(() => {
-            document.addEventListener("click", handleClickOutside);
-        }, 0);
-
-
-        return () => {
-            clearTimeout(timer);
-            document.removeEventListener("click", handleClickOutside);
-        };
     }, []);
 
     return (
@@ -134,7 +122,7 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
                 </div>
                 <img className="right-arrow" src="/assets/right-arrow.svg" alt="right arrow" onClick={nextMonth} />
             </div>
-            <div className="calendar-wrapper" ref={wrapperRef}>
+            <div className="calendar-wrapper">
                 <div className="calendar-content-wrapper">
                     <div>
                         {["Career", "Social", "Academic"].map(category => {
@@ -182,7 +170,7 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
                     isActive &&
                     (showLoader ?
                         <EventDetailsLoader /> :
-                        <EventDetailsCard selectedEvent={selectedEvent} handleRSVP={handleRSVP} />
+                        <EventDetailsCard selectedEvent={selectedEvent} handleRSVP={handleRSVP} deselectEventDetails={deselectEventDetails} />
                     )
                 }
             </div>

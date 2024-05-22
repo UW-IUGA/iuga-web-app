@@ -289,14 +289,18 @@
 .event-details-info {
     width: 100%;
     display: flex;
-    gap: 16px;
+    flex-direction: column;
+    align-items: flex-start;
 
     & > div {
-        gap: 8px;
+        display: flex;
+        gap: 12px;
         align-items: center;
         justify-content: center;
 
         svg {
+            width: 16px;
+            height: 16px;
             padding: 6px 0;
         }
 

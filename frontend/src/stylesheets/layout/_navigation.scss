@@ -31,6 +31,7 @@ nav {
     }
 
     p {
+        max-width: 300px;
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
@@ -89,7 +90,7 @@ nav img {
 
         p {
             font-size: 14px;
-            width: 200px;
+            max-width: 200px;
         }
     }
 

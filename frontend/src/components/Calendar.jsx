@@ -6,6 +6,7 @@ import { startOfMonth, endOfMonth, eachDayOfInterval, format, getDay, parseISO }
 import EventDetailsLoader from "./EventDetailsLoader";
 import Tag from "../components/Tag";
 import EventDetailsCard from "./EventDetailsCard";
+import { mockEvent } from "../assets/mock-data/MockCalendarData";
 
 const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const eventPlaceholder = {
@@ -76,18 +77,7 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
             });
         } else {
             setTimeout(() => {
-                setEvent(    {
-                    "eId": "662450848a5036a39183aa2e",
-                    "eName": "Mock Event",
-                    "eStartDate": "2024-03-01T00:00:00.000Z",
-                    "eEndDate": "2024-03-01T00:00:00.000Z",
-                    "eLocation": "MGH120",
-                    "eOrganizers": "IUGA",
-                    "eDescription": "Eager to learn more about how to get your foot in the door with big tech companies for free?",
-                    "eLabels": [
-                      "Career"
-                    ]
-                });
+                setEvent(mockEvent);
                 setShowLoader(false);
             }, 500);
         }
@@ -124,7 +114,7 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
             </div>
             <div className="calendar-wrapper">
                 <div className="calendar-content-wrapper">
-                    <div>
+                    <div className="calendar-tag-wrapper">
                         {["Career", "Social", "Academic"].map(category => {
                             return <Tag key={category} text={category} type={category} />;
                         })}

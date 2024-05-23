@@ -128,7 +128,7 @@ const EventDetailsCard = ({selectedEvent, handleRSVP, deselectEventDetails}) => 
                             <FontAwesomeIcon icon={faParagraph} />
                             <span>Description</span>
                         </div>
-                        <p>{selectedEvent.eDescription ? selectedEvent.eDescription : "Event Description"}</p>
+                        <p className="event-details-description">{selectedEvent.eDescription ? selectedEvent.eDescription : "Event Description"}</p>
                     </div>
                 </div>
                 <div className="event-details-rsvp">

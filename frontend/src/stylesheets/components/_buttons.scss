@@ -5,7 +5,7 @@ button {
     border: 0px;
     padding: $padding-box-y $padding-box-x;
     font-weight: bold;
-    font-size: 16px;
+    font-size: 14px;
     outline: 1.5px solid;
     outline-offset: -1px;
     text-shadow: none;
@@ -15,7 +15,7 @@ button {
         padding: 0;
         width: 18px;
         margin-left: 6px;
-        margin-bottom: -4px;
+        margin-bottom: -5px;
         filter: invert(29%) sepia(85%) saturate(616%) hue-rotate(225deg) brightness(93%) contrast(88%);
     }
 }
@@ -50,4 +50,11 @@ button[disabled]{
     background-color: #F1E8FF;
     border: 2px solid $color-primary;
     outline-color: $color-primary;
+}
+
+@include media(">=sm-desktop", "<desktop") {
+    button {
+        font-size: 12px;
+        padding: 10px 16px;
+    }
 }

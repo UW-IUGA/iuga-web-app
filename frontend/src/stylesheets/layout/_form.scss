@@ -30,3 +30,16 @@ input:disabled {
     background-color: #f4f4f4!important;
     cursor: not-allowed;
 }
+
+@include media(">=sm-desktop", "<desktop") {
+    .form-input {
+        padding: 10px 16px;
+        font-size: 12px;
+        margin-bottom: 12px;
+    }
+
+    .form-label {
+        font-size: 12px;
+        margin-bottom: 4px;
+    }
+}

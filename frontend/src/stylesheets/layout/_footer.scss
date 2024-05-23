@@ -3,7 +3,7 @@ footer {
     position: relative;
     @include top-gradient-border;
     width: 100%;
-    background-color: #fafafa;
+    background-color: $color-light-gray;
 
     a {
         font-size: 16px;
@@ -113,7 +113,7 @@ footer {
             p {
                 font-size: 12px;
             }
-            
+
             & > div:nth-of-type(2) {
                 width: 250px;
             }

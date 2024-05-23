@@ -29,6 +29,12 @@ nav {
     & > span:last-of-type {
         flex: 1;
     }
+
+    p {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
 }
 
 .nav-scroll {
@@ -69,7 +75,7 @@ nav img {
     width: 60px;
 }
 
-nav > div {
+.nav-container > div {
     display: flex;
     gap: 18px;
     justify-content: center;
@@ -80,6 +86,11 @@ nav > div {
     .nav-container {
         max-width: 1100px;
         height: 40px;
+
+        p {
+            font-size: 14px;
+            width: 200px;
+        }
     }
 
     .nav-scroll {
@@ -88,9 +99,6 @@ nav > div {
 
     nav a {
         font-size: 14px;
-        color: inherit;
-        text-align: center;
-        text-decoration: none;
         padding: 12px 18px;
     }
 }

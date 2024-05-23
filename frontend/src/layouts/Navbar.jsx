@@ -18,21 +18,24 @@ function Navbar({signIn, signOut}) {
     }, []);
 
     return (
-        <nav className={`${isScrolledDown > 0 ? "navBorder" : ""}`}>
-            <Link to="/" className="nav-logo"><img src="/iuga-logo.png" alt="logo"></img></Link>
-            <span></span>
-            <Link to="/events">Events</Link>
-            <Link to="/resources">Resources</Link>
-            <Link to="/about">About</Link>
-            <span></span>
-            <div>
-            { isAuthenticated && user && (<p>Hi, {user.uFirstName ? user.uFirstName : user.uDisplayName}!</p>) }
-            {
-                isAuthenticated
-                    ? <Button className="secondary-button" onClick={signOut} text="Logout" />
-                    : <Button className="secondary-button" onClick={signIn} text="UW NetID Login" />
-            }
+        <nav>
+            <div className={`nav-container ${isScrolledDown > 0 ? "nav-scroll" : ""}`}>
+                <Link to="/" className="nav-logo"><img src="/iuga-logo.png" alt="logo"></img></Link>
+                <span></span>
+                <Link to="/events">Events</Link>
+                <Link to="/resources">Resources</Link>
+                <Link to="/about">About</Link>
+                <span></span>
+                <div>
+                    { isAuthenticated && user && (<p>Hi, {user.uFirstName ? user.uFirstName : user.uDisplayName}!</p>) }
+                    {
+                        isAuthenticated
+                            ? <Button className="secondary-button" onClick={signOut} text="Logout" />
+                            : <Button className="secondary-button" onClick={signIn} text="UW NetID Login" />
+                    }
+                </div>
             </div>
+            <span className={`nav-border ${isScrolledDown > 0 ? "nav-border-scroll" : ""}`}></span>
         </nav>
     )
 }

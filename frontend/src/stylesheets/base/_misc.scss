@@ -1,12 +1,12 @@
 .left-arrow {
-    width: 32px;
+    width: 24px;
     transform: rotate(180deg);
     padding: 12px;
     cursor: pointer;
 }
 
 .right-arrow {
-    width: 32px;
+    width: 24px;
     padding: 12px;
     cursor: pointer;
 }
@@ -14,4 +14,14 @@
 .filler {
     display: block;
     flex: 1;
+}
+
+@include media(">=sm-desktop", "<desktop") {
+    .left-arrow {
+        width: 18px;
+    }
+    
+    .right-arrow {
+        width: 18px;
+    }
 }

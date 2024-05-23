@@ -1,0 +1,15 @@
+@include media(">=sm-desktop", "<desktop") {
+
+}
+
+@include media(">=tablet", "<sm-desktop") {
+
+}
+
+@include media(">=phone", "<tablet") {
+
+}
+
+@include media("screen", "<phone") {
+
+}

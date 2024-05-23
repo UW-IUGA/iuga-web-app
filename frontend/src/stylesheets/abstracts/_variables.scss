@@ -13,6 +13,8 @@ $color-academic-calendar-selected: #FFBA2F;
 $color-career-calendar-selected: #356EFF;
 $color-social-calendar-selected: #F14DFF;
 
+$gradient: linear-gradient(226deg, rgba(248,166,255,0.59) 0%, rgba(255,201,63,1) 50%, rgba(207,223,245,1) 100%);
+
 
 
 $sans-serif: 'MyriadPro', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -22,6 +24,11 @@ $gray: #F9F9F9;
 $radius: 8px;
 
 $padding-content: 18px;
-$padding-box-x: 24px;
+$padding-box-x: 18px;
 $padding-box-y: 12px;
-$margin-content: 32px;
+$margin-content: 18px;
+
+$breakpoints: (phone: 340px, 
+               tablet: 768px, 
+               sm-desktop: 1024px,
+               desktop: 1300px) !default;

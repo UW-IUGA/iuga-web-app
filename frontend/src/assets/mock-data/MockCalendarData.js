@@ -165,10 +165,10 @@ export const mockCalendarData = [
     },
     {
       "eId": "663438a22b55c9d4b97cf70e",
-      "eName": "New Event",
+      "eName": "This is a really long name",
       "eStartDate": "2024-06-01T01:06:00.000Z",
       "eLocation": "MGH120",
-      "eOrganizers": "Eric",
+      "eOrganizers": "Eric + Harold + Carl",
       "eDescription": "This has been updated",
       "eLabels": [
         "Social",
@@ -178,7 +178,7 @@ export const mockCalendarData = [
     {
       "eId": "663d0194a9f79b29a8d33304",
       "eName": "test",
-      "eStartDate": "2024-05-14T18:02:00.000Z",
+      "eStartDate": "2024-05-13T18:02:00.000Z",
       "eLocation": "Atlantis",
       "eOrganizers": "me, i, myself",
       "eDescription": "Today, now, forever",
@@ -187,3 +187,41 @@ export const mockCalendarData = [
       ]
     }
   ]
+
+  export const mockEvent = {
+    "_id": {
+      "$oid": "664d5097240ddc29eca19b9d"
+    },
+    "eName": "Networking + Industry Panel",
+    "eOrganizers": "IUGA x UX@UW x HCDEsa",
+    "eStartDate": "2024-05-23T01:00:00.000Z",
+    "eAltLink": {
+      "title": "",
+      "url": ""
+    },
+    "eLocation": "HUB332",
+    "eDescription": "Eager to learn more about how you can get your foot in the door with big tech companies for design? Join us to listen to product designers from TikTok, Expedia, Microsoft + more share their career journeys, insights, and advice during this two part event industry panel + networking session!",
+    "eLabels": [
+      "Career"
+    ],
+    "participants": 2,
+    "showParticipants": true,
+    "rsvpEnabled": true,
+    "rsvpQuestions": [
+      {
+        "qId": "9da1a7d3-aa0d-449a-bf3f-0142bf0157e9",
+        "qString": "Any dietary restrictions?",
+        "_id": {
+          "$oid": "664d5097240ddc29eca19b9e"
+        }
+      },
+      {
+        "qId": "9da1a7d3-aa0d-449a-bf3f-0142bf0157e1",
+        "qString": "Any questions for the panelists?",
+        "_id": {
+          "$oid": "664d5097240ddc29eca19b91"
+        }
+      }
+    ],
+    "__v": 2
+  }

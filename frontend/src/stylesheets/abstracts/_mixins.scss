@@ -5,7 +5,7 @@
 @mixin top-gradient-border {
     &::before {
         content: "";
-        background: linear-gradient(226deg, rgba(248,166,255,0.59) 0%, rgba(255,201,63,1) 50%, rgba(207,223,245,1) 100%);
+        background: $gradient;
         display: block;
         height: 1px;
         width: 100%;
@@ -17,7 +17,7 @@
 @mixin bottom-gradient-border {
     &::after {
         content: "";
-        background: linear-gradient(226deg, rgba(248,166,255,0.59) 0%, rgba(255,201,63,1) 50%, rgba(207,223,245,1) 100%);
+        background: $gradient;
         display: block;
         height: 1px;
         width: 100%;

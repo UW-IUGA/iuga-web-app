@@ -3,10 +3,8 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    font-size: 1.2rem;
     font-weight: lighter;
     gap: 24px;
-    margin: $margin-content;
 
     & > div {
         display: flex;
@@ -16,12 +14,13 @@
 
         h1 {
             margin: 0;
+            font-size: 38px;
             width: 320px;
         }
 
         p {
             margin: 0;
-            font-size: 1rem;
+            font-size: 16px;
         }
     }
 }
@@ -29,21 +28,27 @@
 .calendar-wrapper {
     display: flex;
     justify-content: center;
+    margin-top: 24px;
     margin-bottom: 60px;
 }
 
-.calendar-content-wrapper {
+.calendar-content-wrapper{
+    position: relative;
+}
 
-    .tag {
-        cursor: pointer;
-        margin-left: 12px;
-        margin-bottom: 30px;
-    }
+.calendar-tag-wrapper {
+    position: absolute;
+    transform-origin: bottom left;
+    transform: rotate(-90deg);
+    left: -24px;
+    top: 243px;
+    display: flex;
+    gap: 8px;
+    cursor: default;
 }
 
 .calendar-item-container {
     position: relative;
-    width: 1000px;
     flex-shrink: 0;
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -52,10 +57,15 @@
 .calendar-item {
     background-color: white;
     border-radius: $radius;
-    height: 140px;
-    margin: 12px 12px;
-    padding: 10px;
+    height: 120px;
+    width: 105px;
+    margin: 6px;
+    padding: 12px;
     box-sizing: border-box;
+
+    span {
+        user-select: none;
+    }
 }
 
 .calendar-day-empty {
@@ -125,7 +135,6 @@
 
     .calendar-day-event-name {
         font-weight: normal!important;
-        font-size: 1rem;
         margin-top: auto;
     }
 }
@@ -153,20 +162,25 @@
 }
 
 .calendar-day {
+    font-size: 12px;
     text-align: end;
 }
 
 .calendar-day-event-name {
     font-weight: bold;
-    font-size: 1rem;
+    font-size: 14px;
     margin-top: auto;
 }
 
 .calendar-day-organizer-name {
-    font-size: 0.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 12px;
 }
 
 .calendar-weekday {
+    font-size: 12px;
     text-align: center;
     font-weight: bold;
 }
@@ -175,14 +189,14 @@
     width: 200px;
     position: absolute;
     left: -140px;
-    bottom: 100px;
+    bottom: 60px;
     z-index: -1;
 }
 
 .event-details-container {
     width: 300px;
-    height: 632px;
-    margin-top: 88px;
+    height: 512px;
+    margin-top: 21px;
     margin-left: $margin-content;
     border-radius: $radius;
     flex-shrink: 0;
@@ -355,6 +369,10 @@
     & > div {
         flex: 1;
     }
+
+    button {
+        margin-top: 12px;
+    }
 }
 
 .rsvp-status {
@@ -362,4 +380,147 @@
     font-size: 0.8rem;
     font-weight: bold;
     color: #dadada;
+}
+
+@include media(">=sm-desktop", "<desktop") {
+    .calendar-header {
+        & > div {    
+            h1 {
+                font-size: 28px;
+                width: 280px;
+            }
+    
+            p {
+                font-size: 12px;
+            }
+        }
+    }
+
+    .calendar-item {
+        height: 100px;
+        width: 85px;
+        margin: 4px;
+        padding: 8px;
+    }
+
+    .calendar-tag-wrapper {
+        left: -4px;
+        top: 191px;
+        display: flex;
+        gap: 8px;
+        cursor: default;
+    }
+
+    .calendar-decoration {
+        width: 200px;
+        left: -160px;
+        bottom: 26px;
+    }
+
+    .calendar-day {
+        font-size: 12px;
+    }
+    
+    .calendar-day-event-name {
+        font-size: 12px;
+    }
+    
+    .calendar-day-organizer-name {
+        font-size: 10px;
+    }
+
+    .event-details-container {
+        width: 250px;
+        height: 420px;
+        margin-top: 19px;
+        margin-left: 4px;
+    }
+
+    .event-details-wrapper {
+        padding: 16px;
+    }
+
+    .event-details-content {
+        gap: 12px;
+
+        img {
+            height: 180px;
+        }
+    }
+
+    .event-details-header {
+        h1 {
+            font-size: 24px;
+        }
+    }
+
+    .event-details-body {
+        & > div:last-child {
+            margin-top: 12px;
+            padding-bottom: 12px;
+        }
+    }
+
+    .event-details-section {
+        flex: 1;
+
+        & > p {
+            margin-top: 8px;
+            font-size: 14px;
+        }
+    }
+
+    .event-details-section-wrapper {
+        margin-top: 6px;
+    }
+
+    .event-details-section-header {
+        span {
+            margin-top: 3px;
+            margin-left: 8px;
+            font-size: 12px;
+        }
+
+        svg {
+            width: 12px;
+            height: 12px;
+        }
+    }
+
+    .event-details-info {
+        & > div {
+            gap: 6px;
+
+            svg {
+                width: 14px;
+                height: 14px;
+                padding: 6px 0;
+            }
+
+            p {
+                margin-top: 2px;
+                font-size: 14px;
+                color: black;
+            }
+        }
+    }
+
+    .event-details-tags {
+        display: flex;
+        gap: 6px;
+    }
+
+    .event-details-rsvp {
+        padding: 16px 0px;
+
+        h1 {
+            margin: 0;
+            margin-bottom: 12px;
+            font-size: 24px;
+        }
+    }
+
+    .rsvp-status {
+        font-size: 12rem;
+    }
 }

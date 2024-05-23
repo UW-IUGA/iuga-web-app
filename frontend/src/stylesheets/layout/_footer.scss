@@ -3,6 +3,7 @@ footer {
     position: relative;
     @include top-gradient-border;
     width: 100%;
+    background-color: #fafafa;
 
     a {
         font-size: 16px;
@@ -21,7 +22,6 @@ footer {
     & > div:first-of-type {
         display: flex;
         box-sizing: border-box;
-        background-color: white;
         margin-bottom: $margin-content*1;
 
         img {
@@ -52,7 +52,6 @@ footer {
     & > div:last-of-type {
         display: flex;
         box-sizing: border-box;
-        background-color: white;
 
         & > div:nth-of-type(1) {
             flex: 1;
@@ -84,4 +83,52 @@ footer {
 
 #linkedin-footer-item {
     width: 24px;
+}
+
+@include media(">=sm-desktop", "<desktop") {
+    footer {    
+        a {
+            font-size: 12px;
+            padding: 12px 0;
+        }
+    }
+    
+    .footerContainer {
+        margin: 0 auto;
+        max-width: 1100px;
+    
+        & > div:first-of-type {
+            margin-bottom: $margin-content*1;
+    
+            img {
+                width: 80px;
+            }
+
+            & > div:nth-of-type(2) {
+                width: 250px;
+            }
+        }
+    
+        & > div:last-of-type {
+            p {
+                font-size: 12px;
+            }
+            
+            & > div:nth-of-type(2) {
+                width: 250px;
+            }
+    
+            img {
+                width: 24px;
+            }
+        }
+    }
+    
+    #discord-footer-item {
+        width: 22px;
+    }
+    
+    #linkedin-footer-item {
+        width: 20px;
+    }    
 }

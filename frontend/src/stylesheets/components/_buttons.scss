@@ -56,5 +56,10 @@ button[disabled]{
     button {
         font-size: 12px;
         padding: 10px 16px;
+
+        .right-arrow {
+            width: 12px;
+            margin-bottom: -3px;
+        }
     }
 }

@@ -11,3 +11,13 @@
 .resourceIcon {
   width: 12%;
 }
+
+@include media(">=sm-desktop", "<desktop") {
+  .resourceBox {
+    padding: 18px 0;
+  }
+  
+  .resourceIcon {
+    width: 12%;
+  }
+}

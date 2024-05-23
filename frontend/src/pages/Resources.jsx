@@ -1,5 +1,6 @@
 import ResourceCard from "../components/ResourceCard";
 import GradientLine from "../components/GradientLine";
+import { resourceTags } from "../assets/mock-data/Enum";
 import { useEffect, useRef } from "react";
 import { useLocation } from 'react-router-dom';
 
@@ -54,29 +55,12 @@ function ResourcesPage({ resources }) {
                         </div>
                     </div>
                     <div className="resourcesWrapper">
-                        {categories.map((category) => (
-                            <div key={category} ref={(el) => (categoryRefs.current[category] = el)}>
-                                {category === "Diversity, Equity, and Inclusion (DEI)" ? (
-                                    <>
-                                        <h2>Diversity, Equity, and Inclusion (DEI)</h2>
-                                        <GradientLine className="fullWidth" />
-                                        {resources
-                                            .filter((resource) => resource.tag === "dei")
-                                            .map((filteredResource) => (
-                                                <ResourceCard key={filteredResource.rName} resource={filteredResource} />
-                                            ))}
-                                    </>
-                                ) : (
-                                    <>
-                                        <h2>{category}</h2>
-                                        <GradientLine className="fullWidth" />
-                                        {resources
-                                            .filter((resource) => resource.tag === category.toLowerCase())
-                                            .map((filteredResource) => (
-                                                <ResourceCard key={filteredResource.rName} resource={filteredResource} />
-                                            ))}
-                                    </>
-                                )}
+                        {Object.values(resourceTags).map((category) => (
+                            <div className="resourceBoxContainer" key={category} ref={(el) => (categoryRefs.current[category] = el)}>
+                                <h2>{category}</h2>
+                                <GradientLine className="fullWidth" />
+                                { resources[category]
+                                    .map((filteredResource) => (<ResourceCard key={filteredResource.rName} resource={filteredResource} />))}
                             </div>
                         ))}
                     </div>

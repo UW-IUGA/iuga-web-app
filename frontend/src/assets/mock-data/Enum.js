@@ -1,9 +1,9 @@
 export const resourceTags = {
-    ACADEMIC: "academic",
-    CAREER: "career",
-    COMMUNITY: "community",
-    MENTAL_HEALTH: "mental health",
-    DEI: "dei",
+    ACADEMIC: "Academic",
+    CAREER: "Career",
+    COMMUNITY: "Community",
+    MENTAL_HEALTH: "Mental Health",
+    DEI: "Diversity, Equity, and Inclusion (DEI)",
 };
 
 export const aboutTags = {

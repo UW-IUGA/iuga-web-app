@@ -1,17 +1,23 @@
-// import AboutCard from "../components/AboutCard";
+import React, { useState, useEffect } from "react";
+import Dropdown from "../components/Dropdown";
 import GradientLine from "../components/GradientLine";
-import { useEffect } from "react";
-import { useLocation } from 'react-router-dom';
-// import Dropdown from "../components/Dropdown";
+import AboutCard from "../components/AboutCard";
 import ResourceCard from "../components/ResourceCard";
 
-function AboutPage({ members }) {
-    const {pathname} = useLocation();
+function AboutPage({ groupType, members }) {
+    const years = Object.keys(members.memberYears).reverse();
+    const [selectedYear, setSelectedYear] = useState(years[0]);
+    const [data, setData] = useState(null);
+    console.log(data);
 
     useEffect(() => {
-        window.scrollTo(0, 0);
-    }, [pathname]);
-    
+        setData(members.memberYears[selectedYear]);
+    }, [selectedYear, members]);
+
+    const handleSelectYear = (year) => {
+        setSelectedYear(year);
+    };
+
     return (
         <div className="baseContainer">
             <div className="aboutSum">
@@ -28,15 +34,22 @@ function AboutPage({ members }) {
                 </div>
             </div>
             <div className="aboutContainer">
-                <div>
-                    <h2>Officers</h2>
-                    {/* <Dropdown /> */}
-                </div>
-                <GradientLine className="fullWidth" />
-                <h2>WebDev Committee</h2>
-                <GradientLine className="fullWidth" />
-                <h2>Creative Committee</h2>
-                <GradientLine className="fullWidth" />
+                {Object.entries(groupType).map(([key, value]) => (
+                    <React.Fragment key={key}>
+                        <div className="headerDropdown">
+                            <h2>{value}</h2>
+                            {key === "OFFICERS" && (
+                                <Dropdown options={years} defaultOption={years[0]} onSelect={handleSelectYear} />
+                            )}
+                        </div>
+                        <GradientLine className="fullWidth" />
+                        {data &&
+                            data[key] &&
+                            data[key].map((member, index) => (
+                                <AboutCard key={`${member.position}-${index}`} member={member} />
+                            ))}
+                    </React.Fragment>
+                ))}
                 <h2>Affiliated RSOs</h2>
                 <GradientLine className="fullWidth" />
                 {members.rsos.map((rso, index) => (

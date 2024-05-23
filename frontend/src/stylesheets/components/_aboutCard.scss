@@ -1,0 +1,10 @@
+.aboutCard {
+  display: flex;
+  flex-direction: column;
+  width: 30%;
+
+  .img {
+    width: fit-content;
+    height: fit-content;
+  }
+}

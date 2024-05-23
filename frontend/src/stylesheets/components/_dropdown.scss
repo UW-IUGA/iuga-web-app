@@ -1,0 +1,36 @@
+.dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-trigger {
+  padding: 10px;
+  background-color: #ffffff;
+  color: black;
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid #445568;
+  border-radius: 4px;
+}
+
+.dropdown-content {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  display: block;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  width: 100%;
+
+.dropdown-item {
+  padding: 10px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f1f1f1;
+  }
+}
+}

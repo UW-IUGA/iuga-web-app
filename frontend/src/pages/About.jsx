@@ -3,12 +3,12 @@ import Dropdown from "../components/Dropdown";
 import GradientLine from "../components/GradientLine";
 import AboutCard from "../components/AboutCard";
 import ResourceCard from "../components/ResourceCard";
+import { groupType } from "../assets/mock-data/Enum";
 
-function AboutPage({ groupType, members }) {
+function AboutPage({ members }) {
     const years = Object.keys(members.memberYears).reverse();
     const [selectedYear, setSelectedYear] = useState(years[0]);
     const [data, setData] = useState(null);
-    console.log(data);
 
     useEffect(() => {
         setData(members.memberYears[selectedYear]);
@@ -34,21 +34,25 @@ function AboutPage({ groupType, members }) {
                 </div>
             </div>
             <div className="aboutContainer">
-                {Object.entries(groupType).map(([key, value]) => (
-                    <React.Fragment key={key}>
-                        <div className="headerDropdown">
-                            <h2>{value}</h2>
-                            {key === "OFFICERS" && (
+                {Object.values(groupType).map(team => (
+                    <div key={team}>
+                        <div className="about-team-header-wrapper">
+                            <h2>{team}</h2>
+                            {team === groupType.OFFICERS && (
                                 <Dropdown options={years} defaultOption={years[0]} onSelect={handleSelectYear} />
                             )}
                         </div>
                         <GradientLine className="fullWidth" />
-                        {data &&
-                            data[key] &&
-                            data[key].map((member, index) => (
+                        <div className="about-team-wrapper">
+                        {
+                            data &&
+                            data[team] &&
+                            data[team].map((member, index) => (
                                 <AboutCard key={`${member.position}-${index}`} member={member} />
-                            ))}
-                    </React.Fragment>
+                            )
+                        )}
+                        </div>
+                    </div>
                 ))}
                 <h2>Affiliated RSOs</h2>
                 <GradientLine className="fullWidth" />

@@ -10,7 +10,6 @@ import { useState, useEffect } from "react";
 import { mockCalendarData } from "./assets/mock-data/MockCalendarData";
 import { mockResources } from "./assets/mock-data/MockResourcesData";
 import { mockMembers } from "./assets/mock-data/MockAboutData";
-import { groupType } from "./assets/mock-data/Enum";
 import { useAuthContext } from "./context/AuthContext";
 import Footer from "./layouts/Footer";
 
@@ -55,7 +54,7 @@ function App() {
                 <Route path="/" element={<HomePage upcomingEvents={upcomingEvents} />} />
                 <Route path="/events" element={<EventsPage />} />
                 <Route path="/resources" element={<ResourcesPage resources={mockResources} />} />
-                <Route path="/about" element={<AboutPage groupType={groupType} members={mockMembers} />} />
+                <Route path="/about" element={<AboutPage members={mockMembers} />} />
             </Routes>
             <Footer />
         </div>

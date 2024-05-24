@@ -8,7 +8,7 @@ import { Route, Routes } from "react-router-dom";
 import Navbar from "./layouts/Navbar";
 import { useState, useEffect } from "react";
 import { mockCalendarData } from "./assets/mock-data/MockCalendarData";
-import { mockResources } from "./assets/mock-data/MockResourcesData";
+import { resources } from "./assets/data/ResourcesData";
 import { mockMembers } from "./assets/mock-data/MockAboutData";
 import { useAuthContext } from "./context/AuthContext";
 import Footer from "./layouts/Footer";
@@ -53,7 +53,7 @@ function App() {
             <Routes>
                 <Route path="/" element={<HomePage upcomingEvents={upcomingEvents} />} />
                 <Route path="/events" element={<EventsPage />} />
-                <Route path="/resources" element={<ResourcesPage resources={mockResources} />} />
+                <Route path="/resources" element={<ResourcesPage resources={resources} />} />
                 <Route path="/about" element={<AboutPage members={mockMembers} />} />
             </Routes>
             <Footer />

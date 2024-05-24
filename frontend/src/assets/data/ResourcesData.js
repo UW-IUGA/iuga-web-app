@@ -1,4 +1,4 @@
-import { resourceTags } from './Enum';
+import { resourceTags } from '../mock-data/Enum';
 import uw_logo from "../logos/uw-logo.png";
 import ischool_logo from "../logos/ischool-logo.png";
 import canvas_logo from "../logos/canvas-logo.png";
@@ -7,7 +7,7 @@ import winfo_logo from "../logos/winfo-logo.jpeg";
 import binfo_logo from "../logos/binfo-logo.png";
 import isaca_logo from "../logos/isaca-logo.png";
 
-export const mockResources = {
+export const resources = {
   [resourceTags.ACADEMIC]: [
     {
       "rName": "iSchool Student Services",
@@ -18,7 +18,7 @@ export const mockResources = {
     {
       "rName": "iSchool Peer Advisors",
       "rDescription": "The Informatics Peer Advisor team meets with current INFO students and current UW students who are considering applying to the Informatics major.",
-      "rLink": "https://ischool.uw.edu/advising-support#:~:text=Informatics%20peer%20advisors",
+      "rLink": "https://ischool.uw.edu/advising-support/peer-advisors",
       "rImage": ischool_logo,
     },
   ],

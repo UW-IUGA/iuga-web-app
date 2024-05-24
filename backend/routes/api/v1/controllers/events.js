@@ -146,7 +146,7 @@ router.get("/id/:eId", async function(req,res) {
                     rsvpAnswers: rsvpAnswers,
                     participants: event.eShowParticipants ? event.eParticipants.length : null,
                     showParticipants: event.eShowParticipants,
-                    eThumbnail: event.eThumbnail,
+                    eThumbnailPath: event.eThumbnailPath,
                     rsvpEnabled: event.eRsvpEnabled,
                     eAltLink: event.eAltLink,
                     hasRSVPd: hasRSVPd

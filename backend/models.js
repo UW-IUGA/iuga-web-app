@@ -39,10 +39,11 @@ async function connectToDatabase(){
             },
             eLocation: { type: String, required: true },
             eDescription: { type: String, required: true },
-            eThumbnail: {
-                data: Buffer,
-                contentType: String
-            },
+            eThumbnailPath: String, 
+            // {
+            //     data: Buffer,
+            //     contentType: String
+            // },
             eLabels: [String],
             eParticipants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Participants' }],
             eShowParticipants: { type: Boolean, default: true },

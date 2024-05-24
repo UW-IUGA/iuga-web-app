@@ -12,6 +12,9 @@ import panelists from "../assets/gallery/panelists.png";
 import heart from "../assets/gallery/heart.jpeg";
 import gamenight2 from "../assets/gallery/gamenight-2.png";
 import officers22 from "../assets/gallery/officers-22.png";
+import careerIcon from "../assets/icons/career-icon.svg";
+import socialIcon from "../assets/icons/social-icon.svg";
+import academicIcon from "../assets/icons/academic-icon.svg";
 
 function HomePage({upcomingEvents}) {
     const navigate = useNavigate();
@@ -29,9 +32,31 @@ function HomePage({upcomingEvents}) {
                 <h1>Undergraduate Association</h1>
                 <p>IUGA is a student-led RSO that communicates between the Informatics student body, faculty, and administration of the University of Washington Information School.</p>
                 <div className="characterCardContainer">
+                    <div className="characterBackground characterBackgroundLeft">
+                        <img src={careerIcon} alt="" />
+                        <img src={socialIcon} alt="" />
+                        <img src={academicIcon} alt="" />
+                        <img src={socialIcon} alt="" />
+                        <img src={academicIcon} alt="" />
+                        <img src={careerIcon} alt="" />
+                        <img src={academicIcon} alt="" />
+                        <img src={socialIcon} alt="" />
+                        <img src={careerIcon} alt="" />
+                    </div>
                     { categories.map(category => {
                         return <CharacterCard key={category} category={category} />;
                     })}
+                    <div className="characterBackground characterBackgroundRight">
+                        <img src={careerIcon} alt="" />
+                        <img src={socialIcon} alt="" />
+                        <img src={academicIcon} alt="" />
+                        <img src={socialIcon} alt="" />
+                        <img src={academicIcon} alt="" />
+                        <img src={careerIcon} alt="" />
+                        <img src={academicIcon} alt="" />
+                        <img src={socialIcon} alt="" />
+                        <img src={careerIcon} alt="" />
+                    </div>
                 </div>
             </div>
             <div className="upcomingEvents">

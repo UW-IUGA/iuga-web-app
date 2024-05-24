@@ -13,13 +13,13 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                setBuildStatus("github_classic", "iuga/jenkins/cicd", "pending", "Checking out repository...");
+                setBuildStatus("github_classic", "iuga/jenkins/cicd/dev", "pending", "Checking out repository...");
                 checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'github_classic', url: 'https://github.com/UW-IUGA/iuga-web-client.git']])
             }
         }
         stage('Build') {
             steps {
-                setBuildStatus("github_classic", "iuga/jenkins/cicd", "pending", "Building application...");
+                setBuildStatus("github_classic", "iuga/jenkins/cicd/dev", "pending", "Building application...");
                 sh 'docker build . -t "iuga/iuga-web-app"'
             }
         }
@@ -33,7 +33,7 @@ pipeline {
         }
         stage('Deploy') {
             steps {
-                setBuildStatus("github_classic", "iuga/jenkins/cicd", "pending", "Deploying application...");
+                setBuildStatus("github_classic", "iuga/jenkins/cicd/dev", "pending", "Deploying application...");
                 sh 'docker pull iuga/iuga-web-app'
                 sh 'docker rm -f iuga-web || true'
                 withCredentials([
@@ -51,10 +51,10 @@ pipeline {
     
     post {
         success {
-            setBuildStatus("github_classic", "iuga/jenkins/cicd", "success", "Pipeline succeeded!");
+            setBuildStatus("github_classic", "iuga/jenkins/cicd/dev", "success", "Pipeline succeeded!");
         }
         failure {
-            setBuildStatus("github_classic", "iuga/jenkins/cicd", "failure", "Pipeline failed.");
+            setBuildStatus("github_classic", "iuga/jenkins/cicd/dev", "failure", "Pipeline failed.");
         }
     }
 }

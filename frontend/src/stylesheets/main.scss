@@ -30,3 +30,25 @@
 @import 'pages/about';
 
 @import 'addons/toastify';
+
+.constructionContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+
+    h1 {
+        margin: 0;
+        font-size: 24px;
+    }
+
+    p {
+        font-size: 16px;
+    }
+
+    img {
+        margin-top: 24px;
+        width: 160px;
+    }
+}

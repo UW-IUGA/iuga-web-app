@@ -1,6 +1,6 @@
 import React from "react";
 import ContentLoader from "react-content-loader";
-import MediaQuery from 'react-responsive'
+import MediaQuery from 'react-responsive';
 
 const EventDetailsLoader = (props) => {
     return(

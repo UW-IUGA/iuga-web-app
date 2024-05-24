@@ -12,6 +12,7 @@ import { resources } from "./assets/data/ResourcesData";
 import { mockMembers } from "./assets/mock-data/MockAboutData";
 import { useAuthContext } from "./context/AuthContext";
 import Footer from "./layouts/Footer";
+import MediaQuery from 'react-responsive';
 
 function App() {
     const { signIn, signOut } = useAuthContext();
@@ -36,27 +37,37 @@ function App() {
 
     return (
         <div id="rootContainer">
-            <ToastContainer
-                position="bottom-center"
-                autoClose={2000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                theme="light"
-                transition={Bounce}
-            />
-            <Navbar signIn={signIn} signOut={signOut} />
-            <Routes>
-                <Route path="/" element={<HomePage upcomingEvents={upcomingEvents} />} />
-                <Route path="/events" element={<EventsPage />} />
-                <Route path="/resources" element={<ResourcesPage resources={resources} />} />
-                <Route path="/about" element={<AboutPage members={mockMembers} />} />
-            </Routes>
-            <Footer />
+            <MediaQuery minWidth={1024}>
+                <ToastContainer
+                    position="bottom-center"
+                    autoClose={2000}
+                    hideProgressBar={false}
+                    newestOnTop={false}
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                    theme="light"
+                    transition={Bounce}
+                />
+                <Navbar signIn={signIn} signOut={signOut} />
+                <Routes>
+                    <Route path="/" element={<HomePage upcomingEvents={upcomingEvents} />} />
+                    <Route path="/events" element={<EventsPage />} />
+                    <Route path="/resources" element={<ResourcesPage resources={resources} />} />
+                    <Route path="/about" element={<AboutPage members={mockMembers} />} />
+                </Routes>
+                <Footer />
+            </MediaQuery>
+            <MediaQuery minWidth={340}>
+                <div className="constructionContainer">
+                    <h1>Informatics</h1>
+                    <h1>Undergraduate Association</h1>
+                    <p>🚧 The Mobile Page is Under Construction! 🚧</p>
+                    <img src="/assets/about-main.png" alt="group of iuga students" />
+                </div>
+            </MediaQuery>
         </div>
     );
 }

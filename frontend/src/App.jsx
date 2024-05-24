@@ -60,7 +60,7 @@ function App() {
                 </Routes>
                 <Footer />
             </MediaQuery>
-            <MediaQuery minWidth={340}>
+            <MediaQuery minWidth={340} maxWidth={1023}>
                 <div className="constructionContainer">
                     <h1>Informatics</h1>
                     <h1>Undergraduate Association</h1>

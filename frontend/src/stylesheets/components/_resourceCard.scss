@@ -2,22 +2,23 @@
   display: flex;
   flex-direction: row;
   padding: 30px 0;
+  gap: 12px;
 }
 
 .resourceContent {
-  width: 88%;
+  flex: 1;
 }
 
 .resourceIcon {
-  width: 12%;
+  width: 65px;
+  height: 65px;
+  margin: 20px;
+  object-fit: contain;
+  border-radius: $radius;
 }
 
 @include media(">=sm-desktop", "<desktop") {
   .resourceBox {
     padding: 18px 0;
-  }
-  
-  .resourceIcon {
-    width: 12%;
   }
 }

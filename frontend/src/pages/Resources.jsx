@@ -31,7 +31,9 @@ function ResourcesPage({ resources }) {
                 <div className="blob2"></div>
                 {/* <div className="blob3"></div> */}
                 <div className="resourceHeader">
-                    <img className="resourceImg" src="/assets/resources-main.png" alt="student looking for resources" />
+                    <div className="resourceImgContainer">
+                        <img className="resourceImg" src="/assets/resources-main.png" alt="student looking for resources" />
+                    </div>
                     <div className="resourceSummary">
                         <h1>Resources</h1>
                         <p>

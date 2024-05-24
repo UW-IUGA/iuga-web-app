@@ -34,7 +34,7 @@ function AboutPage({ members }) {
                 </div>
             </div>
             <div className="aboutContainer">
-                {Object.values(groupType).map(team => (
+                {Object.values(groupType).map((team) => (
                     <div key={team}>
                         <div className="about-team-header-wrapper">
                             <h2>{team}</h2>
@@ -44,13 +44,11 @@ function AboutPage({ members }) {
                         </div>
                         <GradientLine className="fullWidth" />
                         <div className="about-team-wrapper">
-                        {
-                            data &&
-                            data[team] &&
-                            data[team].map((member, index) => (
-                                <AboutCard key={`${member.position}-${index}`} member={member} />
-                            )
-                        )}
+                            {data &&
+                                data[team] &&
+                                data[team].map((member, index) => (
+                                    <AboutCard key={`${member.position}-${index}`} member={member} />
+                                ))}
                         </div>
                     </div>
                 ))}

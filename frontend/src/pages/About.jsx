@@ -52,11 +52,6 @@ function AboutPage({ members }) {
                         </div>
                     </div>
                 ))}
-                <h2>Affiliated RSOs</h2>
-                <GradientLine className="fullWidth" />
-                {members.rsos.map((rso, index) => (
-                    <ResourceCard key={index} resource={rso} />
-                ))}
             </div>
         </div>
     );

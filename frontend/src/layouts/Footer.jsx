@@ -16,7 +16,7 @@ function Footer() {
                     </div>
                 </div>
                 <div>
-                    <p>© IUGA Website Committee 2024</p>
+                    <p>Developed with 💕 by the IUGA Website Committee 2023</p>
                     <div></div>
                     <div>
                         <a href="mailto:iuga@uw.edu"><img src="/assets/icons/email-icon.svg" alt="email icon"/></a>

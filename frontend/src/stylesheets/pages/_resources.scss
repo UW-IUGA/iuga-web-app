@@ -8,7 +8,7 @@
   display: flex;
   justify-content: center;
   margin-top: 50px;
-  margin-bottom: 30px;
+  margin-bottom: 60px;
   gap: 42px;
 }
 
@@ -119,47 +119,47 @@
   .resourceContainer {
     width: 900px;
   }
-  
+
   .resourceImg {
     height: 140px;
     margin-bottom: 40px;
   }
-  
+
   .resourceHeader {
     display: flex;
     justify-content: center;
     margin-top: 50px;
     margin-bottom: 30px;
   }
-  
+
   .resourceSummary {
     display: flex;
     flex-direction: column;
     justify-content: center;
     height: 170px;
-  
+
     h1 {
       font-size: 36px;
       margin: 0;
     }
   }
-  
+
   .resourcesWrapper {
     margin-bottom: 60px;
   }
-  
+
   /* Resources section (where the components will go) styling */
   .legendContainer {
     margin-top: 2px;
   }
-  
+
   .legend {
     top: 80px;
 
     h3 {
       font-size: 16px;
     }
-  
+
     li {
       font-size: 14px;
     }
@@ -170,7 +170,7 @@
       font-size: 24px;
     }
   }
-  
+
   /* Blobs styling, in chronological order */
   .blob1 {
     background: radial-gradient(ellipse at center, #f8a6ffc3 0%, #FAE5FF 40%, rgba(109, 37, 100, 0) 70%);
@@ -181,7 +181,7 @@
     top: -50px;
     z-index: -1;
   }
-  
+
   .blob2 {
     background: radial-gradient(ellipse at center, #fae8bcd1 0%, #fff4db 40%, rgba(109, 37, 100, 0) 70%);
     position: absolute;
@@ -191,7 +191,7 @@
     top: -50px;
     z-index: -1;
   }
-  
+
   .blob3 {
     background: radial-gradient(ellipse at center, #d8e4f5c4 0%, rgba(109, 37, 100, 0) 65%);
     position: absolute;

@@ -11,3 +11,9 @@
     width: 1200px;
     min-height: 300px;
 }
+
+@include media(">=sm-desktop", "<desktop") {
+    .baseContainer {
+        width: 1000px;
+    }
+}

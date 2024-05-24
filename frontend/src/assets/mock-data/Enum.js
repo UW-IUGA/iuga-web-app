@@ -29,3 +29,12 @@ export const officerPositions = {
     IT: "Director of Information Technology",
     ACADEMIC: "Director of Academic Support",
 };
+
+// export const webDevPositions = {
+//     LEAD: "Team Lead",
+//     UX_DESIGNER: "UX Designer",
+//     FRONT_END: "Front-End Developer",
+//     BACK_END: "Back-End Developer"
+//     UX_DESIGNER_FRONT_END: "UX Designer/Front-End Developer"
+//     FRONT_BACK_END: "Front and Back-End Developer"
+// }

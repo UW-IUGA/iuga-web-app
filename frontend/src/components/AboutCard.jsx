@@ -5,6 +5,7 @@ const AboutCard = ({ member }) => {
             <div>
                 <div>
                     <h3>{member.name}</h3>
+                    <p>{member.position}</p>
                 </div>
             </div>
         </div>

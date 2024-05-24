@@ -1,6 +1,6 @@
 .aboutSum, .aboutContainer {
   display: flex;
-  width: 60%;
+  width: 70%;
   margin: 32px auto;
   border: 2px solid red;
   box-sizing: border-box;
@@ -17,6 +17,13 @@
   }
 }
 
+.aboutWrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: space-between;
+}
+
 .aboutImg {
   width: 30%;
   height: auto;
@@ -31,9 +38,17 @@
   width: 100%;
 }
 
-.about-team-header-wrapper  {
+.aboutHeader  {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+}
+
+.addedMargin {
+  margin-bottom: 20px;
+}
+
+.headerPadding {
+  padding: 20px 0;
 }

@@ -1,6 +1,7 @@
 import { aboutTags } from "./Enum";
 import { groupType } from "./Enum";
 import { officerPositions } from "./Enum";
+// import { webDevPositions } from "./Enum";
 
 /*2023 officers images*/
 import _2023_phyllis from "../officerPhotos/2022/phyllischen.jpg";
@@ -80,6 +81,58 @@ import _2015_lopez from "../officerPhotos/2015/Lopez.png";
 
 export const mockMembers = {
     memberYears: {
+        // 2024: {
+        //     [groupType.OFFICERS]: [
+        //         {
+        //             position: officerPositions.PRESIDENT,
+        //             name: "Sheamin Kim",
+        //             picture: "", //_2024_sheamin
+        //         },
+        //         {
+        //             position: officerPositions.VICE_PRESIDENT,
+        //             name: "Akash Shrestha",
+        //             picture: "", //_2024_akash
+        //         },
+        //         {
+        //             position: officerPositions.FINANCE,
+        //             name: "",
+        //             picture: "",
+        //         },
+        //         {
+        //             position: officerPositions.CREATIVE,
+        //             name: "Shirley Yun",
+        //             picture: "", //_2024_shirley
+        //         },
+        //         {
+        //             position: officerPositions.PUBLIC_RELATIONS,
+        //             name: "Jada Nguyen",
+        //             picture: "", //_2024_jada
+        //         },
+        //         {
+        //             position: officerPositions.OUTREACH,
+        //             name: "",
+        //             picture: "",
+        //         },
+        //         {
+        //             position: officerPositions.DIVERSITY,
+        //             name: "",
+        //             picture: "",
+        //         },
+        //         {
+        //             position: officerPositions.IT,
+        //             name: "Michaela Tran",
+        //             picture: "",
+        //         },
+        //         {
+        //             position: officerPositions.ACADEMIC,
+        //             name: "",
+        //             picture: "",
+        //         },
+        //     ],
+        //     [groupType.WEB_COMMITTEE]: [],
+        //     [groupType.CREATIVE_COMMITTEE]: [],
+        //     [groupType.FYR]: [],
+        // },
         2023: {
             [groupType.OFFICERS]: [
                 {
@@ -137,7 +190,33 @@ export const mockMembers = {
                     linkedin: "https://www.linkedin.com/in/bhavya-garlapati-95ab46225/",
                 },
             ],
-            [groupType.WEB_COMMITTEE]: [],
+            [groupType.WEB_COMMITTEE]: [
+                // {
+                //     position: webDevPositions.LEAD,
+                //     name: "Eric Kim",
+                //     picture: "",
+                // },
+                // {
+                //     position: webDevPositions.BACK_END,
+                //     name: "Harold Pham",
+                //     picture: "",
+                // },
+                // {
+                //     position: webDevPositions.UX_DESIGNER_FRONT_END,
+                //     name: "Vera Guber",
+                //     picture: "",
+                // },
+                // {
+                //     position: webDevPositions.FRONT_BACK_END,
+                //     name: "Carl Searle",
+                //     picture: "",
+                // },
+                // {
+                //     position: webDevPositions.UX_DESIGNER,
+                //     name: "Madelyn Lee",
+                //     picture: "",
+                // },
+            ],
             [groupType.CREATIVE_COMMITTEE]: [],
             [groupType.FYR]: [],
         },

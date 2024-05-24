@@ -3,12 +3,12 @@ import Dropdown from "../components/Dropdown";
 import GradientLine from "../components/GradientLine";
 import AboutCard from "../components/AboutCard";
 import ResourceCard from "../components/ResourceCard";
-import { groupType } from "../assets/mock-data/Enum";
 
 function AboutPage({ members }) {
     const years = Object.keys(members.memberYears).reverse();
     const [selectedYear, setSelectedYear] = useState(years[0]);
     const [data, setData] = useState(null);
+    console.log(data);
 
     useEffect(() => {
         setData(members.memberYears[selectedYear]);
@@ -16,6 +16,27 @@ function AboutPage({ members }) {
 
     const handleSelectYear = (year) => {
         setSelectedYear(year);
+    };
+
+    const renderTeams = (data) => {
+        return Object.keys(data).map((team) => {
+            if (team !== "Officers" && data[team].length > 0) {
+                return (
+                    <div key={team}>
+                        <div className="headerPadding">
+                            <h2>{team}</h2>
+                            <GradientLine className="fullWidth" />
+                        </div>
+                        <div>
+                            {data[team].map((member, index) => (
+                                <AboutCard key={`${member.position}-${index}`} member={member} />
+                            ))}
+                        </div>
+                    </div>
+                );
+            }
+            return null;
+        });
     };
 
     return (
@@ -34,23 +55,23 @@ function AboutPage({ members }) {
                 </div>
             </div>
             <div className="aboutContainer">
-                {Object.values(groupType).map((team) => (
-                    <div key={team}>
-                        <div className="about-team-header-wrapper">
-                            <h2>{team}</h2>
-                            {team === groupType.OFFICERS && (
-                                <Dropdown options={years} defaultOption={years[0]} onSelect={handleSelectYear} />
-                            )}
-                        </div>
-                        <GradientLine className="fullWidth" />
-                        <div className="about-team-wrapper">
-                            {data &&
-                                data[team] &&
-                                data[team].map((member, index) => (
-                                    <AboutCard key={`${member.position}-${index}`} member={member} />
-                                ))}
-                        </div>
-                    </div>
+                <div className="aboutHeader">
+                    <h2>Officers</h2>
+                    <Dropdown options={years} defaultOption={years[0]} onSelect={handleSelectYear} />
+                </div>
+                <GradientLine className="fullWidth addedMargin" />
+                <div className="aboutWrapper">
+                    {data &&
+                        data["Officers"] &&
+                        data["Officers"].map((member, index) => (
+                            <AboutCard key={`${member.position}-${index}`} member={member} />
+                        ))}
+                </div>
+                {data && renderTeams(data)}
+                <h2>Affiliated RSOs</h2>
+                <GradientLine className="fullWidth" />
+                {members.rsos.map((rso, index) => (
+                    <ResourceCard key={index} resource={rso} />
                 ))}
             </div>
         </div>

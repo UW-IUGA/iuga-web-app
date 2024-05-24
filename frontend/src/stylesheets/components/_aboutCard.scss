@@ -2,9 +2,23 @@
   display: flex;
   flex-direction: column;
   width: 30%;
+  box-sizing: border-box;
+  margin-bottom: 20px;
 
-  .img {
-    width: fit-content;
-    height: fit-content;
+  img {
+    width: 240px;
+    height: 240px;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  h3 {
+    margin-bottom: 5px;
+    margin-top: 10px;
   }
 }
+

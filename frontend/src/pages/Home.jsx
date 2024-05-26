@@ -63,7 +63,7 @@ function HomePage({upcomingEvents}) {
                 <h1>Latest Events</h1>
                 <div className="upcomingEventsCardContainer">
                     { upcomingEvents.slice(0, 3).map((event, i) => {
-                        return <EventCard key={event.title} event={event} decorate={i === 2 ? true : false }/>;
+                        return <EventCard key={event.eName} event={event} decorate={i === 2 ? true : false }/>;
                     })}
                 </div>
                 <Button text="More Events" className="primary-button" type="right-arrow" color="black" onClick={() => {navigate("/events")}}/>

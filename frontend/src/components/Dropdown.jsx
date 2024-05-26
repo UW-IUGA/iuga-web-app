@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 
 const Dropdown = ({ options, defaultOption, onSelect }) => {
+    const wrapperRef = useRef(null);
     const [isOpen, setIsOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState(defaultOption || options[0]);
 
-    const toggleDropdown = () => {
+    const toggleDropdown = useCallback(() => {
         setIsOpen(!isOpen);
-    };
+    }, [isOpen]);
 
     const handleItemClick = (item) => {
         setSelectedItem(item);
@@ -14,8 +15,26 @@ const Dropdown = ({ options, defaultOption, onSelect }) => {
         setIsOpen(false);
     };
 
+    useEffect(() => {
+        const handleClickOutside = event => {
+            if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+                toggleDropdown();
+            }
+        };
+
+        const timer = setTimeout(() => {
+            document.addEventListener("click", handleClickOutside);
+        }, 0);
+
+
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener("click", handleClickOutside);
+        };
+    }, [toggleDropdown]);
+
     return (
-        <div className="dropdown-container">
+        <div className="dropdown-container" ref={wrapperRef}>
             <div className="dropdown-trigger" onClick={toggleDropdown}>
                 {selectedItem}
             </div>

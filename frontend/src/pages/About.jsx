@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import Dropdown from "../components/Dropdown";
 import GradientLine from "../components/GradientLine";
 import AboutCard from "../components/AboutCard";
-import ResourceCard from "../components/ResourceCard";
 
 function AboutPage({ members }) {
     const years = Object.keys(members.memberYears).reverse();
@@ -68,11 +67,6 @@ function AboutPage({ members }) {
                         ))}
                 </div>
                 {data && renderTeams(data)}
-                <h2>Affiliated RSOs</h2>
-                <GradientLine className="fullWidth" />
-                {members.rsos.map((rso, index) => (
-                    <ResourceCard key={index} resource={rso} />
-                ))}
             </div>
         </div>
     );

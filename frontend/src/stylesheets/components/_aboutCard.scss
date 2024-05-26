@@ -5,8 +5,8 @@
   margin-bottom: 20px;
 
   img {
-    width: 200px;
-    height: 200px;
+    width: 240px;
+    height: 240px;
     object-fit: cover;
     border-radius: $radius;
     background-color: $gray;
@@ -22,7 +22,7 @@
   }
 
   & > div {
-    width: 200px;
+    width: 240px;
     // display: flex;
     // height: 100%;
     // flex-direction: column;
@@ -67,5 +67,18 @@
 .social-website {
   &:hover {
     color: black;
+  }
+}
+
+@include media(">=sm-desktop", "<desktop") {
+  .aboutCard {  
+      img {
+        width: 200px;
+        height: 200px;
+      }
+    
+      & > div {
+        width: 200px;
+    }
   }
 }

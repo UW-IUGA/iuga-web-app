@@ -1,7 +1,7 @@
 .aboutSum, .aboutContainer {
   display: flex;
-  width: 70%;
   margin: 32px auto;
+  width: 900px;
   box-sizing: border-box;
 
   &.aboutSum {
@@ -49,4 +49,10 @@
 
 .headerPadding {
   padding: 20px 0;
+}
+
+@include media(">=sm-desktop", "<desktop") {
+  .aboutSum, .aboutContainer {
+    width: 800px;
+  }
 }

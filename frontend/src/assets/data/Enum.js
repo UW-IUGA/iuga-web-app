@@ -37,7 +37,7 @@ export const webDevPositions = {
     UX_DESIGNER: "UX Designer",
     FRONT_END: "Front-End Developer",
     BACK_END: "Back-End Developer",
-    UX_DESIGNER_FRONT_END: "UX Designer/Front-End Developer",
+    UX_DESIGNER_FRONT_END: "UX Designer / Front-End Developer",
     FRONT_BACK_END: "Fullstack Developer",
     GRAPHIC_DESIGNER: "Graphic Designer"
 }

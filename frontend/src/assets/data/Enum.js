@@ -12,7 +12,7 @@ export const aboutTags = {
 
 export const groupType = {
     OFFICERS: "Officers",
-    WEB_COMMITTEE: "WebDev Committee",
+    WEB_COMMITTEE: "Website Committee",
     CREATIVE_COMMITTEE: "Creative Committee",
     DIVERSITY_COMMITTEE: "Diversity Committee",
     FYR: "First Year Reps",

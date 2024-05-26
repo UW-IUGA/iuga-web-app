@@ -9,7 +9,7 @@ import Navbar from "./layouts/Navbar";
 import { useState, useEffect } from "react";
 import { mockCalendarData } from "./assets/mock-data/MockCalendarData";
 import { resources } from "./assets/data/ResourcesData";
-import { mockMembers } from "./assets/mock-data/MockAboutData";
+import { iugaTeams } from "./assets/data/AboutData";
 import { useAuthContext } from "./context/AuthContext";
 import Footer from "./layouts/Footer";
 import MediaQuery from 'react-responsive';
@@ -56,7 +56,7 @@ function App() {
                     <Route path="/" element={<HomePage upcomingEvents={upcomingEvents} />} />
                     <Route path="/events" element={<EventsPage />} />
                     <Route path="/resources" element={<ResourcesPage resources={resources} />} />
-                    <Route path="/about" element={<AboutPage members={mockMembers} />} />
+                    <Route path="/about" element={<AboutPage teams={iugaTeams} />} />
                 </Routes>
                 <Footer />
             </MediaQuery>

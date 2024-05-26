@@ -1,6 +1,6 @@
 import ResourceCard from "../components/ResourceCard";
 import GradientLine from "../components/GradientLine";
-import { resourceTags } from "../assets/mock-data/Enum";
+import { resourceTags } from "../assets/data/Enum";
 import { useEffect, useRef } from "react";
 import { useLocation } from 'react-router-dom';
 

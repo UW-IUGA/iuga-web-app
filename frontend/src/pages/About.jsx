@@ -3,14 +3,14 @@ import Dropdown from "../components/Dropdown";
 import GradientLine from "../components/GradientLine";
 import AboutCard from "../components/AboutCard";
 
-function AboutPage({ members }) {
-    const years = Object.keys(members.memberYears).reverse();
+function AboutPage({ teams }) {
+    const years = Object.keys(teams).reverse();
     const [selectedYear, setSelectedYear] = useState(years[0]);
     const [data, setData] = useState(null);
 
     useEffect(() => {
-        setData(members.memberYears[selectedYear]);
-    }, [selectedYear, members]);
+        setData(teams[selectedYear]);
+    }, [selectedYear, teams]);
 
     const handleSelectYear = (year) => {
         setSelectedYear(year);
@@ -25,7 +25,7 @@ function AboutPage({ members }) {
                             <h2>{team}</h2>
                             <GradientLine className="fullWidth" />
                         </div>
-                        <div>
+                        <div className="aboutWrapper">
                             {data[team].map((member, index) => (
                                 <AboutCard key={`${member.position}-${index}`} member={member} />
                             ))}

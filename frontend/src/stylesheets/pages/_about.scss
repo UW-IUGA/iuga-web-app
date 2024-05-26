@@ -17,14 +17,13 @@
 }
 
 .aboutWrapper {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  justify-items: center;
 }
 
 .aboutImg {
-  width: 30%;
+  width: 230px;
   height: auto;
   padding-right: 4rem;
 }

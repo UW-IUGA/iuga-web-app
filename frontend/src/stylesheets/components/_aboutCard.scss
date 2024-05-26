@@ -1,15 +1,15 @@
 .aboutCard {
   display: flex;
   flex-direction: column;
-  width: 30%;
   box-sizing: border-box;
   margin-bottom: 20px;
 
   img {
-    width: 240px;
-    height: 240px;
+    width: 200px;
+    height: 200px;
     object-fit: cover;
-    border-radius: 10px;
+    border-radius: $radius;
+    background-color: $gray;
   }
 
   p {
@@ -20,5 +20,52 @@
     margin-bottom: 5px;
     margin-top: 10px;
   }
+
+  & > div {
+    width: 200px;
+    // display: flex;
+    // height: 100%;
+    // flex-direction: column;
+    // justify-content: space-between;
+  }
 }
 
+.about-card-socials {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+
+  a {
+    color: $dark-gray;
+  }
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.social-email {
+  &:hover {
+    color: black;
+  }
+}
+
+.social-linkedin {
+  &:hover {
+    color: #0077b5;
+  }
+}
+
+.social-github {
+  &:hover {
+    color: black;
+  }
+}
+
+.social-website {
+  &:hover {
+    color: black;
+  }
+}

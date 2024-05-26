@@ -1,4 +1,4 @@
-import { resourceTags } from '../mock-data/Enum';
+import { resourceTags } from './Enum';
 import uw_logo from "../logos/uw-logo.png";
 import ischool_logo from "../logos/ischool-logo.png";
 import canvas_logo from "../logos/canvas-logo.png";

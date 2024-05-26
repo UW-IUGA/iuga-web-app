@@ -10,66 +10,52 @@ void setBuildStatus(String credential_id, String context, String state, String m
 pipeline {
     agent any
     
-    environment {
-        GITHUB_CREDENTIALS = credentials('github_classic')
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub')
-        TEST_CRED = credentials('testCred')
-        DOCKER_IMAGE = "iuga/iuga-web-app"
-    }
-    
     stages {
         stage('Checkout') {
             steps {
-                script {
-                    setBuildStatus(env.GITHUB_CREDENTIALS, "iuga/jenkins/cicd/dev", "pending", "Checking out repository...")
-                }
-                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: env.GITHUB_CREDENTIALS, url: 'https://github.com/UW-IUGA/iuga-web-client.git']])
+                setBuildStatus("github_classic", "iuga/jenkins/cicd/dev", "pending", "Checking out repository...");
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'github_classic', url: 'https://github.com/UW-IUGA/iuga-web-client.git']])
             }
         }
         stage('Build') {
             steps {
-                script {
-                    setBuildStatus(env.GITHUB_CREDENTIALS, "iuga/jenkins/cicd/dev", "pending", "Building application...")
-                }
-                sh 'docker build . -t "${DOCKER_IMAGE}"'
+                setBuildStatus("github_classic", "iuga/jenkins/cicd/dev", "pending", "Building application...");
+                sh 'docker build . -t "iuga/iuga-web-app"'
             }
         }
         stage('Push to Registry') {
             steps {
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
-                        sh 'docker push ${DOCKER_IMAGE}'
-                    }
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                        sh 'docker login -u $USERNAME -p $PASSWORD'
                 }
+                sh 'docker push iuga/iuga-web-app'
             }
         }
         stage('Deploy') {
             steps {
-                script {
-                    setBuildStatus(env.GITHUB_CREDENTIALS, "iuga/jenkins/cicd/dev", "pending", "Deploying application...")
-                }
-                sh 'docker pull ${DOCKER_IMAGE}'
+                setBuildStatus("github_classic", "iuga/jenkins/cicd/dev", "pending", "Deploying application...");
+                sh 'docker pull iuga/iuga-web-app'
                 sh 'docker rm -f iuga-web || true'
-                sh '''
-                docker run -d -p "127.0.0.1:7777:7777" --name iuga-web \
-                -v /var/lib/iuga-web-app:/app/public/uploads \
-                -e TEST_ENV_VAR="${TEST_CRED}" \
-                ${DOCKER_IMAGE}
-                '''
+                withCredentials([
+                    string(credentialsId: 'testCred', variable: 'TEST_VAR'),
+                ]) {
+                    sh '''
+                    docker run -d -p "127.0.0.1:7777:7777" --name iuga-web \
+                    -e TEST_ENV_VAR="$TEST_VAR" \
+                    -v /var/lib/iuga-web-app:/app/public/uploads \
+                    iuga/iuga-web-app
+                    '''
+                }
             }
         }
     }
     
     post {
         success {
-            script {
-                setBuildStatus(env.GITHUB_CREDENTIALS, "iuga/jenkins/cicd/dev", "success", "Pipeline succeeded!")
-            }
+            setBuildStatus("github_classic", "iuga/jenkins/cicd/dev", "success", "Pipeline succeeded!");
         }
         failure {
-            script {
-                setBuildStatus(env.GITHUB_CREDENTIALS, "iuga/jenkins/cicd/dev", "failure", "Pipeline failed.")
-            }
+            setBuildStatus("github_classic", "iuga/jenkins/cicd/dev", "failure", "Pipeline failed.");
         }
     }
 }

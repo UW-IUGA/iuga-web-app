@@ -7,7 +7,6 @@ function AboutPage({ members }) {
     const years = Object.keys(members.memberYears).reverse();
     const [selectedYear, setSelectedYear] = useState(years[0]);
     const [data, setData] = useState(null);
-    console.log(data);
 
     useEffect(() => {
         setData(members.memberYears[selectedYear]);

@@ -1,4 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCaretDown } from '@fortawesome/free-solid-svg-icons';
 
 const Dropdown = ({ options, defaultOption, onSelect }) => {
     const wrapperRef = useRef(null);
@@ -18,7 +20,7 @@ const Dropdown = ({ options, defaultOption, onSelect }) => {
     useEffect(() => {
         const handleClickOutside = event => {
             if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
-                toggleDropdown();
+                setIsOpen(false);
             }
         };
 
@@ -36,7 +38,8 @@ const Dropdown = ({ options, defaultOption, onSelect }) => {
     return (
         <div className="dropdown-container" ref={wrapperRef}>
             <div className="dropdown-trigger" onClick={toggleDropdown}>
-                {selectedItem}
+                <span>{selectedItem}</span>
+                <FontAwesomeIcon className={isOpen ? "dropdown-icon-rotate" : ""} size="xs" icon={faCaretDown} />
             </div>
             {isOpen && (
                 <div className="dropdown-content">

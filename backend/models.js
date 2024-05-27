@@ -19,7 +19,7 @@ const dev_account = {
 
 async function connectToDatabase(){
     console.log('connecting to mongodb')
-    if (process.env.DEPLOY_ENV === "production") {
+    if (process.env.DEPLOY_ENV === "production" || process.env.DEPLOY_ENV === "staging") {
         const prod_uri = `mongodb://${prod_account.user}:${prod_account.password}@mongo:27017/iuga`;
         await mongoose.connect(prod_uri);
         console.log("successfully connected to prod mongodb")

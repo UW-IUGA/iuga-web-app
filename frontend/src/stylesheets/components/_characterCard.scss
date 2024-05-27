@@ -10,7 +10,7 @@
     position: relative;
     text-align: left;
     width: 220px;
-    height: 190px;
+    height: 200px;
     border-radius: $radius;
     background-color: white;
     padding: $padding-content;
@@ -43,9 +43,19 @@
 
 
     & > div {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
         width: 36px;
         height: 36px;
         border-radius: $radius;
+
+        img {
+            width: 24px;
+            height: 24px;
+            filter: invert(100%);
+        }
     }
 
     h1 {
@@ -58,7 +68,7 @@
 }
 
 .career {
-    img {
+    & > img {
         width: 160px;
         margin-bottom: -12px;
         z-index: 2;
@@ -103,7 +113,7 @@
 }
 
 .social {
-    img {
+    & > img {
         margin-left: 24px;
         margin-bottom: 24px;
         width: 200px;

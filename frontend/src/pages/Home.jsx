@@ -1,5 +1,6 @@
 import Button from "../components/Button";
 import CharacterCard from "../components/CharacterCard";
+import { MouseParallax } from 'react-just-parallax';
 import EventCard from "../components/EventCard";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
@@ -32,31 +33,51 @@ function HomePage({upcomingEvents}) {
                 <h1>Undergraduate Association</h1>
                 <p>IUGA is a student-led RSO that communicates between the Informatics student body, faculty, and administration of the University of Washington Information School.</p>
                 <div className="characterCardContainer">
-                    <div className="characterBackground characterBackgroundLeft">
-                        <img src={careerIcon} alt="" />
-                        <img src={socialIcon} alt="" />
-                        <img src={academicIcon} alt="" />
-                        <img src={socialIcon} alt="" />
-                        <img src={academicIcon} alt="" />
-                        <img src={careerIcon} alt="" />
-                        <img src={academicIcon} alt="" />
-                        <img src={socialIcon} alt="" />
-                        <img src={careerIcon} alt="" />
-                    </div>
+                    <MouseParallax isAbsolutelyPositioned strength={0.02}>
+                        <div className="characterBackground1 characterBackgroundLeft">
+                            <img src={careerIcon} alt="" />
+                            <img src={socialIcon} alt="" />
+                            <img src={academicIcon} alt="" />
+                        </div>
+                    </MouseParallax>
+                    <MouseParallax isAbsolutelyPositioned strength={0.015}>
+                        <div className="characterBackground2 characterBackgroundLeft">
+                            <img src={socialIcon} alt="" />
+                            <img src={academicIcon} alt="" />
+                            <img src={careerIcon} alt="" />
+                        </div>
+                    </MouseParallax>
+                    <MouseParallax isAbsolutelyPositioned strength={0.005}>
+                        <div className="characterBackground3 characterBackgroundLeft">
+                            <img src={academicIcon} alt="" />
+                            <img src={socialIcon} alt="" />
+                            <img src={careerIcon} alt="" />
+                        </div>
+                    </MouseParallax>
                     { categories.map(category => {
                         return <CharacterCard key={category} category={category} />;
                     })}
-                    <div className="characterBackground characterBackgroundRight">
-                        <img src={careerIcon} alt="" />
-                        <img src={socialIcon} alt="" />
-                        <img src={academicIcon} alt="" />
-                        <img src={socialIcon} alt="" />
-                        <img src={academicIcon} alt="" />
-                        <img src={careerIcon} alt="" />
-                        <img src={academicIcon} alt="" />
-                        <img src={socialIcon} alt="" />
-                        <img src={careerIcon} alt="" />
-                    </div>
+                    <MouseParallax isAbsolutelyPositioned strength={0.02}>
+                        <div className="characterBackground1 characterBackgroundRight">
+                            <img src={careerIcon} alt="" />
+                            <img src={socialIcon} alt="" />
+                            <img src={academicIcon} alt="" />
+                        </div>
+                    </MouseParallax>
+                    <MouseParallax isAbsolutelyPositioned strength={0.015}>
+                        <div className="characterBackground2 characterBackgroundRight">
+                            <img src={academicIcon} alt="" />
+                            <img src={careerIcon} alt="" />
+                            <img src={socialIcon} alt="" />
+                        </div>
+                    </MouseParallax>
+                    <MouseParallax isAbsolutelyPositioned strength={0.005}>
+                        <div className="characterBackground3 characterBackgroundRight">
+                            <img src={academicIcon} alt="" />
+                            <img src={careerIcon} alt="" />
+                            <img src={socialIcon} alt="" />
+                        </div>
+                    </MouseParallax>
                 </div>
             </div>
             <div className="upcomingEvents">

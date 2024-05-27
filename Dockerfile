@@ -16,6 +16,11 @@ ENV TZ=America/Los_Angeles
 WORKDIR /app/backend
 COPY backend/package*.json ./
 RUN npm install --production
+
+# Ensure submodules are included
+COPY .git .git
+RUN git submodule update --init --recursive
+
 COPY backend/ ./
 COPY --from=build /app/frontend/build /app/frontend/build
 EXPOSE $PORT

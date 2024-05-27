@@ -240,6 +240,7 @@
         width: 100%;
         height: 200px;
         border-radius: $radius;
+        object-position: center;
         object-fit: cover;
         border: 1px solid lightgray;
     }

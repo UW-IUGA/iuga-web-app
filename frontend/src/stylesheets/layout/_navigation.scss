@@ -71,13 +71,41 @@ nav a {
 }
 
 nav a:not(:first-child).active {
+    position: relative;
     background-color: $gray;
-    text-decoration: underline;
+
+    &::after {
+        content: "";
+        background: $gradient;
+        display: block;
+        height: 1px;
+        width: 94%;
+        position: absolute;
+        bottom: 1px;
+        left: 0;
+        right: 0;
+        margin: 0 auto;
+        border-radius: $radius;
+    }
 }
 
 nav a:not(:first-child):hover {
+    position: relative;
     background-color: $gray;
-    text-decoration: underline;
+
+    &::after {
+        content: "";
+        background: $gradient;
+        display: block;
+        height: 1px;
+        width: 94%;
+        position: absolute;
+        bottom: 1px;
+        left: 0;
+        right: 0;
+        margin: 0 auto;
+        border-radius: $radius;
+    }
 }
 
 nav img {

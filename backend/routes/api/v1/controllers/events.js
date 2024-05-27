@@ -196,7 +196,7 @@ router.get("/upcoming", async function(req, res) {
                     eDescription: 1,
                     eLabels: 1,
                     eStartDate: 1,
-                    eThumbnail: 1,
+                    eThumbnailPath: 1,
                     _id: 0 // Exclude the original _id field
                 }
             },

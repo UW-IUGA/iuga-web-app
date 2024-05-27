@@ -50,6 +50,9 @@
     justify-content: space-between;
     margin: $margin-content 0;
     gap: $margin-content;
+    background-color: $gray;
+    padding: 24px;
+    border-radius: $radius;
 }
 
 .gallery {
@@ -278,7 +281,7 @@
     }
     
     .upcomingEvents {
-        margin: $margin-content*2 0;
+        margin: $margin-content 0;
         
         & > h1 {
             font-size: 28px;
@@ -290,6 +293,10 @@
             margin-left: auto;
             margin-right: 0;
         }
+    }
+
+    .upcomingEventsCardContainer {
+        padding: 18px;
     }
     
     .gallery {    

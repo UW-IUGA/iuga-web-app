@@ -21,6 +21,12 @@ export const resources = {
       "rLink": "https://ischool.uw.edu/advising-support/peer-advisors",
       "rImage": ischool_logo,
     },
+    {
+      "rName": "UW CLUE Program",
+      "rDescription": "CLUE is an academic support/tutoring program designed to help students succeed in their coursework at UW.",
+      "rLink": "https://academicsupport.uw.edu/clue/",
+      "rImage": uw_logo,
+    },
   ],
   [resourceTags.CAREER]: [
     {

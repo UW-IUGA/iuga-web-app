@@ -31,7 +31,7 @@ pipeline {
         stage('Build') {
             steps {
                 setBuildStatus("github_classic", "iuga/jenkins/cicd/dev", "pending", "Building application...");
-                sh 'docker build . -t "iuga/iuga-web-app"'
+                sh 'docker build . -t "iuga/iuga-web-app-development" --build-arg DEPLOY_ENV=development'
             }
         }
         stage('Push to Registry') {
@@ -39,13 +39,13 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                         sh 'docker login -u $USERNAME -p $PASSWORD'
                 }
-                sh 'docker push iuga/iuga-web-app'
+                sh 'docker push iuga/iuga-web-app-development'
             }
         }
         stage('Deploy') {
             steps {
                 setBuildStatus("github_classic", "iuga/jenkins/cicd/dev", "pending", "Deploying application...");
-                sh 'docker pull iuga/iuga-web-app'
+                sh 'docker pull iuga/iuga-web-app-development'
                 sh 'docker rm -f iuga-web-dev || true'
                 withCredentials([
                     string(credentialsId: 'devDBUsername', variable: 'DB_DEV_USERNAME'),
@@ -56,8 +56,8 @@ pipeline {
                     -e DEPLOY_ENV=development \
                     -e DB_DEV_USERNAME="$DB_DEV_USERNAME" \
                     -e DB_DEV_PASSWORD="$DB_DEV_PASSWORD" \
-                    -v /var/lib/iuga-web-app/uploads/dev:/app/backend/public/uploads \
-                    iuga/iuga-web-app
+                    -v /var/lib/iuga-web-app-development/uploads/dev:/app/backend/public/uploads \
+                    iuga/iuga-web-app-development
                     '''
                 }
             }

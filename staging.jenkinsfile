@@ -31,7 +31,7 @@ pipeline {
         stage('Build') {
             steps {
                 setBuildStatus("github_classic", "iuga/jenkins/cicd/prod", "pending", "Building application...");
-                sh 'docker build . -t "iuga/iuga-web-app"'
+                sh 'docker build . -t "iuga/iuga-web-app-staging" --build-arg DEPLOY_ENV=staging'
             }
         }
         stage('Push to Registry') {
@@ -39,13 +39,13 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                         sh 'docker login -u $USERNAME -p $PASSWORD'
                 }
-                sh 'docker push iuga/iuga-web-app'
+                sh 'docker push iuga/iuga-web-app-staging'
             }
         }
         stage('Deploy') {
             steps {
                 setBuildStatus("github_classic", "iuga/jenkins/cicd/prod", "pending", "Deploying application...");
-                sh 'docker pull iuga/iuga-web-app'
+                sh 'docker pull iuga/iuga-web-app-staging'
                 sh 'docker rm -f iuga-web-staging || true'
                 withCredentials([
                     string(credentialsId: 'prodDBUsername', variable: 'DB_PROD_USERNAME'),
@@ -53,12 +53,12 @@ pipeline {
                 ]) {
                     sh '''
                     docker run -d -p "127.0.0.1:7777:7777" --name iuga-web-staging \
-                    -e DEPLOY_ENV=production \
+                    -e DEPLOY_ENV=staging \
                     -e DB_PROD_USERNAME="$DB_PROD_USERNAME" \
                     -e DB_PROD_PASSWORD="$DB_PROD_PASSWORD" \
-                    -v /var/lib/iuga-web-app/uploads/prod:/app/backend/public/uploads \
+                    -v /var/lib/iuga-web-app-staging/uploads/prod:/app/backend/public/uploads \
                     --network iuga-server-config_default \
-                    iuga/iuga-web-app
+                    iuga/iuga-web-app-staging
                     '''
                 }
             }

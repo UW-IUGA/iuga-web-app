@@ -42,7 +42,7 @@ pipeline {
                     sh '''
                     docker run -d -p "127.0.0.1:7777:7777" --name iuga-web \
                     -e TEST_ENV_VAR="$TEST_VAR" \
-                    -v /var/lib/iuga-web-app:/app/public/uploads \
+                    -v /var/lib/iuga-web-app:/app/backend/public/uploads \
                     iuga/iuga-web-app
                     '''
                 }

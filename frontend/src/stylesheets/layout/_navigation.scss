@@ -61,16 +61,23 @@ nav a {
     color: inherit;
     text-align: center;
     text-decoration: none;
+    border-radius: $radius;
     padding: $padding-box-y $padding-box-x;
+    border: 2px solid white;
 }
 
 .nav-logo {
     padding: 0 12px 0 0;;
 }
 
+nav a:not(:first-child).active {
+    background-color: $gray;
+    text-decoration: underline;
+}
+
 nav a:not(:first-child):hover {
     background-color: $gray;
-    border-radius: $radius;
+    text-decoration: underline;
 }
 
 nav img {

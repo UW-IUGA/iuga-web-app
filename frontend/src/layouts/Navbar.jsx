@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import Button from "../components/Button.jsx"
 import { useAuthContext } from "../context/AuthContext";
 
@@ -20,11 +20,11 @@ function Navbar({signIn, signOut}) {
     return (
         <nav>
             <div className={`nav-container ${isScrolledDown > 0 ? "nav-scroll" : ""}`}>
-                <Link to="/" className="nav-logo"><img src="/iuga-logo.png" alt="logo"></img></Link>
+                <NavLink to="/" className="nav-logo"><img src="/iuga-logo.png" alt="logo"></img></NavLink>
                 <span></span>
-                <Link to="/events">Events</Link>
-                <Link to="/resources">Resources</Link>
-                <Link to="/about">About</Link>
+                <NavLink to="/events">Events</NavLink>
+                <NavLink to="/resources">Resources</NavLink>
+                <NavLink to="/about">About</NavLink>
                 <span></span>
                 <div>
                     { isAuthenticated && user && (<p>Hi, {user.uFirstName ? user.uFirstName : user.uDisplayName}!</p>) }

@@ -33,21 +33,21 @@ function HomePage({upcomingEvents}) {
                 <h1>Undergraduate Association</h1>
                 <p>IUGA is a student-led RSO that communicates between the Informatics student body, faculty, and administration of the University of Washington Information School.</p>
                 <div className="characterCardContainer">
-                    <MouseParallax isAbsolutelyPositioned strength={0.02}>
+                    <MouseParallax isAbsolutelyPositioned strength={0.03} shouldPause>
                         <div className="characterBackground1 characterBackgroundLeft">
                             <img src={careerIcon} alt="" />
                             <img src={socialIcon} alt="" />
                             <img src={academicIcon} alt="" />
                         </div>
                     </MouseParallax>
-                    <MouseParallax isAbsolutelyPositioned strength={0.015}>
+                    <MouseParallax isAbsolutelyPositioned strength={0.015} shouldPause>
                         <div className="characterBackground2 characterBackgroundLeft">
                             <img src={socialIcon} alt="" />
                             <img src={academicIcon} alt="" />
                             <img src={careerIcon} alt="" />
                         </div>
                     </MouseParallax>
-                    <MouseParallax isAbsolutelyPositioned strength={0.005}>
+                    <MouseParallax isAbsolutelyPositioned strength={0.005} shouldPause>
                         <div className="characterBackground3 characterBackgroundLeft">
                             <img src={academicIcon} alt="" />
                             <img src={socialIcon} alt="" />
@@ -57,21 +57,21 @@ function HomePage({upcomingEvents}) {
                     { categories.map(category => {
                         return <CharacterCard key={category} category={category} />;
                     })}
-                    <MouseParallax isAbsolutelyPositioned strength={0.02}>
+                    <MouseParallax isAbsolutelyPositioned strength={0.03} shouldPause>
                         <div className="characterBackground1 characterBackgroundRight">
                             <img src={careerIcon} alt="" />
                             <img src={socialIcon} alt="" />
                             <img src={academicIcon} alt="" />
                         </div>
                     </MouseParallax>
-                    <MouseParallax isAbsolutelyPositioned strength={0.015}>
+                    <MouseParallax isAbsolutelyPositioned strength={0.015} shouldPause>
                         <div className="characterBackground2 characterBackgroundRight">
                             <img src={academicIcon} alt="" />
                             <img src={careerIcon} alt="" />
                             <img src={socialIcon} alt="" />
                         </div>
                     </MouseParallax>
-                    <MouseParallax isAbsolutelyPositioned strength={0.005}>
+                    <MouseParallax isAbsolutelyPositioned strength={0.005} shouldPause>
                         <div className="characterBackground3 characterBackgroundRight">
                             <img src={academicIcon} alt="" />
                             <img src={careerIcon} alt="" />

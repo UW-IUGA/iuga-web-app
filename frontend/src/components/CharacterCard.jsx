@@ -12,15 +12,15 @@ const CharacterCard = ({ category }) => {
     if (category.toLowerCase() === 'academic') {
         // icon = <FontAwesomeIcon icon={faGraduationCap}/>;
         icon = <img src={bookIcon} alt="" />
-        description = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod.';
+        description = 'Engage with workshops, study sessions, and guest lectures to enhance your academic journey.';
     } else if (category.toLowerCase() === 'social') {
         // icon = <FontAwesomeIcon icon={faComment}/>;
         icon = <img src={commentIcon} alt="" />
-        description = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod.';
+        description = 'Connect with the iSchool community through fun social activities, including game nights, mixers, and cultural events.';
     } else if (category.toLowerCase() === 'career') {
         // icon = <FontAwesomeIcon icon={faBriefcase}/>;
         icon = <img src={briefcaseIcon} alt="" />
-        description = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod.';
+        description = 'Prepare for your professional future with our networking events, resume workshops, and industry talks.';
     }
 
     return (

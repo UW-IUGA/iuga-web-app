@@ -18,12 +18,13 @@ const dev_account = {
 }
 
 async function connectToDatabase(){
-    console.log('connecting to mongodb')
     if (process.env.DEPLOY_ENV === "production" || process.env.DEPLOY_ENV === "staging") {
+        console.log('connecting to prod database')
         const prod_uri = `mongodb://${prod_account.user}:${prod_account.password}@mongo:27017/iuga`;
         await mongoose.connect(prod_uri);
         console.log("successfully connected to prod mongodb")
     } else {
+        console.log('connecting to dev database')
         const dev_uri = `mongodb+srv://${dev_account.user}:${dev_account.password}@cluster0.ejo8heu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
         await mongoose.connect(dev_uri);
         console.log("successfully connected to dev mongodb")

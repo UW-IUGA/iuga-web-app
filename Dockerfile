@@ -18,5 +18,6 @@ COPY backend/package*.json ./
 RUN npm install --production
 COPY backend/ ./
 COPY --from=build /app/frontend/build /app/frontend/build
+COPY backend/schemas /app/backend/schemas
 EXPOSE $PORT
 CMD ["npm", "run", "deploy"]

@@ -12,7 +12,7 @@ const CharacterCard = ({ category }) => {
     if (category.toLowerCase() === 'academic') {
         // icon = <FontAwesomeIcon icon={faGraduationCap}/>;
         icon = <img src={bookIcon} alt="" />
-        description = 'Engage with workshops, study sessions, and guest lectures to enhance your academic journey.';
+        description = 'Participate in workshops and information sessions designed to support your learning experience in the iSchool.';
     } else if (category.toLowerCase() === 'social') {
         // icon = <FontAwesomeIcon icon={faComment}/>;
         icon = <img src={commentIcon} alt="" />

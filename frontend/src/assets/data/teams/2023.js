@@ -17,6 +17,7 @@ import _2023_vera from "../officerPhotos/2023/vera_23.jpeg";
 import _2023_shea2 from "../officerPhotos/2023/sheamin_24.jpg";
 import _2023_jada from "../officerPhotos/2024/jada_2024_profile.png";
 import _2023_shirley from "../officerPhotos/2024/shirley_2024_profile.png";
+import _2023_meiyao from "../officerPhotos/2023/meiyao.jpg";
 
 
 
@@ -136,7 +137,10 @@ export const team_2023 = {
         {
             position: webDevPositions.GRAPHIC_DESIGNER,
             name: "Meiyao Lee",
-            picture: "",
+            picture: _2023_meiyao,
+            socials: {
+                linkedin: "https://www.linkedin.com/in/meiyao-li-937749266/"
+            }
         },
     ],
     [groupType.CREATIVE_COMMITTEE]: [
@@ -151,7 +155,10 @@ export const team_2023 = {
         {
             position: creativeCommitteePositions.MEMBER,
             name: "Meiyao Li",
-            picture: "",
+            picture: _2023_meiyao,
+            socials: {
+                linkedin: "https://www.linkedin.com/in/meiyao-li-937749266/"
+            }
         },
         {
             position: creativeCommitteePositions.MEMBER,

@@ -5,8 +5,6 @@ import { useEffect, useRef } from "react";
 import { useLocation } from 'react-router-dom';
 
 function ResourcesPage({ resources }) {
-    const categories = ["Academic", "Career", "Community", "Mental Health", "Diversity, Equity, and Inclusion (DEI)"];
-
     const categoryRefs = useRef({});
 
     const {pathname} = useLocation();
@@ -48,7 +46,7 @@ function ResourcesPage({ resources }) {
                         <div className="legend">
                             <h3 className="legendHeader">Categories</h3>
                             <ul>
-                                {categories.map((category) => (
+                                {Object.values(resourceTags).map((category) => (
                                     <li key={category} onClick={() => handleClick(category)}>
                                         {category === "Diversity, Equity, and Inclusion (DEI)" ? "DEI" : category}
                                     </li>

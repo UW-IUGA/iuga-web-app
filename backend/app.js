@@ -83,6 +83,8 @@ app.get('/contact', function(req, res) {
     })
 })
 
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+
 app.use('/api/v1', apiv1Router);
 
 export default app;

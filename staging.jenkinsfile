@@ -56,7 +56,7 @@ pipeline {
                     -e DEPLOY_ENV=staging \
                     -e DB_PROD_USERNAME="$DB_PROD_USERNAME" \
                     -e DB_PROD_PASSWORD="$DB_PROD_PASSWORD" \
-                    -v /var/lib/iuga-web-app-staging/uploads/prod:/app/backend/public/uploads \
+                    -v /var/lib/iuga-web-app/uploads/prod:/app/backend/public/uploads \
                     --network iuga-server-config_default \
                     iuga/iuga-web-app-staging
                     '''

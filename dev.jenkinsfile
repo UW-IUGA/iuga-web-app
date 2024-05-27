@@ -56,7 +56,7 @@ pipeline {
                     -e DEPLOY_ENV=development \
                     -e DB_DEV_USERNAME="$DB_DEV_USERNAME" \
                     -e DB_DEV_PASSWORD="$DB_DEV_PASSWORD" \
-                    -v /var/lib/iuga-web-app-development/uploads/dev:/app/backend/public/uploads \
+                    -v /var/lib/iuga-web-app/uploads/dev:/app/backend/public/uploads \
                     iuga/iuga-web-app-development
                     '''
                 }

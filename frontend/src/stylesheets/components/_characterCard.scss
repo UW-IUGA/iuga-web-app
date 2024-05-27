@@ -200,3 +200,50 @@
         border-color: $color-academic-primary;
     }
 }
+
+@include media(">=sm-desktop", "<desktop") {
+    .career {
+        .characterCardBackground {
+            position: absolute;
+            z-index: -1;
+            top: 20%;
+            left: 30%;
+            transform: translate(-50%, -50%);
+            display: block;
+            width: 500px;
+            height: 380px;
+            border-radius: 100%;
+            background: radial-gradient(ellipse at center, rgba(255,201,63,0.5) 0%, rgba(48,66,233,0) 68%);
+        }
+    }
+
+    .social {
+        .characterCardBackground {
+            position: absolute;
+            z-index: -2;
+            top: 70%;
+            left: 30%;
+            transform: translate(-50%, -50%);
+            display: block;
+            width: 300px;
+            height: 250px;
+            border-radius: 100%;
+            background: radial-gradient(ellipse at center, rgba(248,166,255,0.5) 0%, rgba(48,66,233,0) 70%);
+        }
+    }
+    
+    .academic {
+        .characterCardBackground {
+            position: absolute;
+            z-index: -1;
+            top: 30%;
+            left: 44%;
+            transform: translate(-50%, -50%);
+            display: block;
+            width: 380px;
+            height: 300px;
+            border-radius: 100%;
+            background: radial-gradient(ellipse at center, rgba(112, 124, 232, 0.8) 0%, rgba(48,66,233,0) 70%);
+        }
+    }    
+}

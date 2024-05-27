@@ -20,7 +20,7 @@ pipeline {
         stage('Build') {
             steps {
                 setBuildStatus("github_classic", "iuga/jenkins/cicd/dev", "pending", "Building application...");
-                sh 'docker build . --no-cache -t "iuga/iuga-web-app"'
+                sh 'docker build . -t "iuga/iuga-web-app"'
             }
         }
         stage('Push to Registry') {

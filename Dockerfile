@@ -12,12 +12,17 @@ RUN npm run build
 # Production stage
 FROM node:22-alpine
 RUN apk add --no-cache tzdata
+RUN apk add --no-cache tzdata git
 ENV TZ=America/Los_Angeles
 WORKDIR /app/backend
 COPY backend/package*.json ./
 RUN npm install --production
+
+# Copy the entire repository including .git directory to handle submodules
+COPY .git .git
+RUN git submodule init && git submodule update
+
 COPY backend/ ./
 COPY --from=build /app/frontend/build /app/frontend/build
-COPY backend/schemas /app/backend/schemas
 EXPOSE $PORT
 CMD ["npm", "run", "deploy"]

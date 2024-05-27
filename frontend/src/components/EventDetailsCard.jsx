@@ -84,7 +84,7 @@ const EventDetailsCard = ({selectedEvent, handleRSVP, deselectEventDetails}) => 
     <div className="event-details-container" ref={wrapperRef}>
         <div className="event-details-wrapper">
             <div className="event-details-content">
-                <img alt='event thumbnail'></img>
+                <img alt='event thumbnail' src={selectedEvent.eThumbnailPath}></img>
                 <div className="event-details-header">
                     <h1>{selectedEvent.eName ? selectedEvent.eName : "Event Name"}</h1>
                     <div className="event-details-info">

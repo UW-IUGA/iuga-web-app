@@ -9,7 +9,7 @@ const EventCard = ({ event, decorate }) => {
         <div className="eventCard" onClick={() => navigate('/events',{state: {"eId": event.eId, "eStartDate": event.eStartDate}})}>
             { decorate ? <img src="/assets/events-decoration.svg" alt="event card decoration" /> : "" }
             <div>
-                <img src={``} alt={`${event.eName} event`} ></img>
+                <img src={event.eThumbnailPath} alt={`${event.eName} event`} ></img>
             </div>
             <div className="eventCardHeader">
                 <h1>{event.eName}</h1>

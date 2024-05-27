@@ -4,15 +4,15 @@ import { webDevPositions, creativeCommitteePositions, diversityCommitteePosition
 
 import _brianna from '../officerPhotos/2022/brianna.jpg';
 import _devina from '../officerPhotos/2022/devinaTavathia.jpg';
-import _drew from '../officerPhotos/2022/drewFavors.jpg';
+import _drew from '../officerPhotos/2022/drew.jpeg';
 import _justin from '../officerPhotos/2022/justinZeng.jpg';
 import _phyllis from '../officerPhotos/2022/phyllischen.jpg';
 import _pranav from '../officerPhotos/2022/pranavshekar.jpg';
 import _sachi from '../officerPhotos/2022/sachiFigliolini.jpg';
-import _sarah from '../officerPhotos/2022/sarahThomas.jpg';
+import _sarah from '../officerPhotos/2022/sarah.jpeg';
 import _sirena from '../officerPhotos/2022/sirenaakopyan.jpg';
 import _fyr1 from '../officerPhotos/2022/fyr1.jpg';
-import _fyr2 from '../officerPhotos/2022/fyr2.jpg';
+import _fyr2 from '../officerPhotos/2022/ryan.jpeg';
 
 export const team_2022 = {
     [groupType.OFFICERS]: [

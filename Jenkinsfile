@@ -14,13 +14,24 @@ pipeline {
         stage('Checkout') {
             steps {
                 setBuildStatus("github_classic", "iuga/jenkins/cicd/dev", "pending", "Checking out repository...");
-                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'github_classic', url: 'https://github.com/UW-IUGA/iuga-web-client.git']])
+                // Checkout with submodules
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [[$class: 'SubmoduleOption', recursiveSubmodules: true, trackingSubmodules: false]],
+                    submoduleCfg: [],
+                    userRemoteConfigs: [[
+                        credentialsId: 'github_classic',
+                        url: 'https://github.com/UW-IUGA/iuga-web-client.git'
+                    ]]
+                ])
             }
         }
         stage('Build') {
             steps {
                 setBuildStatus("github_classic", "iuga/jenkins/cicd/dev", "pending", "Building application...");
-                sh 'docker build . --no-cache -t "iuga/iuga-web-app"'
+                sh 'docker build . -t "iuga/iuga-web-app"'
             }
         }
         stage('Push to Registry') {

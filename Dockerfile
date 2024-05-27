@@ -18,10 +18,6 @@ WORKDIR /app/backend
 COPY backend/package*.json ./
 RUN npm install --production
 
-COPY .git .git
-COPY .gitmodules .gitmodules
-RUN git submodule init && git submodule update
-
 COPY backend/ ./
 COPY --from=build /app/frontend/build /app/frontend/build
 EXPOSE $PORT

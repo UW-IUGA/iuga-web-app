@@ -21,7 +21,7 @@ const CharacterCard = ({ category }) => {
                 </div>
                 <div className="characterCardBody">
                     <p>{description}</p>
-                    <button>{category} Events →</button>
+                    {/* <button>{category} Events →</button> */}
                 </div>
             </div>
         </div>

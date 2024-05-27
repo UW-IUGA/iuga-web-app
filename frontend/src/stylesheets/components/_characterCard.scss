@@ -10,7 +10,7 @@
     position: relative;
     text-align: left;
     width: 220px;
-    height: 220px;
+    height: 190px;
     border-radius: $radius;
     background-color: white;
     padding: $padding-content;
@@ -71,12 +71,12 @@
     .characterCardBackground {
         position: absolute;
         z-index: -1;
-        top: 30%;
+        top: 20%;
         left: 30%;
         transform: translate(-50%, -50%);
         display: block;
         width: 600px;
-        height: 450px;
+        height: 420px;
         border-radius: 100%;
         background: radial-gradient(ellipse at center, rgba(255,201,63,0.5) 0%, rgba(48,66,233,0) 68%);
     }
@@ -121,7 +121,7 @@
         transform: translate(-50%, -50%);
         display: block;
         width: 300px;
-        height: 270px;
+        height: 250px;
         border-radius: 100%;
         background: radial-gradient(ellipse at center, rgba(248,166,255,0.5) 0%, rgba(48,66,233,0) 70%);
     }
@@ -164,7 +164,7 @@
         transform: translate(-50%, -50%);
         display: block;
         width: 400px;
-        height: 400px;
+        height: 330px;
         border-radius: 100%;
         background: radial-gradient(ellipse at center, rgba(112, 124, 232, 0.8) 0%, rgba(48,66,233,0) 70%);
     }

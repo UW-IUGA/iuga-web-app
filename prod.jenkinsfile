@@ -53,6 +53,7 @@ pipeline {
                 ]) {
                     sh '''
                     docker run -d -p "127.0.0.1:8888:7777" --name iuga-web-prod \
+                    -e DEPLOY_ENV=production \
                     -e DB_PROD_USERNAME="$DB_PROD_USERNAME" \
                     -e DB_PROD_PASSWORD="$DB_PROD_PASSWORD" \
                     -v /var/lib/iuga-web-app:/app/backend/public/uploads \

@@ -22,7 +22,7 @@ const DEFAULT_PORT = '7777';
    * Create HTTP server.
    */
 
-  let host = process.env.DEPLOY ? '0.0.0.0' : 'localhost';
+  let host = process.env.DEPLOY_ENV === "production" ? '0.0.0.0' : 'localhost';
 
   var server = http.createServer(app);
 
@@ -87,7 +87,7 @@ const DEFAULT_PORT = '7777';
    */
 
   function onListening() {
-    let host = process.env.DEPLOY ? '0.0.0.0' : 'localhost';
+    let host = process.env.DEPLOY_ENV === "production" ? '0.0.0.0' : 'localhost';
     let port = process.env.PORT ? process.env.PORT : DEFAULT_PORT;
 
     if (!process.env.DEBUG) {

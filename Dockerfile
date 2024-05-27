@@ -8,6 +8,9 @@ WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm install
 COPY frontend/ ./
+RUN if [ "$DEPLOY_ENV" = "production" ] ; then sed -i 's#https://dev.iuga.info#https://iuga.info#' src/authConfig.js ; fi
+RUN if [ "$DEPLOY_ENV" = "staging" ] ; then sed -i 's#https://dev.iuga.info#https://staging.iuga.info#' src/authConfig.js ; fi
+
 RUN if [ "$DEPLOY_ENV" = "production" ] ; then sed -i 's#http://localhost:7777/#https://iuga.info/#' src/authConfig.js ; fi
 RUN if [ "$DEPLOY_ENV" = "staging" ] ; then sed -i 's#http://localhost:7777/#https://staging.iuga.info/#' src/authConfig.js ; fi
 RUN if [ "$DEPLOY_ENV" = "development" ] ; then sed -i 's#http://localhost:7777/#https://dev.iuga.info/#' src/authConfig.js ; fi

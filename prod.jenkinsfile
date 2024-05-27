@@ -46,7 +46,7 @@ pipeline {
             steps {
                 setBuildStatus("github_classic", "iuga/jenkins/cicd/prod", "pending", "Deploying application...");
                 sh 'docker pull iuga/iuga-web-app'
-                sh 'docker rm -f iuga-web || true'
+                sh 'docker rm -f iuga-web-prod || true'
                 withCredentials([
                     string(credentialsId: 'prodDBUsername', variable: 'DB_PROD_USERNAME'),
                     string(credentialsId: 'prodDBPassword', variable: 'DB_PROD_PASSWORD'),

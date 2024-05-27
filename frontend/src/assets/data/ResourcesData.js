@@ -66,10 +66,10 @@ export const resources = {
   ],
   [resourceTags.COMMUNITY]: [
     {
-      "rName": "Women in Informatics (Winfo)",
-      "rDescription": "Women in Informatics supports ways to empower women to thrive as producers of technology. Winfo is a supportive network of women in technology fields who provide students with mentorship, resources and support toward career development and academic pursuits.",
-      "rLink": "http://winfo.ischool.uw.edu/",
-      "rImage": winfo_logo,
+      "rName": "Black in Informatics (Binfo)",
+      "rDescription": "Black in Informatics is a community-driven organization dedicated to fostering the professional, academic, and personal development of Black students within the Informatics program. Its mission is to amplify the presence and successes of Black students in Informatics, guiding them throughout their journey at UW with resources, mentorship, and specialized learning experiences.",
+      "rLink": "https://linktr.ee/binfouw",
+      "rImage": binfo_logo,
     },
     {
       "rName": "iQueeries",
@@ -78,16 +78,16 @@ export const resources = {
       "rImage": iqueeries_logo,
     },
     {
-      "rName": "Black in Informatics (Binfo)",
-      "rDescription": "Black in Informatics is a community-driven organization dedicated to fostering the professional, academic, and personal development of Black students within the Informatics program. Its mission is to amplify the presence and successes of Black students in Informatics, guiding them throughout their journey at UW with resources, mentorship, and specialized learning experiences.",
-      "rLink": "https://linktr.ee/binfouw",
-      "rImage": binfo_logo,
-    },
-    {
       "rName": "ISACA",
       "rDescription": "ISACA aims to engage students who are interested in learning about information security and risk. This student group accomplishes this by hosting workshops and events that teach students about basic information security procedures and best practices.",
       "rLink": "https://www.instagram.com/isacauw/",
       "rImage": isaca_logo,
+    },
+    {
+      "rName": "Women in Informatics (Winfo)",
+      "rDescription": "Women in Informatics supports ways to empower women to thrive as producers of technology. Winfo is a supportive network of women in technology fields who provide students with mentorship, resources and support toward career development and academic pursuits.",
+      "rLink": "http://winfo.ischool.uw.edu/",
+      "rImage": winfo_logo,
     },
   ],
 }

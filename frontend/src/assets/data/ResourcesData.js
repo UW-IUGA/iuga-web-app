@@ -35,6 +35,24 @@ export const resources = {
       "rLink": "https://ischool.uw.edu/alumni/get-involved/imentorship",
       "rImage": ischool_logo,
     },
+    {
+      "rName": "Curricular Practical Training for International Students",
+      "rDescription": "Curricular Practical Training (CPT) is an opportunity for students on F-1 visas to learn practical skills related to their majors while studying at the University of Washington. CPT serves as a work authorization as students engage in different types of activities related to their major.",
+      "rLink": "https://iss.washington.edu/f1-employment/off-campus-employment-f1/cpt/",
+      "rImage": uw_logo,
+    },
+    {
+      "rName": "Post Completion OPT for International Students",
+      "rDescription": "A Post-Completion OPT (Optional Practical Training) is a temporary work authorization provided to international students on F-1 visas in the United States.",
+      "rLink": "https://iss.washington.edu/f1-employment/post-completion/",
+      "rImage": uw_logo,
+    },
+    {
+      "rName": "On-campus Employment for F-1 Students",
+      "rDescription": "On-campus employment is a work option available to F-1 international students in the United States, allowing them to maintain their visa status while earning money and gaining work experience.",
+      "rLink": "https://iss.washington.edu/f1-employment/on-campus/",
+      "rImage": uw_logo,
+    },
   ],
   [resourceTags.MENTAL_HEALTH]: [
     {

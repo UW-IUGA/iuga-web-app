@@ -49,13 +49,13 @@
 /* Resources section (where the components will go) styling */
 .legendContainer {
   flex: 1;
-  height: 3000px;
+  height: 4000px;
   margin-top: 0px;
 }
 
 .legend {
   position: sticky;
-  top: 150px;
+  top: 170px;
   display: flex;
   flex-direction: column;
 
@@ -150,6 +150,7 @@
 
   /* Resources section (where the components will go) styling */
   .legendContainer {
+    height: 3700px;
     margin-top: 2px;
   }
 

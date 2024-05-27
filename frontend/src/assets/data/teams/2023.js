@@ -6,13 +6,13 @@ import { webDevPositions, creativeCommitteePositions, diversityCommitteePosition
 import _2023_phyllis from "../officerPhotos/2022/phyllischen.jpg";
 import _2023_sirena from "../officerPhotos/2022/sirenaakopyan.jpg";
 import _2023_suraj from "../officerPhotos/2023/SurajShankarGangaramimage.png";
-import _2023_mariko from "../officerPhotos/2023/MarikoWoodworthimage.jpg";
+import _2023_mariko from "../officerPhotos/2023/mari.jpeg";
 import _2023_shea from "../officerPhotos/2023/SheaminKimimage.jpg";
 import _2023_brandon from "../officerPhotos/2023/BrandonMendozaimage.jpg";
-import _2023_ryan from "../officerPhotos/2023/RyanLouieimage.jpg";
+import _2023_ryan from "../officerPhotos/2023/ryan.jpeg";
 import _2023_eric from "../officerPhotos/2023/eric.jpg";
-import _2023_bhavya from "../officerPhotos/2023/bhavya.jpg";
-import _2023_harold from "../officerPhotos/2023/harold_23.jpg";
+import _2023_bhavya from "../officerPhotos/2023/bhavya.jpeg";
+import _2023_harold from "../officerPhotos/2023/harold_23.jpeg";
 import _2023_vera from "../officerPhotos/2023/vera_23.jpeg";
 import _2023_shea2 from "../officerPhotos/2023/sheamin_24.jpg";
 import _2023_jada from "../officerPhotos/2024/jada_2024_profile.png";
@@ -52,6 +52,7 @@ export const team_2023 = {
             name: "Sheamin Kim",
             picture: _2023_shea,
             socials: {
+                website: "https://sheakim2.myportfolio.com/projects",
                 linkedin: "https://www.linkedin.com/in/sheamin-kim-b21818250/",
             }
         },
@@ -149,6 +150,7 @@ export const team_2023 = {
             name: "Sheamin Kim",
             picture: _2023_shea2,
             socials: {
+                website: "https://sheakim2.myportfolio.com/projects",
                 linkedin: "https://www.linkedin.com/in/sheamin-kim-b21818250/",
             }
         },

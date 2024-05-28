@@ -35,9 +35,10 @@ function ResourcesPage({ resources }) {
                     <div className="resourceSummary">
                         <h1>Resources</h1>
                         <p>
-                            IUGA is a student-led RSO that communicates between the Informatics student body, faculty, and
-                            administration of the University of Washington Information School. We host fun, community
-                            building events as well as events for professional development.
+                            IUGA is just one of many RSOs and groups affiliated with the iSchool that makes the iSchool everything it is. 
+                            Explore the resources below to take full advantage of everything the iSchool offers its students! 
+                            From academic and career resources to personal mental health, the iSchool community does its best to support 
+                            its students in every area it can.
                         </p>
                     </div>
                 </div>

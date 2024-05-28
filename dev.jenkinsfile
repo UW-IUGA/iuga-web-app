@@ -3,7 +3,7 @@ void setBuildStatus(String credential_id, String context, String state, String m
     def targetUrl = env.RUN_DISPLAY_URL
     def data = """{"state":"${state}", "target_url": "${targetUrl}", "description":"${message}", "context":"${context}"}"""
     withCredentials([usernamePassword(credentialsId: credential_id, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-        sh "curl -X POST --user $USERNAME:$PASSWORD --data '${data}' --url https://api.github.com/repos/UW-IUGA/iuga-web-client/statuses/$gitCommit"
+        sh "curl -X POST --user $USERNAME:$PASSWORD --data '${data}' --url https://api.github.com/repos/UW-IUGA/iuga-web-app/statuses/$gitCommit"
     }
 }
 
@@ -23,7 +23,7 @@ pipeline {
                     submoduleCfg: [],
                     userRemoteConfigs: [[
                         credentialsId: 'github_classic',
-                        url: 'https://github.com/UW-IUGA/iuga-web-client.git'
+                        url: 'https://github.com/UW-IUGA/iuga-web-app.git'
                     ]]
                 ])
             }

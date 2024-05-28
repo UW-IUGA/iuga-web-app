@@ -3,7 +3,7 @@ void setBuildStatus(String credential_id, String context, String state, String m
     def targetUrl = env.RUN_DISPLAY_URL
     def data = """{"state":"${state}", "target_url": "${targetUrl}", "description":"${message}", "context":"${context}"}"""
     withCredentials([usernamePassword(credentialsId: credential_id, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-        sh "curl -X POST --user $USERNAME:$PASSWORD --data '${data}' --url https://api.github.com/repos/UW-IUGA/iuga-web-client/statuses/$gitCommit"
+        sh "curl -X POST --user $USERNAME:$PASSWORD --data '${data}' --url https://api.github.com/repos/UW-IUGA/iuga-web-app/statuses/$gitCommit"
     }
 }
 
@@ -13,7 +13,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                setBuildStatus("github_classic", "iuga/jenkins/cicd/prod", "pending", "Checking out repository...");
+                setBuildStatus("github_classic", "iuga/jenkins/cicd/staging", "pending", "Checking out repository...");
                 // Checkout with submodules
                 checkout([
                     $class: 'GitSCM',
@@ -23,14 +23,14 @@ pipeline {
                     submoduleCfg: [],
                     userRemoteConfigs: [[
                         credentialsId: 'github_classic',
-                        url: 'https://github.com/UW-IUGA/iuga-web-client.git'
+                        url: 'https://github.com/UW-IUGA/iuga-web-app.git'
                     ]]
                 ])
             }
         }
         stage('Build') {
             steps {
-                setBuildStatus("github_classic", "iuga/jenkins/cicd/prod", "pending", "Building application...");
+                setBuildStatus("github_classic", "iuga/jenkins/cicd/staging", "pending", "Building application...");
                 sh 'docker build . -t "iuga/iuga-web-app-production" --build-arg DEPLOY_ENV=production'
             }
         }
@@ -44,7 +44,7 @@ pipeline {
         }
         stage('Deploy') {
             steps {
-                setBuildStatus("github_classic", "iuga/jenkins/cicd/prod", "pending", "Deploying application...");
+                setBuildStatus("github_classic", "iuga/jenkins/cicd/staging", "pending", "Deploying application...");
                 sh 'docker pull iuga/iuga-web-app-production'
                 sh 'docker rm -f iuga-web-prod || true'
                 withCredentials([
@@ -67,10 +67,10 @@ pipeline {
     
     post {
         success {
-            setBuildStatus("github_classic", "iuga/jenkins/cicd/prod", "success", "Pipeline succeeded!");
+            setBuildStatus("github_classic", "iuga/jenkins/cicd/staging", "success", "Pipeline succeeded!");
         }
         failure {
-            setBuildStatus("github_classic", "iuga/jenkins/cicd/prod", "failure", "Pipeline failed.");
+            setBuildStatus("github_classic", "iuga/jenkins/cicd/staging", "failure", "Pipeline failed.");
         }
     }
 }

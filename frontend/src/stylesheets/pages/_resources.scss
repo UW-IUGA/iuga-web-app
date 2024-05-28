@@ -41,6 +41,23 @@
   gap: 42px;
 }
 
+.resourceCategoryHeader  {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  @include bottom-gradient-border-thick;
+
+  h2 {
+    margin: 24px 0;
+  }
+}
+
+.resourceContent p {
+  margin: 12px 0;
+}
+
 .resourcesWrapper {
   flex: 4;
   margin-bottom: 60px;

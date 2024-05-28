@@ -26,6 +26,18 @@
     }
 }
 
+@mixin bottom-gradient-border-thick {
+    &::after {
+        content: "";
+        background: $gradient;
+        display: block;
+        height: 2px;
+        width: 100%;
+        position: absolute;
+        bottom: 0;
+    }
+}
+
 @mixin gradient-border {
     background: radial-gradient(circle at 100% 100%, #ffffff 0, #ffffff 6px, transparent 6px) 0% 0%/8px 8px no-repeat,
             radial-gradient(circle at 0 100%, #ffffff 0, #ffffff 6px, transparent 6px) 100% 0%/8px 8px no-repeat,

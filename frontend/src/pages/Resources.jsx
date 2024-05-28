@@ -58,8 +58,9 @@ function ResourcesPage({ resources }) {
                     <div className="resourcesWrapper">
                         {Object.values(resourceTags).map((category) => (
                             <div className="resourceBoxContainer" key={category} ref={(el) => (categoryRefs.current[category] = el)}>
-                                <h2>{category}</h2>
-                                <GradientLine className="fullWidth" />
+                                <div className="resourceCategoryHeader">
+                                    <h2>{category}</h2>
+                                </div>
                                 { resources[category]
                                     .map((filteredResource) => (<ResourceCard key={filteredResource.rName} resource={filteredResource} />))}
                             </div>

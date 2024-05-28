@@ -21,9 +21,8 @@ function AboutPage({ teams }) {
             if (team !== "Officers" && data[team].length > 0) {
                 return (
                     <div key={team}>
-                        <div className="headerPadding">
+                        <div className="aboutHeader">
                             <h2>{team}</h2>
-                            <GradientLine className="fullWidth" />
                         </div>
                         <div className="aboutWrapper">
                             {data[team].map((member, index) => (
@@ -55,7 +54,6 @@ function AboutPage({ teams }) {
                     <h2>Officers</h2>
                     <Dropdown options={years} defaultOption={years[0]} onSelect={handleSelectYear} />
                 </div>
-                <GradientLine className="fullWidth addedMargin" />
                 <div className="aboutWrapper">
                     {data &&
                         data["Officers"] &&

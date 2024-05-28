@@ -37,10 +37,17 @@
 }
 
 .aboutHeader  {
+  position: relative;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 32px;
+  @include bottom-gradient-border-thick;
+
+  h2 {
+    margin: 24px 0;
+  }
 }
 
 .addedMargin {

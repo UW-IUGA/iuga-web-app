@@ -13,7 +13,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                setBuildStatus("github_classic", "iuga/jenkins/cicd/staging", "pending", "Checking out repository...");
+                setBuildStatus("github_classic", "iuga/jenkins/cicd/prod", "pending", "Checking out repository...");
                 // Checkout with submodules
                 checkout([
                     $class: 'GitSCM',
@@ -30,7 +30,7 @@ pipeline {
         }
         stage('Build') {
             steps {
-                setBuildStatus("github_classic", "iuga/jenkins/cicd/staging", "pending", "Building application...");
+                setBuildStatus("github_classic", "iuga/jenkins/cicd/prod", "pending", "Building application...");
                 sh 'docker build . -t "iuga/iuga-web-app-production" --build-arg DEPLOY_ENV=production'
             }
         }
@@ -44,7 +44,7 @@ pipeline {
         }
         stage('Deploy') {
             steps {
-                setBuildStatus("github_classic", "iuga/jenkins/cicd/staging", "pending", "Deploying application...");
+                setBuildStatus("github_classic", "iuga/jenkins/cicd/prod", "pending", "Deploying application...");
                 sh 'docker pull iuga/iuga-web-app-production'
                 sh 'docker rm -f iuga-web-prod || true'
                 withCredentials([
@@ -67,10 +67,10 @@ pipeline {
     
     post {
         success {
-            setBuildStatus("github_classic", "iuga/jenkins/cicd/staging", "success", "Pipeline succeeded!");
+            setBuildStatus("github_classic", "iuga/jenkins/cicd/prod", "success", "Pipeline succeeded!");
         }
         failure {
-            setBuildStatus("github_classic", "iuga/jenkins/cicd/staging", "failure", "Pipeline failed.");
+            setBuildStatus("github_classic", "iuga/jenkins/cicd/prod", "failure", "Pipeline failed.");
         }
     }
 }

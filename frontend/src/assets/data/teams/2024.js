@@ -2,6 +2,10 @@ import { groupType } from "../Enum";
 import { officerPositions } from "../Enum";
 import { webDevPositions, creativeCommitteePositions, diversityCommitteePositions } from "../Enum";
 
+// Lower the resolution of the image if the picture looks grainy
+// https://adobe.com/express/feature/image/resize
+// https://stackoverflow.com/questions/74502978/object-fit-cover-gives-pixelated-images-on-chrome
+
 export const team2024 = {
         // 2024: {
     //     [groupType.OFFICERS]: [

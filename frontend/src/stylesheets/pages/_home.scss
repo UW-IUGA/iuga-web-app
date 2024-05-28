@@ -46,6 +46,7 @@
 }
 
 .upcomingEventsCardContainer {
+    position: relative;
     display: flex;
     justify-content: space-between;
     margin: $margin-content 0;
@@ -53,6 +54,39 @@
     background-color: $gray;
     padding: 24px;
     border-radius: $radius;
+
+    span {
+        z-index: -5;
+    }
+
+    .upcomingEventsBackground:nth-child(1) {
+        top: -100px;
+        left: -230px;
+        width: 350px;
+        opacity: 0.05;
+        filter: brightness(0%);
+    }
+
+    .upcomingEventsBackground:nth-child(2) {
+        top: 330px;
+        left: -160px;
+        width: 300px;
+        opacity: 0.05;
+        filter: brightness(0%);
+    }
+
+    .upcomingEventsBackground:nth-child(3) {
+        top: 100px;
+        right: -180px;
+        width: 300px;
+        opacity: 0.05;
+        filter: brightness(0%);
+    }
+}
+
+.upcomingEventsBackground {
+    position: absolute;
+    z-index: -5;
 }
 
 .gallery {
@@ -317,6 +351,24 @@
 
     .upcomingEventsCardContainer {
         padding: 18px;
+    
+        .upcomingEventsBackground:nth-child(1) {
+            top: -140px;
+            left: -240px;
+            width: 350px;
+        }
+    
+        .upcomingEventsBackground:nth-child(2) {
+            top: 280px;
+            left: -160px;
+            width: 300px;
+        }
+    
+        .upcomingEventsBackground:nth-child(3) {
+            top: 100px;
+            right: -180px;
+            width: 300px;
+        }
     }
     
     .gallery {    

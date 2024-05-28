@@ -18,6 +18,14 @@ import _2023_shea2 from "../officerPhotos/2023/sheamin_24.jpg";
 import _2023_jada from "../officerPhotos/2024/jada_2024_profile.png";
 import _2023_shirley from "../officerPhotos/2024/shirley_2024_profile.png";
 import _2023_meiyao from "../officerPhotos/2023/meiyao.jpg";
+import akash from "../officerPhotos/2024/akash_2024_profile.png";
+import varsha from "../officerPhotos/2024/varsha.png";
+import amy from "../officerPhotos/2023/amy.jpeg";
+import michaela from "../officerPhotos/2023/michaela.jpeg";
+import terra from "../officerPhotos/2023/terra.jpeg";
+import lomash from "../officerPhotos/2023/lomash.jpeg";
+import carl from "../officerPhotos/2023/carl.jpeg";
+import madelyn from "../officerPhotos/2023/madelyn.png";
 
 
 
@@ -118,9 +126,20 @@ export const team_2023 = {
             }
         },
         {
+            position: webDevPositions.UX_DESIGNER,
+            name: "Madelyn Lee",
+            picture: madelyn,
+            socials: {
+                linkedin: "https://www.linkedin.com/in/madelynleeisme/"
+            }
+        },
+        {
             position: webDevPositions.FRONT_BACK_END,
             name: "Carl Searle",
-            picture: "",
+            picture: carl,
+            socials: {
+                linkedin: "https://www.linkedin.com/in/carlsearle/"
+            }
         },
         {
             position: webDevPositions.UX_DESIGNER_FRONT_END,
@@ -129,11 +148,6 @@ export const team_2023 = {
             socials: {
                 linkedin: "www.linkedin.com/in/vera-guber-527851229",
             }
-        },
-        {
-            position: webDevPositions.UX_DESIGNER,
-            name: "Madelyn Lee",
-            picture: "",
         },
         {
             position: webDevPositions.GRAPHIC_DESIGNER,
@@ -187,7 +201,56 @@ export const team_2023 = {
             socials: {
                 linkedin: "https://www.linkedin.com/in/marikowoodworth/",
             }
+        },
+        {
+            position: diversityCommitteePositions.MEMBER,
+            name: "Michaela Tran",
+            picture: michaela,
+            socials: {
+                linkedin: "https://www.linkedin.com/in/michaela-tran/",
+            }
+        },
+        {
+            position: diversityCommitteePositions.MEMBER,
+            name: "Lomash Sharma",
+            picture: lomash,
+            socials: {
+                linkedin: "https://www.linkedin.com/in/lomashsharma/",
+            }
+        },
+        {
+            position: diversityCommitteePositions.MEMBER,
+            name: "Terra Shrestha",
+            picture: terra,
+            socials: {
+                linkedin: "https://www.linkedin.com/in/terra-shrestha-696340232/",
+            }
         }
     ],
-    [groupType.FYR]: [],
+    [groupType.FYR]: [
+        {
+            position: officerPositions.FYR,
+            name: "Akash Shrestha",
+			picture: akash,
+            socials: {
+                linkedin: "https://www.linkedin.com/in/akashkshrestha/",
+            }
+        },
+        {
+            position: officerPositions.FYR,
+			name: "Varsha Bharath",
+			picture: varsha,
+            socials: {
+                linkedin: "https://www.linkedin.com/in/varshabharath/",
+            }
+        },
+        {
+            position: officerPositions.FYR,
+			name: "Amy Lu",
+			picture: amy,
+            socials: {
+                linkedin: "https://www.linkedin.com/in/amyluyx/",
+            }
+        },
+    ]
 };

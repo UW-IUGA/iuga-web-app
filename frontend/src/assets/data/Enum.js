@@ -33,12 +33,12 @@ export const officerPositions = {
 };
 
 export const webDevPositions = {
-    LEAD: "Team Lead / Fullstack Developer",
-    UX_DESIGNER: "UX Designer",
-    FRONT_END: "Front-End Developer",
-    BACK_END: "Back-End Developer",
-    UX_DESIGNER_FRONT_END: "UX Designer / Front-End Developer",
-    FRONT_BACK_END: "Fullstack Developer",
+    LEAD: "Team Lead / Fullstack Engineer",
+    UX_DESIGNER: "UI/UX Designer",
+    FRONT_END: "Frontend Engineer",
+    BACK_END: "Backend Engineer",
+    UX_DESIGNER_FRONT_END: "UX Design / Frontend Engineer",
+    FRONT_BACK_END: "Fullstack Engineer",
     GRAPHIC_DESIGNER: "Graphic Designer"
 }
 

@@ -1,6 +1,7 @@
 import Button from "../components/Button";
 import CharacterCard from "../components/CharacterCard";
-import { MouseParallax } from 'react-just-parallax';
+import { MouseParallax, ScrollParallax } from 'react-just-parallax';
+import { Fade } from "react-awesome-reveal";
 import EventCard from "../components/EventCard";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
@@ -22,6 +23,26 @@ function HomePage({upcomingEvents}) {
     const {pathname} = useLocation();
     const categories = ["Academic", "Social", "Career"];
 
+    const generateBackgroundIcons = (n) => {
+        const images = [
+          { src: careerIcon, alt: 'Career Icon' },
+          { src: socialIcon, alt: 'Social Icon' },
+          { src: academicIcon, alt: 'Academic Icon' },
+        ];
+      
+        const repeatedImages = [];
+      
+        for (let i = 0; i < n; i++) {
+          images.forEach((image, index) => {
+            repeatedImages.push(
+              <img key={`${index}-${i}`} src={image.src} alt={image.alt} />
+            );
+          });
+        }
+      
+        return repeatedImages;
+    };
+
     useEffect(() => {
         window.scrollTo(0, 0);
     }, [pathname]);
@@ -33,7 +54,12 @@ function HomePage({upcomingEvents}) {
                 <h1>Undergraduate Association</h1>
                 <p>IUGA is a student-led RSO that communicates between the Informatics student body, faculty, and administration of the University of Washington Information School.</p>
                 <div className="characterCardContainer">
-                    <MouseParallax isAbsolutelyPositioned strength={0.03} shouldPause>
+                    {/* <div className="backgroundIcons">
+                        <ScrollParallax isAbsolutelyPositioned={false}>
+                        {generateBackgroundIcons(10)}
+                        </ScrollParallax>
+                    </div> */}
+                    <MouseParallax isAbsolutelyPositioned strength={0.035} shouldPause>
                         <div className="characterBackground1 characterBackgroundLeft">
                             <img src={careerIcon} alt="" />
                             <img src={socialIcon} alt="" />
@@ -57,7 +83,7 @@ function HomePage({upcomingEvents}) {
                     { categories.map(category => {
                         return <CharacterCard key={category} category={category} />;
                     })}
-                    <MouseParallax isAbsolutelyPositioned strength={0.03} shouldPause>
+                    <MouseParallax isAbsolutelyPositioned strength={0.035} shouldPause>
                         <div className="characterBackground1 characterBackgroundRight">
                             <img src={careerIcon} alt="" />
                             <img src={socialIcon} alt="" />
@@ -80,31 +106,35 @@ function HomePage({upcomingEvents}) {
                     </MouseParallax>
                 </div>
             </div>
-            <div className="upcomingEvents">
-                <h1>Latest Events</h1>
-                <div className="upcomingEventsCardContainer">
-                    { upcomingEvents.slice(0, 3).map((event, i) => {
-                        return <EventCard key={event.eName} event={event} decorate={i === 2 ? true : false }/>;
-                    })}
+            <Fade triggerOnce={true} fraction={0.4}>
+                <div className="upcomingEvents">
+                    <h1>Latest Events</h1>
+                    <div className="upcomingEventsCardContainer">
+                        { upcomingEvents.slice(0, 3).map((event, i) => {
+                            return <EventCard key={event.eName} event={event} decorate={i === 2 ? true : false }/>;
+                        })}
+                    </div>
+                    <Button text="More Events" className="primary-button" type="right-arrow" color="black" onClick={() => {navigate("/events")}}/>
                 </div>
-                <Button text="More Events" className="primary-button" type="right-arrow" color="black" onClick={() => {navigate("/events")}}/>
-            </div>
-            <div className="gallery">
-                <h1>Gallery</h1>
-                <div className="galleryImageContainer">
-                    <div><img src={groups} alt="" /></div>
-                    <div><img src={bowling} alt="" /></div>
-                    <div><img src={merch} alt="" /></div>
-                    <div><img src={gamenight} alt="" /></div>
-                    <div><img src={panelists} alt="" /></div>
-                    <div><img src={heart} alt="" /></div>
-                    <div><img src={gamenight2} alt="" /></div>
-                    <div><img src={officers22} alt="" /></div>
+            </Fade>
+            <Fade triggerOnce={true} fraction={0}>
+                <div className="gallery">
+                    <h1>Gallery</h1>
+                    <div className="galleryImageContainer">
+                        <div><img src={groups} alt="" /></div>
+                        <div><img src={bowling} alt="" /></div>
+                        <div><img src={merch} alt="" /></div>
+                        <div><img src={gamenight} alt="" /></div>
+                        <div><img src={panelists} alt="" /></div>
+                        <div><img src={heart} alt="" /></div>
+                        <div><img src={gamenight2} alt="" /></div>
+                        <div><img src={officers22} alt="" /></div>
+                    </div>
+                    <div>
+                        <img src="/assets/campfire.png" alt="characters around a campfire" />
+                    </div>
                 </div>
-                <div>
-                    <img src="/assets/campfire.png" alt="characters around a campfire" />
-                </div>
-            </div>
+            </Fade>
         </div>
     )
 }

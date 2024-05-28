@@ -1,7 +1,7 @@
 .introduction {
     text-align: center;
     width: 60%;
-    margin: $margin-content auto;
+    margin: 42px auto;
 
     & > h1 {
         margin: 0;
@@ -32,7 +32,7 @@
 }
 
 .upcomingEvents {
-    margin: $margin-content*3 0;
+    margin: $margin-content*4 0;
     
     h1 {
         margin: 0;
@@ -250,10 +250,30 @@
     transform: scaleX(-1);
 }
 
+.backgroundIcons {
+    position: absolute;
+
+    img {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        opacity: 0.2;
+        z-index: -2;
+    }
+
+    $elements: 500;
+    @for $i from 0 to $elements {
+        img:nth-child(#{$i + 1}) {
+            top: random($limit: 300) * 1px;
+            left: random($limit: 500) * 1px;
+        }
+    }
+}
+
 @include media(">=sm-desktop", "<desktop") {
     .introduction {
         width: 80%;
-        margin-top: 28px;
+        margin-top: 24px;
 
         & > h1 {
             margin: 0;

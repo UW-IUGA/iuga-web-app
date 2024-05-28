@@ -32,7 +32,13 @@
 }
 
 .upcomingEvents {
+    text-align: center;
     margin: 130px 0;
+
+    & > h1 {
+        text-align: center;
+        font-size: 2.2rem;
+    }
     
     h1 {
         margin: 0;
@@ -94,6 +100,11 @@
 .gallery {
     position: relative;
     width: 100%;
+
+    & > h1 {
+        text-align: center;
+        font-size: 2.2rem;
+    }
 
     h1 {
         margin-bottom: 64px;
@@ -340,7 +351,7 @@
         margin: 100px 0;
         
         & > h1 {
-            font-size: 28px;
+            font-size: 32px;
             margin: 0;
         }
     
@@ -375,6 +386,7 @@
     
     .gallery {    
         h1 {
+            font-size: 32px;
             margin-bottom: 32px;
         }
     

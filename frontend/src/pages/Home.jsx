@@ -110,11 +110,11 @@ function HomePage({upcomingEvents}) {
                 <div className="upcomingEvents">
                     <h1>Latest Events</h1>
                     <div className="upcomingEventsCardContainer">
-                        <ScrollParallax isAbsolutelyPositioned={true} strength={0.02}>
+                        {/* <ScrollParallax isAbsolutelyPositioned={true} strength={0.02}>
                             <img className="upcomingEventsBackground" src={socialIcon} />
                             <img className="upcomingEventsBackground" src={academicIcon} />
                             <img className="upcomingEventsBackground" src={careerIcon} />
-                        </ScrollParallax>
+                        </ScrollParallax> */}
                         { upcomingEvents.slice(0, 3).map((event, i) => {
                             return <EventCard key={event.eName} event={event} decorate={i === 2 ? true : false }/>;
                         })}

@@ -44,11 +44,9 @@ function AboutPage({ teams }) {
                 <div className="sum">
                     <h1>IUGA History</h1>
                     <p>
-                        Long ago, the four nations lived together in harmony. Then, everything changed when the Fire
-                        Nation attacked. Only the Avatar, master of all four elements, could stop them, but when the
-                        world needed him most, he vanished. A hundred years passed and my brother and I discovered the
-                        new Avatar, an airbender named Aang, and although his airbending skills are great, he has a lot
-                        to learn before he's ready to save anyone. But I believe Aang can save the world.
+                        Ever since the Informatics major has existed, we’ve had passionate, motivated student leaders to help establish the iSchool community for undergraduate students. From management, software development, and design, our officers old and new bring diverse experiences and skillsets to the IUGA executive board table. 
+                        <br /><br />
+                        Want to contribute to the Informatics community? Elections for officers are held mid-winter quarter, and all are encouraged to apply! Explore our current and past officers to understand which student leaders work with the iSchool, and feel free to reach out to any of them with questions!
                     </p>
                 </div>
             </div>

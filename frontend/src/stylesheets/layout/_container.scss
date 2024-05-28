@@ -11,6 +11,7 @@
     margin: 0 auto;
     width: 1200px;
     min-height: 300px;
+    z-index: 1;
 }
 
 @include media(">=sm-desktop", "<desktop") {

@@ -45,13 +45,9 @@
 }
 
 .calendar-tag-wrapper {
-    position: absolute;
-    transform-origin: bottom left;
-    transform: rotate(-90deg);
-    left: -24px;
-    top: 252px;
     display: flex;
     gap: 8px;
+    margin: 0px 0 16px 6px;
     cursor: default;
 }
 

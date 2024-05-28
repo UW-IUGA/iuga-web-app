@@ -4,7 +4,6 @@ footer {
     @include top-gradient-border;
     width: 100%;
     background-color: $color-light-gray;
-    z-index: -1;
 
     a {
         font-size: 16px;

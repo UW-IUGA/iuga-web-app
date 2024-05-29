@@ -39,7 +39,7 @@ export const AuthProvider = ({ children }) => {
 
   const signIn = async () => {
     try {
-      await instance.loginPopup();
+      await instance.loginRedirect();
       await authenticate();
     } catch (error) {
       setUser({});
@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }) => {
 
   const signOut = async () => {
     try {
-      await instance.logoutPopup();
+      await instance.logoutRedirect();
       await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:7777'}/api/v1/user/logout`, {
         method: 'POST',
         headers: {

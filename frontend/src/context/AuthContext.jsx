@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     authenticate();
-  }, [accounts]);
+  }, [accounts, isAuthenticated]);
 
   const signIn = async () => {
     try {
@@ -50,7 +50,6 @@ export const AuthProvider = ({ children }) => {
 
   const signOut = async () => {
     try {
-      await instance.logoutPopup();
       await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:7777'}/api/v1/user/logout`, {
         method: 'POST',
         headers: {
@@ -59,6 +58,7 @@ export const AuthProvider = ({ children }) => {
       });
       setUser({});
       setLoginState(false);
+      await instance.logoutRedirect();
     } catch (error) {
       setAuthError(error);
     }

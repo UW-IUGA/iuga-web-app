@@ -119,21 +119,33 @@
     }
 }
 
-.galleryHeader {
-    display: flex;
-    align-items: center;
-    margin-bottom: 76px;
+.homeSectionHeader {
+    position: relative;
+    margin: 0 32px;
+    margin-bottom: 56px;
     padding: 12px;
-    gap: 42px;
-
-    span {
-        margin: 0 32px;
-        position: relative;
-        display: block;
-        flex: 1;
-        @include bottom-gradient-border-thick;
-    }
+    @include bottom-gradient-border-thick;
 }
+
+.galleryHeader { 
+    margin-bottom: 72px;
+}
+
+// .galleryHeader {
+//     display: flex;
+//     align-items: center;
+//     margin-bottom: 76px;
+//     padding: 12px;
+//     gap: 42px;
+
+//     span {
+//         margin: 0 32px;
+//         position: relative;
+//         display: block;
+//         flex: 1;
+//         @include bottom-gradient-border-thick;
+//     }
+// }
 
 .galleryImageContainer {
     position: absolute;

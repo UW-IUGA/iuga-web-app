@@ -108,7 +108,9 @@ function HomePage({upcomingEvents}) {
             </div>
             <Fade triggerOnce={true} fraction={0.3}>
                 <div className="upcomingEvents">
-                    <h1>Latest Events</h1>
+                    <div className="homeSectionHeader">
+                        <h1>Latest Events</h1>
+                    </div>
                     <div className="upcomingEventsCardContainer">
                         {/* <ScrollParallax isAbsolutelyPositioned={true} strength={0.02}>
                             <img className="upcomingEventsBackground" src={socialIcon} />
@@ -124,7 +126,7 @@ function HomePage({upcomingEvents}) {
             </Fade>
             <Fade triggerOnce={true} fraction={0}>
                 <div className="gallery">
-                    <div className="galleryHeader">
+                    <div className="homeSectionHeader galleryHeader">
                         <span></span>
                         <h1>Gallery</h1>
                         <span></span>

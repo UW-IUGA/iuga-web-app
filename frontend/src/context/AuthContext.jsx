@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }) => {
 
   const signOut = async () => {
     try {
-      await instance.logoutRedirect();
+      await instance.logoutPopup();
       await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:7777'}/api/v1/user/logout`, {
         method: 'POST',
         headers: {

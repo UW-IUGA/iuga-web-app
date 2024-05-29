@@ -124,7 +124,11 @@ function HomePage({upcomingEvents}) {
             </Fade>
             <Fade triggerOnce={true} fraction={0}>
                 <div className="gallery">
-                    <h1>Gallery</h1>
+                    <div className="galleryHeader">
+                        <span></span>
+                        <h1>Gallery</h1>
+                        <span></span>
+                    </div>
                     <div className="galleryImageContainer">
                         <div><img src={groups} alt="" /></div>
                         <div><img src={bowling} alt="" /></div>

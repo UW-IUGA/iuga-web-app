@@ -101,13 +101,10 @@
     position: relative;
     width: 100%;
 
-    & > h1 {
+    .galleryHeader h1 {
         text-align: center;
         font-size: 2.2rem;
-    }
-
-    h1 {
-        margin-bottom: 64px;
+        margin: 0;
     }
 
     & > div:last-of-type {
@@ -119,6 +116,22 @@
             z-index: 4;
             width: 320px;
         }
+    }
+}
+
+.galleryHeader {
+    display: flex;
+    align-items: center;
+    margin-bottom: 76px;
+    padding: 12px;
+    gap: 42px;
+
+    span {
+        margin: 0 32px;
+        position: relative;
+        display: block;
+        flex: 1;
+        @include bottom-gradient-border-thick;
     }
 }
 
@@ -400,6 +413,10 @@
                 width: 260px;
             }
         }
+    }
+
+    .galleryHeader {
+        margin-bottom: 58px;
     }
     
     .galleryImageContainer {

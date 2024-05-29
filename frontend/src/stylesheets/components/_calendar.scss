@@ -225,6 +225,14 @@
     box-sizing: border-box;
 }
 
+.event-details-header {
+    h1 {
+        font-weight: bold;
+        font-family: $sans-serif;
+        font-size: 24px;
+    }
+}
+
 .event-details-content {
     width: 100%;
     display: flex;
@@ -457,7 +465,7 @@
 
     .event-details-header {
         h1 {
-            font-size: 24px;
+            font-size: 20px;
         }
     }
 

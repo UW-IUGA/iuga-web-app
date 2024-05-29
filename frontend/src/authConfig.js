@@ -12,9 +12,5 @@ export const msalConfig = {
 };
   
 export const loginRequest = {   
-    scopes: ["User.Read", "openid", "profile"]
-};
-
-export const graphRequest = {
-    scopes: ["openid", "profile"],
+    scopes: ["User.Read"]
 };

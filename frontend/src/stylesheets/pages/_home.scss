@@ -32,11 +32,10 @@
 }
 
 .upcomingEvents {
-    text-align: center;
     margin: 130px 0;
 
     & > h1 {
-        text-align: center;
+        text-align: start;
         font-size: 2.2rem;
     }
     
@@ -102,7 +101,7 @@
     width: 100%;
 
     .galleryHeader h1 {
-        text-align: center;
+        text-align: start;
         font-size: 2.2rem;
         margin: 0;
     }
@@ -122,13 +121,13 @@
 .homeSectionHeader {
     position: relative;
     margin: 0 32px;
-    margin-bottom: 56px;
+    margin-bottom: 72px;
     padding: 12px;
     @include bottom-gradient-border-thick;
 }
 
 .galleryHeader { 
-    margin-bottom: 72px;
+    margin-bottom: 82px;
 }
 
 // .galleryHeader {

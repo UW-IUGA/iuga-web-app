@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     authenticate();
-  }, [accounts, isAuthenticated]);
+  }, [accounts]);
 
   const signIn = async () => {
     try {

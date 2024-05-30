@@ -1,22 +1,30 @@
 .resourceBox {
   display: flex;
   flex-direction: row;
-  padding: 18px 0;
+  padding: 24px 0;
   gap: 12px;
 }
 
 .resourceContent {
   flex: 1;
+
+  h3 {
+    margin: 6px 0;
+  }
 }
 
 .resourceContent button {
-  margin-top: 6px;
+  margin-top: 12px;
+}
+
+.resourceContent p {
+  margin: 6px 0;
 }
 
 .resourceIcon {
   width: 65px;
   height: 65px;
-  margin: 20px;
+  margin: 6px 20px;
   object-fit: contain;
   border-radius: $radius;
 }

@@ -120,9 +120,8 @@
 
 .homeSectionHeader {
     position: relative;
-    margin: 0 32px;
     margin-bottom: 72px;
-    padding: 12px;
+    padding: 12px 0;
     @include bottom-gradient-border-thick;
 }
 
@@ -372,7 +371,7 @@
     }
     
     .upcomingEvents {
-        margin: 100px 0;
+        margin: 90px 0;
         
         & > h1 {
             font-size: 32px;

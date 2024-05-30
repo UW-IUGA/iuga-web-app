@@ -22,7 +22,7 @@
 
         h1 {
             margin: 0;
-            font-size: 38px;
+            font-size: 2.2rem;
             width: 320px;
         }
 
@@ -169,6 +169,7 @@
 .calendar-day {
     font-size: 12px;
     text-align: end;
+    font-weight: bold;
 }
 
 .calendar-day-event-name {

@@ -38,9 +38,9 @@ function AboutPage({ teams }) {
 
     return (
         <div className="baseContainer">
-            <div className="aboutSum">
+            <div className="aboutSummaryContainer">
                 <img className="aboutImg" src="/assets/about-main.png" alt="group of iuga students" />
-                <div className="sum">
+                <div className="aboutSummary">
                     <h1>IUGA History</h1>
                     <p>
                         Ever since the Informatics major has existed, we’ve had passionate, motivated student leaders to help establish the iSchool community for undergraduate students. From management, software development, and design, our officers old and new bring diverse experiences and skillsets to the IUGA executive board table. 

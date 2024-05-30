@@ -1,5 +1,4 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { InteractionRequiredAuthError, EventType } from '@azure/msal-browser';
 import { useMsal } from '@azure/msal-react';
 import { loginRequest } from '../authConfig';
 import useAuth from '../hooks/useAuth';
@@ -42,8 +41,10 @@ export const AuthProvider = ({ children }) => {
   const signIn = async () => {
     try {
       await instance.loginRedirect();
+      console.log("Acquire token silently...")
     } catch (error) {
       if (error.errorCode === "invalid_grant" || error.errorCode === "consent_required") {
+        console.log("error")
         try {
           await instance.loginRedirect({
             ...loginRequest,

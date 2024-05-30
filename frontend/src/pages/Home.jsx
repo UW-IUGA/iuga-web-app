@@ -128,7 +128,7 @@ function HomePage({upcomingEvents}) {
                 <div className="gallery">
                     <div className="homeSectionHeader galleryHeader">
                         <span></span>
-                        <h1>Gallery</h1>
+                        <h1>Event Gallery</h1>
                         <span></span>
                     </div>
                     <div className="galleryImageContainer">

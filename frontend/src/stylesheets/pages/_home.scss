@@ -112,15 +112,17 @@
         img {
             position: absolute;
             bottom: -20px;
+            right: 0;
             z-index: 4;
-            width: 320px;
+            width: 350px;
         }
     }
 }
 
 .homeSectionHeader {
     position: relative;
-    margin-bottom: 72px;
+    width: fit-content;
+    margin-bottom: 42px;
     padding: 12px 0;
     @include bottom-gradient-border-thick;
 }
@@ -417,10 +419,7 @@
             height: 420px;
     
             img {
-                position: absolute;
-                bottom: -20px;
-                z-index: 4;
-                width: 260px;
+                width: 300px;
             }
         }
     }

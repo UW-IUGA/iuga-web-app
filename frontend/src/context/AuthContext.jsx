@@ -1,5 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
+import { InteractionRequiredAuthError, EventType } from '@azure/msal-browser';
 import { useMsal } from '@azure/msal-react';
+import { loginRequest } from '../authConfig';
 import useAuth from '../hooks/useAuth';
 
 const AuthContext = createContext();
@@ -40,11 +42,22 @@ export const AuthProvider = ({ children }) => {
   const signIn = async () => {
     try {
       await instance.loginRedirect();
-      await authenticate();
     } catch (error) {
-      setUser({});
-      setLoginState(false)
-      setAuthError(error);
+      if (error.errorCode === "invalid_grant" || error.errorCode === "consent_required") {
+        try {
+          await instance.loginRedirect({
+            ...loginRequest,
+            prompt: "consent"
+          });
+        } catch (authError) {
+          console.error('Error during loginPopup:', authError);
+          setAuthError(authError);
+        }
+      } else {
+        setUser({});
+        setLoginState(false)
+        setAuthError(error);
+      }
     }
   };
 

@@ -140,7 +140,7 @@ const EventDetailsCard = ({selectedEvent, handleRSVP, deselectEventDetails}) => 
                             { selectedEvent.rsvpQuestions.map((question, i) => {
                                 const userAnswer = selectedEvent.rsvpAnswers ? selectedEvent.rsvpAnswers.find(answer => answer.qId === question.qId) : null;
                                 return (<div key={question.qId}>
-                                    <label html={`eventqa-${question.qId}`} for={`eventqa-${question.qId}`} className="form-label">{question.qString}</label>
+                                    <label html={`eventqa-${question.qId}`} htmlFor={`eventqa-${question.qId}`} className="form-label">{question.qString}</label>
                                     <input 
                                         type="text" 
                                         name={`eventqa-${question.qId}`} 

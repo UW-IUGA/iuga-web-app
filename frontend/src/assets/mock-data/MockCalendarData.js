@@ -194,7 +194,7 @@ export const mockCalendarData = [
     },
     "eName": "Networking + Industry Panel",
     "eOrganizers": "IUGA x UX@UW x HCDEsa",
-    "eStartDate": "2024-05-30T01:00:00.000Z",
+    "eStartDate": "2025-06-01T00:30:00.000+00:00",
     "eAltLink": {
       "title": "",
       "url": ""
@@ -206,7 +206,7 @@ export const mockCalendarData = [
     ],
     "participants": 2,
     "showParticipants": true,
-    "rsvpEnabled": false,
+    "rsvpEnabled": true,
     "rsvpQuestions": [
       {
         "qId": "9da1a7d3-aa0d-449a-bf3f-0142bf0157e9",

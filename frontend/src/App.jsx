@@ -37,28 +37,29 @@ function App() {
 
     return (
         <div id="rootContainer">
-            <MediaQuery minWidth={1024}>
-                <ToastContainer
-                    position="bottom-center"
-                    autoClose={2000}
-                    hideProgressBar={false}
-                    newestOnTop={false}
-                    closeOnClick
-                    rtl={false}
-                    pauseOnFocusLoss
-                    draggable
-                    pauseOnHover
-                    theme="light"
-                    transition={Bounce}
-                />
-                <Navbar signIn={signIn} signOut={signOut} />
-                <Routes>
-                    <Route path="/" element={<HomePage upcomingEvents={upcomingEvents} />} />
-                    <Route path="/events" element={<EventsPage />} />
-                    <Route path="/resources" element={<ResourcesPage resources={resources} />} />
-                    <Route path="/about" element={<AboutPage teams={iugaTeams} />} />
-                </Routes>
-                <Footer />
+            <ToastContainer
+                position="bottom-center"
+                autoClose={2000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="light"
+                transition={Bounce}
+            />
+            <Navbar signIn={signIn} signOut={signOut} />
+            <Routes>
+                <Route path="/" element={<HomePage upcomingEvents={upcomingEvents} />} />
+                <Route path="/events" element={<EventsPage />} />
+                <Route path="/resources" element={<ResourcesPage resources={resources} />} />
+                <Route path="/about" element={<AboutPage teams={iugaTeams} />} />
+            </Routes>
+            <Footer />
+            {/* <MediaQuery minWidth={1024}>
+
             </MediaQuery>
             <MediaQuery minWidth={340} maxWidth={1023}>
                 <div className="constructionContainer">
@@ -67,7 +68,7 @@ function App() {
                     <p>🚧 The Mobile Page is Under Construction! 🚧</p>
                     <img src="/assets/about-main.png" alt="group of iuga students" />
                 </div>
-            </MediaQuery>
+            </MediaQuery> */}
         </div>
     );
 }

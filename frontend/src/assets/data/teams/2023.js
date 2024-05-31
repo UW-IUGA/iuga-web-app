@@ -6,7 +6,7 @@ import { webDevPositions, creativeCommitteePositions, diversityCommitteePosition
 import _2023_phyllis from "../officerPhotos/2022/phyllischen.jpg";
 import _2023_sirena from "../officerPhotos/2022/sirenaakopyan.jpg";
 import _2023_suraj from "../officerPhotos/2023/SurajShankarGangaramimage.png";
-import _2023_mariko from "../officerPhotos/2023/mari.jpeg";
+import _2023_mariko from "../officerPhotos/2023/mari.jpg";
 import _2023_shea from "../officerPhotos/2023/SheaminKimimage.jpg";
 import _2023_brandon from "../officerPhotos/2023/BrandonMendozaimage.jpg";
 import _2023_ryan from "../officerPhotos/2023/ryan.jpeg";

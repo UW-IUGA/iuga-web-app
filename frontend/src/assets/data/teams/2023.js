@@ -108,7 +108,7 @@ export const team_2023 = {
     ],
     [groupType.WEB_COMMITTEE]: [
         {
-            position: webDevPositions.LEAD,
+            position: webDevPositions.LEAD_ERIC,
             name: "Eric Kim",
             picture: _2023_eric,
             socials: {

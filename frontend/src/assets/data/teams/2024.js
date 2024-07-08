@@ -21,7 +21,7 @@ export const team2024 = {
     //         },
     //         {
     //             position: officerPositions.FINANCE,
-    //             name: "",
+    //             name: "J.R. Lim",
     //             picture: "",
     //         },
     //         {
@@ -36,12 +36,12 @@ export const team2024 = {
     //         },
     //         {
     //             position: officerPositions.OUTREACH,
-    //             name: "",
+    //             name: "Bright Hoang",
     //             picture: "",
     //         },
     //         {
     //             position: officerPositions.DIVERSITY,
-    //             name: "",
+    //             name: "Jonathan Ortiz-Candelaria",
     //             picture: "",
     //         },
     //         {
@@ -51,7 +51,7 @@ export const team2024 = {
     //         },
     //         {
     //             position: officerPositions.ACADEMIC,
-    //             name: "",
+    //             name: "Iris Hamilton",
     //             picture: "",
     //         },
     //     ],

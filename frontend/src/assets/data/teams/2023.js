@@ -146,7 +146,7 @@ export const team_2023 = {
             name: "Vera Guber",
             picture: _2023_vera,
             socials: {
-                linkedin: "www.linkedin.com/in/vera-guber-527851229",
+                linkedin: "https://www.linkedin.com/in/vera-guber-527851229/",
             }
         },
         {

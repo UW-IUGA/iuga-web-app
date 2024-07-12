@@ -3,9 +3,13 @@ import { NavLink } from 'react-router-dom';
 import Button from "../components/Button.jsx"
 import { useAuthContext } from "../context/AuthContext";
 
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faBars} from '@fortawesome/free-solid-svg-icons'
+
 function Navbar({signIn, signOut}) {
     const { isAuthenticated, user } = useAuthContext();
     const [isScrolledDown, setScrolledDown] = useState(false);
+    const [showMenu, setMenu] = useState(false);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -23,13 +27,16 @@ function Navbar({signIn, signOut}) {
                 <div className="nav-header">
                     <NavLink to="/" className="nav-logo"><img src="/iuga-logo.png" alt="logo"></img></NavLink>
                     <span></span>
+                    <div className="nav-mobile-menu" onClick={() => setMenu(!showMenu)}>
+                        <FontAwesomeIcon icon={faBars} />
+                    </div>
                 </div>
-                <div className="nav-items-wrapper">
+                <div className={`nav-items-wrapper ${showMenu ? "nav-show-items" : "nav-hide-items"}`}>
                     <NavLink to="/events">Events</NavLink>
                     <NavLink to="/resources">Resources</NavLink>
                     <NavLink to="/about">About</NavLink>
                     <span></span>
-                    <div>
+                    <div className="nav-button-wrapper">
                         { isAuthenticated && user && (<p>Hi, {user.uFirstName ? user.uFirstName : user.uDisplayName}!</p>) }
                         {
                             isAuthenticated

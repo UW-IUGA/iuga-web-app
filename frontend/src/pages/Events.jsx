@@ -40,8 +40,10 @@ function EventsPage() {
             </MediaQuery>
             <MediaQuery minWidth={340} maxWidth={1023}>
                 <div className="constructionContainer">
-                    <p>🚧 The Mobile Calendar Page is Under Construction! 🚧</p>
-                    <p>🚧 Please use your PC to access this page. 🚧</p>
+                    <p>🚧 🚧 🚧 🚧 </p>
+                    <p>The Mobile Calendar Page is Under Construction!</p>
+                    <p>Please use your PC to access this page.</p>
+                    <p>🚧 🚧 🚧 🚧 </p>
                     <img src="/assets/about-main.png" alt="group of iuga students" />
                 </div>
             </MediaQuery>

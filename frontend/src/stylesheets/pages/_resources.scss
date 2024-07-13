@@ -216,3 +216,63 @@
     z-index: -1;
   }
 }
+
+@include media("screen", "<sm-desktop") {
+  .resourceContainer {
+    width: 90vw;
+  }
+
+  .resourceImg {
+    display: none;
+    height: 100px;
+    margin-bottom: 40px;
+  }
+
+  .resourceHeader {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    margin-top: 0;
+    margin-bottom: 30px;
+  }
+
+  .resourceSummary {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 170px;
+
+    h1 {
+      font-size: 32px;
+      margin: 0;
+    }
+  }
+
+  .resourcesWrapper {
+    margin-bottom: 60px;
+  }
+
+  /* Resources section (where the components will go) styling */
+  .legendContainer {
+    display: none;
+  }
+
+  .resourceBoxContainer {
+    h2 {
+      font-size: 24px;
+    }
+  }
+
+  /* Blobs styling, in chronological order */
+  .blob1 {
+    display: none;
+  }
+
+  .blob2 {
+    display: none;
+  }
+
+  .blob3 {
+    display: none;
+  }
+}

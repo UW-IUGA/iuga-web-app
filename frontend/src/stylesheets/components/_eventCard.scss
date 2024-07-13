@@ -121,3 +121,33 @@
         white-space: nowrap;
     }
 }
+
+@include media("screen", "<tablet") {
+    .eventCard {
+        scroll-snap-align: center;
+        padding: 14px;
+    
+        & > img {
+            width: 60px;
+            position: absolute;
+            right: -20px;
+            top: -30px;
+            z-index: 3;
+        }
+    
+        & > div:first-of-type {
+            width: 100%;
+            height: 170px;
+            border-radius: $radius;
+            background-color: black;
+        }
+    }
+
+    .eventCardBody p {
+        font-size: 14px;
+        width: 270px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+}

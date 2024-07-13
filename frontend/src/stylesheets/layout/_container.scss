@@ -20,7 +20,7 @@
     }
 }
 
-@include media("screen", "<tablet") { 
+@include media("screen", "<sm-desktop") { 
     .baseContainer {
         width: 100vw;
     }

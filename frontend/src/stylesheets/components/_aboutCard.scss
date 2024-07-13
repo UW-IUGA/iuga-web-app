@@ -83,3 +83,44 @@
     }
   }
 }
+
+@include media(">=tablet", "<sm-desktop") { 
+  .aboutCard {  
+    img {
+      width: 200px;
+      height: 200px;
+    }
+  
+    & > div {
+      width: 200px;
+    }
+  }
+}
+
+@include media(">=phone", "<tablet") { 
+  .aboutCard {  
+    height: 100%;
+
+    img {
+      width: 200px;
+      height: 200px;
+    }
+  
+    & > div {
+      width: 200px;
+    }
+  }
+}
+
+@include media("screen", "<phone") {
+  .aboutCard {  
+    img {
+      width: 150px;
+      height: 150px;
+    }
+  
+    & > div {
+      width: 150px;
+  }
+}
+}

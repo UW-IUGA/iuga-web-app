@@ -19,3 +19,9 @@
         width: 1000px;
     }
 }
+
+@include media("screen", "<tablet") { 
+    .baseContainer {
+        width: 100vw;
+    }
+}

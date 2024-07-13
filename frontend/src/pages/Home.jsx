@@ -1,7 +1,6 @@
 import Button from "../components/Button";
 import CharacterCard from "../components/CharacterCard";
-import { MouseParallax, ScrollParallax } from 'react-just-parallax';
-import { Fade } from "react-awesome-reveal";
+import { MouseParallax } from 'react-just-parallax';
 import EventCard from "../components/EventCard";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
@@ -17,31 +16,12 @@ import officers22 from "../assets/gallery/officers-22.png";
 import careerIcon from "../assets/icons/career-icon.svg";
 import socialIcon from "../assets/icons/social-icon.svg";
 import academicIcon from "../assets/icons/academic-icon.svg";
+import MediaQuery from "react-responsive";
 
 function HomePage({upcomingEvents}) {
     const navigate = useNavigate();
     const {pathname} = useLocation();
     const categories = ["Academic", "Social", "Career"];
-
-    const generateBackgroundIcons = (n) => {
-        const images = [
-          { src: careerIcon, alt: 'Career Icon' },
-          { src: socialIcon, alt: 'Social Icon' },
-          { src: academicIcon, alt: 'Academic Icon' },
-        ];
-      
-        const repeatedImages = [];
-      
-        for (let i = 0; i < n; i++) {
-          images.forEach((image, index) => {
-            repeatedImages.push(
-              <img key={`${index}-${i}`} src={image.src} alt={image.alt} />
-            );
-          });
-        }
-      
-        return repeatedImages;
-    };
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -53,12 +33,8 @@ function HomePage({upcomingEvents}) {
                 <h1>Informatics</h1>
                 <h1>Undergraduate Association</h1>
                 <p>IUGA is a student-led RSO that communicates between the Informatics student body, faculty, and administration of the University of Washington Information School.</p>
-                <div className="characterCardContainer">
-                    {/* <div className="backgroundIcons">
-                        <ScrollParallax isAbsolutelyPositioned={false}>
-                        {generateBackgroundIcons(10)}
-                        </ScrollParallax>
-                    </div> */}
+                <MediaQuery minWidth={1024}>    
+                    <div className="characterCardContainer">
                     <MouseParallax isAbsolutelyPositioned strength={0.035} shouldPause>
                         <div className="characterBackground1 characterBackgroundLeft">
                             <img src={careerIcon} alt="" />
@@ -80,9 +56,11 @@ function HomePage({upcomingEvents}) {
                             <img src={careerIcon} alt="" />
                         </div>
                     </MouseParallax>
-                    { categories.map(category => {
-                        return <CharacterCard key={category} category={category} />;
-                    })}
+                    { 
+                        categories.map(category => {
+                            return <CharacterCard key={category} category={category} />;
+                        })
+                    }
                     <MouseParallax isAbsolutelyPositioned strength={0.035} shouldPause>
                         <div className="characterBackground1 characterBackgroundRight">
                             <img src={careerIcon} alt="" />
@@ -104,48 +82,53 @@ function HomePage({upcomingEvents}) {
                             <img src={socialIcon} alt="" />
                         </div>
                     </MouseParallax>
-                </div>
+                    </div>
+                </MediaQuery>
+                <MediaQuery minWidth={340} maxWidth={1023}>
+                    <div className="characterCardScrollContainer">
+                        <div className="characterCardContainer">
+                        { 
+                            categories.map(category => {
+                                return <CharacterCard key={category} category={category} />;
+                            })
+                        }
+                        </div>
+                    </div>
+                </MediaQuery>
             </div>
-            <Fade triggerOnce={true} fraction={0.3}>
-                <div className="upcomingEvents">
-                    <div className="homeSectionHeader">
-                        <h1>Latest Events</h1>
-                    </div>
-                    <div className="upcomingEventsCardContainer">
-                        {/* <ScrollParallax isAbsolutelyPositioned={true} strength={0.02}>
-                            <img className="upcomingEventsBackground" src={socialIcon} />
-                            <img className="upcomingEventsBackground" src={academicIcon} />
-                            <img className="upcomingEventsBackground" src={careerIcon} />
-                        </ScrollParallax> */}
-                        { upcomingEvents.slice(0, 3).map((event, i) => {
-                            return <EventCard key={event.eName} event={event} decorate={i === 2 ? true : false }/>;
-                        })}
-                    </div>
+            <div className="upcomingEvents">
+                <div className="homeSectionHeader">
+                    <h1>Latest Events</h1>
+                </div>
+                <div className="upcomingEventsCardContainer">
+                    { upcomingEvents.slice(0, 3).map((event, i) => {
+                        return <EventCard key={event.eName} event={event} decorate={i === 2 ? true : false }/>;
+                    })}
+                </div>
+                <div className="upcomingEventsButtonContainer">
                     <Button text="More Events" className="primary-button" type="right-arrow" color="black" onClick={() => {navigate("/events")}}/>
                 </div>
-            </Fade>
-            <Fade triggerOnce={true} fraction={0}>
-                <div className="gallery">
-                    <div className="homeSectionHeader galleryHeader">
-                        <span></span>
-                        <h1>Event Gallery</h1>
-                        <span></span>
-                    </div>
-                    <div className="galleryImageContainer">
-                        <div><img src={groups} alt="" /></div>
-                        <div><img src={bowling} alt="" /></div>
-                        <div><img src={merch} alt="" /></div>
-                        <div><img src={gamenight} alt="" /></div>
-                        <div><img src={panelists} alt="" /></div>
-                        <div><img src={heart} alt="" /></div>
-                        <div><img src={gamenight2} alt="" /></div>
-                        <div><img src={officers22} alt="" /></div>
-                    </div>
-                    <div>
-                        <img src="/assets/campfire.png" alt="characters around a campfire" />
-                    </div>
+            </div>
+            <div className="gallery">
+                <div className="homeSectionHeader galleryHeader">
+                    <span></span>
+                    <h1>Event Gallery</h1>
+                    <span></span>
                 </div>
-            </Fade>
+                <div className="galleryImageContainer">
+                    <div><img src={groups} alt="" /></div>
+                    <div><img src={bowling} alt="" /></div>
+                    <div><img src={merch} alt="" /></div>
+                    <div><img src={gamenight} alt="" /></div>
+                    <div><img src={panelists} alt="" /></div>
+                    <div><img src={heart} alt="" /></div>
+                    <div><img src={gamenight2} alt="" /></div>
+                    <div><img src={officers22} alt="" /></div>
+                </div>
+                <div>
+                    <img src="/assets/campfire.png" alt="characters around a campfire" />
+                </div>
+            </div>
         </div>
     )
 }

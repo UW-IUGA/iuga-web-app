@@ -28,8 +28,12 @@ nav {
         border-left: 1px solid black;
     }
 
-    & > span:last-of-type {
+    .nav-items-wrapper {
         flex: 1;
+        display: flex;
+        & > span:last-of-type {
+            flex: 1;
+        }
     }
 
     p {
@@ -38,6 +42,10 @@ nav {
         white-space: nowrap;
         text-overflow: ellipsis;
     }
+}
+
+.nav-mobile-menu {
+    display: none;
 }
 
 .nav-scroll {
@@ -71,7 +79,7 @@ nav a {
     padding: 0 12px 0 0;;
 }
 
-nav a:not(:first-child).active {
+.nav-items-wrapper a.active {
     position: relative;
     background-color: $gray;
 
@@ -110,6 +118,7 @@ nav a:not(:first-child):hover {
 }
 
 nav img {
+    display: block;
     width: 60px;
 }
 
@@ -138,5 +147,97 @@ nav img {
     nav a {
         font-size: 14px;
         padding: 12px 18px;
+    }
+}
+
+@include media("screen", "<tablet") {
+    .nav-container {
+        position: relative;
+        align-items: start;
+        width: 100%;
+        box-sizing: border-box;
+        display: block;
+        padding: 0;
+        flex-direction: column;
+        height: fit-content;
+        gap: 12px;
+        transition: all 500ms cubic-bezier(0.19, 1, 0.22, 1);
+        @include bottom-gradient-border;
+
+        .nav-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+            padding: 12px 24px;
+            width: 100%;
+            border-bottom: 1px solid $gray;
+        }
+
+        .nav-items-wrapper {
+            width: 100%;
+            box-sizing: border-box;
+            flex-direction: column;
+            padding: 12px 24px;
+            gap: 12px;
+
+            & > span:last-of-type {
+                display: block;
+                width: 100%;
+                border-bottom: 1px solid $gray;
+            }
+        }
+    
+        & > span:first-of-type {
+            display: none;
+        }
+    
+        & > span:last-of-type {
+            flex: 1;
+        }
+    
+        p {
+            max-width: 300px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+    }
+
+    .nav-items-wrapper a {
+        width: 100%;
+        font-size: 14px;
+        padding: 12px 0;
+    }
+
+    .nav-items-wrapper a.active {
+        &::after {
+            width: 100%;
+        }
+    }
+
+    .nav-button-wrapper, nav button {
+        width: 100%;
+    }
+
+    .nav-mobile-menu {
+        display: block;
+        @include gradient-border-thin;
+        padding: 8px 14px;
+        border-radius: $radius;
+
+        svg {
+            display: block;
+            color: rgb(77, 77, 77);
+        }
+    }
+
+    .nav-show-items {
+        display: block;
+    }
+
+    .nav-hide-items {
+        display: none!important;
     }
 }

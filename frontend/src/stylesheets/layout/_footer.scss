@@ -132,3 +132,70 @@ footer {
         width: 20px;
     }    
 }
+
+@include media("screen", "<tablet") {
+    .footerContainer {
+        margin: 0 auto;
+        padding: $padding-content*2;
+    
+        & > div:first-of-type {
+            display: flex;
+            box-sizing: border-box;
+            flex-direction: column;
+            margin-bottom: $margin-content*3;
+    
+            img {
+                display: block;
+                width: 100px;
+            }
+    
+            & > div:nth-of-type(1) {
+                flex: 1;
+            }
+    
+            & > div:nth-of-type(2) {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                width: 300px;
+    
+                & > a {
+                    color: rgb(71, 71, 71);
+                }
+    
+                & > a:hover {
+                    color: black;
+                }
+            }
+        }
+    
+        & > div:last-of-type {
+            display: flex;
+            box-sizing: border-box;
+            flex-direction: column-reverse;
+    
+            & > div:nth-of-type(1) {
+                flex: 1;
+            }
+    
+            & > div:nth-of-type(2) {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                width: 300px;
+            }
+    
+            a {
+                display: inline-block;
+                padding: 0;
+                cursor: pointer;
+            }
+    
+            img {
+                width: 32px;
+                padding: 0;
+            }
+        }
+    }
+}

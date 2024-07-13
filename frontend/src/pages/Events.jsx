@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useState, useEffect } from "react";
 import { mockCalendarData } from "../assets/mock-data/MockCalendarData";
 import { useAuthContext } from "../context/AuthContext";
+import MediaQuery from "react-responsive";
 
 function EventsPage() {
     const { isAuthenticated } = useAuthContext();
@@ -33,7 +34,18 @@ function EventsPage() {
     },[isAuthenticated]);
 
     return (
-        <Calendar calendarEvents={calendarEvents} highlightEvent={state} setCalendarEvents={setCalendarEvents} />
+        <>
+            <MediaQuery minWidth={1024}>
+                <Calendar calendarEvents={calendarEvents} highlightEvent={state} setCalendarEvents={setCalendarEvents} />
+            </MediaQuery>
+            <MediaQuery minWidth={340} maxWidth={1023}>
+                <div className="constructionContainer">
+                    <p>🚧 The Mobile Calendar Page is Under Construction! 🚧</p>
+                    <p>🚧 Please use your PC to access this page. 🚧</p>
+                    <img src="/assets/about-main.png" alt="group of iuga students" />
+                </div>
+            </MediaQuery>
+        </>
     );
 }
   

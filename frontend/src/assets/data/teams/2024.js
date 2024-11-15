@@ -15,7 +15,7 @@ import _2024_jr from "../officerPhotos/2024/officer_jr.jpg";
 import _2024_shirley from "../officerPhotos/2024/officer_shirley.png";
 import _2024_jada from "../officerPhotos/2024/officer_jada.png";
 import _2024_bright from "../officerPhotos/2024/officer_bright.png";
-import _2024_jonathan from "../officerPhotos/2024/officer_jonathan_.jpg";
+import _2024_jonathan from "../officerPhotos/2024/officer_jonathan.jpg";
 import _2024_michaela from "../officerPhotos/2024/officer_michaela.jpeg";
 import _2024_iris from "../officerPhotos/2024/officer_iris.png";
 
@@ -83,7 +83,7 @@ export const team2024 = {
                 name: "Michaela Tran",
                 picture: _2024_michaela,
                 socials: {
-                    linkedin: "www.linkedin.com/in/michaela-tran",
+                    linkedin: "https://www.linkedin.com/in/michaela-tran",
                 }
             },
             {

@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 import { mockCalendarData } from "./assets/mock-data/MockCalendarData";
 import { resources } from "./assets/data/ResourcesData";
 import { iugaTeams } from "./assets/data/AboutData";
+import { positionInformation } from "./assets/data/AboutData";
 import { useAuthContext } from "./context/AuthContext";
 import Footer from "./layouts/Footer";
 import MediaQuery from 'react-responsive';

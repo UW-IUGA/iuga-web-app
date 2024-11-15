@@ -10,17 +10,17 @@ import { webDevPositions, creativeCommitteePositions, diversityCommitteePosition
 
 /* 2024 officers images */
 import _2024_sheamin from "../officerPhotos/2024/officer_sheamin.jpg";
-import _2024_akash from "../officerPhotos/2024/officer_akash.png";
+import _2024_akash from "../officerPhotos/2024/akash_2024_profile.png";
 import _2024_jr from "../officerPhotos/2024/officer_jr.jpg";
 import _2024_shirley from "../officerPhotos/2024/officer_shirley.png";
-import _2024_jada from "../officerPhotos/2024/officer_jada.png";
+import _2024_jada from "../officerPhotos/2024/jada_2024_profile.png";
 import _2024_bright from "../officerPhotos/2024/officer_bright.png";
 import _2024_jonathan from "../officerPhotos/2024/officer_jonathan.jpg";
 import _2024_michaela from "../officerPhotos/2024/officer_michaela.jpeg";
 import _2024_iris from "../officerPhotos/2024/officer_iris.png";
 
-export const team2024 = {
-        2024: {
+export const team_2024 = {
+        //2024: {
         [groupType.OFFICERS]: [
             {
                 position: officerPositions.PRESIDENT,
@@ -98,5 +98,5 @@ export const team2024 = {
         [groupType.WEB_COMMITTEE]: [],
         [groupType.CREATIVE_COMMITTEE]: [],
         [groupType.FYR]: [],
-    },
+    // },
 }

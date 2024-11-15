@@ -11,6 +11,7 @@ import { team_2016 } from "./teams/2016";
 import { team_2015 } from "./teams/2015";
 
 export const iugaTeams = {
+    2024: team_2024,
     2023: team_2023,
     2022: team_2022,
     2021: team_2021,

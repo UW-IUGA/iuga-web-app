@@ -6,6 +6,8 @@ import { webDevPositions, creativeCommitteePositions, diversityCommitteePosition
 // https://adobe.com/express/feature/image/resize
 // https://stackoverflow.com/questions/74502978/object-fit-cover-gives-pixelated-images-on-chrome
 
+// test
+
 /* 2024 officers images */
 import _2024_sheamin from "../officerPhotos/2024/officer_sheamin.jpg";
 import _2024_akash from "../officerPhotos/2024/officer_akash.png";

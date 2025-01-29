@@ -21,7 +21,8 @@ import _2024_iris from "../officerPhotos/2024/officer_iris.png";
 import _2024_akshat from "../officerPhotos/2024/officer_akshat.jpeg";
 import _2024_abraham from "../officerPhotos/2024/officer_abraham.jpeg";
 import _2024_george from "../officerPhotos/2024/officer_george.jpg";
-import _2024_preeti from "../officerPhotos/2024/officer_preeti.jpg";
+import _2024_preeti from "../officerPhotos/2024/officer_preeti.png";
+import _2024_vera from "../officerPhotos/2024/member_vera.jpg";
 
 
 export const team_2024 = {
@@ -151,6 +152,15 @@ export const team_2024 = {
                 picture: _2024_michaela,
                 socials: {
                     linkedin: "https://www.linkedin.com/in/michaela-tran",
+                }
+            },
+            {
+                position: itCommitteePositions.MEMBER,
+                name: "Vera Guber",
+                picture: _2024_vera,
+                socials: {
+                    website: "https://www.veraguber.com/",
+                    linkedin: "https://www.linkedin.com/in/vera-guber-527851229/",
                 }
             },
         ],

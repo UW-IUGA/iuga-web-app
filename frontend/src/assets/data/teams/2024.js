@@ -106,7 +106,7 @@ export const team_2024 = {
             name: "Akshat Ghuge",
             picture: _2024_akshat,
             socials: {
-                linkedin: "",
+                linkedin: "https://www.linkedin.com/in/akshat-ghuge/",
             }
             }, 
             {
@@ -114,7 +114,7 @@ export const team_2024 = {
                 name: "Preeti Kotipalli",
                 picture: _2024_preeti,
                 socials: {
-                    linkedin: "",
+                    linkedin: "https://www.linkedin.com/in/preeti-kotipalli/",
                 }
             },
             {
@@ -122,7 +122,7 @@ export const team_2024 = {
                 name: "George Lee",
                 picture: _2024_george,
                 socials: {
-                    linkedin: "",
+                    linkedin: "https://www.linkedin.com/in/george-y-lee/",
                 }
             },
             {
@@ -130,7 +130,7 @@ export const team_2024 = {
                 name: "Abraham Gibson",
                 picture: _2024_abraham,
                 socials: {
-                    linkedin: "",
+                    linkedin: "https://www.linkedin.com/in/abrahamgib/",
                 }
             },
         ],

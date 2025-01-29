@@ -15,6 +15,7 @@ export const groupType = {
     WEB_COMMITTEE: "Website Committee",
     CREATIVE_COMMITTEE: "Creative Committee",
     DIVERSITY_COMMITTEE: "Diversity Committee",
+    IT_COMMITTEE: "IT Committee",
     FYR: "First Year Reps",
 };
 

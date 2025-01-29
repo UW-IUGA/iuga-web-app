@@ -1,4 +1,4 @@
-import { groupType } from "../Enum";
+import { groupType, itCommitteePositions } from "../Enum";
 import { officerPositions } from "../Enum";
 import { webDevPositions, creativeCommitteePositions, diversityCommitteePositions } from "../Enum";
 
@@ -134,8 +134,35 @@ export const team_2024 = {
                 }
             },
         ],
-        [groupType.CREATIVE_COMMITTEE]: [],
-        [groupType.IT_COMMITTEE]: [],
-        [groupType.DIVERSITY_COMMITTEE]: [],
+        [groupType.CREATIVE_COMMITTEE]: [
+            {
+                position: creativeCommitteePositions.LEAD,
+                name: "Shirley Yun",
+                picture: _2024_shirley,
+                socials: {
+                    linkedin: "https://www.linkedin.com/in/shirleyyun/",
+                }
+            },
+        ],
+        [groupType.IT_COMMITTEE]: [
+            {
+                position: itCommitteePositions.LEAD,
+                name: "Michaela Tran",
+                picture: _2024_michaela,
+                socials: {
+                    linkedin: "https://www.linkedin.com/in/michaela-tran",
+                }
+            },
+        ],
+        [groupType.DIVERSITY_COMMITTEE]: [
+            {
+                position: diversityCommitteePositions.LEAD,
+                name: "Jonathan Ortiz-Candelaria",
+                picture: _2024_jonathan,
+                socials: {
+                    linkedin: "https://www.linkedin.com/in/jonathan-hugh-ortiz-candelaria/",
+                }
+            },
+        ],
     // },
 }

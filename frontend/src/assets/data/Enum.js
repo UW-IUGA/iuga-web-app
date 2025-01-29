@@ -40,14 +40,19 @@ export const webDevPositions = {
     UX_DESIGNER_FRONT_END: "UX Design / Frontend Engineer",
     FRONT_BACK_END: "Fullstack Engineer",
     GRAPHIC_DESIGNER: "Graphic Designer"
-}
+};
 
 export const creativeCommitteePositions = {
     LEAD: "Team Lead",
     MEMBER: "Member"
-}
+};
 
 export const diversityCommitteePositions = {
     LEAD: "Team Lead",
+    MEMBER: "Member"
+};
+
+export const itCommitteePositions = {
+    LEAD: "Team Lead", 
     MEMBER: "Member"
 }

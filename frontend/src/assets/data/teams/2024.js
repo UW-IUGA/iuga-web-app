@@ -18,6 +18,11 @@ import _2024_bright from "../officerPhotos/2024/officer_bright.png";
 import _2024_jonathan from "../officerPhotos/2024/officer_jonathan.jpg";
 import _2024_michaela from "../officerPhotos/2024/officer_michaela.jpeg";
 import _2024_iris from "../officerPhotos/2024/officer_iris.png";
+import _2024_akshat from "../officerPhotos/2024/officer_akshat.jpeg";
+import _2024_abraham from "../officerPhotos/2024/officer_abraham.jpeg";
+import _2024_george from "../officerPhotos/2024/officer_george.jpg";
+import _2024_preeti from "../officerPhotos/2024/officer_preeti.jpg";
+
 
 export const team_2024 = {
         //2024: {
@@ -95,8 +100,42 @@ export const team_2024 = {
                 }
             },
         ],
-        [groupType.WEB_COMMITTEE]: [],
+        [groupType.FYR]: [
+            {
+            position: officerPositions.FYR,
+            name: "Akshat Ghuge",
+            picture: _2024_akshat,
+            socials: {
+                linkedin: "",
+            }
+            }, 
+            {
+                position: officerPositions.FYR,
+                name: "Preeti Kotipalli",
+                picture: _2024_preeti,
+                socials: {
+                    linkedin: "",
+                }
+            },
+            {
+                position: officerPositions.FYR,
+                name: "George Lee",
+                picture: _2024_george,
+                socials: {
+                    linkedin: "",
+                }
+            },
+            {
+                position: officerPositions.FYR,
+                name: "Abraham Gibson",
+                picture: _2024_abraham,
+                socials: {
+                    linkedin: "",
+                }
+            },
+        ],
         [groupType.CREATIVE_COMMITTEE]: [],
-        [groupType.FYR]: [],
+        [groupType.IT_COMMITTEE]: [],
+        [groupType.DIVERSITY_COMMITTEE]: [],
     // },
 }

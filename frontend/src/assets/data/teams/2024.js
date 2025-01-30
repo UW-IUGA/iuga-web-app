@@ -1,12 +1,10 @@
-import { groupType, itCommitteePositions } from "../Enum";
+import { groupType } from "../Enum";
 import { officerPositions } from "../Enum";
-import { webDevPositions, creativeCommitteePositions, diversityCommitteePositions } from "../Enum";
+import { webDevPositions, creativeCommitteePositions, diversityCommitteePositions, itCommitteePositions } from "../Enum";
 
 // Lower the resolution of the image if the picture looks grainy
 // https://adobe.com/express/feature/image/resize
 // https://stackoverflow.com/questions/74502978/object-fit-cover-gives-pixelated-images-on-chrome
-
-// test
 
 /* 2024 officers images */
 import _2024_sheamin from "../officerPhotos/2024/officer_sheamin.jpg";
@@ -23,7 +21,9 @@ import _2024_abraham from "../officerPhotos/2024/officer_abraham.jpeg";
 import _2024_george from "../officerPhotos/2024/officer_george.jpg";
 import _2024_preeti from "../officerPhotos/2024/officer_preeti.png";
 import _2024_vera from "../officerPhotos/2024/member_vera.jpg";
-
+import _2024_jasmine from "../officerPhotos/2024/member_jasmine.jpg";
+import _2024_candra from "../officerPhotos/2024/member_candra.jpg";
+import _2024_elizabeth from "../officerPhotos/2024/member_elizabeth.jpg";
 
 export const team_2024 = {
         //2024: {
@@ -144,6 +144,22 @@ export const team_2024 = {
                     linkedin: "https://www.linkedin.com/in/shirleyyun/",
                 }
             },
+            {
+                position: creativeCommitteePositions.LEAD,
+                name: "Candra Kou",
+                picture: _2024_candra,
+                socials: {
+                    linkedin: "https://www.linkedin.com/in/candra-kou-0a413020a/?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app",
+                }
+            },
+            {
+                position: creativeCommitteePositions.LEAD,
+                name: "Elizabeth Skalatsky",
+                picture: _2024_elizabeth,
+                socials: {
+                    linkedin: "https://www.linkedin.com/in/elizabeth-s-19211b261/",
+                }
+            },
         ],
         [groupType.IT_COMMITTEE]: [
             {
@@ -161,6 +177,14 @@ export const team_2024 = {
                 socials: {
                     website: "https://www.veraguber.com/",
                     linkedin: "https://www.linkedin.com/in/vera-guber-527851229/",
+                }
+            },
+            {
+                position: itCommitteePositions.MEMBER,
+                name: "Jasmine Vuong",
+                picture: _2024_jasmine,
+                socials: {
+                    linkedin: "https://www.linkedin.com/in/jasmine-vuong/",
                 }
             },
         ],

@@ -211,7 +211,7 @@ export const team_2024 = {
             {
                 position: diversityCommitteePositions.MEMBER,
                 name: "Carlos Carrillo-Sandoval",
-                picture: _2024_,
+                picture: _2024_carlos,
                 socials: {
                     website: "https://carlos-carrillo.com/",
                     linkedin: "https://www.linkedin.com/in/cacs27/",

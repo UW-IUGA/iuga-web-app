@@ -24,6 +24,9 @@ import _2024_vera from "../officerPhotos/2024/member_vera.jpg";
 import _2024_jasmine from "../officerPhotos/2024/member_jasmine.jpg";
 import _2024_candra from "../officerPhotos/2024/member_candra.jpg";
 import _2024_elizabeth from "../officerPhotos/2024/member_elizabeth.jpg";
+import _2024_aarya from "../officerPhotos/2024/member_aarya.png";
+import _2024_carlos from "../officerPhotos/2024/member_carlos.JPG";
+import _2024_diana from "../officerPhotos/2024/member_diana.jpg";
 
 export const team_2024 = {
         //2024: {
@@ -145,7 +148,7 @@ export const team_2024 = {
                 }
             },
             {
-                position: creativeCommitteePositions.LEAD,
+                position: creativeCommitteePositions.MEMBER,
                 name: "Candra Kou",
                 picture: _2024_candra,
                 socials: {
@@ -153,7 +156,7 @@ export const team_2024 = {
                 }
             },
             {
-                position: creativeCommitteePositions.LEAD,
+                position: creativeCommitteePositions.MEMBER,
                 name: "Elizabeth Skalatsky",
                 picture: _2024_elizabeth,
                 socials: {
@@ -195,6 +198,31 @@ export const team_2024 = {
                 picture: _2024_jonathan,
                 socials: {
                     linkedin: "https://www.linkedin.com/in/jonathan-hugh-ortiz-candelaria/",
+                }
+            },
+            {
+                position: diversityCommitteePositions.MEMBER,
+                name: "Aarya Bhoite",
+                picture: _2024_aarya,
+                socials: {
+                    linkedin: "https://www.linkedin.com/in/aarya-bhoite-6340362b9/",
+                }
+            },
+            {
+                position: diversityCommitteePositions.MEMBER,
+                name: "Carlos Carrillo-Sandoval",
+                picture: _2024_,
+                socials: {
+                    website: "https://carlos-carrillo.com/",
+                    linkedin: "https://www.linkedin.com/in/cacs27/",
+                }
+            },
+            {
+                position: diversityCommitteePositions.MEMBER,
+                name: "Diana Almanza",
+                picture: _2024_diana,
+                socials: {
+                    linkedin: "https://www.linkedin.com/in/diana-almanza-79bb67232/",
                 }
             },
         ],

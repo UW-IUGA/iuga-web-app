@@ -107,13 +107,13 @@ export const team_2024 = {
         ],
         [groupType.FYR]: [
             {
-            position: officerPositions.FYR,
-            name: "Akshat Ghuge",
-            picture: _2024_akshat,
-            socials: {
-                linkedin: "https://www.linkedin.com/in/akshat-ghuge/",
-            }
-            }, 
+                position: officerPositions.FYR,
+                name: "Akshat Ghuge",
+                picture: _2024_akshat,
+                socials: {
+                    linkedin: "https://www.linkedin.com/in/akshat-ghuge/",
+                }
+                }, 
             {
                 position: officerPositions.FYR,
                 name: "Preeti Kotipalli",
@@ -161,6 +161,7 @@ export const team_2024 = {
                 name: "Elizabeth Skalatsky",
                 picture: _2024_elizabeth,
                 socials: {
+                    website: "https://ux-evs.framer.ai/",
                     linkedin: "https://www.linkedin.com/in/elizabeth-s-19211b261/",
                 }
             },

@@ -20,6 +20,7 @@ import _2024_akshat from "../officerPhotos/2024/officer_akshat.jpeg";
 import _2024_abraham from "../officerPhotos/2024/officer_abraham.jpeg";
 import _2024_george from "../officerPhotos/2024/officer_george.jpg";
 import _2024_preeti from "../officerPhotos/2024/officer_preeti.png";
+import _2024_carolyn from "../officerPhotos/2024/member_carolyn.jpg";
 import _2024_vera from "../officerPhotos/2024/member_vera.jpg";
 import _2024_jasmine from "../officerPhotos/2024/member_jasmine.jpg";
 import _2024_candra from "../officerPhotos/2024/member_candra.jpg";
@@ -28,6 +29,7 @@ import _2024_joy from "../officerPhotos/2024/member_joy.jpg";
 import _2024_aarya from "../officerPhotos/2024/member_aarya.png";
 import _2024_carlos from "../officerPhotos/2024/member_carlos.JPG";
 import _2024_diana from "../officerPhotos/2024/member_diana.jpg";
+import _2024_faith from "../officerPhotos/2024/member_faith.jpg";
 
 export const team_2024 = {
         //2024: {
@@ -186,11 +188,10 @@ export const team_2024 = {
             },
             {
                 position: itCommitteePositions.MEMBER,
-                name: "Vera Guber",
-                picture: _2024_vera,
+                name: "Carolyn Chen",
+                picture: _2024_carolyn,
                 socials: {
-                    website: "https://www.veraguber.com/",
-                    linkedin: "https://www.linkedin.com/in/vera-guber-527851229/",
+                    linkedin: "https://www.linkedin.com/in/carolynchristopherchen/",
                 }
             },
             {
@@ -199,6 +200,15 @@ export const team_2024 = {
                 picture: _2024_jasmine,
                 socials: {
                     linkedin: "https://www.linkedin.com/in/jasmine-vuong/",
+                }
+            },
+            {
+                position: itCommitteePositions.MEMBER,
+                name: "Vera Guber",
+                picture: _2024_vera,
+                socials: {
+                    website: "https://www.veraguber.com/",
+                    linkedin: "https://www.linkedin.com/in/vera-guber-527851229/",
                 }
             },
         ],
@@ -234,6 +244,14 @@ export const team_2024 = {
                 picture: _2024_diana,
                 socials: {
                     linkedin: "https://www.linkedin.com/in/diana-almanza-79bb67232/",
+                }
+            },
+            {
+                position: diversityCommitteePositions.MEMBER,
+                name: "Lyrisse Faith Samson",
+                picture: _2024_faith,
+                socials: {
+                    linkedin: "https://www.linkedin.com/in/lyrisse-faith-samson/",
                 }
             },
         ],

@@ -1,6 +1,6 @@
 import { groupType } from "../Enum";
 import { officerPositions } from "../Enum";
-import { webDevPositions, creativeCommitteePositions, diversityCommitteePositions, itCommitteePositions } from "../Enum";
+import { creativeCommitteePositions, diversityCommitteePositions, itCommitteePositions } from "../Enum";
 
 // Lower the resolution of the image if the picture looks grainy
 // https://adobe.com/express/feature/image/resize
@@ -20,12 +20,15 @@ import _2024_akshat from "../officerPhotos/2024/officer_akshat.jpeg";
 import _2024_abraham from "../officerPhotos/2024/officer_abraham.jpeg";
 import _2024_george from "../officerPhotos/2024/officer_george.jpg";
 import _2024_preeti from "../officerPhotos/2024/officer_preeti.png";
+import _2024_aidan from "../officerPhotos/2024/member_aidan.jpg";
+import _2024_camilo from "../officerPhotos/2024/";
 import _2024_carolyn from "../officerPhotos/2024/member_carolyn.jpg";
 import _2024_vera from "../officerPhotos/2024/member_vera.jpg";
 import _2024_jasmine from "../officerPhotos/2024/member_jasmine.jpg";
 import _2024_candra from "../officerPhotos/2024/member_candra.jpg";
 import _2024_elizabeth from "../officerPhotos/2024/member_elizabeth.jpg";
 import _2024_joy from "../officerPhotos/2024/member_joy.jpg";
+import _2024_steven from "../officerPhotos/2024/steven.png";
 import _2024_aarya from "../officerPhotos/2024/member_aarya.png";
 import _2024_carlos from "../officerPhotos/2024/member_carlos.JPG";
 import _2024_diana from "../officerPhotos/2024/member_diana.jpg";
@@ -176,6 +179,15 @@ export const team_2024 = {
                     linkedin: "https://www.linkedin.com/in/joy-y-li/",
                 }
             },
+            {
+                position: creativeCommitteePositions.MEMBER,
+                name: "Steven Heng",
+                picture: _2024_steven,
+                socials: {
+                    website: "https://www.steven-heng.com/",
+                    linkedin: "https://www.linkedin.com/in/steven-w-heng/",
+                }
+            },
         ],
         [groupType.IT_COMMITTEE]: [
             {
@@ -184,6 +196,23 @@ export const team_2024 = {
                 picture: _2024_michaela,
                 socials: {
                     linkedin: "https://www.linkedin.com/in/michaela-tran",
+                }
+            },
+            {
+                position: itCommitteePositions.MEMBER,
+                name: "Aidan Barlett",
+                picture: _2024_aidan,
+                socials: {
+                    website: "https://aidanbartlett0.github.io/portfolio/",
+                    linkedin: "https://www.linkedin.com/in/aidanbartlett/",
+                }
+            },
+            {
+                position: itCommitteePositions.MEMBER,
+                name: "Camilo Montes",
+                picture: _2024_camilo,
+                socials: {
+                    linkedin: "https://www.linkedin.com/in/camilomontesdeharo/",
                 }
             },
             {

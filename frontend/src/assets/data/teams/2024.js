@@ -28,7 +28,7 @@ import _2024_jasmine from "../officerPhotos/2024/member_jasmine.jpg";
 import _2024_candra from "../officerPhotos/2024/member_candra.jpg";
 import _2024_elizabeth from "../officerPhotos/2024/member_elizabeth.jpg";
 import _2024_joy from "../officerPhotos/2024/member_joy.jpg";
-import _2024_steven from "../officerPhotos/2024/member_steven.JPG";
+import _2024_steven from "../officerPhotos/2024/steven_member.jpg";
 import _2024_aarya from "../officerPhotos/2024/member_aarya.png";
 import _2024_carlos from "../officerPhotos/2024/member_carlos.JPG";
 import _2024_diana from "../officerPhotos/2024/member_diana.jpg";

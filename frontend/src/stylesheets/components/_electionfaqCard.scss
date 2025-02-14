@@ -1,0 +1,28 @@
+.resourceBox {
+  display: flex;
+  flex-direction: row;
+  padding: 24px 0;
+  gap: 12px;
+}
+
+.resourceContent {
+  flex: 1;
+
+  h3 {
+    margin: 6px 0;
+  }
+}
+
+.resourceContent button {
+  margin-top: 12px;
+}
+
+.resourceContent p {
+  margin: 6px 0;
+}
+
+@include media(">=sm-desktop", "<desktop") {
+  .resourceBox {
+    padding: 18px 0;
+  }
+}

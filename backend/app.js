@@ -75,6 +75,14 @@ app.get('/about', function(req, res) {
     })
 })
 
+app.get('/electionfaq', function(req, res) {
+  res.sendFile(path.join(__dirname, '../frontend/build/index.html'), function(err) {
+    if (err) {
+      res.status(500).send(err)
+    }
+  })
+})
+
 app.get('/contact', function(req, res) {
     res.sendFile(path.join(__dirname, '../frontend/build/index.html'), function(err) {
       if (err) {

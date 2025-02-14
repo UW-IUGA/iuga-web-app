@@ -6,6 +6,12 @@ export const resourceTags = {
     DEI: "Diversity, Equity, and Inclusion (DEI)",
 };
 
+export const electionfaqTags = {
+    ELECTION_ELIGIBILITY: "Election Eligibility",
+    CAMPAIGNING_RULES: "Campaigning Rules",
+    CAMPAIGN_RULES: "Campaign Rules",
+};
+
 export const aboutTags = {
     RSO: "rso",
 };

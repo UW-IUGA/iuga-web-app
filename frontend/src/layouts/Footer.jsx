@@ -12,6 +12,7 @@ function Footer() {
                         <Link to="/events">Events</Link>
                         <Link to="/resources">Resources</Link>
                         <Link to="/about">About</Link>
+                        <Link to="/electionfaq">Election FAQ</Link>
                         <Link to="https://status.iuga.info">Status</Link>
                     </div>
                 </div>

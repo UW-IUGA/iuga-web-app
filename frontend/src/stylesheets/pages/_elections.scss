@@ -24,7 +24,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 32px;
-  @include bottom-gradient-border-thick;
+  @include bottom-gradient-border-thick
 }
 
 .electionImgContainer {
@@ -38,7 +38,7 @@
 }
 
 .electionSummary {
-  flex: 4;
+  flex: 3;
   display: flex;
   flex-direction: column;
   justify-content: center;

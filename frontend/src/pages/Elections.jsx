@@ -37,9 +37,9 @@ function ElectionPage({ candidates }) {
                     </div>
                     <div className="electionSummary">
                         <h1>Welcome to IUGA 2024-25 Elections!</h1>
-                        <p> Meet your 2024-25 Candidates. Click on a candidate name to learn more about them! Don't forget to vote!</p>
-                        <Button text="Vote Here!" link="https://forms.office.com/pages/responsepage.aspx?id=W9229i_wGkSZoBYqxQYL0pj2PffrcZlMvNzx2DvLiVNUN0FIMk1UR01aRE1FWkVNMzAzT1lDUDBRMi4u&route=shorturl" className="primary-button" type="right-arrow" onClick={() => {window.open()}} />
+                        <p> Meet your 2024-25 Candidates. Don't forget to vote by February 28th!</p>
                     </div>
+                    <Button text="Vote Here!" link="https://forms.office.com/pages/responsepage.aspx?id=W9229i_wGkSZoBYqxQYL0pj2PffrcZlMvNzx2DvLiVNUN0FIMk1UR01aRE1FWkVNMzAzT1lDUDBRMi4u&route=shorturl" className="primary-button" type="right-arrow" onClick={() => {window.open()}} />
                 </div>
             </div>
             <div className="candidateHeader">
@@ -63,6 +63,7 @@ function ElectionPage({ candidates }) {
                     <div className="roleTitle">
                         <h1>{selectedRole}</h1>
                     </div>
+                    <p>Click a candidate name to learn more about them!</p>
                     <div className="rolePage">
                         <RolePage role={selectedRole} year={selectedYear} />
                     </div>

@@ -35,6 +35,7 @@ function Navbar({signIn, signOut}) {
                     <NavLink to="/events">Events</NavLink>
                     <NavLink to="/resources">Resources</NavLink>
                     <NavLink to="/about">About</NavLink>
+                    <NavLink to="/elections">Elections</NavLink>
                     <NavLink to="/electionfaq">Election FAQ</NavLink>
                     <span></span>
                     <div className="nav-button-wrapper">

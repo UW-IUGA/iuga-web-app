@@ -1,0 +1,68 @@
+.img-name-container {
+  display: flex;
+}
+
+.candidateImage img {
+  width: 50%;
+  height: 100%;
+  padding: 0;
+}
+
+.candidateName {
+  margin: auto;
+  width: 50%;
+  padding: 10px 10px;
+  font-size: 30px;
+}
+.aboutMe {
+  margin-top: 15px;
+}
+
+.aboutMe h3 {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.aboutMe p {
+  font-size: 14px;
+  color: #555;
+}
+
+/* Candidate Media */
+iframe {
+  width: 100%;
+  height: 500px;
+  border-radius: 8px;
+  margin-top: 15px;
+  border: none;
+}
+
+.all-tabs {
+  display: flex;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.tab {
+  padding: 10px 20px;
+  border-radius: 5px;
+  background: white;
+  cursor: pointer;
+}
+
+.tab:hover {
+  background: #ddd;
+  text-decoration: underline;
+}
+
+.tab.active {
+  font-weight: bold;
+  text-decoration: underline;
+  transform: scale(1.05);
+}
+
+.candidate-info {
+  background-color: blue($color: #61bfc1);
+}

@@ -2,6 +2,7 @@ import HomePage from "./pages/Home";
 import EventsPage from "./pages/Events";
 import ResourcesPage from "./pages/Resources";
 import AboutPage from "./pages/About";
+import ElectionPage from "./pages/Elections";
 import ElectionsFAQPage from "./pages/ElectionsFAQ";
 import { ToastContainer, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -10,13 +11,13 @@ import Navbar from "./layouts/Navbar";
 import { useState, useEffect } from "react";
 import { mockCalendarData } from "./assets/mock-data/MockCalendarData";
 import { resources } from "./assets/data/ResourcesData";
+import { iugaCandidates } from "./assets/data/CandidateData";
 import { electionFAQ } from "./assets/data/ElectionFAQData"; 
 import { iugaTeams } from "./assets/data/AboutData";
 import { positionInformation } from "./assets/data/AboutData";
 import { useAuthContext } from "./context/AuthContext";
 import Footer from "./layouts/Footer";
 import MediaQuery from 'react-responsive';
-import { electionfaqTags } from "./assets/data/Enum";
 
 function App() {
     const { signIn, signOut } = useAuthContext();
@@ -60,6 +61,7 @@ function App() {
                 <Route path="/events" element={<EventsPage />} />
                 <Route path="/resources" element={<ResourcesPage resources={resources} />} />
                 <Route path="/about" element={<AboutPage teams={iugaTeams} />} />
+                <Route path="/elections" element={<ElectionPage candidates={iugaCandidates} />} />
                 <Route path="/electionfaq" element={<ElectionsFAQPage electionFAQ={electionFAQ} />} />
             </Routes>
             <Footer />

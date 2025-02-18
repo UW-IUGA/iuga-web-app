@@ -23,6 +23,7 @@ export const groupType = {
     DIVERSITY_COMMITTEE: "Diversity Committee",
     IT_COMMITTEE: "IT Committee",
     FYR: "First Year Reps",
+    CANDIDATES: "Candidates",
 };
 
 export const officerPositions = {
@@ -38,6 +39,19 @@ export const officerPositions = {
     ACADEMIC: "Director of Academic Support",
     FYR: "First Year Representative",
 };
+
+export const candidatePositions = {
+    PRESIDENT: "President",
+    COPRESIDENT: "Co-President",
+    VICE_PRESIDENT: "Vice President",
+    FINANCE: "Director of Finance",
+    CREATIVE: "Creative Director",
+    PUBLIC_RELATIONS: "Director of Public Relations",
+    OUTREACH: "Director of Outreach",
+    DIVERSITY: "Director of Diversity Efforts",
+    IT: "Director of Technology",
+    ACADEMIC: "Director of Academic Support",
+}
 
 export const webDevPositions = {
     LEAD_ERIC: "Team Lead / Fullstack / DevOps",

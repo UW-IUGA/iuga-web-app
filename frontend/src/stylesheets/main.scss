@@ -23,11 +23,15 @@
 @import 'components/gradientLine';
 @import 'components/dropdown';
 @import 'components/aboutCard';
+@import 'components/rolePage';
+@import 'components/sidebar';
+@import 'components/electionfaqCard';
 
 @import 'pages/home';
 @import 'pages/events';
 @import 'pages/resources';
 @import 'pages/about';
+@import 'pages/_elections';
 @import 'pages/electionsfaq';
 
 @import 'addons/toastify';

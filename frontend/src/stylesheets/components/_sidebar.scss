@@ -1,0 +1,32 @@
+.roleSidebar {
+  width: 250px;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.roleSidebar h2 {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.roleItem {
+  padding: 12px;
+  margin-bottom: 8px;
+  background: #eaeaea;
+  border-radius: 5px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.roleItem:hover {
+  background: #d6d6d6;
+}
+
+.roleItem.active {
+  background: #58077b;
+  color: white;
+  font-weight: bold;
+}

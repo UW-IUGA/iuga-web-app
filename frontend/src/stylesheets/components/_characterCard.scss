@@ -10,7 +10,7 @@
     position: relative;
     text-align: left;
     width: 220px;
-    height: 210px;
+    height: auto;
     border-radius: $radius;
     background-color: white;
     padding: $padding-content;
@@ -232,7 +232,7 @@
             background: radial-gradient(ellipse at center, rgba(248,166,255,0.5) 0%, rgba(48,66,233,0) 70%);
         }
     }
-    
+
     .academic {
         .characterCardBackground {
             position: absolute;
@@ -246,7 +246,7 @@
             border-radius: 100%;
             background: radial-gradient(ellipse at center, rgba(112, 124, 232, 0.8) 0%, rgba(48,66,233,0) 70%);
         }
-    }    
+    }
 }
 
 
@@ -258,8 +258,8 @@
         align-items: center;
         justify-content: flex-end;
     }
-    
-    
+
+
     .characterCardBox {
         position: relative;
         text-align: left;
@@ -270,12 +270,12 @@
         padding: $padding-content;
         box-sizing: border-box;
         box-shadow: rgba(0, 0, 0, 0.15) 0px 5px 15px 0px;
-    
+
         p {
             color: black;
             line-height: 22px;
         }
-    
+
         button {
             background-color: white;
             padding: 4px 8px;
@@ -283,20 +283,20 @@
             border-width: 1px;
             border-style: solid;
         }
-    
+
         button:hover {
             background-color: white;
             outline-color: rgba(255, 255, 255, 0);
             outline-offset: 8px;
         }
     }
-    
+
     .characterCardHeader{
         display: flex;
         align-items: center;
         gap: 12px;
-    
-    
+
+
         & > div {
             display: flex;
             justify-content: center;
@@ -305,14 +305,14 @@
             width: 36px;
             height: 36px;
             border-radius: $radius;
-    
+
             img {
                 width: 24px;
                 height: 24px;
                 filter: invert(100%);
             }
         }
-    
+
         h1 {
             font-family: $sans-serif;
             font-weight: bold;
@@ -321,18 +321,18 @@
             margin-top: 4px;
         }
     }
-    
+
     .career {
         & > img {
             width: 160px;
             margin-bottom: -12px;
             z-index: 2;
         }
-    
+
         .characterCardBox {
             border: 4px solid $color-career-secondary;
         }
-    
+
         .characterCardBackground {
             position: absolute;
             z-index: -1;
@@ -345,39 +345,39 @@
             border-radius: 100%;
             background: radial-gradient(ellipse at center, rgba(255,201,63,0.5) 0%, rgba(48,66,233,0) 68%);
         }
-    
+
         .characterCardHeader > div {
             background-color: $color-career-primary;
         }
-    
+
         .characterCardHeader > h1 {
             color: black;
         }
-    
+
         button {
             color: $color-career-primary;
             outline-color: white;
             border-color: $color-career-secondary;
             border-width: 2px;
         }
-    
+
         button:hover {
             background-color: $color-career-secondary;
             border-color: $color-career-primary;
         }
     }
-    
+
     .social {
         & > img {
             margin-left: 24px;
             margin-bottom: 24px;
             width: 200px;
         }
-    
+
         .characterCardBox {
             border: 4px solid $color-social-secondary;
         }
-    
+
         .characterCardBackground {
             position: absolute;
             z-index: -2;
@@ -390,37 +390,37 @@
             border-radius: 100%;
             background: radial-gradient(ellipse at center, rgba(248,166,255,0.5) 0%, rgba(48,66,233,0) 70%);
         }
-    
+
         .characterCardHeader > div {
             background-color: $color-social-primary;
         }
-    
+
         .characterCardHeader > h1 {
             color: black;
         }
-    
+
         button {
             color: $color-social-primary;
             border-color: $color-social-secondary;
             outline-color: white;
             border-width: 2px;
         }
-    
+
         button:hover {
             background-color: $color-social-secondary;
             border-color: $color-social-primary;
         }
     }
-    
+
     .academic {
         img {
             width: 150px;
         }
-    
+
         .characterCardBox {
             border: 4px solid $color-academic-secondary;
         }
-    
+
         .characterCardBackground {
             position: absolute;
             z-index: -1;
@@ -433,23 +433,23 @@
             border-radius: 100%;
             background: radial-gradient(ellipse at center, rgba(112, 124, 232, 0.8) 0%, rgba(48,66,233,0) 70%);
         }
-    
+
         .characterCardHeader > div {
             background-color: $color-academic-primary;
         }
-    
+
         .characterCardHeader > h1 {
             color: black;
         }
-    
-    
+
+
         button {
             color: $color-academic-primary;
             border-color: $color-academic-secondary;
             outline-color: white;
             border-width: 2px;
         }
-    
+
         button:hover {
             background-color: $color-academic-secondary;
             border-color: $color-academic-primary;

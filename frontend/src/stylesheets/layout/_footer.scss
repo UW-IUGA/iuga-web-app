@@ -33,11 +33,12 @@ footer {
         }
 
         & > div:nth-of-type(2) {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, auto);
+            gap: 2px;
             width: 300px;
+            text-align: center;
 
             & > a {
                 color: rgb(71, 71, 71);
@@ -86,20 +87,20 @@ footer {
 }
 
 @include media(">=sm-desktop", "<desktop") {
-    footer {    
+    footer {
         a {
             font-size: 12px;
             padding: 12px 0;
         }
     }
-    
+
     .footerContainer {
         margin: 0 auto;
         max-width: 1100px;
-    
+
         & > div:first-of-type {
             margin-bottom: $margin-content*1;
-    
+
             img {
                 width: 80px;
             }
@@ -108,7 +109,7 @@ footer {
                 width: 250px;
             }
         }
-    
+
         & > div:last-of-type {
             p {
                 font-size: 12px;
@@ -117,81 +118,81 @@ footer {
             & > div:nth-of-type(2) {
                 width: 250px;
             }
-    
+
             img {
                 width: 24px;
             }
         }
     }
-    
+
     #discord-footer-item {
         width: 22px;
     }
-    
+
     #linkedin-footer-item {
         width: 20px;
-    }    
+    }
 }
 
 @include media("screen", "<tablet") {
     .footerContainer {
         margin: 0 auto;
         padding: $padding-content*2;
-    
+
         & > div:first-of-type {
             display: flex;
             box-sizing: border-box;
             flex-direction: column;
             margin-bottom: $margin-content*3;
-    
+
             img {
                 display: block;
                 width: 100px;
             }
-    
+
             & > div:nth-of-type(1) {
                 flex: 1;
             }
-    
+
             & > div:nth-of-type(2) {
                 display: flex;
                 flex-direction: row;
                 align-items: center;
                 justify-content: space-between;
                 width: 300px;
-    
+
                 & > a {
                     color: rgb(71, 71, 71);
                 }
-    
+
                 & > a:hover {
                     color: black;
                 }
             }
         }
-    
+
         & > div:last-of-type {
             display: flex;
             box-sizing: border-box;
             flex-direction: column-reverse;
-    
+
             & > div:nth-of-type(1) {
                 flex: 1;
             }
-    
+
             & > div:nth-of-type(2) {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
                 width: 300px;
             }
-    
+
             a {
                 display: inline-block;
                 padding: 0;
                 cursor: pointer;
             }
-    
+
             img {
                 width: 32px;
                 padding: 0;

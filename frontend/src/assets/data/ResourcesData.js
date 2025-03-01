@@ -6,6 +6,7 @@ import iqueeries_logo from "../logos/iqueeries-logo.png";
 import winfo_logo from "../logos/winfo-logo.jpeg";
 import binfo_logo from "../logos/binfo-logo.png";
 import isaca_logo from "../logos/isaca-logo.png";
+import imuslims_logo from "../logos/imuslims-logo.jpeg";
 
 export const resources = {
   [resourceTags.ACADEMIC]: [
@@ -94,6 +95,12 @@ export const resources = {
       "rDescription": "Black in Informatics is a community-driven organization dedicated to fostering the professional, academic, and personal development of Black students within the Informatics program. Its mission is to amplify the presence and successes of Black students in Informatics, guiding them throughout their journey at UW with resources, mentorship, and specialized learning experiences.",
       "rLink": "https://linktr.ee/binfouw",
       "rImage": binfo_logo,
+    },
+    {
+      "rName": "iMuslims",
+      "rDescription": "iMuslims is a student-led organization dedicated to providing Muslim students at the iSchool with resources and community that will allow them to thrive at UW and beyond. We empower students to be information and technology leaders by promoting connection, establishing networks, and building professional skills through event programming. All students are welcome at our events — you can keep up with our org by following us on Instagram @imuslims.uw.",
+      "rLink": "https://www.instagram.com/imuslims.uw/",
+      "rImage": imuslims_logo,
     },
     {
       "rName": "iQueeries",

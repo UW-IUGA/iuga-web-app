@@ -15,7 +15,7 @@ import _2025_izzy from "../officerPhotos/2025/izzy.jpg";
 import _2025_akshat from "../officerPhotos/2025/akshat.png";
 import _2025_preeti from "../officerPhotos/2025/preeti.png";
 import _2025_nhu from "../officerPhotos/2025/nhu.jpeg";
-import _2025_camilo from "../officerPhotos/2025/camilo.jpeg";
+import _2025_camilo from "../officerPhotos/2025/camilo.JPG";
 
 
 export const team_2025 = {

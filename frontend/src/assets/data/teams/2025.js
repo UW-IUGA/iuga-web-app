@@ -88,7 +88,7 @@ export const team_2025 = {
             {
                 position: officerPositions.ACADEMIC,
                 name: "Akshat Ghuge",
-                picture: _2024_akshat,
+                picture: _2025_akshat,
                 socials: {
                     linkedin: "https://www.linkedin.com/in/akshat-ghuge/",
                 }

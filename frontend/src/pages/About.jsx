@@ -4,6 +4,8 @@ import GradientLine from "../components/GradientLine";
 import AboutCard from "../components/AboutCard";
 import { iugaTeams as teams } from "../assets/data/AboutData";
 
+console.log("DEBUG TEAMS KEYS:", Object.keys(teams));
+
 function AboutPage() {
     const years = Object.keys(teams).reverse();
     const [selectedYear, setSelectedYear] = useState(years[0]);

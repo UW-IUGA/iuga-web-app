@@ -9,10 +9,10 @@ import { officerPositions } from "../Enum";
 /* 2025 officers images */
 import _2025_bright from "../officerPhotos/2025/bright.jpg";
 import _2025_abraham from "../officerPhotos/2025/abe.jpg";
-import _2025_george from "../officerPhotos/2025/george.png";
-import _2025_asmi from "../officerPhotos/2025/asmi.png";
-import _2025_izzy from "../officerPhotos/2025/izzy.png";
-import _2025_akshat from "../officerPhotos/2024/akshat";
+import _2025_george from "../officerPhotos/2025/george.jpg";
+import _2025_asmi from "../officerPhotos/2025/asmi.jpg";
+import _2025_izzy from "../officerPhotos/2025/izzy.jpg";
+import _2025_akshat from "../officerPhotos/2025/akshat.png";
 import _2025_preeti from "../officerPhotos/2025/preeti.png";
 import _2025_nhu from "../officerPhotos/2025/nhu.jpeg";
 import _2025_camilo from "../officerPhotos/2025/camilo.jpeg";

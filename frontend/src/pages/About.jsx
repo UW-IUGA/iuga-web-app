@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import Dropdown from "../components/Dropdown";
 import GradientLine from "../components/GradientLine";
 import AboutCard from "../components/AboutCard";
+import { iugaTeams as teams } from "../assets/data/AboutData";
 
-function AboutPage({ teams }) {
+function AboutPage() {
     const years = Object.keys(teams).reverse();
     const [selectedYear, setSelectedYear] = useState(years[0]);
     const [data, setData] = useState(null);

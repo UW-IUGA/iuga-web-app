@@ -1,4 +1,5 @@
 import { officerPositions } from "./Enum";
+import { team_2025 } from "./teams/2025";
 import { team_2024 } from "./teams/2024";
 import { team_2023 } from "./teams/2023";
 import { team_2022 } from "./teams/2022";
@@ -11,6 +12,7 @@ import { team_2016 } from "./teams/2016";
 import { team_2015 } from "./teams/2015";
 
 export const iugaTeams = {
+    2025: team_2025,
     2024: team_2024,
     2023: team_2023,
     2022: team_2022,

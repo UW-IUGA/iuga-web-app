@@ -6,25 +6,19 @@ import Button from "../components/Button";
 import { electionsMeta } from "../assets/data/elections/meta";
 
 function ElectionPage({ candidates }) {
-  // Derive year list from the data you already pass in
+  // Build years from union of data + meta so inactive years still appear
   const years = useMemo(() => {
-    const fromCandidates = Object.keys(candidates || {});
-    const fromMeta = Object.keys(electionsMeta || {});
-    return Array.from(new Set([...fromCandidates, ...fromMeta]))
-        .sort()
-        .reverse();
+    const set = new Set([
+      ...Object.keys(candidates || {}),
+      ...Object.keys(electionsMeta || {})
+    ]);
+    return Array.from(set).sort().reverse();
   }, [candidates]);
+
+  // pick newest year by default (e.g., 2026)
   const [selectedYear, setSelectedYear] = useState(years[0]);
-
-  useEffect(() => {
-  if (!years.includes(selectedYear)) {
-        setSelectedYear(years[0]);
-    }
-  }, [years, selectedYear]);
-
   const [data, setData] = useState(null);
 
-  // pick a sensible default role that actually has candidates
   const pickFirstRoleWithCandidates = (yearData) => {
     for (const key of Object.keys(candidatePositions)) {
       const roleName = candidatePositions[key];
@@ -38,16 +32,12 @@ function ElectionPage({ candidates }) {
   useEffect(() => {
     const yearData = candidates[selectedYear];
     setData(yearData || null);
-
-    // reset role to something that exists for the selected year
-    const defaultRole = pickFirstRoleWithCandidates(yearData);
-    setSelectedRole(defaultRole);
+    setSelectedRole(pickFirstRoleWithCandidates(yearData));
   }, [selectedYear, candidates]);
 
   const handleSelectYear = (year) => setSelectedYear(year);
   const handleRoleChange = (role) => setSelectedRole(role);
 
-  // meta config per year (fallback to inactive defaults)
   const meta = electionsMeta[selectedYear] || {
     active: false,
     title: "IUGA Elections",
@@ -56,7 +46,6 @@ function ElectionPage({ candidates }) {
     heroImg: "/assets/elections.png",
   };
 
-  // Also require that there is at least one candidate in the data
   const hasAnyCandidates = useMemo(() => {
     const yr = candidates[selectedYear];
     if (!yr) return false;
@@ -88,13 +77,11 @@ function ElectionPage({ candidates }) {
         </div>
       </div>
 
-      {/* Year picker is always visible */}
       <div className="candidateHeader">
         <h2>{isActive ? "Candidates" : "Archive"}</h2>
         <Dropdown options={years} defaultOption={years[0]} onSelect={handleSelectYear} />
       </div>
 
-      {/* Active elections view */}
       {isActive ? (
         <div className="electionContentContainer">
           <div className="roleSidebar">
@@ -126,17 +113,16 @@ function ElectionPage({ candidates }) {
           </div>
         </div>
       ) : (
-        // Inactive / off-season view
         <div className="electionContentContainer">
           <div className="electionContent" style={{ width: "100%" }}>
             <div className="roleTitle">
               <h1>No Active Elections</h1>
             </div>
             <p>
-              There are no elections running for {selectedYear}. You can still use the year dropdown above to browse
-              past candidate slates when available.
+              There are no elections running for {selectedYear}. Use the dropdown above to browse past candidate slates.
             </p>
-            {/* Optional: show a light archive if you have data for that year */}
+
+            {/* Optional “archive preview” if that year *does* have data */}
             {hasAnyCandidates && (
               <>
                 <h3 style={{ marginTop: 24 }}>Candidate Archive for {selectedYear}</h3>

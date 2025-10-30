@@ -1,81 +1,70 @@
 void setBuildStatus(String credential_id, String context, String state, String message) {
-    def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
-    def targetUrl = env.RUN_DISPLAY_URL
-    def data = """{"state":"${state}", "target_url": "${targetUrl}", "description":"${message}", "context":"${context}"}"""
-    withCredentials([usernamePassword(credentialsId: credential_id, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-        sh "curl -X POST --user $USERNAME:$PASSWORD --data '${data}' --url https://api.github.com/repos/UW-IUGA/iuga-web-app/statuses/$gitCommit"
-    }
+  def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+  def targetUrl = env.RUN_DISPLAY_URL
+  def data = """{"state":"${state}","target_url":"${targetUrl}","description":"${message}","context":"${context}"}"""
+  withCredentials([usernamePassword(credentialsId: credential_id, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+    sh "curl -X POST --user $USERNAME:$PASSWORD --data '${data}' --url https://api.github.com/repos/UW-IUGA/iuga-web-app/statuses/${gitCommit}"
+  }
 }
 
 pipeline {
-    agent any
-    
-    stages {
-        stage('Checkout') {
-            steps {
-                setBuildStatus("github_classic", "iuga/jenkins/cicd/staging", "pending", "Checking out repository...");
-                // Checkout with submodules
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: '*/main']],
-                    doGenerateSubmoduleConfigurations: false,
-                    extensions: [[$class: 'SubmoduleOption', recursiveSubmodules: true, trackingSubmodules: false]],
-                    submoduleCfg: [],
-                    userRemoteConfigs: [[
-                        credentialsId: 'github_classic',
-                        url: 'https://github.com/UW-IUGA/iuga-web-app.git'
-                    ]]
-                ])
-            }
-        }
-        stage('Initialize Submodules') {
-            steps {
-                sh 'git submodule update --init --recursive'
-            }
-        } 
-        stage('Build') {
-            steps {
-                setBuildStatus("github_classic", "iuga/jenkins/cicd/staging", "pending", "Building application...");
-                sh 'docker build . -t "iuga/iuga-web-app-staging" --build-arg DEPLOY_ENV=staging'
-            }
-        }
-        stage('Push to Registry') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                        sh 'docker login -u $USERNAME -p $PASSWORD'
-                }
-                sh 'docker push iuga/iuga-web-app-staging'
-            }
-        }
-        stage('Deploy') {
-            steps {
-                setBuildStatus("github_classic", "iuga/jenkins/cicd/staging", "pending", "Deploying application...");
-                sh 'docker pull iuga/iuga-web-app-staging'
-                sh 'docker rm -f iuga-web-staging || true'
-                withCredentials([
-                    string(credentialsId: 'prodDBUsername', variable: 'DB_PROD_USERNAME'),
-                    string(credentialsId: 'prodDBPassword', variable: 'DB_PROD_PASSWORD'),
-                ]) {
-                    sh '''
-                    docker run -d -p "127.0.0.1:7777:7777" --name iuga-web-staging \
-                    -e DEPLOY_ENV=staging \
-                    -e DB_PROD_USERNAME="$DB_PROD_USERNAME" \
-                    -e DB_PROD_PASSWORD="$DB_PROD_PASSWORD" \
-                    -v /var/lib/iuga-web-app/uploads/prod:/app/backend/public/uploads \
-                    --network iuga-server-config_default \
-                    iuga/iuga-web-app-staging
-                    '''
-                }
-            }
-        }
+  agent any
+
+
+  stages {
+    stage('Checkout') {
+      steps {
+        setBuildStatus('github_classic','iuga/jenkins/cicd/staging','pending','Checking out repository...')
+        checkout scm
+        sh 'git submodule update --init --recursive'
+      }
     }
-    
-    post {
-        success {
-            setBuildStatus("github_classic", "iuga/jenkins/cicd/staging", "success", "Pipeline succeeded!");
-        }
-        failure {
-            setBuildStatus("github_classic", "iuga/jenkins/cicd/staging", "failure", "Pipeline failed.");
-        }
+
+    stage('Build') {
+      steps {
+        setBuildStatus('github_classic','iuga/jenkins/cicd/staging','pending','Building application...')
+        sh 'docker build . -t "iuga/iuga-web-app-staging" --build-arg DEPLOY_ENV=staging'
+      }
     }
+
+    stage('Push to Registry') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+          sh 'docker login -u $USERNAME -p $PASSWORD'
+        }
+        sh 'docker push iuga/iuga-web-app-staging'
+      }
+    }
+
+    stage('Deploy') {
+      steps {
+        setBuildStatus('github_classic','iuga/jenkins/cicd/staging','pending','Deploying application...')
+        sh 'docker pull iuga/iuga-web-app-staging'
+        sh 'docker rm -f iuga-web-staging || true'
+        withCredentials([
+          string(credentialsId: 'prodDBUsername', variable: 'DB_PROD_USERNAME'),
+          string(credentialsId: 'prodDBPassword', variable: 'DB_PROD_PASSWORD'),
+        ]) {
+          sh '''
+            docker run -d -p "127.0.0.1:7777:7777" --name iuga-web-staging \
+            -e DEPLOY_ENV=staging \
+            -e DB_PROD_USERNAME="$DB_PROD_USERNAME" \
+            -e DB_PROD_PASSWORD="$DB_PROD_PASSWORD" \
+            -v /var/lib/iuga-web-app/uploads/prod:/app/backend/public/uploads \
+            --network iuga-server-config_default \
+            iuga/iuga-web-app-staging
+          '''
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      setBuildStatus('github_classic','iuga/jenkins/cicd/staging','success','Pipeline succeeded!')
+    }
+    failure {
+      setBuildStatus('github_classic','iuga/jenkins/cicd/staging','failure','Pipeline failed.')
+    }
+  }
 }

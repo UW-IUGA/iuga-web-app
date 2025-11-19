@@ -5,71 +5,72 @@ import { candidatePositions } from "../assets/data/Enum";
 import Button from "../components/Button";
 
 function ElectionPage({ candidates }) {
+  const years = useMemo(() => Object.keys(candidates).sort().reverse(), [candidates]);
+  const [selectedYear, setSelectedYear] = useState(years[0]);
+  const [data, setData] = useState(null);
+  const [selectedRole, setSelectedRole] = useState("President");
 
-    const [selectedRole, setSelectedRole] = useState("President");
+  useEffect(() => {
+    setData(candidates[selectedYear]);
+  }, [selectedYear, candidates]);
 
-    const handleRoleChange = (role) => {
-        setSelectedRole(role);
-    };
+  const handleSelectYear = (year) => setSelectedYear(year);
+  const handleRoleChange = (role) => setSelectedRole(role);
 
-    const years = Object.keys(candidates).reverse();
-    const [selectedYear, setSelectedYear] = useState(years[0]);
-    const [data, setData] = useState(null);
+  // only show categories when the selected year actually has candidates
+  const hasAnyCandidates = Array.isArray(data) && data.length > 0;
 
-    useEffect(() => {
-        setData(candidates[selectedYear]);
-    }, [selectedYear, candidates]);
-
-    const handleSelectYear = (year) => {
-        setSelectedYear(year);
-    };
-
-    return (
-        <div className="baseContainer">
-            <div className="electionContainer">
-                {/* <div className="blob1"></div>
-                <div className="blob2"></div>
-                <div className="blob3"></div>*/}
-                <div className="electionHeader">
-                    <div className="electionImgContainer">
-                        <img className="electionImg" src="/assets/elections.png" alt="iuga student casting ballot" />
-                    </div>
-                    <div className="electionSummary">
-                        <h1>Welcome to IUGA 2024-25 Elections!</h1>
-                        <p> Meet your 2024-25 Candidates. Don't forget to vote by February 28th!</p>
-                    </div>
-                    <Button text="Vote Here!" link="https://forms.office.com/pages/responsepage.aspx?id=W9229i_wGkSZoBYqxQYL0pj2PffrcZlMvNzx2DvLiVNUN0FIMk1UR01aRE1FWkVNMzAzT1lDUDBRMi4u&route=shorturl" className="primary-button" type="right-arrow" onClick={() => {window.open()}} />
-                </div>
-            </div>
-            <div className="candidateHeader">
-                <h2>Candidates</h2>
-                <Dropdown options={years} defaultOption={years[0]} onSelect={handleSelectYear} />
-            </div>
-            <div className="electionContentContainer">
-                <div className="roleSidebar">
-                    <h2>Select a Position</h2>
-                    {Object.entries(candidatePositions).map(([key, roleName]) => (
-                        <div
-                            key={key}
-                            className={`roleItem ${roleName === selectedRole ? 'active' : ''}`}
-                            onClick={() => handleRoleChange(roleName)}
-                        >
-                            {roleName}
-                        </div>
-                    ))}
-                </div>
-                <div className="electionContent">
-                    <div className="roleTitle">
-                        <h1>{selectedRole}</h1>
-                    </div>
-                    <p>Click a candidate name to learn more about them!</p>
-                    <div className="rolePage">
-                        <RolePage role={selectedRole} year={selectedYear} />
-                    </div>
-                </div>
-            </div>
+  return (
+    <div className="baseContainer">
+      <div className="electionContainer">
+        <div className="electionHeader">
+          <div className="electionImgContainer">
+            <img className="electionImg" src="/assets/elections.png" alt="iuga student casting ballot" />
+          </div>
+          <div className="electionSummary">
+            <h1>Welcome to IUGA Elections</h1>
+            <p>{hasAnyCandidates ? "Meet the candidates!" : "There are no active elections right now."}</p>
+          </div>
+          {/* future implementation: show a vote button only when there’s an active election */}
+          {/* {hasAnyCandidates && <Button ... />} */}
         </div>
-    );
+      </div>
+
+      {}
+      <div className="candidateHeader">
+        <h2>{hasAnyCandidates ? "Candidates" : "Archive"}</h2>
+        <Dropdown options={years} defaultOption={years[0]} onSelect={handleSelectYear} />
+      </div>
+
+      {}
+      {hasAnyCandidates && (
+        <div className="electionContentContainer">
+          <div className="roleSidebar">
+            <h2>Select a Position</h2>
+            {Object.entries(candidatePositions).map(([key, roleName]) => (
+              <div
+                key={key}
+                className={`roleItem ${roleName === selectedRole ? "active" : ""}`}
+                onClick={() => handleRoleChange(roleName)}
+              >
+                {roleName}
+              </div>
+            ))}
+          </div>
+
+          <div className="electionContent">
+            <div className="roleTitle">
+              <h1>{selectedRole}</h1>
+            </div>
+            <p>Click a candidate name to learn more about them!</p>
+            <div className="rolePage">
+              <RolePage role={selectedRole} year={selectedYear} candidates={data} />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default ElectionPage;

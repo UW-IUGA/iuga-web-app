@@ -1,0 +1,1 @@
+export const candidates_2026 = {};

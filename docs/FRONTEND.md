@@ -1,0 +1,157 @@
+# IUGA Website — Frontend
+
+**Tech stack:** React 18, Create React App (react-scripts 5), React Router v6, SCSS, Azure MSAL
+
+---
+
+## Entry Points
+
+| File | Role |
+|---|---|
+| `public/index.html` | HTML shell — font loading, meta tags, `<div id="root">` |
+| `src/index.jsx` | React bootstrap — MSAL provider, auth context, browser router |
+| `src/App.jsx` | Layout wrapper — navbar, toast notifications, route definitions |
+| `src/authConfig.js` | MSAL client ID, tenant authority, redirect URI |
+
+---
+
+## Directory Layout
+
+```
+frontend/src/
+├── assets/
+│   ├── data/          ← Static JS data files (teams, candidates, resources, etc.)
+│   ├── mock-data/     ← Mock API responses for development mode
+│   ├── gallery/       ← Event gallery images
+│   └── icons/         ← SVG icons (career, social, academic)
+├── components/        ← Reusable UI components
+│   ├── Button.jsx
+│   ├── Calendar.jsx
+│   ├── CharacterCard.jsx
+│   ├── Dropdown.jsx
+│   ├── ElectionFAQCard.jsx
+│   ├── EventCard.jsx
+│   ├── EventDetailsCard.jsx
+│   ├── EventDetailsLoader.jsx
+│   ├── GradientLine.jsx
+│   ├── ResourceCard.jsx
+│   ├── RolePage.jsx
+│   └── Tag.jsx
+├── context/
+│   └── AuthContext.jsx   ← Authentication state (React Context)
+├── hooks/
+│   └── useAuth.jsx       ← MSAL token acquisition + backend handshake
+├── layouts/
+│   ├── Navbar.jsx        ← Top navigation (responsive, scroll-aware)
+│   └── Footer.jsx
+├── pages/
+│   ├── Home.jsx          ← Landing page: intro, character cards, events, gallery
+│   ├── Events.jsx        ← Calendar view (desktop only; mobile shows "under construction")
+│   ├── Resources.jsx     ← Resource links list
+│   ├── About.jsx         ← Team member cards by year
+│   ├── Elections.jsx     ← Candidate profiles for current election
+│   └── ElectionsFAQ.jsx  ← FAQ accordion about elections
+└── stylesheets/
+    ├── main.scss          ← Central import file (7-1 architecture)
+    ├── abstracts/         ← Variables, mixins, functions, media queries
+    ├── base/              ← Reset, typography, colors, misc
+    ├── components/        ← Component-specific styles
+    ├── layout/            ← Container, navigation, footer, form
+    ├── pages/             ← Page-specific styles
+    └── addons/            ← Third-party overrides (toastify)
+```
+
+---
+
+## Routing
+
+Defined in `src/App.jsx`:
+
+| Path | Page Component | Data Source |
+|---|---|---|
+| `/` | `HomePage` | `upcomingEvents` (prop — mock or API) |
+| `/events` | `EventsPage` | Mock data or `GET /api/v1/events` |
+| `/resources` | `ResourcesPage` | Static data from `assets/data/ResourcesData.js` |
+| `/about` | `AboutPage` | Static data from `assets/data/AboutData.js` |
+| `/elections` | `ElectionPage` | Static data from `assets/data/CandidateData.js` |
+| `/electionfaq` | `ElectionsFAQPage` | Static data from `assets/data/ElectionFAQData.js` |
+
+The backend also serves `index.html` for each of these paths to enable deep linking (see [BACKEND.md](./BACKEND.md#spa-routes)).
+
+---
+
+## Data Flow
+
+### Development Mode
+
+In dev mode (`NODE_ENV !== "production"`), the frontend uses **mock data**:
+
+- **Homepage events**: `MockCalendarData.js`
+- **Calendar events**: `MockCalendarData.js` (imported directly, no fetch)
+- **Single event details**: `mockEvent` from `MockCalendarData.js`
+
+No backend is required for frontend development.
+
+### Production Mode
+
+In production (`NODE_ENV === "production"`), the frontend fetches from the API:
+
+- `GET {REACT_APP_API_URL}/api/v1/events/upcoming` → homepage
+- `GET {REACT_APP_API_URL}/api/v1/events` → calendar
+- `GET {REACT_APP_API_URL}/api/v1/events/id/{eId}` → event details
+
+The API base URL comes from the `REACT_APP_API_URL` environment variable, substituted at build time.
+
+---
+
+## Authentication
+
+Authentication uses **Microsoft Azure AD** via the `@azure/msal-browser` and `@azure/msal-react` packages.
+
+### Auth flow in the frontend
+
+1. **User clicks "UW NetID Login"** → `signIn()` in `AuthContext.jsx` calls `instance.loginRedirect()`
+2. **Redirect to Azure AD** → user authenticates with UW credentials
+3. **Redirect back** → MSAL detects the auth code in the URL
+4. **`useAuth.jsx`**: acquires a token silently → sends it to `POST /api/v1/user/login`
+5. **Backend validates token** (via Microsoft Graph API) → creates server session → returns user data
+6. **`AuthContext`** stores user data and sets `isAuthenticated = true`
+7. **Navbar** shows user greeting + logout button instead of login button
+
+### Key files
+
+- `authConfig.js` — MSAL app configuration (client ID, tenant, redirect URI)
+- `context/AuthContext.jsx` — React Context provider for auth state
+- `hooks/useAuth.jsx` — Token acquisition and backend handshake logic
+
+The backend creates **server-side sessions** (express-session), so the frontend sends a session cookie on subsequent API calls.
+
+---
+
+## Styling
+
+- **SCSS** with [7-1 architecture](https://sass-guidelin.es/#architecture)
+- Compiled via `sass` (devDependency)
+- Main entry: `src/stylesheets/main.scss` — imports all partials
+- Fonts: **NotoSans** (body) and **PlayfairDisplay** (headings), served from `public/font/`
+- Responsive breakpoints: desktop (≥1024px) and mobile (340–1023px)
+- Some pages (Events calendar) are desktop-only with a "under construction" message on mobile
+- Toast notifications: `react-toastify` for user feedback
+
+---
+
+## Key Dependencies
+
+| Package | Purpose |
+|---|---|
+| `react-router-dom` | Client-side routing |
+| `@azure/msal-browser`, `@azure/msal-react` | UW Azure AD authentication |
+| `react-awesome-reveal` | Scroll-triggered animations |
+| `react-just-parallax` | Parallax effects on homepage character cards |
+| `react-ga4` | Google Analytics 4 |
+| `react-responsive` | Responsive breakpoint rendering |
+| `react-bootstrap` / `bootstrap` | Bootstrap 5 UI components |
+| `react-toastify` | Toast notifications |
+| `date-fns` / `dateformat` | Date formatting |
+| `sass` | SCSS compilation |
+| `@fortawesome/*` | Icon set |

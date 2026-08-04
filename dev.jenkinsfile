@@ -53,14 +53,12 @@ pipeline {
                 sh 'docker pull iuga/iuga-web-app-development'
                 sh 'docker rm -f iuga-web-dev || true'
                 withCredentials([
-                    string(credentialsId: 'devDBUsername', variable: 'DB_DEV_USERNAME'),
-                    string(credentialsId: 'devDBPassword', variable: 'DB_DEV_PASSWORD'),
+                    string(credentialsId: 'devDBUri', variable: 'DB_DEV_URI'),
                 ]) {
                     sh '''
                     docker run -d -p "127.0.0.1:6666:7777" --name iuga-web-dev \
                     -e DEPLOY_ENV=development \
-                    -e DB_DEV_USERNAME="$DB_DEV_USERNAME" \
-                    -e DB_DEV_PASSWORD="$DB_DEV_PASSWORD" \
+                    -e DB_DEV_URI="$DB_DEV_URI" \
                     -v /var/lib/iuga-web-app/uploads/dev:/app/backend/public/uploads \
                     iuga/iuga-web-app-development
                     '''

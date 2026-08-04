@@ -151,7 +151,7 @@ docker exec iuga-web-<env> node -e "
 | HTTP 502 from host `curl` | Container not listening or wrong port | `docker ps`, check port mapping |
 | Stale content served | nginx cache or old container still running | `docker ps`, verify correct image tag |
 | `docker push` fails in Jenkins | Docker Hub credential expired or rate-limited | Renew `dockerhub` credential in Jenkins |
-| MongoDB connection failure | Network down, Atlas IP whitelist changed, credentials rotated | Verify network, check `DB_PROD_USERNAME`/`DB_PROD_PASSWORD` |
+| MongoDB connection failure | Network down, Atlas IP whitelist changed, credentials rotated | Verify network, check `DB_PROD_URI`/`DB_DEV_URI` |
 
 ---
 

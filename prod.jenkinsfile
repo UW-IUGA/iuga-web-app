@@ -53,14 +53,12 @@ pipeline {
                 sh 'docker pull iuga/iuga-web-app-production'
                 sh 'docker rm -f iuga-web-prod || true'
                 withCredentials([
-                    string(credentialsId: 'prodDBUsername', variable: 'DB_PROD_USERNAME'),
-                    string(credentialsId: 'prodDBPassword', variable: 'DB_PROD_PASSWORD'),
+                    string(credentialsId: 'prodDBUri', variable: 'DB_PROD_URI'),
                 ]) {
                     sh '''
                     docker run -d -p "127.0.0.1:8888:7777" --name iuga-web-prod \
                     -e DEPLOY_ENV=production \
-                    -e DB_PROD_USERNAME="$DB_PROD_USERNAME" \
-                    -e DB_PROD_PASSWORD="$DB_PROD_PASSWORD" \
+                    -e DB_PROD_URI="$DB_PROD_URI" \
                     -v /var/lib/iuga-web-app/uploads/prod:/app/backend/public/uploads \
                     --network iuga-server-config_default \
                     iuga/iuga-web-app-production

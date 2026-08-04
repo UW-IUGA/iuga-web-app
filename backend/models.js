@@ -7,25 +7,17 @@ import {
 
 let models = {};
 
-const prod_account = {
-    user: process.env.DB_PROD_USERNAME,
-    password: process.env.DB_PROD_PASSWORD,
-}
-
-const dev_account = {
-    user: process.env.DB_DEV_USERNAME,
-    password: process.env.DB_DEV_PASSWORD,
-}
-
 async function connectToDatabase(){
     if (process.env.DEPLOY_ENV === "production" || process.env.DEPLOY_ENV === "staging") {
         console.log('connecting to prod database')
-        const prod_uri = `mongodb://${prod_account.user}:${prod_account.password}@mongo:27017/iuga`;
+        const prod_uri = process.env.DB_PROD_URI;
+        if (!prod_uri) throw new Error('DB_PROD_URI is not set in .env.prod');
         await mongoose.connect(prod_uri);
         console.log("successfully connected to prod mongodb")
     } else {
         console.log('connecting to dev database')
-        const dev_uri = `mongodb+srv://${dev_account.user}:${dev_account.password}@cluster0.ejo8heu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+        const dev_uri = process.env.DB_DEV_URI;
+        if (!dev_uri) throw new Error('DB_DEV_URI is not set in .env.dev');
         await mongoose.connect(dev_uri);
         console.log("successfully connected to dev mongodb")
     }

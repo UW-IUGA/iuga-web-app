@@ -8,6 +8,8 @@ Schemas addressed in events.js:
 
 import express from "express";
 import mongoose from "mongoose";
+import { sendError } from "../helpers/sendError.js";
+import { sendSuccess } from "../helpers/sendSuccess.js";
 
 var router = express.Router();
 //-------------------------------Event Endpoints----------------------------------------------
@@ -83,9 +85,7 @@ router.get("/", async function (req, res) {
     }
   } catch (error) {
     console.log(error);
-    res
-      .status(500)
-      .json({ status: "error", message: "There was an error on our side :(" });
+    return sendError(res, 500);
   }
 });
 
@@ -124,7 +124,7 @@ router.get("/id/:eId", async function (req, res) {
         .populate("eParticipants", "pUID")
         .exec();
       if (event == null) {
-        res.status(404).json({ status: "error", message: "Event not found" });
+        return sendError(res, 404, "Event not found");
       } else {
         let hasRSVPd = false;
         let rsvpAnswers = [];
@@ -169,13 +169,11 @@ router.get("/id/:eId", async function (req, res) {
       }
     } else {
       console.error(`/events/id/${eId} Failed regex test!`);
-      res.status(400).json({ status: "error", message: "Bad request..." });
+      return sendError(res, 400, "Bad request...");
     }
   } catch (error) {
     console.log(error);
-    res
-      .status(500)
-      .json({ status: "error", message: "Sorry something bad happened :(" });
+    return sendError(res, 500);
   }
 });
 
@@ -226,12 +224,7 @@ router.get("/upcoming", async function (req, res) {
     res.json(events);
   } catch (error) {
     console.log(error);
-    res
-      .status(500)
-      .json({
-        status: "error",
-        message: "Sorry! Something happened on our side :(",
-      });
+    return sendError(res, 500);
   }
 });
 
@@ -246,12 +239,12 @@ Expected Request Information (<r> indicates a required field to include in the c
             <r> uId: Current user's id to add them to event,
             <r> eId: find the event,
             aList: Array of key:value pairs with question number and answer string,
-            isAnon: Boolean if user is participating anon or not 
+            isAnon: Boolean if user is participating anon or not
         }
 
 Expected Response Information:
 - {
-    status:"Success"
+    status: "success"
   }
 */
 router.post("/rsvp", async function (req, res) {
@@ -265,30 +258,19 @@ router.post("/rsvp", async function (req, res) {
       const userObjectId = mongoose.Types.ObjectId(req.session.userId);
 
       if (!event) {
-          .status(404)
-          .json({ status: "error", message: "Event not found" });
+        return sendError(res, 404, "Event not found");
       }
 
       // Check if RSVP is enabled for this event
       if (!event.eRsvpEnabled) {
-        return res
-          .status(400)
-          .json({
-            status: "error",
-            message: "RSVP is not enabled for this event",
-          });
+        return sendError(res, 400, "RSVP is not enabled for this event");
       }
 
       // Check if today's date is past the start date
       const today = new Date();
       const eventStartDate = new Date(event.eStartDate);
       if (today > eventStartDate) {
-        return res
-          .status(400)
-          .json({
-            status: "error",
-            message: "The event has already started or passed.",
-          });
+        return sendError(res, 400, "The event has already started or passed.");
       }
 
       // Check if the user is already a participant
@@ -296,9 +278,7 @@ router.post("/rsvp", async function (req, res) {
         participant.pUID.equals(userObjectId),
       );
       if (userIsParticipant) {
-        return res
-          .status(400)
-          .json({ status: "error", message: "You already RSVPd!" });
+        return sendError(res, 400, "You already RSVPd!");
       }
 
       const newParticipant = new req.models.Participants({
@@ -313,18 +293,13 @@ router.post("/rsvp", async function (req, res) {
 
       await event.save();
 
-      res.status(200).json({ status: "success", message: "RSVP successful!" });
+      return sendSuccess(res, { message: "RSVP successful!" });
     } else {
-      res.status(401).json({
-        status: "error",
-        error: "User is not logged in",
-      });
+      return sendError(res, 401, "User is not logged in");
     }
   } catch (error) {
     console.log(error);
-    res
-      .status(500)
-      .json({ status: "error", message: "Something bad happened :(" });
+    return sendError(res, 500);
   }
 });
 
@@ -339,7 +314,7 @@ Expected Request Information (<r> indicates a required field to include in the c
 
 Expected Response Information:
 - {
-    status:"Success"
+    status: "success"
   }
 */
 router.delete("/withdraw/:eId/:pId", async function (req, res) {
@@ -359,18 +334,13 @@ router.delete("/withdraw/:eId/:pId", async function (req, res) {
       event.eParticipants = newParticipants;
       await event.save();
 
-      res.json({ status: "Success" });
+      return sendSuccess(res);
     } else {
-      res.status(401).json({
-        status: "error",
-        message: "User is not logged in",
-      });
+      return sendError(res, 401, "User is not logged in");
     }
   } catch (error) {
     console.log(error);
-    res
-      .status(500)
-      .json({ status: "error", error: "Something bad happened :(" });
+    return sendError(res, 500);
   }
 });
 
@@ -380,9 +350,7 @@ router.get("/:pId", async function (req, res) {
     const pId = req.params.pId;
     const participant = await req.models.Participants.findById(pId);
     if (!participant) {
-      return res
-        .status(404)
-        .json({ status: "error", message: "Participant not found." });
+      return sendError(res, 404, "Participant not found.");
     }
     const participantData = {
       id: pId,
@@ -391,13 +359,12 @@ router.get("/:pId", async function (req, res) {
       isAnon: participant.isAnon,
     };
     // fix this
-    res.json({ status: "Success", participant: participantData });
+    return sendSuccess(res, { participant: participantData });
   } catch (error) {
     console.log(error);
-    res
-      .status(500)
-      .json({ status: "error", message: "Sorry something bad happened :(" });
+    return sendError(res, 500);
   }
 });
 
 export default router;
+

@@ -7,10 +7,12 @@ Schemas addressed in users.js:
 
 import express from "express";
 import fetch from "node-fetch";
+import { sendError } from "../helpers/sendError.js";
+import { sendSuccess } from "../helpers/sendSuccess.js";
 
 var router = express.Router();
 
-/* 
+/*
     @endpoint: /login
     @method: GET
     @description: Given the Microsoft Access Token in the Authorization header,
@@ -57,14 +59,11 @@ router.post("/login", async function (req, res) {
     }
   } catch (err) {
     console.log(err);
-    res.status(500).json({
-      status: "error",
-      error: "Error from our side :(",
-    });
+    return sendError(res, 500);
   }
 });
 
-/* 
+/*
     @endpoint: /logout
     @method: POST
     @description: destroy user session.
@@ -73,14 +72,9 @@ router.post("/logout", function (req, res, next) {
   if (req.session.isAuthenticated) {
     req.session.destroy();
 
-    res.status(200).json({
-      status: "success",
-    });
+    return sendSuccess(res);
   } else {
-    res.status(400).json({
-      status: "error",
-      error: "User is not logged in",
-    });
+    return sendError(res, 401, "User is not logged in");
   }
 });
 
@@ -95,10 +89,7 @@ router.get("/", async function (req, res) {
       memberType: req.session.memberType,
     });
   } else {
-    res.status(400).json({
-      status: "error",
-      error: "User is not logged in",
-    });
+    return sendError(res, 401, "User is not logged in");
   }
 });
 
@@ -119,13 +110,10 @@ router.get("/:uId", async function (req, res) {
       }
     } catch (error) {
       console.log(error);
-      res.status(500).json({ status: "error", message: error.message });
+      return sendError(res, 500);
     }
   } else {
-    res.status(400).json({
-      status: "error",
-      error: "User is not logged in",
-    });
+    return sendError(res, 401, "User is not logged in");
   }
 });
 
@@ -141,21 +129,16 @@ router.post("/:uId", async function (req, res) {
       } else if (currId != uId && currUser.uType === "Admin") {
         //if admin edits user account
       } else {
-        res.status(400).json({
-          status: "error",
-          error: "Access denied",
-        });
+        return sendError(res, 403, "Access denied");
       }
     } catch (error) {
       console.log(error);
-      res.status(500).json({ status: "error", message: error.message });
+      return sendError(res, 500);
     }
   } else {
-    res.status(400).json({
-      status: "error",
-      error: "User is not logged in",
-    });
+    return sendError(res, 401, "User is not logged in");
   }
 });
 
 export default router;
+

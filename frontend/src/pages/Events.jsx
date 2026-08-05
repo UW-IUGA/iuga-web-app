@@ -14,7 +14,13 @@ function EventsPage() {
         if (process.env.NODE_ENV === "production") {
             fetch(`${process.env.REACT_APP_API_URL}/api/v1/events/`, {
                 method: "GET",
-            }).then((res) => res.json())
+            }).then((res) => {
+              if (!res.ok) {
+                throw new Error(`${res.status}, ${res.statusText}`)
+              } else {
+                return res.json()
+              }
+            })
             .then((events) => {
                 setCalendarEvents(events);
             }).catch((error) => {

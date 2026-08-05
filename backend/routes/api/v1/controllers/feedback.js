@@ -6,6 +6,8 @@ Schema addressed in feedback.js:
 */
 
 import express from 'express';
+import { sendError } from '../helpers/sendError.js';
+import { sendSuccess } from '../helpers/sendSuccess.js';
 
 var router = express.Router();
 
@@ -37,7 +39,7 @@ router.get('/', async (req,res) => {
 
     } catch(error) {
         console.log(error);
-        res.status(500).json({status:"error", message:error.message});
+        return sendError(res, 500);
     }
 
 })
@@ -69,11 +71,11 @@ router.post('/', async (req,res) => {
         await newFeedback.save();
 
         //Give the client a proper reply saying it went well.
-        res.json({status:"success"});
+        return sendSuccess(res);
 
     } catch(error) {
         console.log(error);
-        res.status(500).json({status:"error", message:error.message});
+        return sendError(res, 500);
     }
 })
 
@@ -93,11 +95,11 @@ router.delete('/', async (req,res) => {
         await req.models.Feedback.deleteOne({ _id:fID});
         
         //Tell the client it worked
-        res.json({status:"success"})
+        return sendSuccess(res);
 
     } catch(error){
         console.log(error);
-        res.status(500).json({status:"error", message:error.message});
+        return sendError(res, 500);
     }
 })
 

@@ -43,11 +43,13 @@ pipeline {
         sh 'docker rm -f iuga-web-staging || true'
         withCredentials([
           string(credentialsId: 'prodDBUri', variable: 'DB_PROD_URI'),
+          string(credentialsId: 'SESSION_SECRET', variable: 'SESSION_SECRET'),
         ]) {
           sh '''
             docker run -d -p "127.0.0.1:7777:7777" --name iuga-web-staging \
             -e DEPLOY_ENV=staging \
             -e DB_PROD_URI="$DB_PROD_URI" \
+            -e SESSION_SECRET="$SESSION_SECRET" \
             -v /var/lib/iuga-web-app/uploads/prod:/app/backend/public/uploads \
             --network iuga-server-config_default \
             iuga/iuga-web-app-staging

@@ -124,7 +124,7 @@ router.get("/id/:eId", async function (req, res) {
         .populate("eParticipants", "pUID")
         .exec();
       if (event == null) {
-        res.status(400).json({ status: "error", message: "Bad request..." });
+        res.status(404).json({ status: "error", message: "Event not found" });
       } else {
         let hasRSVPd = false;
         let rsvpAnswers = [];
@@ -265,8 +265,7 @@ router.post("/rsvp", async function (req, res) {
       const userObjectId = mongoose.Types.ObjectId(req.session.userId);
 
       if (!event) {
-        return res
-          .status(400)
+          .status(404)
           .json({ status: "error", message: "Event not found" });
       }
 
@@ -348,23 +347,23 @@ router.delete("/withdraw/:eId/:pId", async function (req, res) {
     if (req.session.isAuthenticated) {
       const pId = req.params.pId;
       const eId = req.params.eId;
-      const event = await req.models.Events.findById({ eId });
+      const event = await req.models.Events.findById(eId);
 
       let newParticipants = [];
-      event.participants.forEach((participant) => {
-        if (participant != pId) {
+      event.eParticipants.forEach((participant) => {
+        if (participant.toString() !== pId) {
           newParticipants.push(participant);
         }
       });
 
-      event.participants = newParticipants;
+      event.eParticipants = newParticipants;
       await event.save();
 
       res.json({ status: "Success" });
     } else {
-      res.status(400).json({
+      res.status(401).json({
         status: "error",
-        error: "User is not logged in",
+        message: "User is not logged in",
       });
     }
   } catch (error) {
@@ -379,7 +378,7 @@ router.delete("/withdraw/:eId/:pId", async function (req, res) {
 router.get("/:pId", async function (req, res) {
   try {
     const pId = req.params.pId;
-    const participant = await req.models.Participants.findById({ pId });
+    const participant = await req.models.Participants.findById(pId);
     if (!participant) {
       return res
         .status(404)

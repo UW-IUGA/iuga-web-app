@@ -60,7 +60,7 @@ button:before {
 }
 
 .primary-button {
-    color: #8458CA; 
+    color: #8458CA;
     background: linear-gradient(90deg, #FAE5FF 0%, #FEEFCD 50%, #CFDFF5 100%);
     border: 2px solid #A276E9;
 }
@@ -71,10 +71,110 @@ button:before {
     border: 2px solid $color-primary;
 }
 
-@keyframes glowing {
-    0% { background-position: 0 0; }
-    50% { background-position: 400% 0; }
-    100% { background-position: 0 0; }
+.standard-button,
+.standard-button:disabled,
+.standard-button[disabled] {
+    background-color: white;
+    color: black;
+    border: 1px solid rgba($color-uw-purple, 0.16);
+    border-radius: 999px;
+    box-shadow: 0 4px 20px rgba($color-uw-purple, 0.12);
+    padding: 12px 28px;
+    font-size: 15px;
+}
+
+.standard-button:hover:not(:disabled),
+.standard-button:hover:not([disabled]) {
+    background-color: #F1E8FF;
+    box-shadow: 0 6px 20px rgba($color-uw-purple, 0.14);
+}
+
+.standard-button:hover::before {
+    opacity: 0;
+}
+
+.standard-button:focus-visible {
+    outline: 2px solid $color-uw-purple;
+    outline-offset: 2px;
+}
+
+.standard-button:disabled,
+.standard-button[disabled] {
+    cursor: not-allowed;
+}
+
+$cta-lavender: #F1E8FF;
+
+.cta-primary,
+.cta-secondary,
+.filter-pill {
+    border: 2px solid $color-primary;
+    border-radius: $radius-pill;
+    font-weight: bold;
+    text-shadow: none;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    cursor: pointer;
+    transition: all 150ms cubic-bezier(0.19, 1, 0.22, 1);
+    @include focus-ring;
+}
+
+.cta-primary,
+.cta-secondary {
+    padding: 12px 28px;
+    font-size: 15px;
+}
+
+.cta-primary {
+    background-color: white;
+    color: $color-primary;
+}
+
+.cta-primary:hover {
+    background-color: $cta-lavender;
+}
+
+.cta-primary:active,
+.cta-secondary:active {
+    transform: translateY(1px);
+}
+
+.cta-secondary {
+    background-color: $cta-lavender;
+    color: $color-primary;
+}
+
+.filter-pill {
+    background-color: white;
+    color: $color-primary;
+    padding: 8px 20px;
+    font-size: 14px;
+}
+
+.filter-pill:hover {
+    background-color: $cta-lavender;
+}
+
+.filter-pill[aria-pressed="true"] {
+    background-color: $color-primary;
+    color: white;
+}
+
+.cta-primary:hover::before,
+.cta-primary:focus-visible::before,
+.cta-secondary:hover::before,
+.cta-secondary:focus-visible::before,
+.filter-pill:hover::before,
+.filter-pill:focus-visible::before {
+    opacity: 0;
+}
+
+.editorial-card {
+    background-color: white;
+    border-radius: $radius-card;
+    border: 1px solid rgba($color-uw-purple, 0.12);
+    box-shadow: 0 2px 10px rgba($color-uw-purple, 0.08);
 }
 
 @include media(">=sm-desktop", "<desktop") {

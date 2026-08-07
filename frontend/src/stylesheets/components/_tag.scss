@@ -4,26 +4,36 @@
 
 .tagText {
     font-size: 1rem;
-    border-radius: $radius;
+    border-radius: $radius-pill;
     padding: 4px 16px;
     margin: 0;
 }
 
-.social { 
+.social {
     .tagText {
-        background-color: #FAE5FF;
+        background-color: $color-social-secondary;
+        color: $color-social-capsule;
     }
 }
 
-.career { 
+.career {
     .tagText {
-        background-color: #CFDFF5;
+        background-color: $color-career-secondary;
+        color: $color-career-primary;
     }
 }
 
-.academic { 
+.academic {
     .tagText {
-        background-color: #FEEFCD;
+        background-color: $color-academic-secondary;
+        color: $color-academic-capsule;
+    }
+}
+
+.professional {
+    .tagText {
+        background-color: $color-career-secondary;
+        color: $color-career-primary;
     }
 }
 
@@ -39,7 +49,7 @@
 @include media(">=sm-desktop", "<desktop") {
     .tagText {
         font-size: 12px;
-        border-radius: $radius;
+        border-radius: $radius-pill;
         padding: 6px 12px;
         margin: 0;
     }

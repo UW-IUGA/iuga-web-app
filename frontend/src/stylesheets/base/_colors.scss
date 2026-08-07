@@ -1,4 +1,5 @@
 $color-primary: #704AAC;
+$color-uw-purple: #32006e;
 $color-social-primary: #C133E1;
 $color-social-secondary: #FAE5FF;
 $color-social-light: #fdf3ff;
@@ -8,6 +9,10 @@ $color-career-light: #dfe7f3;
 $color-academic-primary: #ca8f3d;
 $color-academic-secondary: #FEEFCD;
 $color-academic-light: #fbf5e7;
+
+// Darker variants so white capsule labels clear WCAG AA.
+$color-academic-capsule: #8a5a1f;
+$color-social-capsule: #8d1fa8;
 $color-light-gray: #fafafa;
 
 $color-academic-calendar-selected: #f7c052;
@@ -39,5 +44,9 @@ $gray: #F9F9F9;
 }
 
 .uw-purple {
-    color: #32006e;
+    color: $color-uw-purple;
+}
+
+.professional {
+    color: $color-career-primary;
 }

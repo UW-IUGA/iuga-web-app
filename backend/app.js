@@ -67,14 +67,6 @@ app.get('/resources', function(req, res) {
     })
 })
 
-app.get('/about', function(req, res) {
-    res.sendFile(path.join(__dirname, '../frontend/build/index.html'), function(err) {
-      if (err) {
-        res.status(500).send(err)
-      }
-    })
-})
-
 app.get('/electionfaq', function(req, res) {
   res.sendFile(path.join(__dirname, '../frontend/build/index.html'), function(err) {
     if (err) {
@@ -84,6 +76,26 @@ app.get('/electionfaq', function(req, res) {
 })
 
 app.get('/contact', function(req, res) {
+    res.sendFile(path.join(__dirname, '../frontend/build/index.html'), function(err) {
+      if (err) {
+        res.status(500).send(err)
+      }
+    })
+})
+
+/*
+Purpose: Serves the built SPA at /get-involved so React Router handles the route on direct navigation.
+Authentication/Authorization Requirements: None
+
+Expected Request Information:
+- Parameters: N/A
+- Queries: N/A
+- Body: N/A
+
+Expected Response Information:
+- return index.html (200) or the sendFile error (500)
+*/
+app.get('/get-involved', function(req, res) {
     res.sendFile(path.join(__dirname, '../frontend/build/index.html'), function(err) {
       if (err) {
         res.status(500).send(err)

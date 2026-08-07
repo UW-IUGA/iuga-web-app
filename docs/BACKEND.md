@@ -56,7 +56,7 @@ These routes in `app.js` serve the built frontend (`frontend/build/index.html`) 
 | `GET /` | Home page |
 | `GET /events` | Events calendar |
 | `GET /resources` | Resources page |
-| `GET /about` | About page |
+| `GET /get-involved` | Get involved page (team, committees, idea engagement) |
 | `GET /electionfaq` | Election FAQ |
 | `GET /contact` | Contact page |
 

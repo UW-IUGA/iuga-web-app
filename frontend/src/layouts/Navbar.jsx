@@ -1,54 +1,50 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import { NavLink } from 'react-router-dom';
-import Button from "../components/Button.jsx"
 import { useAuthContext } from "../context/AuthContext";
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faBars} from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faBars } from "@fortawesome/free-solid-svg-icons";
 
-function Navbar({signIn, signOut}) {
-    const { isAuthenticated, user } = useAuthContext();
-    const [isScrolledDown, setScrolledDown] = useState(false);
+function Navbar({ signIn, signOut }) {
     const [showMenu, setMenu] = useState(false);
-
-    useEffect(() => {
-        const handleScroll = () => {
-            setScrolledDown(window.scrollY > 0);
-        };
-
-        window.addEventListener('scroll', handleScroll);
-
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+    const { isAuthenticated, user } = useAuthContext();
+    const userGreeting = user?.uFirstName || user?.uDisplayName || user?.name || user?.email;
 
     return (
         <nav>
-            <div className={`nav-container ${isScrolledDown > 0 ? "nav-scroll" : ""}`}>
+            <div className="nav-container">
                 <div className="nav-header">
-                    <NavLink to="/" className="nav-logo"><img src="/iuga-logo.png" alt="logo"></img></NavLink>
+                    <NavLink to="/" className="nav-logo"><img src="/iuga-logo.png" alt="IUGA logo, links to home"></img></NavLink>
                     <span></span>
-                    <div className="nav-mobile-menu" onClick={() => setMenu(!showMenu)}>
+                    <button
+                        type="button"
+                        className="nav-mobile-menu"
+                        onClick={() => setMenu(!showMenu)}
+                        aria-expanded={showMenu}
+                        aria-controls="nav-items"
+                        aria-label={showMenu ? "Close menu" : "Open menu"}
+                    >
                         <FontAwesomeIcon icon={faBars} />
-                    </div>
+                    </button>
                 </div>
-                <div className={`nav-items-wrapper ${showMenu ? "nav-show-items" : "nav-hide-items"}`}>
+                <div id="nav-items" className={`nav-items-wrapper ${showMenu ? "nav-show-items" : "nav-hide-items"}`}>
+                    <NavLink to="/" end>Home</NavLink>
                     <NavLink to="/events">Events</NavLink>
-                    <NavLink to="/resources">Resources</NavLink>
-                    <NavLink to="/about">About</NavLink>
-                    <NavLink to="/elections">Elections</NavLink>
-                    <NavLink to="/electionfaq">Election FAQ</NavLink>
+                    <span className="nav-shop">Shop</span>
+                    <NavLink to="/get-involved">Get Involved</NavLink>
                     <span></span>
-                    <div className="nav-button-wrapper">
-                        { isAuthenticated && user && (<p>Hi, {user.uFirstName ? user.uFirstName : user.uDisplayName}!</p>) }
-                        {
-                            isAuthenticated
-                                ? <Button className="secondary-button" onClick={signOut} text="Logout" />
-                                : <Button className="secondary-button" onClick={signIn} text="UW NetID Login" />
-                        }
+                    <div className="nav-auth">
+                        {isAuthenticated ? (
+                            <>
+                                {userGreeting && <span className="nav-auth-greeting">Hi, {userGreeting}</span>}
+                                <button type="button" className="nav-auth-button" onClick={signOut}>Logout</button>
+                            </>
+                        ) : (
+                            <button type="button" className="nav-auth-button" onClick={signIn}>UW NetID Login</button>
+                        )}
                     </div>
                 </div>
             </div>
-            <span className={`nav-border ${isScrolledDown > 0 ? "nav-border-scroll" : ""}`}></span>
         </nav>
     )
 }

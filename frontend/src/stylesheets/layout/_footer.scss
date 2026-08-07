@@ -1,79 +1,93 @@
+$footer-lavender: #F1E8FF;
 
 footer {
-    position: relative;
-    @include top-gradient-border;
-    width: 100%;
-    background-color: $color-light-gray;
-
-    a {
-        font-size: 16px;
-        color: black;
-        text-align: center;
-        text-decoration: none;
-        padding: $padding-box-y 0;
-    }
+    background-color: white;
+    border-top: 1px solid rgba($color-uw-purple, 0.12);
 }
 
 .footerContainer {
+    display: flex;
+    flex-direction: column;
+    gap: $section-divider-gap;
+    box-sizing: border-box;
     margin: 0 auto;
-    max-width: 1400px;
-    padding: $padding-content*2;
+    max-width: 1200px;
+    padding: $padding-content*3 $padding-content*2;
+}
 
-    & > div:first-of-type {
-        display: flex;
-        box-sizing: border-box;
-        margin-bottom: $margin-content*1;
+.footerTopRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $grid-gap;
+
+    .footerLogo {
+        display: inline-flex;
+        @include focus-ring;
 
         img {
+            display: block;
             width: 100px;
-        }
-
-        & > div:nth-of-type(1) {
-            flex: 1;
-        }
-
-        & > div:nth-of-type(2) {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            grid-template-rows: repeat(2, auto);
-            gap: 2px;
-            width: 300px;
-            text-align: center;
-
-            & > a {
-                color: rgb(71, 71, 71);
-            }
-
-            & > a:hover {
-                color: black;
-            }
         }
     }
 
-    & > div:last-of-type {
+    .footerLinks {
         display: flex;
-        box-sizing: border-box;
-
-        & > div:nth-of-type(1) {
-            flex: 1;
-        }
-
-        & > div:nth-of-type(2) {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 300px;
-        }
+        gap: 8px;
 
         a {
-            display: inline-block;
-            padding: 0;
-            cursor: pointer;
+            color: black;
+            text-decoration: none;
+            border: 2px solid white;
+            border-radius: $radius-pill;
+            padding: $padding-box-y $padding-box-x;
+            font-size: 16px;
+            transition: background-color 200ms cubic-bezier(0.19, 1, 0.22, 1);
+            @include focus-ring;
+
+            &:hover {
+                background-color: $footer-lavender;
+            }
+        }
+    }
+}
+
+.footerBottomRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $grid-gap;
+    border-top: 1px solid rgba($color-uw-purple, 0.12);
+    padding-top: $section-divider-gap;
+
+    .footerCopyright {
+        margin: 0;
+        font-size: 0.9rem;
+        color: $dark-gray;
+    }
+
+    .footerSocials {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+            border-radius: $radius-pill;
+            transition: background-color 200ms cubic-bezier(0.19, 1, 0.22, 1);
+            @include focus-ring;
+
+            &:hover {
+                background-color: $footer-lavender;
+            }
         }
 
         img {
+            display: block;
             width: 32px;
-            padding: 0;
         }
     }
 }
@@ -87,41 +101,27 @@ footer {
 }
 
 @include media(">=sm-desktop", "<desktop") {
-    footer {
-        a {
-            font-size: 12px;
-            padding: 12px 0;
+    .footerContainer {
+        max-width: 1000px;
+    }
+
+    .footerTopRow {
+        .footerLogo img {
+            width: 80px;
+        }
+
+        .footerLinks a {
+            font-size: 14px;
         }
     }
 
-    .footerContainer {
-        margin: 0 auto;
-        max-width: 1100px;
-
-        & > div:first-of-type {
-            margin-bottom: $margin-content*1;
-
-            img {
-                width: 80px;
-            }
-
-            & > div:nth-of-type(2) {
-                width: 250px;
-            }
+    .footerBottomRow {
+        .footerCopyright {
+            font-size: 0.8rem;
         }
 
-        & > div:last-of-type {
-            p {
-                font-size: 12px;
-            }
-
-            & > div:nth-of-type(2) {
-                width: 250px;
-            }
-
-            img {
-                width: 24px;
-            }
+        .footerSocials img {
+            width: 24px;
         }
     }
 
@@ -136,67 +136,18 @@ footer {
 
 @include media("screen", "<tablet") {
     .footerContainer {
-        margin: 0 auto;
-        padding: $padding-content*2;
+        gap: $grid-gap;
+        padding: $padding-content*2 24px;
+    }
 
-        & > div:first-of-type {
-            display: flex;
-            box-sizing: border-box;
-            flex-direction: column;
-            margin-bottom: $margin-content*3;
+    .footerTopRow {
+        flex-direction: column;
+        text-align: center;
+    }
 
-            img {
-                display: block;
-                width: 100px;
-            }
-
-            & > div:nth-of-type(1) {
-                flex: 1;
-            }
-
-            & > div:nth-of-type(2) {
-                display: flex;
-                flex-direction: row;
-                align-items: center;
-                justify-content: space-between;
-                width: 300px;
-
-                & > a {
-                    color: rgb(71, 71, 71);
-                }
-
-                & > a:hover {
-                    color: black;
-                }
-            }
-        }
-
-        & > div:last-of-type {
-            display: flex;
-            box-sizing: border-box;
-            flex-direction: column-reverse;
-
-            & > div:nth-of-type(1) {
-                flex: 1;
-            }
-
-            & > div:nth-of-type(2) {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                width: 300px;
-            }
-
-            a {
-                display: inline-block;
-                padding: 0;
-                cursor: pointer;
-            }
-
-            img {
-                width: 32px;
-                padding: 0;
-            }
-        }
+    .footerBottomRow {
+        flex-direction: column-reverse;
+        gap: 16px;
+        padding-top: $grid-gap;
     }
 }

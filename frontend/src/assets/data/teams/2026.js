@@ -13,6 +13,7 @@ import _2026_preeti from "../officerPhotos/2025/preeti.png";
 import _2026_yonie from "../officerPhotos/2026/yonie.png";
 import _2026_samantha from "../officerPhotos/2026/samantha.png";
 import _2026_nitya from "../officerPhotos/2026/nitya.png";
+import _2026_dia from "../officerPhotos/2026/dia.png";
 
 export const team_2026 = {
   [groupType.OFFICERS]: [
@@ -79,7 +80,7 @@ export const team_2026 = {
     {
       position: officerPositions.ACADEMIC,
       name: "Dia Dora",
-      picture: null,
+      picture: _2026_dia,
       socials: null,
     },
   ],

@@ -37,7 +37,7 @@ const EventDetailsCard = ({selectedEvent, handleRSVP, deselectEventDetails}) => 
                 });
             });
 
-            fetch(`${process.env.REACT_APP_API_URL}/api/v1/events/rsvp`, {
+            fetch('/api/v1/events/rsvp', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

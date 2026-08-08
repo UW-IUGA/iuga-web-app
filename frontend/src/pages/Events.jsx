@@ -12,7 +12,7 @@ function EventsPage() {
 
     const fetchCalendarData = () => {
         if (process.env.NODE_ENV === "production") {
-            fetch(`${process.env.REACT_APP_API_URL}/api/v1/events/`, {
+            fetch('/api/v1/events/', {
                 method: "GET",
             }).then((res) => {
               if (!res.ok) {

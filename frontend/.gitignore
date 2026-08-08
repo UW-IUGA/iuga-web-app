@@ -25,3 +25,4 @@ yarn-error.log*
 # Env var's
 /.env.dev
 /.env.production
+!/.env.production

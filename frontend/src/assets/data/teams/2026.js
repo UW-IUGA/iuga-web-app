@@ -12,6 +12,7 @@ import _2026_akshat from "../officerPhotos/2025/akshat.png";
 import _2026_preeti from "../officerPhotos/2025/preeti.png";
 import _2026_yonie from "../officerPhotos/2026/yonie.png";
 import _2026_samantha from "../officerPhotos/2026/samantha.png";
+import _2026_nitya from "../officerPhotos/2026/nitya.png";
 
 export const team_2026 = {
   [groupType.OFFICERS]: [
@@ -62,7 +63,7 @@ export const team_2026 = {
     {
       position: officerPositions.DIVERSITY,
       name: "Nitya Shankar",
-      picture: null,
+      picture: _2026_nitya,
       socials: null,
     },
     {

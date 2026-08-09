@@ -1,9 +1,10 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 import {
-    eventsSchema,
-    participantsSchema,
-    usersSchema
-} from './schemas/schemas.js';
+  eventsSchema,
+  participantsSchema,
+  usersSchema,
+  feedbackSchema,
+} from "./schemas/schemas.js";
 
 let models = {};
 
@@ -14,12 +15,14 @@ async function connectToDatabase(){
     await mongoose.connect(db_uri);
     console.log("successfully connected to mongodb")
 
-    models.Events = mongoose.model('Events', eventsSchema)
-    models.Participants = mongoose.model('Participants', participantsSchema)
-    models.Users = mongoose.model('Users', usersSchema)
+  models.Events = mongoose.model("Events", eventsSchema);
+  models.Participants = mongoose.model("Participants", participantsSchema);
+  models.Users = mongoose.model("Users", usersSchema);
+  models.Feedback = mongoose.model("Feedback", feedbackSchema);
 
-    console.log('mongoose models created')
+  console.log("mongoose models created");
 }
 
 //Ship the models variable with all the schemas in it to be used externally.
 export { models, connectToDatabase };
+

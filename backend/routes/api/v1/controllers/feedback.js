@@ -40,7 +40,7 @@ router.get("/", async (req, res) => {
       fType: rawForm.fType,
       fTopic: rawForm.fTopic,
       fDescription: rawForm.fDescription,
-    },
+    };
 
     //Send the data back in one json object.
     res.json(feedbackForm);

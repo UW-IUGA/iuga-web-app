@@ -76,7 +76,7 @@ Ensure the uploads volume has free space. MongoDB data and user uploads live her
 
 ### 1.7 Verify Jenkins job status via GitHub commit status
 
-On any commit in the `main` branch, look for these contexts:
+On any commit on the `dev`/`main` branches (or the triggering branch for staging), look for these contexts:
 - `iuga/jenkins/cicd/dev`
 - `iuga/jenkins/cicd/staging`
 - `iuga/jenkins/cicd/prod`
@@ -163,8 +163,8 @@ Credentials are stored in Jenkins. This repository references them by ID only.
 |---|---|---|
 | `github_classic` | Per GitHub token expiry | [Team lead / IT] — *Escalate to fill* |
 | `dockerhub` | Per Docker Hub policy | [Team lead / IT] — *Escalate to fill* |
-| `devDBUsername` / `devDBPassword` | As needed | [Database admin] — *Escalate to fill* |
-| `prodDBUsername` / `prodDBPassword` | As needed | [Database admin] — *Escalate to fill* |
+| `devDBUri` | As needed | [Database admin] — *Escalate to fill* |
+| `SESSION_SECRET` | As needed | [Team lead / IT] — *Escalate to fill* |
 
 When rotating, update the credential in Jenkins directly. No application code changes are needed.
 

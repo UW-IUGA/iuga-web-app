@@ -12,18 +12,19 @@ Every environment (dev, staging, production) follows the same five-stage pipelin
 
 | Stage | What happens | Responsibility |
 |---|---|---|
-| Checkout | Jenkins clones `github.com/UW-IUGA/iuga-web-app` (branch `main`) with submodules using the `github_classic` credential. | Jenkins |
+| Checkout | Jenkins clones `github.com/UW-IUGA/iuga-web-app` (dev & prod use explicit branches; staging uses `checkout scm`) with submodules using the `github_classic` credential. | Jenkins |
 | Build | `docker build` with `--build-arg DEPLOY_ENV` selects the target environment's API URL via sed transforms in the Dockerfile. | Jenkins |
 | Push to Registry | `docker push` to Docker Hub after authenticating with the `dockerhub` credential. | Docker Hub |
-| Deploy | `docker pull`, stop/remove old container, `docker run` with env variables and volume mounts. | Production host |
+| Deploy | `docker pull`, start the new build as a candidate on a temp port, health-check it (`/api/v1/events`), then swap onto the live port only if healthy. **A broken build never takes the site down** — the previous working container keeps serving and the pipeline fails. | Production host |
 | Status report | Jenkins posts a commit status to GitHub (`iuga/jenkins/cicd/<env>`). | Jenkins |
 
 ### Trigger
 
-- **Dev / Staging / Production:** A push to `main` triggers all three pipelines (they run independently).
-- **Staging only:** Uses `checkout scm` (multibranch pipeline); the others use explicit branch `*/main`.
+- **Dev:** A push to the `dev` branch triggers the dev pipeline (checks out `*/dev`).
+- **Production:** A push to `main` triggers the production pipeline (checks out `*/main`).
+- **Staging:** Uses `checkout scm` (multibranch pipeline — runs for whichever branch/tag triggered the job).
 
-> **Note:** All environments deploy from the `main` branch. There is no per-environment branch strategy.
+> **Note:** Dev and production have their own branches; staging follows whatever branch triggered its multibranch job. There is no single shared branch for all three.
 
 ---
 
@@ -36,8 +37,9 @@ Every environment (dev, staging, production) follows the same five-stage pipelin
 - **Host port:** `6666` → container port `7777`
 - **Network:** None (default bridge)
 - **Volume:** `/var/lib/iuga-web-app/uploads/dev:/app/backend/public/uploads`
-- **DB credentials:** `devDBUsername`, `devDBPassword` (Jenkins string credentials)
-- **Database:** MongoDB Atlas (`cluster0.ejo8heu.mongodb.net`)
+- **DB credentials:** `devDBUri` (Jenkins string credential → `DB_URI`), `SESSION_SECRET` (string credential)
+- **Database:** MongoDB Atlas (dev database)
+- **Deploy pattern:** health-gated candidate swap; temp port `6667` → live port `6666`; tags images `:${BUILD_NUMBER}` and `:last-good`
 - **Commit status context:** `iuga/jenkins/cicd/dev`
 
 ### `staging.jenkinsfile` (Staging)
@@ -47,9 +49,10 @@ Every environment (dev, staging, production) follows the same five-stage pipelin
 - **Container name:** `iuga-web-staging`
 - **Host port:** `7777` → container port `7777`
 - **Network:** `iuga-server-config_default`
-- **Volume:** `/var/lib/iuga-web-app/uploads/prod:/app/backend/public/uploads`
-- **DB credentials:** `prodDBUsername`, `prodDBPassword` (Jenkins string credentials — staging shares the production database)
+- **Volume:** `/var/lib/iuga-web-app/uploads/staging:/app/backend/public/uploads`
+- **DB credentials:** `devDBUri` (Jenkins string credential → `DB_URI`), `SESSION_SECRET` (string credential)
 - **Database:** MongoDB container at `mongo:27017` (via `iuga-server-config_default` network)
+- **Deploy pattern:** health-gated candidate swap; temp port `7778` → live port `7777`; tags images `:${BUILD_NUMBER}` and `:last-good`
 - **Commit status context:** `iuga/jenkins/cicd/staging`
 
 ### `prod.jenkinsfile` (Production)
@@ -59,8 +62,9 @@ Every environment (dev, staging, production) follows the same five-stage pipelin
 - **Host port:** `8888` → container port `7777`
 - **Network:** `iuga-server-config_default`
 - **Volume:** `/var/lib/iuga-web-app/uploads/prod:/app/backend/public/uploads`
-- **DB credentials:** `prodDBUsername`, `prodDBPassword` (Jenkins string credentials)
+- **DB credentials:** `devDBUri` (Jenkins string credential → `DB_URI`), `SESSION_SECRET` (string credential)
 - **Database:** MongoDB container at `mongo:27017` (via `iuga-server-config_default` network)
+- **Deploy pattern:** health-gated candidate swap; temp port `8889` → live port `8888`; tags images `:${BUILD_NUMBER}` and `:last-good`
 - **Commit status context:** `iuga/jenkins/cicd/prod`
 
 ---
@@ -73,10 +77,8 @@ Jenkins requires these credential IDs (values are **not** in this repository):
 |---|---|---|
 | `github_classic` | Username+Password | GitHub API authentication for checkout and commit status updates |
 | `dockerhub` | Username+Password | Docker Hub login for image push |
-| `devDBUsername` | String | MongoDB dev database username |
-| `devDBPassword` | String | MongoDB dev database password |
-| `prodDBUsername` | String | MongoDB production/staging database username |
-| `prodDBPassword` | String | MongoDB production/staging database password |
+| `devDBUri` | String | MongoDB connection URI (injected as `DB_URI` env var) for all environments |
+| `SESSION_SECRET` | String | Session signing secret for all environments |
 
 ---
 
@@ -125,9 +127,47 @@ The [Dockerfile](../Dockerfile) is a multi-stage build:
          │              │  mongo:27017 (MongoDB container via external config)
          │              └───────────┘
          │
-    MongoDB Atlas
-    (cluster0.ejo8heu.mongodb.net)
+    MongoDB Atlas (dev)
 ```
+
+### Deploy-time health-gated swap (try and fall back)
+
+Every deploy follows this flow per environment. The previous working container is never touched until the new build proves healthy:
+
+```
+                       ┌────────────────────────────────────────────────────────┐
+                       │ 1. Build & push image iuga/iuga-web-app-<env>:${BUILD_NUMBER} │
+                       └───────────────────────────┬────────────────────────────┘
+                                                   ▼
+                       ┌────────────────────────────────────────────────────────┐
+                       │ 2. Start candidate on TEMP port                       │
+                       │    (old container untouched — still serving on live)   │
+                       └───────────────────────────┬────────────────────────────┘
+                                                   ▼
+                       ┌────────────────────────────────────────────────────────┐
+                       │ 3. Health check  GET /api/v1/events  (up to 90s)      │
+                       └──────────┬─────────────────────────────┬───────────────┘
+                                  │ healthy (200)               │ failure
+                                  ▼                             ▼
+        ┌─────────────────────────────────────┐   ┌──────────────────────────────────┐
+        │ 4. Swap: retire old container,      │   │ 5. Remove candidate, pipeline    │
+        │    run new image on LIVE port       │   │    FAILS — previous working      │
+        └──────────────────┬──────────────────┘   │    container keeps serving       │
+                           ▼                       └──────────────────────────────────┘
+        ┌─────────────────────────────────────┐
+        │ 6. Re-check new container on live   │
+        │    port (up to 30s)                 │
+        └──────────┬──────────────────────────┘
+                   │ failure
+                   ▼
+        ┌─────────────────────────────────────┐
+        │ 7. Rollback: re-run the :last-good  │
+        │    image on live port, pipeline     │
+        │    FAILS (site stays up)            │
+        └─────────────────────────────────────┘
+```
+
+On a successful deploy, the image is tagged `:last-good` so the fallback image is always the last build that passed the health check.
 
 ### What is managed by this repository
 
@@ -166,7 +206,7 @@ Expected output: `STATUS Up <time>`, port mapping matches the table above.
 
 ```bash
 # From the host
-curl -s -o /dev/null -w "%{http_code}" http://localhost:<port>/
+curl -s -o /dev/null -w "%{http_code}" http://localhost:<port>/api/v1/events
 # Dev: 6666, Staging: 7777, Prod: 8888
 ```
 
@@ -196,22 +236,25 @@ mongoose models created
 
 ### 6. Check image was pushed to Docker Hub
 
-Visit `https://hub.docker.com/r/iuga/iuga-web-app-<env>/tags` and confirm the latest tag has the expected build timestamp.
+Visit `https://hub.docker.com/r/iuga/iuga-web-app-<env>/tags` and confirm a tag for the latest `BUILD_NUMBER` exists. After a successful deploy, the matching `last-good` tag is also updated — that tag always points at the last build that passed the health check.
 
 ---
 
 ## Rollback
 
-This repo does not define an automated rollback mechanism. To roll back:
+The pipeline now deploys with an **automated health gate**, so a broken build does not take the site down:
 
-1. Identify the previous working image tag on Docker Hub.
-2. On the production host, pull and run the old image:
-   ```bash
-   docker pull iuga/iuga-web-app-<env>:<previous-tag>
-   docker rm -f iuga-web-<env>
-   docker run ... iuga/iuga-web-app-<env>:<previous-tag>
-   ```
-3. (If appropriate) revert the Git commit and re-run the pipeline.
+1. **Before switchover:** the new build starts as a candidate on a temp port and is health-checked against `GET /api/v1/events` (up to 90s). If it fails, the candidate is removed, the old container keeps serving, and the pipeline fails — **no action needed**.
+2. **After switchover:** the promoted container is re-checked on the live port (up to 30s). If it fails, the pipeline automatically rolls back to the `:last-good` image (the last build that passed the health check) and reports failure.
+3. **Immutable images:** every build is tagged with its Jenkins `BUILD_NUMBER`, so the previous working image is always available on Docker Hub.
+
+### Manual rollback (if ever needed)
+
+```bash
+docker pull iuga/iuga-web-app-<env>:last-good
+docker rm -f iuga-web-<env>
+docker run ... iuga/iuga-web-app-<env>:last-good
+```
 
 ---
 

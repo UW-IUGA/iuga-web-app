@@ -9,8 +9,9 @@ void setBuildStatus(String credential_id, String context, String state, String m
 
 pipeline {
   agent any
-
-
+  options {
+    disableConcurrentBuilds()
+  }
   stages {
     stage('Checkout') {
       steps {

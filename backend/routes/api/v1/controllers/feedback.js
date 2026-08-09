@@ -5,9 +5,10 @@ Schema addressed in feedback.js:
 - Feedback
 */
 
-import express from 'express';
-import { sendError } from '../helpers/sendError.js';
-import { sendSuccess } from '../helpers/sendSuccess.js';
+import express from "express";
+import { sendError } from "../helpers/sendError.js";
+import { sendSuccess } from "../helpers/sendSuccess.js";
+import mongoose from "mongoose";
 
 var router = express.Router();
 
@@ -20,29 +21,34 @@ Needed Info:
 Assumed req variables (Will need to check back with frontend for what is sent in):
 - "fID", this is the feedback form ID requested from the database.
 */
-router.get('/', async (req,res) => {
-    try {
-        //Find the requested feedbackform based on the given req data.
-        const rawForm = await req.models.Feedback.findById(req.query.fID);
-
-        //Package up all the data from the feedback form
-        const feedbackForm = {
-            fId: rawForm._id,
-            fUID: rawForm.fUID,
-            fType: rawForm.fType,
-            fTopic: rawForm.fTopic,
-            fDescription: rawForm.fDescription
-        } //The keys are what the client use to access the accompanying value.
-
-        //Send the data back in one json object.
-        res.json(feedbackForm)
-
-    } catch(error) {
-        console.log(error);
-        return sendError(res, 500);
+router.get("/", async (req, res) => {
+  try {
+    const fID = req.query.fID;
+    if (!fID || !mongoose.isValidObjectId(fID)) {
+      return sendError(res, 400, "Invalid feedback ID");
+    }
+    //Find the requested feedbackform based on the given req data.
+    const rawForm = await req.models.Feedback.findById(fID);
+    if (!rawForm) {
+      return sendError(res, 404, "Feedback not found");
     }
 
-})
+    //Package up all the data from the feedback form
+    const feedbackForm = {
+      fId: rawForm._id,
+      fUID: rawForm.fUID,
+      fType: rawForm.fType,
+      fTopic: rawForm.fTopic,
+      fDescription: rawForm.fDescription,
+    },
+
+    //Send the data back in one json object.
+    res.json(feedbackForm);
+  } catch (error) {
+    console.log(error);
+    return sendError(res, 500);
+  }
+});
 
 /*
 Purpose: Save a new feedback form to the database
@@ -57,50 +63,52 @@ Assumed req variables (Will need to check back with frontend for what is sent in
 - fTopic
 - fDescription
 */
-router.post('/', async (req,res) => {
-    try {
-        //Fit the new feedback data into a new Feedback Schema Object
-        const newFeedback = new req.models.Feedback({
-            fUID: req.body.fUID,
-            fType: req.body.fType,
-            fTopic: req.body.fTopic,
-            fDescription: req.body.fDescription
-        })
-        
-        //Save the new Feedback object into the database.
-        await newFeedback.save();
+router.post("/", async (req, res) => {
+  if (!req.session.isAuthenticated) {
+    return sendError(res, 401, "User is not authenticated");
+  }
+  try {
+    //Fit the new feedback data into a new Feedback Schema Object
+    const newFeedback = new req.models.Feedback({
+      fUID: req.session.userId, // Identity from the session
+      fType: req.body.fType,
+      fTopic: req.body.fTopic,
+      fDescription: req.body.fDescription,
+    });
 
-        //Give the client a proper reply saying it went well.
-        return sendSuccess(res);
+    //Save the new Feedback object into the database.
+    await newFeedback.save();
 
-    } catch(error) {
-        console.log(error);
-        return sendError(res, 500);
-    }
-})
+    //Give the client a proper reply saying it went well.
+    return sendSuccess(res);
+  } catch (error) {
+    console.log(error);
+    return sendError(res, 500);
+  }
+});
 
 /*
 Purpose: Delete a feedback form from the database
 
-Needed info: 
+Needed info:
 - What fields should be a factor in what is deleted, besides the feedback id?
 - Do we want to delete multiple at a time or just one at a time?
 
 Assumed req variables (Will need to check back with frontend for what is sent in):
 - fID
 */
-router.delete('/', async (req,res) => {
-    try{
-        //Delete the given feedback form        
-        await req.models.Feedback.deleteOne({ _id:fID});
-        
-        //Tell the client it worked
-        return sendSuccess(res);
+router.delete("/", async (req, res) => {
+  const fID = req.query.fID;
+  try {
+    //Delete the given feedback form
+    await req.models.Feedback.deleteOne({ _id: fID });
+    //Tell the client it worked
+    return sendSuccess(res);
+  } catch (error) {
+    console.log(error);
+    return sendError(res, 500);
+  }
+});
 
-    } catch(error){
-        console.log(error);
-        return sendError(res, 500);
-    }
-})
+export default router;
 
-export default router

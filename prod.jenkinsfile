@@ -53,13 +53,13 @@ pipeline {
                 sh 'docker pull iuga/iuga-web-app-production'
                 sh 'docker rm -f iuga-web-prod || true'
                 withCredentials([
-                    string(credentialsId: 'prodDBUri', variable: 'DB_PROD_URI'),
+                    string(credentialsId: 'devDBUri', variable: 'DB_URI'),
                     string(credentialsId: 'SESSION_SECRET', variable: 'SESSION_SECRET'),
                 ]) {
                     sh '''
                     docker run -d -p "127.0.0.1:8888:7777" --name iuga-web-prod \
                     -e DEPLOY_ENV=production \
-                    -e DB_PROD_URI="$DB_PROD_URI" \
+                    -e DB_URI="$DB_URI" \
                     -e SESSION_SECRET="$SESSION_SECRET" \
                     -v /var/lib/iuga-web-app/uploads/prod:/app/backend/public/uploads \
                     --network iuga-server-config_default \

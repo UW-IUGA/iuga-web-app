@@ -48,12 +48,19 @@ describe("GetInvolvedPage", () => {
         expect(officerNames).toEqual(approvedNames);
     });
 
-    test("officers without photos render the default icon and Yonie renders the provided photo", () => {
-        render(<GetInvolvedPage teams={iugaTeams} />);
-        expect(screen.getByLabelText("Ellie Marsh photo unavailable")).toBeInTheDocument();
-        expect(screen.getByLabelText("Nitya Shankar photo unavailable")).toBeInTheDocument();
-        expect(screen.getByLabelText("Dia Dora photo unavailable")).toBeInTheDocument();
-        expect(screen.getByRole("img", { name: "Yonie Rivera" })).toBeInTheDocument();
+    test("members without a photo render the fallback placeholder; members with one render the image", () => {
+        const fakeTeams = {
+            2026: {
+                [groupType.OFFICERS]: [
+                    { name: "Fabricated Student", position: "President", picture: null, socials: null },
+                    { name: "Fabricated Photographer", position: "Co-President", picture: "fabricated.jpg", socials: null },
+                ],
+            },
+        };
+        render(<GetInvolvedPage teams={fakeTeams} />);
+        expect(screen.getByLabelText("Fabricated Student photo unavailable")).toBeInTheDocument();
+        expect(screen.queryByRole("img", { name: "Fabricated Student" })).not.toBeInTheDocument();
+        expect(screen.getByRole("img", { name: "Fabricated Photographer" })).toHaveAttribute("src", "fabricated.jpg");
     });
 
     test("returning officers render their photos with name-based alt text", () => {

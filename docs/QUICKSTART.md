@@ -89,8 +89,7 @@ Required variables (see `.env.example`):
 | `PORT` | Server port (default 7777) |
 | `DEPLOY_ENV` | `development`, `staging`, or `production` |
 | `SESSION_SECRET` | Strong random string for session signing |
-| `DB_DEV_URI` | Full MongoDB Atlas connection string (dev), e.g. `mongodb+srv://<user>:<pass>@cluster...` |
-| `DB_PROD_URI` | Full MongoDB connection string (prod/staging), e.g. `mongodb://<user>:<pass>@mongo:27017/iuga` |
+| `DB_URI` | Full MongoDB connection string, e.g. `mongodb://<user>:<pass>@mongo:27017/iuga` (local dev: `mongodb://127.0.0.1:27017/iuga`) |
 
 ### Debug backend setup (optional)
 

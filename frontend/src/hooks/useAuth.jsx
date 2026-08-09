@@ -41,7 +41,7 @@ const useAuth = () => {
 
 const sendTokenToBackend = async (accessToken) => {
   try {
-    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/v1/user/login`, {
+    const response = await fetch('/api/v1/user/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

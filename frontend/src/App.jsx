@@ -24,7 +24,7 @@ function App() {
 
     useEffect(() => {
         if (process.env.NODE_ENV === "production") {
-            fetch(`${process.env.REACT_APP_API_URL}/api/v1/events/upcoming`, {
+            fetch('/api/v1/events/upcoming', {
                 method: "GET",
             })
                 .then((res) => res.json())

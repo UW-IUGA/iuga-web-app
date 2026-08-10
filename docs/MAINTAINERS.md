@@ -49,7 +49,7 @@ Look for:
 ```bash
 for port in 6666 7777 8888; do
   echo -n "localhost:$port → "
-  curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:$port/
+  curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:$port/readyz
   echo
 done
 ```

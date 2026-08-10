@@ -10,7 +10,7 @@ Authentication/Authorization Requirements: N/A (Jenkins job, triggered by GitHub
 Expected Request Information:
 - SCM: multibranch `checkout scm` with submodules initialized in the Checkout stage
 - Credentials used (Configure Jenkins > Credentials): dockerhub (image push),
-  devDBUri → DB_URI, SESSION_SECRET (runtime env vars)
+  DB_URI, SESSION_SECRET (runtime env vars)
 - cfg (Map): per-environment values passed to the shared deploy helpers
 
 Expected Response Information:
@@ -78,7 +78,7 @@ pipeline {
             steps {
                 setBuildStatus('github_classic','iuga/jenkins/cicd/staging','pending','Deploying application...')
                 withCredentials([
-                  string(credentialsId: 'devDBUri', variable: 'DB_URI'),
+                  string(credentialsId: 'DB_URI', variable: 'DB_URI'),
                   string(credentialsId: 'SESSION_SECRET', variable: 'SESSION_SECRET'),
                 ]) {
                     script { deploy.healthGatedDeploy(cfg) }

@@ -37,7 +37,7 @@ Every environment (dev, staging, production) follows the same five-stage pipelin
 - **Host port:** `6666` → container port `7777`
 - **Network:** None (default bridge)
 - **Volume:** `/var/lib/iuga-web-app/uploads/dev:/app/backend/public/uploads`
-- **DB credentials:** `devDBUri` (Jenkins string credential → `DB_URI`), `SESSION_SECRET` (string credential)
+- **DB credentials:** `DB_URI` (Jenkins Secret text credential, injected as `DB_URI` env var), `SESSION_SECRET` (string credential)
 - **Database:** MongoDB Atlas (dev database)
 - **Deploy pattern:** health-gated candidate swap; temp port `6667` → live port `6666`; tags images `:${BUILD_NUMBER}` and `:last-good`
 - **Commit status context:** `iuga/jenkins/cicd/dev`
@@ -50,7 +50,7 @@ Every environment (dev, staging, production) follows the same five-stage pipelin
 - **Host port:** `7777` → container port `7777`
 - **Network:** `iuga-server-config_default`
 - **Volume:** `/var/lib/iuga-web-app/uploads/staging:/app/backend/public/uploads`
-- **DB credentials:** `devDBUri` (Jenkins string credential → `DB_URI`), `SESSION_SECRET` (string credential)
+- **DB credentials:** `DB_URI` (Jenkins Secret text credential, injected as `DB_URI` env var), `SESSION_SECRET` (string credential)
 - **Database:** MongoDB container at `mongo:27017` (via `iuga-server-config_default` network)
 - **Deploy pattern:** health-gated candidate swap; temp port `7778` → live port `7777`; tags images `:${BUILD_NUMBER}` and `:last-good`
 - **Commit status context:** `iuga/jenkins/cicd/staging`
@@ -62,7 +62,7 @@ Every environment (dev, staging, production) follows the same five-stage pipelin
 - **Host port:** `8888` → container port `7777`
 - **Network:** `iuga-server-config_default`
 - **Volume:** `/var/lib/iuga-web-app/uploads/prod:/app/backend/public/uploads`
-- **DB credentials:** `devDBUri` (Jenkins string credential → `DB_URI`), `SESSION_SECRET` (string credential)
+- **DB credentials:** `DB_URI` (Jenkins Secret text credential, injected as `DB_URI` env var), `SESSION_SECRET` (string credential)
 - **Database:** MongoDB container at `mongo:27017` (via `iuga-server-config_default` network)
 - **Deploy pattern:** health-gated candidate swap; temp port `8889` → live port `8888`; tags images `:${BUILD_NUMBER}` and `:last-good`
 - **Commit status context:** `iuga/jenkins/cicd/prod`
@@ -77,7 +77,7 @@ Jenkins requires these credential IDs (values are **not** in this repository):
 |---|---|---|
 | `github_classic` | Username+Password | GitHub API authentication for checkout and commit status updates |
 | `dockerhub` | Username+Password | Docker Hub login for image push |
-| `devDBUri` | String | MongoDB connection URI (injected as `DB_URI` env var) for all environments |
+| `DB_URI` | Secret text | Jenkins credential holding the MongoDB connection URI; injected into the app as the `DB_URI` env var for all environments |
 | `SESSION_SECRET` | String | Session signing secret for all environments |
 
 ---

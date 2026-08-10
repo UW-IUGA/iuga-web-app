@@ -163,7 +163,7 @@ Credentials are stored in Jenkins. This repository references them by ID only.
 |---|---|---|
 | `github_classic` | Per GitHub token expiry | [Team lead / IT] — *Escalate to fill* |
 | `dockerhub` | Per Docker Hub policy | [Team lead / IT] — *Escalate to fill* |
-| `devDBUri` | As needed | [Database admin] — *Escalate to fill* |
+| `DB_URI` | As needed | [Database admin] — *Escalate to fill* |
 | `SESSION_SECRET` | As needed | [Team lead / IT] — *Escalate to fill* |
 
 When rotating, update the credential in Jenkins directly. No application code changes are needed.

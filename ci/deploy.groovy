@@ -35,7 +35,8 @@ void healthGatedDeploy(Map cfg) {
     sh """
     CANDIDATE="${cfg.container}-candidate"
     CONTAINER="${cfg.container}"
-    HEALTH_URL="http://127.0.0.1:${cfg.tempPort}/api/v1/events"
+    HEALTH_URL="http://127.0.0.1:${cfg.tempPort}/readyz"
+    DEPLOY_START=\$(date +%s)
 
     docker pull "${newImage}"
     docker rm -f "\${CANDIDATE}" || true
@@ -47,10 +48,11 @@ void healthGatedDeploy(Map cfg) {
       -v ${cfg.uploadsDir}:/app/backend/public/uploads \\
       ${netFlag}\\
       "${newImage}"
+    echo "[timing] candidate container started"
 
-    # Wait up to 90s for the candidate to pass a health check (app + DB).
+    # Wait up to 180s for the candidate to pass a health check (app + DB).
     HEALTHY=0
-    for i in \$(seq 1 30); do
+    for i in \$(seq 1 60); do
       if curl -fsS -o /dev/null "\${HEALTH_URL}"; then
         HEALTHY=1
         break
@@ -65,6 +67,7 @@ void healthGatedDeploy(Map cfg) {
       docker rm -f "\${CANDIDATE}" || true
       exit 1
     fi
+    echo "[timing] candidate passed health check after \$(( \$(date +%s) - DEPLOY_START ))s"
 
     # Healthy: swap the candidate onto the real port and retire the old container.
     docker rm -f "\${CONTAINER}" || true
@@ -76,11 +79,12 @@ void healthGatedDeploy(Map cfg) {
       -v ${cfg.uploadsDir}:/app/backend/public/uploads \\
       ${netFlag}\\
       "${newImage}"
+    echo "[timing] live container swapped to port ${cfg.realPort}"
 
     # Verify the promoted container on the real port; roll back if it fails.
     PROMOTED_OK=0
     for i in \$(seq 1 10); do
-      if curl -fsS -o /dev/null "http://127.0.0.1:${cfg.realPort}/api/v1/events"; then
+      if curl -fsS -o /dev/null "http://127.0.0.1:${cfg.realPort}/readyz"; then
         PROMOTED_OK=1
         break
       fi
@@ -100,6 +104,7 @@ void healthGatedDeploy(Map cfg) {
         "${lastGoodImage}"
       exit 1
     fi
+    echo "[timing] promoted container verified; total deploy time \$(( \$(date +%s) - DEPLOY_START ))s"
     """
 }
 

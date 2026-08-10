@@ -15,7 +15,7 @@ Every environment (dev, staging, production) follows the same five-stage pipelin
 | Checkout | Jenkins clones `github.com/UW-IUGA/iuga-web-app` (dev & prod use explicit branches; staging uses `checkout scm`) with submodules using the `github_classic` credential. | Jenkins |
 | Build | `docker build` with `--build-arg DEPLOY_ENV` selects the target environment's API URL via sed transforms in the Dockerfile. | Jenkins |
 | Push to Registry | `docker push` to Docker Hub after authenticating with the `dockerhub` credential. | Docker Hub |
-| Deploy | `docker pull`, start the new build as a candidate on a temp port, health-check it (`/api/v1/events`), then swap onto the live port only if healthy. **A broken build never takes the site down** — the previous working container keeps serving and the pipeline fails. | Production host |
+| Deploy | `docker pull`, start the new build as a candidate on a temp port, health-check it (`/readyz`), then swap onto the live port only if healthy. **A broken build never takes the site down** — the previous working container keeps serving and the pipeline fails. | Production host |
 | Status report | Jenkins posts a commit status to GitHub (`iuga/jenkins/cicd/<env>`). | Jenkins |
 
 ### Trigger
@@ -145,7 +145,7 @@ Every deploy follows this flow per environment. The previous working container i
                        └───────────────────────────┬────────────────────────────┘
                                                    ▼
                        ┌────────────────────────────────────────────────────────┐
-                       │ 3. Health check  GET /api/v1/events  (up to 90s)      │
+                       │ 3. Health check  GET /readyz  (up to 180s)             │
                        └──────────┬─────────────────────────────┬───────────────┘
                                   │ healthy (200)               │ failure
                                   ▼                             ▼
@@ -206,7 +206,7 @@ Expected output: `STATUS Up <time>`, port mapping matches the table above.
 
 ```bash
 # From the host
-curl -s -o /dev/null -w "%{http_code}" http://localhost:<port>/api/v1/events
+curl -s -o /dev/null -w "%{http_code}" http://localhost:<port>/readyz
 # Dev: 6666, Staging: 7777, Prod: 8888
 ```
 
@@ -228,10 +228,10 @@ docker logs iuga-web-<env> --tail 50
 
 Expected: The last lines should show:
 ```
-Listening at 0.0.0.0:7777
-connecting to <prod|dev> database
-successfully connected to <prod|dev> mongodb
-mongoose models created
+[startup] connecting to mongodb at <ISO timestamp>
+[startup] successfully connected to mongodb after <N>ms
+[startup] mongoose models created after <N>ms
+[startup] Listening at 0.0.0.0:7777 after <N>ms
 ```
 
 ### 6. Check image was pushed to Docker Hub
@@ -244,7 +244,7 @@ Visit `https://hub.docker.com/r/iuga/iuga-web-app-<env>/tags` and confirm a tag 
 
 The pipeline now deploys with an **automated health gate**, so a broken build does not take the site down:
 
-1. **Before switchover:** the new build starts as a candidate on a temp port and is health-checked against `GET /api/v1/events` (up to 90s). If it fails, the candidate is removed, the old container keeps serving, and the pipeline fails — **no action needed**.
+1. **Before switchover:** the new build starts as a candidate on a temp port and is health-checked against `GET /readyz` (up to 180s). If it fails, the candidate is removed, the old container keeps serving, and the pipeline fails — **no action needed**.
 2. **After switchover:** the promoted container is re-checked on the live port (up to 30s). If it fails, the pipeline automatically rolls back to the `:last-good` image (the last build that passed the health check) and reports failure.
 3. **Immutable images:** every build is tagged with its Jenkins `BUILD_NUMBER`, so the previous working image is always available on Docker Hub.
 

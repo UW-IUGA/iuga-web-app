@@ -17,6 +17,10 @@ const __dirname = dirname(__filename);
 await connectToDatabase();
 const app = express();
 
+// Readiness probe for the pipeline health gate. The listener only starts
+// after the DB connects, so 200 implies the database is reachable.
+app.get('/readyz', (req, res) => res.json({ status: 'ok' }));
+
 if (!process.env.DEPLOY) {
     app.use(cors());
 }

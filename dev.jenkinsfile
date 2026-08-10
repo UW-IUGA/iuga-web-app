@@ -69,7 +69,7 @@ pipeline {
         stage('Build') {
             steps {
                 setBuildStatus("github_classic", "iuga/jenkins/cicd/dev", "pending", "Building application...");
-                deploy.buildImage(cfg)
+                script { deploy.buildImage(cfg) }
             }
         }
         stage('Push to Registry') {
@@ -77,7 +77,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                     sh 'docker login -u $USERNAME -p $PASSWORD'
                 }
-                deploy.pushImage(cfg)
+                script { deploy.pushImage(cfg) }
             }
         }
         stage('Deploy') {
@@ -87,11 +87,11 @@ pipeline {
                     string(credentialsId: 'devDBUri', variable: 'DB_URI'),
                     string(credentialsId: 'SESSION_SECRET', variable: 'SESSION_SECRET'),
                 ]) {
-                    deploy.healthGatedDeploy(cfg)
+                    script { deploy.healthGatedDeploy(cfg) }
                 }
                 // Record this build as the known-good image, available for future rollbacks.
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                    deploy.tagLastGood(cfg)
+                    script { deploy.tagLastGood(cfg) }
                 }
             }
         }

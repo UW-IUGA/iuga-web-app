@@ -17,7 +17,9 @@ Expected Response Information:
 */
 
 // Shared Docker build/push/deploy helpers, defined once in ci/deploy.groovy.
-def deploy = load 'ci/deploy.groovy'
+// Loaded inside the Checkout stage below: `load` needs a workspace context, which
+// only exists inside a stage (top-level load fails with MissingContextVariableException).
+def deploy = null
 
 // Per-environment config consumed by the shared helpers in ci/deploy.groovy.
 def cfg = [
@@ -59,6 +61,8 @@ pipeline {
                         url: 'https://github.com/UW-IUGA/iuga-web-app.git'
                     ]]
                 ])
+                // load needs a workspace; the file is only present after checkout
+                script { deploy = load 'ci/deploy.groovy' }
             }
         }
         stage('Initialize Submodules') {

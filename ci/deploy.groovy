@@ -60,6 +60,8 @@ void healthGatedDeploy(Map cfg) {
 
     if [ "\${HEALTHY}" != "1" ]; then
       echo "New build failed health check. Keeping the previous working build."
+      echo "Candidate container logs (last 100 lines):"
+      docker logs --tail 100 "\${CANDIDATE}" || true
       docker rm -f "\${CANDIDATE}" || true
       exit 1
     fi

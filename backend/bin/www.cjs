@@ -7,6 +7,7 @@ var debug = require('debug')('vulnalert:server');
 var http = require('http');
 
 const DEFAULT_PORT = '7777';
+const startupStartedAt = Date.now();
 
 (async () => {
   const app = await (await import('../app.js')).default;
@@ -91,7 +92,7 @@ const DEFAULT_PORT = '7777';
     let port = process.env.PORT ? process.env.PORT : DEFAULT_PORT;
 
     if (!process.env.DEBUG) {
-      console.log('Listening at ' + host + ":" + port);
+      console.log(`[startup] Listening at ${host}:${port} after ${Date.now() - startupStartedAt}ms`);
     } else {
       debug('Listening at ' + host + ":" + port);
     }

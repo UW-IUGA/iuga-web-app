@@ -126,7 +126,7 @@ Verify that files are accessible and not accumulating unexpectedly.
 ### 2.4 Check MongoDB connectivity (from inside the container)
 
 ```bash
-docker exec iuga-web-<env> node -e "
+docker exec iuga-web-<env> node --input-type=commonjs -e "
   const mongoose = require('mongoose');
   mongoose.connect('mongodb://...').then(() => {
     console.log('OK');
@@ -138,7 +138,7 @@ docker exec iuga-web-<env> node -e "
 "
 ```
 
-> **Note:** Replace the connection string with the actual URI (prod uses `mongo:27017`, dev uses Atlas). Run this only during incident response.
+> **Note:** The backend is ES modules, so the `--input-type=commonjs` flag is required to use `require()` in this snippet. Replace the connection string with the actual URI (prod uses `mongo:27017`, dev uses Atlas). Run this only during incident response.
 
 ---
 

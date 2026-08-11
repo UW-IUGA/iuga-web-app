@@ -35,25 +35,33 @@ void healthGatedDeploy(Map cfg) {
     sh """
     CANDIDATE="${cfg.container}-candidate"
     CONTAINER="${cfg.container}"
-    HEALTH_URL="http://127.0.0.1:${cfg.tempPort}/readyz"
     DEPLOY_START=\$(date +%s)
+
+    # Exit 0 when the app inside the container answers /readyz on its own port.
+    health_check() {
+      docker exec "\$1" node -e 'fetch("http://127.0.0.1:7777/readyz").then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))'
+    }
+
+    # Start an app container on a loopback-only host port.
+    run_app() {
+      docker run -d --name "\$1" -p "127.0.0.1:\$2:7777" \\
+        -e DEPLOY_ENV=${cfg.deployEnv} \\
+        -e DB_URI="\$DB_URI" \\
+        -e SESSION_SECRET="\$SESSION_SECRET" \\
+        -v ${cfg.uploadsDir}:/app/backend/public/uploads \\
+        ${netFlag}\\
+        "\$3"
+    }
 
     docker pull "${newImage}"
     docker rm -f "\${CANDIDATE}" || true
-    docker run -d --name "\${CANDIDATE}" \\
-      -p "127.0.0.1:${cfg.tempPort}:7777" \\
-      -e DEPLOY_ENV=${cfg.deployEnv} \\
-      -e DB_URI="\$DB_URI" \\
-      -e SESSION_SECRET="\$SESSION_SECRET" \\
-      -v ${cfg.uploadsDir}:/app/backend/public/uploads \\
-      ${netFlag}\\
-      "${newImage}"
+    run_app "\${CANDIDATE}" ${cfg.tempPort} "${newImage}"
     echo "[timing] candidate container started"
 
     # Wait up to 180s for the candidate to pass a health check (app + DB).
     HEALTHY=0
     for i in \$(seq 1 60); do
-      if curl -fsS -o /dev/null "\${HEALTH_URL}"; then
+      if health_check "\${CANDIDATE}"; then
         HEALTHY=1
         break
       fi
@@ -72,19 +80,13 @@ void healthGatedDeploy(Map cfg) {
     # Healthy: swap the candidate onto the real port and retire the old container.
     docker rm -f "\${CONTAINER}" || true
     docker rm -f "\${CANDIDATE}"
-    docker run -d -p "127.0.0.1:${cfg.realPort}:7777" --name "\${CONTAINER}" \\
-      -e DEPLOY_ENV=${cfg.deployEnv} \\
-      -e DB_URI="\$DB_URI" \\
-      -e SESSION_SECRET="\$SESSION_SECRET" \\
-      -v ${cfg.uploadsDir}:/app/backend/public/uploads \\
-      ${netFlag}\\
-      "${newImage}"
+    run_app "\${CONTAINER}" ${cfg.realPort} "${newImage}"
     echo "[timing] live container swapped to port ${cfg.realPort}"
 
-    # Verify the promoted container on the real port; roll back if it fails.
+    # Verify the promoted container; roll back to last-good if it fails.
     PROMOTED_OK=0
     for i in \$(seq 1 10); do
-      if curl -fsS -o /dev/null "http://127.0.0.1:${cfg.realPort}/readyz"; then
+      if health_check "\${CONTAINER}"; then
         PROMOTED_OK=1
         break
       fi
@@ -95,13 +97,7 @@ void healthGatedDeploy(Map cfg) {
       echo "Promoted build failed verification. Rolling back to last-good."
       docker rm -f "\${CONTAINER}" || true
       docker pull "${lastGoodImage}" || true
-      docker run -d -p "127.0.0.1:${cfg.realPort}:7777" --name "\${CONTAINER}" \\
-        -e DEPLOY_ENV=${cfg.deployEnv} \\
-        -e DB_URI="\$DB_URI" \\
-        -e SESSION_SECRET="\$SESSION_SECRET" \\
-        -v ${cfg.uploadsDir}:/app/backend/public/uploads \\
-        ${netFlag}\\
-        "${lastGoodImage}"
+      run_app "\${CONTAINER}" ${cfg.realPort} "${lastGoodImage}"
       exit 1
     fi
     echo "[timing] promoted container verified; total deploy time \$(( \$(date +%s) - DEPLOY_START ))s"

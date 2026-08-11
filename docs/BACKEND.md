@@ -35,10 +35,10 @@ backend/
 │       ├── controllers/
 │       │   ├── user.js           ← Login, logout, user info
 │       │   ├── events.js         ← Event CRUD, RSVP
-│       │   ├── feedback.js       ← Feedback form CRUD (not currently mounted — see Feedback section)
+│       │   ├── feedback.js       ← Feedback form CRUD
 │       │   └── administration.js ← Officer/committee stubs (not currently mounted — see Administration section)
 │       └── utils/
-│           └── auth.js          ← (empty — auth is inline in controllers)
+│           └── auth.js          ← requireAuth / requireAdmin middleware
 ├── env/
 │   ├── .env.example          ← Template for environment files
 │   └── (actual .env.* files are gitignored)
@@ -95,19 +95,15 @@ All API routes are mounted under `/api/v1`. They return JSON.
 
 \* `/login` does not require a session but does require a Bearer token from Microsoft.
 
-### Feedback (`/api/v1/feedback`) — *not currently wired*
+### Feedback (`/api/v1/feedback`)
 
-⚠️ **These endpoints are defined in `controllers/feedback.js` but are NOT imported by `apiv1.js`. All requests to `/api/v1/feedback/*` currently return 404.**
-
-The controller provides full CRUD (no auth required):
+The controller provides CRUD. `POST /` requires a logged-in session (`fUID` comes from the session, not the request body):
 
 | Method | Path | Description |
 |---|---|---|
 | `GET` | `/` | Get a feedback form by `fID` query parameter |
-| `POST` | `/` | Submit a new feedback form. Body: `{ fUID, fType, fTopic, fDescription }` |
+| `POST` | `/` | Submit a new feedback form (requires session). Body: `{ fType, fTopic, fDescription }` — `fUID` comes from the session, not the body |
 | `DELETE` | `/` | Delete a feedback form by `fID` query parameter |
-
-To activate, import and mount `feedbackRouter` in `apiv1.js`.
 
 ### Administration (`/api/v1/administration`) — *not currently wired*
 
@@ -145,7 +141,14 @@ The backend uses **server-side sessions** with `express-session`.
 
 ### Session check
 
-Route handlers check `req.session.isAuthenticated` to determine auth state. There is no dedicated middleware — each controller checks inline.
+`utils/auth.js` provides two Express middlewares that gate routes by session state:
+
+| Middleware | Blocks when | Returns |
+|---|---|---|
+| `requireAuth` | No session (`req.session.isAuthenticated` falsy) | `401` not authenticated |
+| `requireAdmin` | No session, or logged in but not an officer (`req.session.isAdmin` falsy) | `401` not authenticated / `403` not authorized |
+
+Attach them in the route chain, e.g. `router.post("/", requireAuth, handler)` or `router.post("/:id/approve", requireAdmin, handler)`. They run before the route handler; `next()` passes the request through.
 
 ### Session destruction
 
@@ -230,6 +233,7 @@ Note: ETag is **disabled** (`app.disable('etag')`) to ensure clients always get 
 ## Related Documents
 
 - [Architecture Overview](ARCHITECTURE.md) — System components and data flow
+- [Commenting Guide](COMMENTING.md) — House style for code comments
 - [Development Guide](DEVELOPMENT.md) — Setup, scripts, code conventions
 - [Frontend Documentation](FRONTEND.md) — React app structure, routing, auth flow
 - [Deployment Guide](DEPLOYMENT.md) — Environments, CI/CD, Docker

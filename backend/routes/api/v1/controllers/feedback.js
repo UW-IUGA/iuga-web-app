@@ -8,6 +8,7 @@ Schema addressed in feedback.js:
 import express from "express";
 import { sendError } from "../helpers/sendError.js";
 import { sendSuccess } from "../helpers/sendSuccess.js";
+import { requireAuth, requireAdmin } from "../utils/auth.js";
 import mongoose from "mongoose";
 
 var router = express.Router();
@@ -21,7 +22,7 @@ Needed Info:
 Assumed req variables (Will need to check back with frontend for what is sent in):
 - "fID", this is the feedback form ID requested from the database.
 */
-router.get("/", async (req, res) => {
+router.get("/", requireAuth, async (req, res) => {
   try {
     const fID = req.query.fID;
     if (!fID || !mongoose.isValidObjectId(fID)) {
@@ -63,10 +64,7 @@ Assumed req variables (Will need to check back with frontend for what is sent in
 - fTopic
 - fDescription
 */
-router.post("/", async (req, res) => {
-  if (!req.session.isAuthenticated) {
-    return sendError(res, 401, "User is not authenticated");
-  }
+router.post("/", requireAuth, async (req, res) => {
   try {
     //Fit the new feedback data into a new Feedback Schema Object
     const newFeedback = new req.models.Feedback({
@@ -97,7 +95,7 @@ Needed info:
 Assumed req variables (Will need to check back with frontend for what is sent in):
 - fID
 */
-router.delete("/", async (req, res) => {
+router.delete("/", requireAdmin, async (req, res) => {
   const fID = req.query.fID;
   try {
     //Delete the given feedback form

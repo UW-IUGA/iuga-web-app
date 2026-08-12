@@ -37,6 +37,7 @@ backend/
 │       │   ├── events.js         ← Event CRUD, RSVP
 │       │   ├── feedback.js       ← Feedback form CRUD
 │       │   ├── roles.js           ← Role catalog and role-assignment API
+│       │   ├── eventRequests.js   ← Event request workflow and operations API
 │       │   └── administration.js ← Officer/committee stubs (not currently mounted — see Administration section)
 │       └── utils/
 │           └── auth.js          ← requireAuth / requireAdmin / requirePermission middleware
@@ -124,6 +125,30 @@ These endpoints require the `users.roles.manage` permission. They manage role de
 
 Assignment creation validates the target user, role, optional committee, optional reporting user, expiration date, duplicate active assignments, inactive roles, and self-reporting. Assignment creation records `assignedBy` from the authenticated session. Deactivation records `deactivatedBy` and `deactivatedAt` while preserving the assignment record.
 
+### Event administration (`/api/v1/event-requests`)
+
+Officer-only event operations use separate EventRequests records before publishing an Events record. The requesting group is the committee, student organization, or IUGA group asking to run the event; it is not the authenticated requester. All actor fields come from the authenticated session. Leadership actions require `events.leadership.approve`; budget changes require `events.finance.manage`; purchase checkpoint changes require `events.purchases.complete`.
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/` | Submit an event request. Requester and organizer come from the session. |
+| `PATCH` | `/:id` | Resubmit a request after leadership requests changes; only its requester may edit it. |
+| `GET` | `/templates/slides` | Return configured OneDrive slide templates from `EVENT_SLIDE_TEMPLATES`. |
+| `GET` | `/mine` | List requests submitted by the current officer. |
+| `GET` | `/` | List officer requests, optionally filtered by `status` or `requesterId`. |
+| `GET` | `/:id` | Read one request and its checkpoints. |
+| `POST` | `/:id/request-changes` | Leadership returns a request with a required reason. |
+| `POST` | `/:id/deny` | Leadership denies a request with a required reason. |
+| `POST` | `/:id/approve` | Leadership approves and publishes an Events record; this completes the `proposal` checkpoint. |
+| `PATCH` | `/:id/checklist/:step` | Update an independent checkpoint. The sequence is `proposal`, `meeting`, `finance`, `room`, `marketing`, `purchases`, `completion`, `review`. |
+| `PATCH` | `/:id/budget` | Finance records allocated and actual cents. |
+| `PATCH` | `/:id/booking` | Record room booking details and actor audit fields. |
+| `PATCH` | `/:id/review-tracking` | Store the external OneDrive/Microsoft Forms review link and manually record receipt. |
+| `POST` | `/:id/reviews` | Submit an organizer or distinct-member post-event review. |
+| `GET` | `/:id/reviews` | List post-event reviews. |
+| `POST` | `/:id/complete` | Close an approved request after all checkpoints and both reviews are complete. |
+Money is displayed as dollars and cents in the UI, then converted to an integer number of cents before the API call. For example, `$125.50` becomes `{ "allocatedCents": 12550 }`; the backend never stores floating-point currency.
+
 ### Administration (`/api/v1/administration`) — *not currently wired*
 
 ⚠️ **These endpoints are defined in `controllers/administration.js` but are NOT imported by `apiv1.js`. All requests to `/api/v1/administration/*` currently return 404.**
@@ -206,6 +231,8 @@ Mongoose models are registered at startup:
 | `Users` | `usersSchema` | `users` |
 | `Roles` | `rolesSchema` | `roles` |
 | `RoleAssignments` | `roleAssignmentsSchema` | `roleassignments` |
+| `EventRequests` | `eventRequestsSchema` | `eventrequests` |
+| `EventReviews` | `eventReviewsSchema` | `eventreviews` |
 
 The schemas live in a **separate GitHub repository** (`UW-IUGA/iuga-web-schemas`) mounted as a submodule at `backend/schemas/`. If the submodule is not initialized, the backend will fail to start.
 
@@ -222,6 +249,10 @@ Based on controller usage, the schemas include these fields:
 **Roles**: `roleName`, `roleKey`, `roleDescription`, `permissions`, `isActive`, `createdBy`, `updatedBy`
 
 **RoleAssignments**: `userId`, `roleId`, optional `committeeId`, optional `reportsToUserId`, `assignedBy`, `assignedAt`, optional `expiresAt`, `deactivatedBy`, `deactivatedAt`, `isActive`
+
+**EventRequests**: session-derived requester/organizer, requesting group, event details, lifecycle status, ordered checkpoints, finance and booking data, selected slide template, external review link/receipt, published event link, and actor/timestamp audit fields.
+
+**EventReviews**: request id, session-derived reviewer, enforced `organizer` or `member` role, review responses, attendee count, and integer-cent total spend.
 
 ---
 

@@ -1,8 +1,7 @@
-import { describe, it } from "node:test";
+import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
-import express from "express";
-import { once } from "node:events";
 import rolesRouter from "../routes/api/v1/controllers/roles.js";
+import { makeTestApi } from "./testApi.js";
 
 const userId = "507f1f77bcf86cd799439011";
 const roleId = "507f1f77bcf86cd799439012";
@@ -50,39 +49,27 @@ function makeModels({
   };
 }
 
-async function request(method, path, body, models = makeModels()) {
-  const app = express();
-  app.use(express.json());
-  app.use((req, _res, next) => {
-    req.models = models;
-    req.session = {
-      isAuthenticated: true,
-      isAdmin: true,
-      userId: "507f1f77bcf86cd799439014",
-    };
-    next();
-  });
-  app.use("/api/v1/roles", rolesRouter);
-
-  const server = app.listen(0);
-  await once(server, "listening");
-  const { port } = server.address();
-
-  try {
-    const response = await fetch(`http://127.0.0.1:${port}${path}`, {
-      method,
-      headers: { "content-type": "application/json" },
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    return { status: response.status, body: await response.json() };
-  } finally {
-    server.close();
-  }
-}
-
 describe("role assignment API", () => {
+  let api;
+
+  before(async () => {
+    api = await makeTestApi({
+      router: rolesRouter,
+      mountPath: "/api/v1/roles",
+      models: makeModels(),
+      session: {
+        isAuthenticated: true,
+        isAdmin: true,
+        userId: "507f1f77bcf86cd799439014",
+      },
+    });
+  });
+
+  after(async () => {
+    await api.close();
+  });
   it("creates an assignment for an existing user and active role", async () => {
-    const result = await request(
+    const result = await api.request(
       "POST",
       `/api/v1/roles/users/${userId}/assignments`,
       { roleId },
@@ -97,7 +84,7 @@ describe("role assignment API", () => {
   });
 
   it("rejects a malformed target user ID", async () => {
-    const result = await request(
+    const result = await api.request(
       "POST",
       "/api/v1/roles/users/not-an-object-id/assignments",
       { roleId },
@@ -108,7 +95,7 @@ describe("role assignment API", () => {
   });
 
   it("rejects an assignment without a role ID", async () => {
-    const result = await request(
+    const result = await api.request(
       "POST",
       `/api/v1/roles/users/${userId}/assignments`,
       {},
@@ -119,11 +106,11 @@ describe("role assignment API", () => {
   });
 
   it("rejects a duplicate active role assignment", async () => {
-    const result = await request(
+    const result = await api.request(
       "POST",
       `/api/v1/roles/users/${userId}/assignments`,
       { roleId },
-      makeModels({ existingAssignment: { _id: assignmentId } }),
+      { models: makeModels({ existingAssignment: { _id: assignmentId } }) },
     );
 
     assert.equal(result.status, 409);
@@ -131,11 +118,11 @@ describe("role assignment API", () => {
   });
 
   it("rejects an inactive role", async () => {
-    const result = await request(
+    const result = await api.request(
       "POST",
       `/api/v1/roles/users/${userId}/assignments`,
       { roleId },
-      makeModels({ roleActive: false }),
+      { models: makeModels({ roleActive: false }) },
     );
 
     assert.equal(result.status, 409);
@@ -143,7 +130,7 @@ describe("role assignment API", () => {
   });
 
   it("rejects a user reporting to themselves", async () => {
-    const result = await request(
+    const result = await api.request(
       "POST",
       `/api/v1/roles/users/${userId}/assignments`,
       { roleId, reportsToUserId: userId },
@@ -155,11 +142,11 @@ describe("role assignment API", () => {
 
   it("deactivates an assignment and records the revoking actor", async () => {
     const revokedAt = "2026-08-12T00:00:00.000Z";
-    const result = await request(
+    const result = await api.request(
       "DELETE",
       `/api/v1/roles/users/${userId}/assignments/${assignmentId}`,
       undefined,
-      makeModels({
+      { models: makeModels({
         updatedAssignment: {
           _id: assignmentId,
           userId,
@@ -167,7 +154,7 @@ describe("role assignment API", () => {
           deactivatedBy: "507f1f77bcf86cd799439014",
           deactivatedAt: revokedAt,
         },
-      }),
+      }) },
     );
 
     assert.equal(result.status, 200);

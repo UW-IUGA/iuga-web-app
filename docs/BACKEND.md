@@ -36,9 +36,10 @@ backend/
 │       │   ├── user.js           ← Login, logout, user info
 │       │   ├── events.js         ← Event CRUD, RSVP
 │       │   ├── feedback.js       ← Feedback form CRUD
+│       │   ├── roles.js           ← Role catalog and role-assignment API
 │       │   └── administration.js ← Officer/committee stubs (not currently mounted — see Administration section)
 │       └── utils/
-│           └── auth.js          ← requireAuth / requireAdmin middleware
+│           └── auth.js          ← requireAuth / requireAdmin / requirePermission middleware
 ├── env/
 │   ├── .env.example          ← Template for environment files
 │   └── (actual .env.* files are gitignored)
@@ -105,6 +106,24 @@ The controller provides CRUD. `POST /` requires a logged-in session (`fUID` come
 | `POST` | `/` | Submit a new feedback form (requires session). Body: `{ fType, fTopic, fDescription }` — `fUID` comes from the session, not the body |
 | `DELETE` | `/` | Delete a feedback form by `fID` query parameter |
 
+### Role catalog (`/api/v1/roles`)
+
+These endpoints require the `users.roles.manage` permission. They manage role definitions, inspect assignments, and create or deactivate role assignments.
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/` | List active and inactive role definitions |
+| `POST` | `/` | Create a role using backend-approved permission keys |
+| `PATCH` | `/:id` | Update role details without changing `roleKey` |
+| `GET` | `/users?search=` | Search users by display name, email, or NetID |
+| `GET` | `/users/:id/assignments` | Read a user's active role assignments |
+| `POST` | `/users/:id/assignments` | Assign an active role to a user. Body: `{ roleId, committeeId?, reportsToUserId?, expiresAt? }` |
+| `DELETE` | `/users/:id/assignments/:assignmentId` | Deactivate an assignment without deleting its history |
+
+`roleName` is the display name. `roleKey` is the stable internal identifier, such as `finance_director`. The API validates role keys, field lengths, booleans, and recognized permissions. It returns only deliberate user identity fields during search.
+
+Assignment creation validates the target user, role, optional committee, optional reporting user, expiration date, duplicate active assignments, inactive roles, and self-reporting. Assignment creation records `assignedBy` from the authenticated session. Deactivation records `deactivatedBy` and `deactivatedAt` while preserving the assignment record.
+
 ### Administration (`/api/v1/administration`) — *not currently wired*
 
 ⚠️ **These endpoints are defined in `controllers/administration.js` but are NOT imported by `apiv1.js`. All requests to `/api/v1/administration/*` currently return 404.**
@@ -141,7 +160,13 @@ The backend uses **server-side sessions** with `express-session`.
 
 ### Session check
 
-`utils/auth.js` provides two Express middlewares that gate routes by session state:
+`utils/auth.js` provides session and permission middleware:
+
+- `requireAuth` — requires a logged-in session
+- `requireAdmin` — requires a logged-in admin/officer session
+- `requirePermission("users.roles.manage")` — requires an active role assignment granting the permission
+
+The permission middleware loads active role assignments for the session user and checks the populated role permissions before calling `next()`.
 
 | Middleware | Blocks when | Returns |
 |---|---|---|
@@ -172,13 +197,15 @@ if (DEPLOY_ENV === "production" || DEPLOY_ENV === "staging") {
 
 ### Models
 
-Three Mongoose models are registered at startup:
+Mongoose models are registered at startup:
 
 | Model | Schema Source | Collection |
 |---|---|---|
 | `Events` | `eventsSchema` | `events` |
 | `Participants` | `participantsSchema` | `participants` |
 | `Users` | `usersSchema` | `users` |
+| `Roles` | `rolesSchema` | `roles` |
+| `RoleAssignments` | `roleAssignmentsSchema` | `roleassignments` |
 
 The schemas live in a **separate GitHub repository** (`UW-IUGA/iuga-web-schemas`) mounted as a submodule at `backend/schemas/`. If the submodule is not initialized, the backend will fail to start.
 
@@ -190,7 +217,11 @@ Based on controller usage, the schemas include these fields:
 
 **Participants**: `pUID` (ref → Users), `eID` (ref → Events), `rsvpAnswers` (array of `{ qId, aString }`), `isAnon`
 
-**Users**: `uFirstName`, `uLastName`, `uDisplayName`, `uEmail`, `uType` (e.g., "Admin")
+**Users**: `uFirstName`, `uLastName`, `uDisplayName`, `uEmail`, `uNetId`, `uType` (e.g., "Admin")
+
+**Roles**: `roleName`, `roleKey`, `roleDescription`, `permissions`, `isActive`, `createdBy`, `updatedBy`
+
+**RoleAssignments**: `userId`, `roleId`, optional `committeeId`, optional `reportsToUserId`, `assignedBy`, `assignedAt`, optional `expiresAt`, `deactivatedBy`, `deactivatedAt`, `isActive`
 
 ---
 

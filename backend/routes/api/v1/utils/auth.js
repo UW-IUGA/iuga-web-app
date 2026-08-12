@@ -58,3 +58,42 @@ export function requireAdmin(req, res, next) {
   }
   next();
 }
+
+/*
+    @middleware: requirePermission
+    @method: N/A (Express middleware factory)
+    @description: Checks that an authenticated admin has a specific
+                  permission through an active role assignment.
+
+    Example: router.post("/roles", requirePermission("users.roles.manage"), handler)
+*/
+export function requirePermission(permission) {
+  return async function (req, res, next) {
+    if (!req.session.isAuthenticated) {
+      return sendError(res, 401, "Not authenticated");
+    }
+    if (!req.session.isAdmin) {
+      return sendError(res, 403, "Not authorized");
+    }
+
+    try {
+      const assignments = await req.models.RoleAssignments.find({
+        userId: req.session.userId,
+        isActive: true,
+      }).populate("roleId");
+
+      const hasPermission = assignments.some((assignment) =>
+        assignment.roleId?.isActive &&
+        assignment.roleId.permissions.includes(permission),
+      );
+
+      if (!hasPermission) {
+        return sendError(res, 403, "Not authorized");
+      }
+      next();
+    } catch (error) {
+      console.error(error);
+      return sendError(res, 500);
+    }
+  };
+}

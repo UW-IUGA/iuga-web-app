@@ -4,6 +4,8 @@ import {
   participantsSchema,
   usersSchema,
   feedbackSchema,
+  rolesSchema,
+  roleAssignmentsSchema,
 } from "./schemas/schemas.js";
 
 let models = {};
@@ -20,6 +22,8 @@ async function connectToDatabase(){
   models.Participants = mongoose.model("Participants", participantsSchema);
   models.Users = mongoose.model("Users", usersSchema);
   models.Feedback = mongoose.model("Feedback", feedbackSchema);
+  models.Roles = mongoose.model("Roles", rolesSchema);
+  models.RoleAssignments = mongoose.model("RoleAssignments", roleAssignmentsSchema);
 
   console.log(`[startup] mongoose models created after ${Date.now() - connectionStartedAt}ms`);
 }

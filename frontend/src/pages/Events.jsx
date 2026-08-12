@@ -1,4 +1,5 @@
 import Calendar from "../components/Calendar";
+import EventOperations from "../components/EventOperations";
 import { useLocation } from 'react-router-dom';
 import { useState, useEffect } from "react";
 import { mockCalendarData } from "../assets/mock-data/MockCalendarData";
@@ -6,7 +7,7 @@ import { useAuthContext } from "../context/AuthContext";
 import MediaQuery from "react-responsive";
 
 function EventsPage() {
-    const { isAuthenticated } = useAuthContext();
+    const { isAuthenticated, isAdmin } = useAuthContext();
     const {state, pathname} = useLocation();
     const [calendarEvents, setCalendarEvents] = useState([])
 
@@ -53,6 +54,7 @@ function EventsPage() {
                     <img src="/assets/about-main.png" alt="group of iuga students" />
                 </div>
             </MediaQuery>
+            <EventOperations isAdmin={isAdmin} />
         </>
     );
 }

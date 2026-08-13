@@ -63,13 +63,9 @@
 .resourcesControls {
   display: grid;
   grid-template-columns: minmax(250px, 350px) 1fr;
-  gap: 24px;
+  gap: $grid-gap;
   align-items: end;
   padding: 24px;
-  border: 1px solid rgba($color-uw-purple, 0.12);
-  border-radius: $radius-card;
-  background: white;
-  box-shadow: 0 2px 10px rgba($color-uw-purple, 0.08);
 }
 
 .resourcesSearch {
@@ -136,7 +132,7 @@
 .resourceGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
+  gap: $grid-gap;
 }
 
 .resourcesEmptyState {
@@ -144,9 +140,6 @@
   justify-items: center;
   gap: 12px;
   padding: 56px 24px;
-  border: 1px solid rgba($color-uw-purple, 0.12);
-  border-radius: $radius-card;
-  background: white;
   text-align: center;
 
   h2,

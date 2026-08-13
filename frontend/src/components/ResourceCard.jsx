@@ -1,6 +1,6 @@
 const ResourceCard = ({ resource, category }) => {
     return (
-        <article className="resourceCard">
+        <article className="resourceCard editorial-card">
             <div className="resourceCardIcon">
                 {resource.rImage ? (
                     <img src={resource.rImage} alt={`${resource.rName} icon`} />
@@ -13,7 +13,7 @@ const ResourceCard = ({ resource, category }) => {
                 <h3>{resource.rName}</h3>
                 <p>{resource.rDescription}</p>
                 {resource.rLink ? (
-                    <a className="cta-primary resourceCardLink" href={resource.rLink} target="_blank" rel="noreferrer">
+                    <a className="pill-button resourceCardLink" href={resource.rLink} target="_blank" rel="noreferrer">
                         Visit resource
                         <span className="sr-only"> (opens in a new tab)</span>
                     </a>

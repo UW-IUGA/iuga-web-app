@@ -64,7 +64,7 @@ function ResourcesPage({ resources }) {
                         Search by topic or browse the categories below to find support, community, and opportunities around the iSchool and UW.
                     </p>
 
-                    <div className="resourcesControls">
+                    <div className="resourcesControls editorial-card">
                         <label className="resourcesSearch" htmlFor="resource-search">
                             <span>Search resources</span>
                             <input
@@ -111,10 +111,10 @@ function ResourcesPage({ resources }) {
                             ))}
                         </div>
                     ) : (
-                        <div className="resourcesEmptyState">
+                        <div className="resourcesEmptyState editorial-card">
                             <h2>No resources match that search.</h2>
                             <p>Try a broader term or return to all resources.</p>
-                            <button className="cta-primary" type="button" onClick={() => {
+                            <button className="pill-button" type="button" onClick={() => {
                                 setSearchTerm("");
                                 setSelectedCategory(ALL_RESOURCES);
                             }}>

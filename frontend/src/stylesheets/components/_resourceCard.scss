@@ -1,12 +1,8 @@
 .resourceCard {
   display: flex;
   min-height: 230px;
-  gap: 18px;
+  gap: $margin-content;
   padding: 22px;
-  border: 1px solid rgba($color-uw-purple, 0.12);
-  border-radius: $radius-card;
-  background: white;
-  box-shadow: 0 2px 10px rgba($color-uw-purple, 0.08);
   transition: transform 150ms ease, box-shadow 150ms ease;
 
   &:hover {

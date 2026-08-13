@@ -6,7 +6,7 @@
 
     .calendar-tag-wrapper .tagText {
         background-color: white;
-        border: 2px solid $color-primary;
+        border-width: $pill-border-width;
         color: black;
     }
 }

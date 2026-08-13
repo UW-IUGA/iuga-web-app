@@ -106,7 +106,6 @@ function HomePage({ upcomingEvents }) {
                     <Button
                         text="View All Events"
                         className="pill-button"
-                        type="right-arrow"
                         onClick={() => navigate("/events")}
                     />
                 </div>

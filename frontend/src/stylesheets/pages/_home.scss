@@ -255,13 +255,6 @@
     display: flex;
     justify-content: center;
     margin: 32px 0 120px;
-
-    .standard-button {
-        min-height: 44px;
-        padding: $padding-box-y 22px;
-        font-size: 16px;
-        border-radius: $radius-pill;
-    }
 }
 
 @include media(">=sm-desktop", "<desktop") {

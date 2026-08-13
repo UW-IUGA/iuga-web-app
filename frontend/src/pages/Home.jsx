@@ -71,7 +71,7 @@ function HomePage({ upcomingEvents }) {
                         University of Washington — a community that learns together, shows up
                         for each other, and opens doors.
                     </p>
-                    <Button text="Get Involved" className="standard-button" onClick={() => navigate("/get-involved")} />
+                    <Button text="Get Involved" className="pill-button" onClick={() => navigate("/get-involved")} />
                 </div>
                 <img className="heroImage" src={formalImage} alt="IUGA members at iFormal 2026" />
             </section>
@@ -105,7 +105,7 @@ function HomePage({ upcomingEvents }) {
                 <div className="viewAllEvents">
                     <Button
                         text="View All Events"
-                        className="standard-button"
+                        className="pill-button"
                         type="right-arrow"
                         onClick={() => navigate("/events")}
                     />

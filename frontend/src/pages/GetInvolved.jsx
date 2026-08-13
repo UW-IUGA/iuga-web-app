@@ -60,7 +60,7 @@ function GetInvolvedPage({ teams }) {
                         <button
                             key={year}
                             type="button"
-                            className="filter-pill"
+                            className="pill-button"
                             aria-pressed={selectedYear === year}
                             onClick={() => setSelectedYear(year)}
                         >
@@ -87,7 +87,7 @@ function GetInvolvedPage({ teams }) {
                             <p className="getInvolvedCommittee__ledBy">Led by {committee.ledBy}</p>
                             <span className="getInvolvedCommittee__badge">Membership Open</span>
                             <p className="getInvolvedCommittee__description">{committee.description}</p>
-                            <a className="cta-primary" href={committee.mailto}>
+                            <a className="pill-button" href={committee.mailto}>
                                 Join {committee.name}
                             </a>
                         </article>

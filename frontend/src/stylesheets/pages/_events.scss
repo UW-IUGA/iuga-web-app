@@ -66,7 +66,7 @@
     input {
         background: white;
         border: 1px solid rgba($color-uw-purple, 0.22);
-        border-radius: 5px;
+        border-radius: $radius;
         box-sizing: border-box;
         color: #333;
         min-height: 38px;
@@ -320,7 +320,7 @@
 
     select {
         border: 1px solid rgba($color-uw-purple, 0.2);
-        border-radius: 5px;
+        border-radius: $radius;
         padding: 6px;
     }
 }
@@ -344,6 +344,12 @@
     overflow: hidden;
     position: absolute;
     width: 1px;
+}
+
+@include media(">=sm-desktop", "<desktop") {
+    .event-operations {
+        width: min(1000px, calc(100% - 36px));
+    }
 }
 
 @include media("screen", "<sm-desktop") {
@@ -375,7 +381,7 @@
     }
 
     .event-ops-table-wrapper {
-        border-radius: $radius;
+        border-radius: $radius-card;
         width: 100%;
     }
 

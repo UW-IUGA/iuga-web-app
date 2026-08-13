@@ -40,7 +40,7 @@ function EventsPage() {
     },[isAuthenticated]);
 
     return (
-        <>
+        <div className="baseContainer eventsPage">
             <MediaQuery minWidth={1024}>
                 <Calendar calendarEvents={calendarEvents} highlightEvent={state} setCalendarEvents={setCalendarEvents} />
             </MediaQuery>
@@ -53,7 +53,7 @@ function EventsPage() {
                     <img src="/assets/about-main.png" alt="group of iuga students" />
                 </div>
             </MediaQuery>
-        </>
+        </div>
     );
 }
   

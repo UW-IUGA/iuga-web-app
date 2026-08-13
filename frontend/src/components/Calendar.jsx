@@ -105,12 +105,16 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
     return (
         <div className="calendar">
             <div className="calendar-header">
-                <img className="left-arrow" src="/assets/right-arrow.svg" alt="left arrow" onClick={prevMonth} />
+                <button className="calendar-nav-button" type="button" aria-label="Previous month" onClick={prevMonth}>
+                    <img className="left-arrow" src="/assets/right-arrow.svg" alt="" />
+                </button>
                 <div>
                     <h1>{dateFormat(calendarDate, "mmmm yyyy")}</h1>
-                    <p>Click a highlighted date to learn more about that event!</p>
+                    <p>Click an event to learn more.</p>
                 </div>
-                <img className="right-arrow" src="/assets/right-arrow.svg" alt="right arrow" onClick={nextMonth} />
+                <button className="calendar-nav-button" type="button" aria-label="Next month" onClick={nextMonth}>
+                    <img className="right-arrow" src="/assets/right-arrow.svg" alt="" />
+                </button>
             </div>
             <div className="calendar-wrapper">
                 <div className="calendar-content-wrapper">
@@ -153,7 +157,6 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
                                 </div>
                             })
                         }
-                        <img className="calendar-decoration" src="/assets/calendar-decoration.svg" alt="calendar decoration" />
                     </div>
                 </div>
                 {

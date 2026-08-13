@@ -7,6 +7,17 @@ import winfo_logo from "../logos/winfo-logo.jpeg";
 import binfo_logo from "../logos/binfo-logo.png";
 import isaca_logo from "../logos/isaca-logo.png";
 import imuslims_logo from "../logos/imuslims-logo.jpeg";
+import aws_student_builder_group_logo from "../logos/aws-student-builder-group.jpg";
+import claude_builder_club_logo from "../logos/claude-builder-club-uw.jpg";
+import comet_logo from "../logos/comet-uw.jpg";
+import cseed_logo from "../logos/cseed.jpg";
+import dubhacks_logo from "../logos/dubhacks.jpg";
+import dubhacksnext_logo from "../logos/dubhacksnext.jpg";
+import dubstech_logo from "../logos/dubstech.jpg";
+import figma_uw_logo from "../logos/figma-uw.jpg";
+import husky_coding_project_logo from "../logos/husky-coding-project.png";
+import tca_logo from "../logos/tca.jpg";
+import ux_uw_logo from "../logos/ux-uw.jpg";
 
 export const resources = {
   [resourceTags.ACADEMIC]: [
@@ -119,6 +130,78 @@ export const resources = {
       "rDescription": "Women in Informatics supports ways to empower women to thrive as producers of technology. Winfo is a supportive network of women in technology fields who provide students with mentorship, resources and support toward career development and academic pursuits.",
       "rLink": "http://winfo.ischool.uw.edu/",
       "rImage": winfo_logo,
+    },
+    {
+      "rName": "DubHacks",
+      "rDescription": "Student built. Community-driven. Future-focused. DubHacks is a tech and entrepreneurship non-profit in Seattle run by students at the University of Washington. We bring together students of all backgrounds to tackle the issues they are most passionate about.",
+      "rLink": "https://dubhacks.co/",
+      "rImage": dubhacks_logo,
+    },
+    {
+      "rName": "DubHacksNext",
+      "rDescription": "Building Tomorrow's Founders. A 16-week program transforming exceptional UW students into funded startup founders through intensive mentorship, resources, and community at UW's Top Startup Incubator.",
+      "rLink": "https://next.dubhacks.co/",
+      "rImage": dubhacksnext_logo,
+    },
+    {
+      "rName": "Claude Builder Club @ UW",
+      "rDescription": "Learn and build with AI. Backed by Claude.",
+      "rLink": "https://linktr.ee/claudeatuofwa?utm_source=ig&utm_medium=social&utm_content=link_in_bio",
+      "rImage": claude_builder_club_logo,
+    },
+    {
+      "rName": "UX @ UW Club",
+      "rDescription": "A community for students of all levels who want to grow their UX skills.",
+      "rLink": "https://uxuw.framer.website/?utm_source=ig&utm_medium=social&utm_content=link_in_bio",
+      "rImage": ux_uw_logo,
+    },
+    {
+      "rName": "AWS Student Builder Group @ UW",
+      "rDescription": "Helping Huskies explore, build & connect through cloud tech ☁️ Powered by AWS.",
+      "rLink": "https://bio.site/awssbguw?utm_source=ig&utm_medium=social&utm_content=link_in_bio",
+      "rImage": aws_student_builder_group_logo,
+    },
+    {
+      "rName": "Product Space @ UW",
+      "rDescription": "Cultivating tomorrow’s product leaders. Join a nationwide family of students in product today 💜",
+      "rLink": "https://linktr.ee/uwproductspace_?utm_source=ig&utm_medium=social&utm_content=link_in_bio",
+      "rImage": null,
+    },
+    {
+      "rName": "Figma @ UW",
+      "rDescription": "Making design accessible for everyone ✨ Bringing Figma closer to UW 🐾💜",
+      "rLink": "https://www.instagram.com/figmaatuw/",
+      "rImage": figma_uw_logo,
+    },
+    {
+      "rName": "Comet @ UW",
+      "rDescription": "Browse at the speed of thought 🪐 Managed by Perplexity Campus Ambassadors :)",
+      "rLink": "https://www.instagram.com/uwcomet/",
+      "rImage": comet_logo,
+    },
+    {
+      "rName": "DubsTech",
+      "rDescription": "UW's largest tech community. We host workshops, hackathons, and talks on design, data science, and software engineering.",
+      "rLink": "https://linktr.ee/dubstech?utm_source=ig&utm_medium=social&utm_content=link_in_bio",
+      "rImage": dubstech_logo,
+    },
+    {
+      "rName": "CSeed",
+      "rDescription": "Inspiring engineering & design students at UW to build what they care about!",
+      "rLink": "https://www.cseed.co/cseed-teams",
+      "rImage": cseed_logo,
+    },
+    {
+      "rName": "Husky Coding Project",
+      "rDescription": "Your launchpad for tech teamwork @ the UW. Husky Coding Project is a student organization at University of Washington that aims to provide a space for students, regardless of major or background, to gain group project work experience within the tech field.",
+      "rLink": "https://hcp-uw.com/",
+      "rImage": husky_coding_project_logo,
+    },
+    {
+      "rName": "Technology Consulting Association @ UW",
+      "rDescription": "The premier technology consultancy.",
+      "rLink": "https://linktr.ee/tca_uw?utm_source=ig&utm_medium=social&utm_content=link_in_bio",
+      "rImage": tca_logo,
     },
   ],
 }

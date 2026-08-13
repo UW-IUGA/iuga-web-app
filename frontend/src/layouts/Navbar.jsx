@@ -30,6 +30,7 @@ function Navbar({ signIn, signOut }) {
                 <div id="nav-items" className={`nav-items-wrapper ${showMenu ? "nav-show-items" : "nav-hide-items"}`}>
                     <NavLink to="/" end>Home</NavLink>
                     <NavLink to="/events">Events</NavLink>
+                    <NavLink to="/resources">Resources</NavLink>
                     <span className="nav-shop">Shop</span>
                     <NavLink to="/get-involved">Get Involved</NavLink>
                     <span></span>

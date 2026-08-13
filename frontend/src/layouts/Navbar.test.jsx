@@ -27,19 +27,21 @@ describe("Navbar", () => {
         expect(link).toHaveAttribute("href", "/get-involved");
     });
 
-    test("nav order is logo, Home, Events, inert Shop, Get Involved", () => {
+    test("nav order includes Resources before the inert Shop item", () => {
         renderNavbar();
         const links = screen.getAllByRole("link");
         expect(links.map((link) => link.getAttribute("href"))).toEqual([
             "/",
             "/",
             "/events",
+            "/resources",
             "/get-involved",
         ]);
 
         const nav = screen.getByRole("navigation");
         const navText = nav.textContent;
-        expect(navText.indexOf("Events")).toBeLessThan(navText.indexOf("Shop"));
+        expect(navText.indexOf("Events")).toBeLessThan(navText.indexOf("Resources"));
+        expect(navText.indexOf("Resources")).toBeLessThan(navText.indexOf("Shop"));
         expect(navText.indexOf("Shop")).toBeLessThan(navText.indexOf("Get Involved"));
     });
 

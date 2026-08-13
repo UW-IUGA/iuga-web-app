@@ -46,7 +46,7 @@
     align-items: end;
     background: $gray;
     border: 1px solid rgba($color-uw-purple, 0.12);
-    border-radius: $radius;
+    border-radius: $radius-card;
     display: grid;
     gap: 12px;
     grid-template-columns: repeat(5, minmax(110px, 1fr)) minmax(160px, 1.5fr);
@@ -85,6 +85,10 @@
     display: grid;
     gap: 24px;
     grid-template-columns: minmax(0, 1fr) minmax(300px, 0.44fr);
+}
+
+.event-ops-layout-full .event-ops-table-wrapper {
+    grid-column: 1 / -1;
 }
 
 .event-ops-table-wrapper {
@@ -215,7 +219,7 @@
 .event-ops-error {
     background: #fff4f4;
     border: 1px solid #d88;
-    border-radius: $radius;
+    border-radius: $radius-card;
     color: #7a1717;
     margin-bottom: 16px;
 }
@@ -224,6 +228,10 @@
 .event-ops-detail {
     box-sizing: border-box;
     padding: 24px;
+}
+
+.event-operations .form-input {
+    border-radius: $radius;
 }
 
 .event-ops-form {

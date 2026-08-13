@@ -15,6 +15,7 @@ const renderHome = () =>
             <Routes>
                 <Route path="/" element={<HomePage upcomingEvents={[]} />} />
                 <Route path="/get-involved" element={<div>Get Involved Page</div>} />
+                <Route path="/events" element={<div>Events Page</div>} />
             </Routes>
         </MemoryRouter>
     );
@@ -26,16 +27,32 @@ describe("HomePage", () => {
         expect(screen.getByText("Get Involved Page")).toBeInTheDocument();
     });
 
+    test("View All Events navigates to the events page", async () => {
+        renderHome();
+        await userEvent.click(screen.getByRole("button", { name: "View All Events" }));
+        expect(screen.getByText("Events Page")).toBeInTheDocument();
+    });
+
     test("has no form inputs and no disabled Coming Soon submit", () => {
         renderHome();
         expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
         expect(screen.queryByText(/send.*coming soon/i)).not.toBeInTheDocument();
     });
 
-    test("renders all three function category labels", () => {
+    test("keeps the three IUGA function streams easy to scan", () => {
         renderHome();
-        expect(screen.getByText("Academic")).toBeInTheDocument();
-        expect(screen.getByText("Social")).toBeInTheDocument();
-        expect(screen.getByText("Professional")).toBeInTheDocument();
+
+        ["Academic", "Social", "Professional"].forEach((category) => {
+            expect(screen.getByText(category)).toBeVisible();
+            expect(screen.queryByRole("button", { name: category })).not.toBeInTheDocument();
+        });
+
+        [
+            "Learn together, grow together",
+            "Show up, connect, unwind",
+            "Meet the people who make it",
+        ].forEach((title) => {
+            expect(screen.getByRole("heading", { name: title, level: 2 })).toBeVisible();
+        });
     });
 });

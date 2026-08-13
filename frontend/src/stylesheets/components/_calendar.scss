@@ -78,12 +78,6 @@
     gap: 12px;
     margin: 0 0 20px;
     cursor: default;
-
-    .tagText {
-        padding: 10px 24px;
-        font-size: 1rem;
-        font-weight: 600;
-    }
 }
 
 .calendar-item-container {
@@ -450,11 +444,6 @@
 
     .calendar-tag-wrapper {
         gap: 8px;
-
-        .tagText {
-            padding: 8px 18px;
-            font-size: 0.9rem;
-        }
     }
 
     .calendar-day {

@@ -87,16 +87,8 @@
         color: black;
 
         .functionKicker {
-            display: inline-block;
-            padding: 6px 16px;
+            @extend %pill-surface;
             margin-bottom: 16px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-            background-color: white;
-            border: 1px solid transparent;
-            border-radius: $radius-pill;
         }
 
         h2 {
@@ -111,21 +103,6 @@
             color: $dark-gray;
         }
     }
-}
-
-.functionRow.academic .functionKicker {
-    color: $color-primary;
-    border-color: $color-primary;
-}
-
-.functionRow.social .functionKicker {
-    color: $color-primary;
-    border-color: $color-primary;
-}
-
-.functionRow.professional .functionKicker {
-    color: $color-primary;
-    border-color: $color-primary;
 }
 
 .functionRowReversed .functionCopy {
@@ -147,30 +124,10 @@
     }
 }
 
-.eventStreamCards .eventCardCategories {
-    .tagText {
-        padding: 6px 12px;
-        font-size: 0.8rem;
-        font-weight: 700;
-        border: 1px solid;
-        border-radius: $radius-pill;
-        background-color: white;
-    }
-
-    .academic .tagText {
-        color: $color-primary;
-        border-color: $color-primary;
-    }
-
-    .social .tagText {
-        color: $color-primary;
-        border-color: $color-primary;
-    }
-
-    .professional .tagText {
-        color: $color-primary;
-        border-color: $color-primary;
-    }
+.eventStreamCards .eventCardCategories .tagText {
+    background-color: white;
+    color: black;
+    border-color: $color-primary;
 }
 
 .eventStreamCards .eventCardFallback {

@@ -73,22 +73,27 @@ button:before {
 
 $cta-lavender: #F1E8FF;
 
-.pill-button {
+%pill-surface {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    min-height: 44px;
+    height: $pill-height;
     box-sizing: border-box;
-    padding: 10px 24px;
-    border: 2px solid $color-primary;
+    padding: $pill-padding-y $pill-padding-x;
+    white-space: nowrap;
+    border: $pill-border-width solid $color-primary;
     border-radius: $radius-pill;
     background-color: white;
     color: black;
     font-size: 1rem;
-    font-weight: 600;
+    font-weight: 700;
     line-height: 1.2;
     text-align: center;
+}
+
+.pill-button {
+    @extend %pill-surface;
+    gap: 6px;
     text-decoration: none;
     text-shadow: none;
     cursor: pointer;
@@ -117,12 +122,6 @@ $cta-lavender: #F1E8FF;
     &[disabled] {
         cursor: not-allowed;
     }
-}
-
-.pill-button .right-arrow {
-    width: 14px;
-    margin: 0;
-    filter: invert(29%) sepia(85%) saturate(616%) hue-rotate(225deg) brightness(93%) contrast(88%);
 }
 
 .standard-button {

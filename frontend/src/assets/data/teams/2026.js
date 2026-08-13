@@ -14,6 +14,7 @@ import _2026_yonie from "../officerPhotos/2026/yonie.png";
 import _2026_samantha from "../officerPhotos/2026/samantha.png";
 import _2026_nitya from "../officerPhotos/2026/nitya.png";
 import _2026_dia from "../officerPhotos/2026/dia.jpg";
+import _2026_ellie from "../officerPhotos/2026/ellie.jpg";
 
 export const team_2026 = {
   [groupType.OFFICERS]: [
@@ -44,14 +45,18 @@ export const team_2026 = {
     {
       position: officerPositions.CREATIVE,
       name: "Ellie Marsh",
-      picture: null,
-      socials: null,
+      picture: _2026_ellie,
+      socials: {
+        linkedin: "https://www.linkedin.com/in/elliemaarsh/",
+      },
     },
     {
       position: officerPositions.PUBLIC_RELATIONS,
       name: "Samantha Oh",
       picture: _2026_samantha,
-      socials: null,
+      socials: {
+        linkedin: "https://www.linkedin.com/in/samantha-oh/",
+      },
     },
     {
       position: officerPositions.OUTREACH,
@@ -65,7 +70,9 @@ export const team_2026 = {
       position: officerPositions.DIVERSITY,
       name: "Nitya Shankar",
       picture: _2026_nitya,
-      socials: null,
+      socials: {
+        linkedin: "https://www.linkedin.com/in/nitya-shankar/",
+      },
     },
     {
       position: officerPositions.IT,
@@ -81,7 +88,9 @@ export const team_2026 = {
       position: officerPositions.ACADEMIC,
       name: "Dia Dora",
       picture: _2026_dia,
-      socials: null,
+      socials: {
+        linkedin: "https://www.linkedin.com/in/dia-dora-217031344/",
+      },
     },
   ],
 };

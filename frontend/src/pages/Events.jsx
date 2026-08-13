@@ -41,7 +41,7 @@ function EventsPage() {
     },[isAuthenticated]);
 
     return (
-        <>
+        <div className="baseContainer eventsPage">
             <MediaQuery minWidth={1024}>
                 <Calendar calendarEvents={calendarEvents} highlightEvent={state} setCalendarEvents={setCalendarEvents} />
             </MediaQuery>
@@ -55,7 +55,7 @@ function EventsPage() {
                 </div>
             </MediaQuery>
             <EventOperations isAdmin={isAdmin} />
-        </>
+        </div>
     );
 }
   

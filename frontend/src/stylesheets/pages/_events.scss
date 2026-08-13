@@ -1,3 +1,22 @@
+.eventsPage {
+    width: 100%;
+    max-width: 1200px;
+    box-sizing: border-box;
+    padding: 24px 0 64px;
+
+    .calendar-tag-wrapper .tagText {
+        background-color: white;
+        border: 2px solid $color-primary;
+        color: black;
+    }
+}
+
+@include media(">=sm-desktop", "<desktop") {
+    .eventsPage {
+        max-width: 1000px;
+    }
+}
+
 .event-operations {
     width: min(1200px, calc(100% - 36px));
     margin: 24px auto 64px;

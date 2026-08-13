@@ -324,7 +324,7 @@ function EventOperations({ isAdmin }) {
                 <label className="event-ops-search">Search<input value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} placeholder="Event or group" /></label>
             </div>
             {error && <p className="event-ops-error" role="alert">{error}</p>}
-            <div className="event-ops-layout">
+            <div className={`event-ops-layout${selected ? "" : " event-ops-layout-full"}`}>
                 <div className="event-ops-table-wrapper">
                     <table className="event-ops-table">
                         <caption className="sr-only">Event requests and checkpoint status</caption>

@@ -1,6 +1,6 @@
 import dateFormat from "dateformat";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCheck } from '@fortawesome/free-solid-svg-icons'
+import { faArrowLeft, faArrowRight, faCheck } from '@fortawesome/free-solid-svg-icons'
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { startOfMonth, endOfMonth, eachDayOfInterval, format, getDay, parseISO } from "date-fns";
 import EventDetailsLoader from "./EventDetailsLoader";
@@ -106,14 +106,14 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
         <div className="calendar">
             <div className="calendar-header">
                 <button className="calendar-nav-button" type="button" aria-label="Previous month" onClick={prevMonth}>
-                    <img className="left-arrow" src="/assets/right-arrow.svg" alt="" />
+                    <FontAwesomeIcon icon={faArrowLeft} aria-hidden="true" />
                 </button>
                 <div>
                     <h1>{dateFormat(calendarDate, "mmmm yyyy")}</h1>
                     <p>Click an event to learn more.</p>
                 </div>
                 <button className="calendar-nav-button" type="button" aria-label="Next month" onClick={nextMonth}>
-                    <img className="right-arrow" src="/assets/right-arrow.svg" alt="" />
+                    <FontAwesomeIcon icon={faArrowRight} aria-hidden="true" />
                 </button>
             </div>
             <div className="calendar-wrapper">

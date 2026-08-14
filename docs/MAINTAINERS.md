@@ -49,7 +49,7 @@ Look for:
 ```bash
 for port in 6666 7777 8888; do
   echo -n "localhost:$port → "
-  curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:$port/readyz
+  curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:$port/
   echo
 done
 ```
@@ -76,7 +76,7 @@ Ensure the uploads volume has free space. MongoDB data and user uploads live her
 
 ### 1.7 Verify Jenkins job status via GitHub commit status
 
-On any commit on the `dev`/`main` branches (or the triggering branch for staging), look for these contexts:
+On any commit in the `main` branch, look for these contexts:
 - `iuga/jenkins/cicd/dev`
 - `iuga/jenkins/cicd/staging`
 - `iuga/jenkins/cicd/prod`
@@ -126,7 +126,7 @@ Verify that files are accessible and not accumulating unexpectedly.
 ### 2.4 Check MongoDB connectivity (from inside the container)
 
 ```bash
-docker exec iuga-web-<env> node --input-type=commonjs -e "
+docker exec iuga-web-<env> node -e "
   const mongoose = require('mongoose');
   mongoose.connect('mongodb://...').then(() => {
     console.log('OK');
@@ -138,7 +138,7 @@ docker exec iuga-web-<env> node --input-type=commonjs -e "
 "
 ```
 
-> **Note:** The backend is ES modules, so the `--input-type=commonjs` flag is required to use `require()` in this snippet. Replace the connection string with the actual URI (prod uses `mongo:27017`, dev uses Atlas). Run this only during incident response.
+> **Note:** Replace the connection string with the actual URI (prod uses `mongo:27017`, dev uses Atlas). Run this only during incident response.
 
 ---
 
@@ -163,8 +163,8 @@ Credentials are stored in Jenkins. This repository references them by ID only.
 |---|---|---|
 | `github_classic` | Per GitHub token expiry | [Team lead / IT] — *Escalate to fill* |
 | `dockerhub` | Per Docker Hub policy | [Team lead / IT] — *Escalate to fill* |
-| `DB_URI` | As needed | [Database admin] — *Escalate to fill* |
-| `SESSION_SECRET` | As needed | [Team lead / IT] — *Escalate to fill* |
+| `devDBUsername` / `devDBPassword` | As needed | [Database admin] — *Escalate to fill* |
+| `prodDBUsername` / `prodDBPassword` | As needed | [Database admin] — *Escalate to fill* |
 
 When rotating, update the credential in Jenkins directly. No application code changes are needed.
 

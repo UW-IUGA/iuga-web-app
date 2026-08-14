@@ -62,26 +62,3 @@
     padding: 5px;
     box-sizing: border-box;
 }
-
-@mixin focus-ring {
-    &:focus-visible {
-        outline: 2px solid $color-primary;
-        outline-offset: 2px;
-    }
-}
-
-@mixin section-divider {
-    position: relative;
-    margin-bottom: $section-divider-gap;
-
-    &::after {
-        content: "";
-        background: $gradient;
-        display: block;
-        height: 2px;
-        width: 100%;
-        border-radius: 2px;
-        position: absolute;
-        bottom: 0;
-    }
-}

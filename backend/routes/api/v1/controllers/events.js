@@ -10,7 +10,6 @@ import express from "express";
 import mongoose from "mongoose";
 import { sendError } from "../helpers/sendError.js";
 import { sendSuccess } from "../helpers/sendSuccess.js";
-import { requireAuth } from "../utils/auth.js";
 
 var router = express.Router();
 //-------------------------------Event Endpoints----------------------------------------------
@@ -248,52 +247,56 @@ Expected Response Information:
     status: "success"
   }
 */
-router.post("/rsvp", requireAuth, async function (req, res) {
+router.post("/rsvp", async function (req, res) {
   //Using the given event id and user id parameters, create a participant profile for the user and this pId into the event's participant list
   try {
-    const { eId, rsvpAnswers } = req.body;
-    const event = await req.models.Events.findById(eId)
-      .populate("eParticipants")
-      .exec();
-    const userObjectId = mongoose.Types.ObjectId(req.session.userId);
+    if (req.session.isAuthenticated) {
+      const { eId, rsvpAnswers } = req.body;
+      const event = await req.models.Events.findById(eId)
+        .populate("eParticipants")
+        .exec();
+      const userObjectId = mongoose.Types.ObjectId(req.session.userId);
 
-    if (!event) {
-      return sendError(res, 404, "Event not found");
+      if (!event) {
+        return sendError(res, 404, "Event not found");
+      }
+
+      // Check if RSVP is enabled for this event
+      if (!event.eRsvpEnabled) {
+        return sendError(res, 400, "RSVP is not enabled for this event");
+      }
+
+      // Check if today's date is past the start date
+      const today = new Date();
+      const eventStartDate = new Date(event.eStartDate);
+      if (today > eventStartDate) {
+        return sendError(res, 400, "The event has already started or passed.");
+      }
+
+      // Check if the user is already a participant
+      const userIsParticipant = event.eParticipants.some((participant) =>
+        participant.pUID.equals(userObjectId),
+      );
+      if (userIsParticipant) {
+        return sendError(res, 400, "You already RSVPd!");
+      }
+
+      const newParticipant = new req.models.Participants({
+        pUID: userObjectId,
+        eID: eId,
+        rsvpAnswers: rsvpAnswers,
+      });
+
+      const savedParticipant = await newParticipant.save();
+
+      event.eParticipants.push(savedParticipant);
+
+      await event.save();
+
+      return sendSuccess(res, { message: "RSVP successful!" });
+    } else {
+      return sendError(res, 401, "User is not logged in");
     }
-
-    // Check if RSVP is enabled for this event
-    if (!event.eRsvpEnabled) {
-      return sendError(res, 400, "RSVP is not enabled for this event");
-    }
-
-    // Check if today's date is past the start date
-    const today = new Date();
-    const eventStartDate = new Date(event.eStartDate);
-    if (today > eventStartDate) {
-      return sendError(res, 400, "The event has already started or passed.");
-    }
-
-    // Check if the user is already a participant
-    const userIsParticipant = event.eParticipants.some((participant) =>
-      participant.pUID.equals(userObjectId),
-    );
-    if (userIsParticipant) {
-      return sendError(res, 400, "You already RSVPd!");
-    }
-
-    const newParticipant = new req.models.Participants({
-      pUID: userObjectId,
-      eID: eId,
-      rsvpAnswers: rsvpAnswers,
-    });
-
-    const savedParticipant = await newParticipant.save();
-
-    event.eParticipants.push(savedParticipant);
-
-    await event.save();
-
-    return sendSuccess(res, { message: "RSVP successful!" });
   } catch (error) {
     console.log(error);
     return sendError(res, 500);
@@ -314,23 +317,27 @@ Expected Response Information:
     status: "success"
   }
 */
-router.delete("/withdraw/:eId/:pId", requireAuth, async function (req, res) {
+router.delete("/withdraw/:eId/:pId", async function (req, res) {
   try {
-    const pId = req.params.pId;
-    const eId = req.params.eId;
-    const event = await req.models.Events.findById(eId);
+    if (req.session.isAuthenticated) {
+      const pId = req.params.pId;
+      const eId = req.params.eId;
+      const event = await req.models.Events.findById(eId);
 
-    let newParticipants = [];
-    event.eParticipants.forEach((participant) => {
-      if (participant.toString() !== pId) {
-        newParticipants.push(participant);
-      }
-    });
+      let newParticipants = [];
+      event.eParticipants.forEach((participant) => {
+        if (participant.toString() !== pId) {
+          newParticipants.push(participant);
+        }
+      });
 
-    event.eParticipants = newParticipants;
-    await event.save();
+      event.eParticipants = newParticipants;
+      await event.save();
 
-    return sendSuccess(res);
+      return sendSuccess(res);
+    } else {
+      return sendError(res, 401, "User is not logged in");
+    }
   } catch (error) {
     console.log(error);
     return sendError(res, 500);

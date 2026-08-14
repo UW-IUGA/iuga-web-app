@@ -97,7 +97,7 @@ The **schemas** live in a separate GitHub repository (`UW-IUGA/iuga-web-schemas`
 ```
 
 **SPA routes** (handled by Express sending the same `index.html`):
-`/`, `/events`, `/resources`, `/get-involved`, `/electionfaq`, `/contact`
+`/`, `/events`, `/resources`, `/about`, `/electionfaq`, `/contact`
 
 **API routes** (JSON responses):
 All mounted under `/api/v1` — see [BACKEND.md](./BACKEND.md).

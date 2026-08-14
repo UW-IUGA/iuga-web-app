@@ -34,7 +34,6 @@ frontend/src/
 │   ├── EventDetailsCard.jsx
 │   ├── EventDetailsLoader.jsx
 │   ├── GradientLine.jsx
-│   ├── GetInvolvedMemberCard.jsx ← Member profile card (get-involved roster)
 │   ├── ResourceCard.jsx
 │   ├── RolePage.jsx
 │   └── Tag.jsx
@@ -46,11 +45,10 @@ frontend/src/
 │   ├── Navbar.jsx        ← Top navigation (responsive, scroll-aware)
 │   └── Footer.jsx
 ├── pages/
-│   ├── Home.jsx          ← Landing page: hero, WHO WE ARE cards, upcoming events
+│   ├── Home.jsx          ← Landing page: intro, character cards, events, gallery
 │   ├── Events.jsx        ← Calendar view (desktop only; mobile shows "under construction")
 │   ├── Resources.jsx     ← Resource links list
 │   ├── About.jsx         ← Team member cards by year
-│   ├── GetInvolved.jsx   ← Team, committee, and idea-engagement page
 │   ├── Elections.jsx     ← Candidate profiles for current election
 │   └── ElectionsFAQ.jsx  ← FAQ accordion about elections
 └── stylesheets/
@@ -59,7 +57,7 @@ frontend/src/
     ├── base/              ← Reset, typography, colors, misc
     ├── components/        ← Component-specific styles
     ├── layout/            ← Container, navigation, footer, form
-    ├── pages/             ← Page-specific styles (e.g., _getInvolved.scss for page and member-card styles)
+    ├── pages/             ← Page-specific styles
     └── addons/            ← Third-party overrides (toastify)
 ```
 
@@ -74,9 +72,9 @@ Defined in `src/App.jsx`:
 | `/` | `HomePage` | `upcomingEvents` (prop — mock or API) |
 | `/events` | `EventsPage` | Mock data or `GET /api/v1/events` |
 | `/resources` | `ResourcesPage` | Static data from `assets/data/ResourcesData.js` |
+| `/about` | `AboutPage` | Static data from `assets/data/AboutData.js` |
 | `/elections` | `ElectionPage` | Static data from `assets/data/CandidateData.js` |
 | `/electionfaq` | `ElectionsFAQPage` | Static data from `assets/data/ElectionFAQData.js` |
-| `/get-involved` | `GetInvolvedPage` | Static data from `frontend/src/assets/data/teams/2026.js` (2026 roster, no API) |
 
 The backend also serves `index.html` for each of these paths to enable deep linking (see [BACKEND.md](./BACKEND.md#spa-routes)).
 
@@ -149,6 +147,7 @@ The backend creates **server-side sessions** (express-session), so the frontend 
 | `react-router-dom` | Client-side routing |
 | `@azure/msal-browser`, `@azure/msal-react` | UW Azure AD authentication |
 | `react-awesome-reveal` | Scroll-triggered animations |
+| `react-just-parallax` | Parallax effects on homepage character cards |
 | `react-ga4` | Google Analytics 4 |
 | `react-responsive` | Responsive breakpoint rendering |
 | `react-bootstrap` / `bootstrap` | Bootstrap 5 UI components |

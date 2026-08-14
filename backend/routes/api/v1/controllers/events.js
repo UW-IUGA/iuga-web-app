@@ -323,6 +323,10 @@ router.delete("/withdraw/:eId/:pId", async function (req, res) {
       const pId = req.params.pId;
       const eId = req.params.eId;
       const event = await req.models.Events.findById(eId);
+      if (!event) {
+        return sendError(res, 404, "Event not found");
+      }
+
 
       let newParticipants = [];
       event.eParticipants.forEach((participant) => {

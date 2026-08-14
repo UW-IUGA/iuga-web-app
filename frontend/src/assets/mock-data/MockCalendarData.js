@@ -1,7 +1,7 @@
 export const mockCalendarData = [
     {
       "eId": "662450848a5036a39183aa2e",
-      "eName": "Networking + Industry Panel",
+      "eName": "Industry Panel + Networking",
       "eStartDate": "2024-03-01T00:00:00.000Z",
       "eEndDate": "2024-03-01T00:00:00.000Z",
       "eLocation": "MGH120",
@@ -13,7 +13,7 @@ export const mockCalendarData = [
     },
     {
       "eId": "662488756c91a19331137491",
-      "eName": "Test Event",
+      "eName": "IUGA Game Night",
       "eStartDate": "2024-04-21T00:30:00.000Z",
       "eLocation": "MGH120",
       "eOrganizers": "IUGA",
@@ -24,7 +24,7 @@ export const mockCalendarData = [
     },
     {
       "eId": "6624894e8bc2dc963685744b",
-      "eName": "Test Event 2",
+      "eName": "Game Night: Board Games",
       "eStartDate": "2024-02-08T23:30:00.000Z",
       "eLocation": "MGH122",
       "eOrganizers": "IUGA and Winfo",
@@ -36,7 +36,7 @@ export const mockCalendarData = [
     },
     {
       "eId": "662489d99439ba32a867eeb1",
-      "eName": "Test Event 3",
+      "eName": "Study Jam",
       "eStartDate": "2024-04-04T20:30:00.000Z",
       "eLocation": "MGH122",
       "eOrganizers": "IUGA",
@@ -48,7 +48,7 @@ export const mockCalendarData = [
     },
     {
       "eId": "662490263e10daba38e25686",
-      "eName": "Test Event 5",
+      "eName": "Bowling at UW",
       "eStartDate": "2024-04-25T00:30:00.000Z",
       "eLocation": "MGH120",
       "eOrganizers": "IUGA and Winfo",
@@ -105,7 +105,7 @@ export const mockCalendarData = [
     },
     {
       "eId": "6624e529ae578c7b130f052f",
-      "eName": "Test Event 0.6",
+      "eName": "IUGA Community Social",
       "eStartDate": "2020-10-10T12:20:00.000Z",
       "eLocation": "asd",
       "eOrganizers": "asd",
@@ -118,7 +118,7 @@ export const mockCalendarData = [
     },
     {
       "eId": "66258a516e1b2e1c40f2f759",
-      "eName": "New Event",
+      "eName": "Officer Meet & Greet",
       "eStartDate": "2024-04-21T14:00:00.000Z",
       "eLocation": "MGH120",
       "eOrganizers": "IUGA",

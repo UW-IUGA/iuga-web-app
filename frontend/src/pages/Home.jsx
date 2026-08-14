@@ -1,27 +1,61 @@
+import { useEffect, useMemo } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Button from "../components/Button";
-import CharacterCard from "../components/CharacterCard";
-import { MouseParallax } from 'react-just-parallax';
-import EventCard from "../components/EventCard";
-import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
-import { useLocation } from 'react-router-dom';
-import groups from "../assets/gallery/groups.png";
-import bowling from "../assets/gallery/bowling.jpeg";
-import merch from "../assets/gallery/merch.jpeg";
+import EventStream from "../components/EventStream";
+import ImageCarousel from "../components/ImageCarousel";
+import formalImage from "../assets/iFormal-2026.jpeg";
 import gamenight from "../assets/gallery/gamenight.png";
-import panelists from "../assets/gallery/panelists.png";
-import heart from "../assets/gallery/heart.jpeg";
 import gamenight2 from "../assets/gallery/gamenight-2.png";
-import officers22 from "../assets/gallery/officers-22.png";
-import careerIcon from "../assets/icons/career-icon.svg";
-import socialIcon from "../assets/icons/social-icon.svg";
-import academicIcon from "../assets/icons/academic-icon.svg";
-import MediaQuery from "react-responsive";
+import bowling from "../assets/gallery/bowling.jpeg";
+import heart from "../assets/gallery/heart.jpeg";
+import groups from "../assets/gallery/groups.png";
+import officers from "../assets/gallery/officers-22.png";
+import panelists from "../assets/gallery/panelists.png";
+import merch from "../assets/gallery/merch.jpeg";
 
-function HomePage({upcomingEvents}) {
+// The three IUGA function streams; each stream's event list renders directly
+// below its own narrative. Academic and Professional rows read left-to-right;
+// Social is reversed.
+const FUNCTIONS = [
+    {
+        category: "Academic",
+        title: "Learn together, grow together",
+        body: "Workshops, info sessions, and study jams that help you get more out of the iSchool — with people who are figuring it out right alongside you.",
+        reversed: false,
+        images: [
+            { src: groups, alt: "IUGA members together in a group photo" },
+            { src: officers, alt: "The IUGA officer team" },
+        ],
+    },
+    {
+        category: "Social",
+        title: "Show up, connect, unwind",
+        body: "Game nights, bowling, and mixers where the Informatics community actually gets to know each other. No agenda — just people.",
+        reversed: true,
+        images: [
+            { src: gamenight, alt: "IUGA members at a game night" },
+            { src: gamenight2, alt: "IUGA members playing games together" },
+            { src: bowling, alt: "IUGA bowling night" },
+            { src: heart, alt: "IUGA members forming a heart" },
+        ],
+    },
+    {
+        category: "Professional",
+        title: "Meet the people who make it",
+        body: "Industry panels, networking nights, and career prep with the people doing the work you want to do.",
+        reversed: false,
+        images: [
+            { src: panelists, alt: "IUGA industry panelists speaking at an event" },
+            { src: merch, alt: "IUGA branded merchandise" },
+        ],
+    },
+];
+
+function HomePage({ upcomingEvents }) {
     const navigate = useNavigate();
-    const {pathname} = useLocation();
-    const categories = ["Academic", "Social", "Career"];
+    const { pathname } = useLocation();
+    // One "now" per render so every stream classifies against the same clock.
+    const now = useMemo(() => Date.now(), []);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -29,108 +63,57 @@ function HomePage({upcomingEvents}) {
 
     return (
         <div className="baseContainer">
-            <div className="introduction">
-                <h1>Informatics</h1>
-                <h1>Undergraduate Association</h1>
-                <p>IUGA is a student-led RSO that communicates between the Informatics student body, faculty, and administration of the University of Washington Information School.</p>
-                <MediaQuery minWidth={1024}>    
-                    <div className="characterCardContainer">
-                    <MouseParallax isAbsolutelyPositioned strength={0.035} shouldPause>
-                        <div className="characterBackground1 characterBackgroundLeft">
-                            <img src={careerIcon} alt="" />
-                            <img src={socialIcon} alt="" />
-                            <img src={academicIcon} alt="" />
+            <section className="heroSection">
+                <div className="heroCopy">
+                    <h1>Informatics Undergraduate Association</h1>
+                    <p>
+                        We&apos;re the student-run home for Informatics undergraduates at the
+                        University of Washington — a community that learns together, shows up
+                        for each other, and opens doors.
+                    </p>
+                    <Button text="Get Involved" className="pill-button" onClick={() => navigate("/get-involved")} />
+                </div>
+                <img className="heroImage" src={formalImage} alt="IUGA members at iFormal 2026" />
+            </section>
+
+            <section className="functionsSection" aria-labelledby="functionsHeading">
+                <div className="homeSectionHeader functionsHeader">
+                    <h1 id="functionsHeading">OUR FUNCTIONS</h1>
+                </div>
+                <p className="functionsIntro">
+                    From study sessions to game nights to industry panels, everything IUGA puts
+                    on lives in one of three streams — and all of it exists so you can get more
+                    out of the iSchool.
+                </p>
+
+                {FUNCTIONS.map((fn) => (
+                    <div className="functionGroup" key={fn.category}>
+                        <div
+                            className={`functionRow ${fn.category.toLowerCase()}${fn.reversed ? " functionRowReversed" : ""}`}
+                        >
+                            <div className="functionCopy">
+                                <span className="functionKicker">{fn.category}</span>
+                                <h2>{fn.title}</h2>
+                                <p>{fn.body}</p>
+                            </div>
+                            <ImageCarousel images={fn.images} label={`${fn.category} event photos`} />
                         </div>
-                    </MouseParallax>
-                    <MouseParallax isAbsolutelyPositioned strength={0.015} shouldPause>
-                        <div className="characterBackground2 characterBackgroundLeft">
-                            <img src={socialIcon} alt="" />
-                            <img src={academicIcon} alt="" />
-                            <img src={careerIcon} alt="" />
-                        </div>
-                    </MouseParallax>
-                    <MouseParallax isAbsolutelyPositioned strength={0.005} shouldPause>
-                        <div className="characterBackground3 characterBackgroundLeft">
-                            <img src={academicIcon} alt="" />
-                            <img src={socialIcon} alt="" />
-                            <img src={careerIcon} alt="" />
-                        </div>
-                    </MouseParallax>
-                    { 
-                        categories.map(category => {
-                            return <CharacterCard key={category} category={category} />;
-                        })
-                    }
-                    <MouseParallax isAbsolutelyPositioned strength={0.035} shouldPause>
-                        <div className="characterBackground1 characterBackgroundRight">
-                            <img src={careerIcon} alt="" />
-                            <img src={socialIcon} alt="" />
-                            <img src={academicIcon} alt="" />
-                        </div>
-                    </MouseParallax>
-                    <MouseParallax isAbsolutelyPositioned strength={0.015} shouldPause>
-                        <div className="characterBackground2 characterBackgroundRight">
-                            <img src={academicIcon} alt="" />
-                            <img src={careerIcon} alt="" />
-                            <img src={socialIcon} alt="" />
-                        </div>
-                    </MouseParallax>
-                    <MouseParallax isAbsolutelyPositioned strength={0.005} shouldPause>
-                        <div className="characterBackground3 characterBackgroundRight">
-                            <img src={academicIcon} alt="" />
-                            <img src={careerIcon} alt="" />
-                            <img src={socialIcon} alt="" />
-                        </div>
-                    </MouseParallax>
+                        <EventStream category={fn.category} events={upcomingEvents} now={now} />
                     </div>
-                </MediaQuery>
-                <MediaQuery minWidth={340} maxWidth={1023}>
-                    <div className="characterCardScrollContainer">
-                        <div className="characterCardContainer">
-                        { 
-                            categories.map(category => {
-                                return <CharacterCard key={category} category={category} />;
-                            })
-                        }
-                        </div>
-                    </div>
-                </MediaQuery>
-            </div>
-            <div className="upcomingEvents">
-                <div className="homeSectionHeader">
-                    <h1>Latest Events</h1>
+                ))}
+
+                <div className="viewAllEvents">
+                    <Button
+                        text="View All Events"
+                        className="pill-button"
+                        type="right-arrow"
+                        onClick={() => navigate("/events")}
+                    />
                 </div>
-                <div className="upcomingEventsCardContainer">
-                    { upcomingEvents.slice(0, 3).map((event, i) => {
-                        return <EventCard key={event.eName} event={event} decorate={i === 2 ? true : false }/>;
-                    })}
-                </div>
-                <div className="upcomingEventsButtonContainer">
-                    <Button text="More Events" className="primary-button" type="right-arrow" color="black" onClick={() => {navigate("/events")}}/>
-                </div>
-            </div>
-            <div className="gallery">
-                <div className="homeSectionHeader galleryHeader">
-                    <span></span>
-                    <h1>Event Gallery</h1>
-                    <span></span>
-                </div>
-                <div className="galleryImageContainer">
-                    <div><img src={groups} alt="" /></div>
-                    <div><img src={bowling} alt="" /></div>
-                    <div><img src={merch} alt="" /></div>
-                    <div><img src={gamenight} alt="" /></div>
-                    <div><img src={panelists} alt="" /></div>
-                    <div><img src={heart} alt="" /></div>
-                    <div><img src={gamenight2} alt="" /></div>
-                    <div><img src={officers22} alt="" /></div>
-                </div>
-                <div>
-                    <img src="/assets/campfire.png" alt="characters around a campfire" />
-                </div>
-            </div>
+            </section>
+
         </div>
-    )
+    );
 }
 
 export default HomePage;

@@ -35,10 +35,12 @@ backend/
 │       ├── controllers/
 │       │   ├── user.js           ← Login, logout, user info
 │       │   ├── events.js         ← Event CRUD, RSVP
-│       │   ├── feedback.js       ← Feedback form CRUD (not currently mounted — see Feedback section)
+│       │   ├── feedback.js       ← Feedback form CRUD
+│       │   ├── roles.js           ← Role catalog and role-assignment API
+│       │   ├── eventRequests.js   ← Event request workflow and operations API
 │       │   └── administration.js ← Officer/committee stubs (not currently mounted — see Administration section)
 │       └── utils/
-│           └── auth.js          ← (empty — auth is inline in controllers)
+│           └── auth.js          ← requireAuth / requireAdmin / requirePermission middleware
 ├── env/
 │   ├── .env.example          ← Template for environment files
 │   └── (actual .env.* files are gitignored)
@@ -56,7 +58,7 @@ These routes in `app.js` serve the built frontend (`frontend/build/index.html`) 
 | `GET /` | Home page |
 | `GET /events` | Events calendar |
 | `GET /resources` | Resources page |
-| `GET /about` | About page |
+| `GET /get-involved` | Get involved page (team, committees, idea engagement) |
 | `GET /electionfaq` | Election FAQ |
 | `GET /contact` | Contact page |
 
@@ -95,19 +97,57 @@ All API routes are mounted under `/api/v1`. They return JSON.
 
 \* `/login` does not require a session but does require a Bearer token from Microsoft.
 
-### Feedback (`/api/v1/feedback`) — *not currently wired*
+### Feedback (`/api/v1/feedback`)
 
-⚠️ **These endpoints are defined in `controllers/feedback.js` but are NOT imported by `apiv1.js`. All requests to `/api/v1/feedback/*` currently return 404.**
-
-The controller provides full CRUD (no auth required):
+The controller provides CRUD. `POST /` requires a logged-in session (`fUID` comes from the session, not the request body):
 
 | Method | Path | Description |
 |---|---|---|
 | `GET` | `/` | Get a feedback form by `fID` query parameter |
-| `POST` | `/` | Submit a new feedback form. Body: `{ fUID, fType, fTopic, fDescription }` |
+| `POST` | `/` | Submit a new feedback form (requires session). Body: `{ fType, fTopic, fDescription }` — `fUID` comes from the session, not the body |
 | `DELETE` | `/` | Delete a feedback form by `fID` query parameter |
 
-To activate, import and mount `feedbackRouter` in `apiv1.js`.
+### Role catalog (`/api/v1/roles`)
+
+These endpoints require the `users.roles.manage` permission. They manage role definitions, inspect assignments, and create or deactivate role assignments.
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/` | List active and inactive role definitions |
+| `POST` | `/` | Create a role using backend-approved permission keys |
+| `PATCH` | `/:id` | Update role details without changing `roleKey` |
+| `GET` | `/users?search=` | Search users by display name, email, or NetID |
+| `GET` | `/users/:id/assignments` | Read a user's active role assignments |
+| `POST` | `/users/:id/assignments` | Assign an active role to a user. Body: `{ roleId, committeeId?, reportsToUserId?, expiresAt? }` |
+| `DELETE` | `/users/:id/assignments/:assignmentId` | Deactivate an assignment without deleting its history |
+
+`roleName` is the display name. `roleKey` is the stable internal identifier, such as `finance_director`. The API validates role keys, field lengths, booleans, and recognized permissions. It returns only deliberate user identity fields during search.
+
+Assignment creation validates the target user, role, optional committee, optional reporting user, expiration date, duplicate active assignments, inactive roles, and self-reporting. Assignment creation records `assignedBy` from the authenticated session. Deactivation records `deactivatedBy` and `deactivatedAt` while preserving the assignment record.
+
+### Event administration (`/api/v1/event-requests`)
+
+Officer-only event operations use separate EventRequests records before publishing an Events record. The requesting group is the committee, student organization, or IUGA group asking to run the event; it is not the authenticated requester. All actor fields come from the authenticated session. Leadership actions require `events.leadership.approve`; budget changes require `events.finance.manage`; purchase checkpoint changes require `events.purchases.complete`.
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/` | Submit an event request. Requester and organizer come from the session. |
+| `PATCH` | `/:id` | Resubmit a request after leadership requests changes; only its requester may edit it. |
+| `GET` | `/templates/slides` | Return configured OneDrive slide templates from `EVENT_SLIDE_TEMPLATES`. |
+| `GET` | `/mine` | List requests submitted by the current officer. |
+| `GET` | `/` | List officer requests, optionally filtered by `status` or `requesterId`. |
+| `GET` | `/:id` | Read one request and its checkpoints. |
+| `POST` | `/:id/request-changes` | Leadership returns a request with a required reason. |
+| `POST` | `/:id/deny` | Leadership denies a request with a required reason. |
+| `POST` | `/:id/approve` | Leadership approves and publishes an Events record; this completes the `proposal` checkpoint. |
+| `PATCH` | `/:id/checklist/:step` | Update an independent checkpoint. The sequence is `proposal`, `meeting`, `finance`, `room`, `marketing`, `purchases`, `completion`, `review`. |
+| `PATCH` | `/:id/budget` | Finance records allocated and actual cents. |
+| `PATCH` | `/:id/booking` | Record room booking details and actor audit fields. |
+| `PATCH` | `/:id/review-tracking` | Store the external OneDrive/Microsoft Forms review link and manually record receipt. |
+| `POST` | `/:id/reviews` | Submit an organizer or distinct-member post-event review. |
+| `GET` | `/:id/reviews` | List post-event reviews. |
+| `POST` | `/:id/complete` | Close an approved request after all checkpoints and both reviews are complete. |
+Money is displayed as dollars and cents in the UI, then converted to an integer number of cents before the API call. For example, `$125.50` becomes `{ "allocatedCents": 12550 }`; the backend never stores floating-point currency.
 
 ### Administration (`/api/v1/administration`) — *not currently wired*
 
@@ -145,7 +185,20 @@ The backend uses **server-side sessions** with `express-session`.
 
 ### Session check
 
-Route handlers check `req.session.isAuthenticated` to determine auth state. There is no dedicated middleware — each controller checks inline.
+`utils/auth.js` provides session and permission middleware:
+
+- `requireAuth` — requires a logged-in session
+- `requireAdmin` — requires a logged-in admin/officer session
+- `requirePermission("users.roles.manage")` — requires an active role assignment granting the permission
+
+The permission middleware loads active role assignments for the session user and checks the populated role permissions before calling `next()`.
+
+| Middleware | Blocks when | Returns |
+|---|---|---|
+| `requireAuth` | No session (`req.session.isAuthenticated` falsy) | `401` not authenticated |
+| `requireAdmin` | No session, or logged in but not an officer (`req.session.isAdmin` falsy) | `401` not authenticated / `403` not authorized |
+
+Attach them in the route chain, e.g. `router.post("/", requireAuth, handler)` or `router.post("/:id/approve", requireAdmin, handler)`. They run before the route handler; `next()` passes the request through.
 
 ### Session destruction
 
@@ -169,13 +222,17 @@ if (DEPLOY_ENV === "production" || DEPLOY_ENV === "staging") {
 
 ### Models
 
-Three Mongoose models are registered at startup:
+Mongoose models are registered at startup:
 
 | Model | Schema Source | Collection |
 |---|---|---|
 | `Events` | `eventsSchema` | `events` |
 | `Participants` | `participantsSchema` | `participants` |
 | `Users` | `usersSchema` | `users` |
+| `Roles` | `rolesSchema` | `roles` |
+| `RoleAssignments` | `roleAssignmentsSchema` | `roleassignments` |
+| `EventRequests` | `eventRequestsSchema` | `eventrequests` |
+| `EventReviews` | `eventReviewsSchema` | `eventreviews` |
 
 The schemas live in a **separate GitHub repository** (`UW-IUGA/iuga-web-schemas`) mounted as a submodule at `backend/schemas/`. If the submodule is not initialized, the backend will fail to start.
 
@@ -187,7 +244,15 @@ Based on controller usage, the schemas include these fields:
 
 **Participants**: `pUID` (ref → Users), `eID` (ref → Events), `rsvpAnswers` (array of `{ qId, aString }`), `isAnon`
 
-**Users**: `uFirstName`, `uLastName`, `uDisplayName`, `uEmail`, `uType` (e.g., "Admin")
+**Users**: `uFirstName`, `uLastName`, `uDisplayName`, `uEmail`, `uNetId`, `uType` (e.g., "Admin")
+
+**Roles**: `roleName`, `roleKey`, `roleDescription`, `permissions`, `isActive`, `createdBy`, `updatedBy`
+
+**RoleAssignments**: `userId`, `roleId`, optional `committeeId`, optional `reportsToUserId`, `assignedBy`, `assignedAt`, optional `expiresAt`, `deactivatedBy`, `deactivatedAt`, `isActive`
+
+**EventRequests**: session-derived requester/organizer, requesting group, event details, lifecycle status, ordered checkpoints, finance and booking data, selected slide template, external review link/receipt, published event link, and actor/timestamp audit fields.
+
+**EventReviews**: request id, session-derived reviewer, enforced `organizer` or `member` role, review responses, attendee count, and integer-cent total spend.
 
 ---
 
@@ -230,6 +295,7 @@ Note: ETag is **disabled** (`app.disable('etag')`) to ensure clients always get 
 ## Related Documents
 
 - [Architecture Overview](ARCHITECTURE.md) — System components and data flow
+- [Commenting Guide](COMMENTING.md) — House style for code comments
 - [Development Guide](DEVELOPMENT.md) — Setup, scripts, code conventions
 - [Frontend Documentation](FRONTEND.md) — React app structure, routing, auth flow
 - [Deployment Guide](DEPLOYMENT.md) — Environments, CI/CD, Docker

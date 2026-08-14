@@ -1,23 +1,22 @@
 import HomePage from "./pages/Home";
 import EventsPage from "./pages/Events";
 import ResourcesPage from "./pages/Resources";
-import AboutPage from "./pages/About";
 import ElectionPage from "./pages/Elections";
 import ElectionsFAQPage from "./pages/ElectionsFAQ";
+import GetInvolvedPage from "./pages/GetInvolved";
 import { ToastContainer, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Route, Routes } from "react-router-dom";
 import Navbar from "./layouts/Navbar";
 import { useState, useEffect } from "react";
 import { mockCalendarData } from "./assets/mock-data/MockCalendarData";
+import { enrichWithDevThumbnails } from "./utils/devThumbnails";
 import { resources } from "./assets/data/ResourcesData";
 import { iugaCandidates } from "./assets/data/CandidateData";
-import { electionFAQ } from "./assets/data/ElectionFAQData"; 
+import { electionFAQ } from "./assets/data/ElectionFAQData";
 import { iugaTeams } from "./assets/data/AboutData";
-import { positionInformation } from "./assets/data/AboutData";
 import { useAuthContext } from "./context/AuthContext";
 import Footer from "./layouts/Footer";
-import MediaQuery from 'react-responsive';
 
 function App() {
     const { signIn, signOut } = useAuthContext();
@@ -36,7 +35,7 @@ function App() {
                     console.log(error);
                 });
         } else {
-            setUpcomingEvents(mockCalendarData);
+            setUpcomingEvents(enrichWithDevThumbnails(mockCalendarData));
         }
     }, []);
 
@@ -60,22 +59,11 @@ function App() {
                 <Route path="/" element={<HomePage upcomingEvents={upcomingEvents} />} />
                 <Route path="/events" element={<EventsPage />} />
                 <Route path="/resources" element={<ResourcesPage resources={resources} />} />
-                <Route path="/about" element={<AboutPage teams={iugaTeams} />} />
                 <Route path="/elections" element={<ElectionPage candidates={iugaCandidates} />} />
                 <Route path="/electionfaq" element={<ElectionsFAQPage electionFAQ={electionFAQ} />} />
+                <Route path="/get-involved" element={<GetInvolvedPage teams={iugaTeams} />} />
             </Routes>
             <Footer />
-            {/* <MediaQuery minWidth={1024}>
-
-            </MediaQuery>
-            <MediaQuery minWidth={340} maxWidth={1023}>
-                <div className="constructionContainer">
-                    <h1>Informatics</h1>
-                    <h1>Undergraduate Association</h1>
-                    <p>🚧 The Mobile Page is Under Construction! 🚧</p>
-                    <img src="/assets/about-main.png" alt="group of iuga students" />
-                </div>
-            </MediaQuery> */}
         </div>
     );
 }

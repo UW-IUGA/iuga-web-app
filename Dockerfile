@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # Build stage
 FROM node:22-alpine AS build
 ARG DEPLOY_ENV
@@ -6,7 +7,7 @@ ENV PORT=7777
 
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
-RUN npm install
+RUN --mount=type=cache,target=/root/.npm npm ci
 COPY frontend/ ./
 
 RUN if [ "$DEPLOY_ENV" = "production" ] ; then sed -i 's#http://localhost:7777/#https://iuga.info/#' src/authConfig.js ; fi
@@ -17,12 +18,11 @@ RUN npm run build
 
 # Production stage
 FROM node:22-alpine
-RUN apk add --no-cache tzdata
 RUN apk add --no-cache tzdata git
 ENV TZ=America/Los_Angeles
 WORKDIR /app/backend
 COPY backend/package*.json ./
-RUN npm install --production
+RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev
 
 COPY backend/ ./
 COPY --from=build /app/frontend/build /app/frontend/build

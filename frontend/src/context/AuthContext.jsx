@@ -78,8 +78,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const isAdmin = user?.uType === "Admin";
+
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, authLoading, authError, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, isAdmin, authLoading, authError, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );

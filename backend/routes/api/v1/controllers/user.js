@@ -9,6 +9,7 @@ import express from "express";
 import fetch from "node-fetch";
 import { sendError } from "../helpers/sendError.js";
 import { sendSuccess } from "../helpers/sendSuccess.js";
+import { requireAuth } from "../utils/auth.js";
 
 var router = express.Router();
 
@@ -68,75 +69,58 @@ router.post("/login", async function (req, res) {
     @method: POST
     @description: destroy user session.
 */
-router.post("/logout", function (req, res, next) {
-  if (req.session.isAuthenticated) {
-    req.session.destroy();
-
-    return sendSuccess(res);
-  } else {
-    return sendError(res, 401, "User is not logged in");
-  }
+router.post("/logout", requireAuth, function (req, res, next) {
+  req.session.destroy();
+  return sendSuccess(res);
 });
 
 //Get the user's specific information from the user's perspective, from an outsider perspective, and from the admin perspective
-router.get("/", async function (req, res) {
-  if (req.session.isAuthenticated) {
-    res.status(200).json({
-      firstName: req.session.firstName,
-      lastName: req.session.lastName,
-      displayName: req.session.displayName,
-      email: req.session.email,
-      memberType: req.session.memberType,
-    });
-  } else {
-    return sendError(res, 401, "User is not logged in");
-  }
+router.get("/", requireAuth, async function (req, res) {
+  res.status(200).json({
+    firstName: req.session.firstName,
+    lastName: req.session.lastName,
+    displayName: req.session.displayName,
+    email: req.session.email,
+    memberType: req.session.memberType,
+  });
 });
 
 //Get the user's specific information from the user's perspective, from an outsider perspective, and from the admin perspective
-router.get("/:uId", async function (req, res) {
-  if (req.session.isAuthenticated) {
-    try {
-      const uId = req.params.uId;
-      const currId = req.session.id;
-      const currUser = await req.models.Users.findById({ currId });
+router.get("/:uId", requireAuth, async function (req, res) {
+  try {
+    const uId = req.params.uId;
+    const currId = req.session.id;
+    const currUser = await req.models.Users.findById({ currId });
 
-      if (currId == uId) {
-        //Current user is viewing their own account (account owner view)
-      } else if (currId != uId && currUser.uType === "Admin") {
-        //An admin is viewing a users account (admin view)
-      } else {
-        //An outside user is viewing another user's account (Outside user view)
-      }
-    } catch (error) {
-      console.log(error);
-      return sendError(res, 500);
+    if (currId == uId) {
+      //Current user is viewing their own account (account owner view)
+    } else if (currId != uId && currUser.uType === "Admin") {
+      //An admin is viewing a users account (admin view)
+    } else {
+      //An outside user is viewing another user's account (Outside user view)
     }
-  } else {
-    return sendError(res, 401, "User is not logged in");
+  } catch (error) {
+    console.log(error);
+    return sendError(res, 500);
   }
 });
 
 //User wants to update their own profile information, or an admin is trying to change a user's information.
-router.post("/:uId", async function (req, res) {
-  if (req.session.isAuthenticated) {
-    try {
-      const uId = req.params.uId;
-      const currId = req.session.id;
-      const currUser = await req.models.Users.findById({ currId });
-      if (currId == uId) {
-        //If current user edits their own account
-      } else if (currId != uId && currUser.uType === "Admin") {
-        //if admin edits user account
-      } else {
-        return sendError(res, 403, "Access denied");
-      }
-    } catch (error) {
-      console.log(error);
-      return sendError(res, 500);
+router.post("/:uId", requireAuth, async function (req, res) {
+  try {
+    const uId = req.params.uId;
+    const currId = req.session.id;
+    const currUser = await req.models.Users.findById({ currId });
+    if (currId == uId) {
+      //If current user edits their own account
+    } else if (currId != uId && currUser.uType === "Admin") {
+      //if admin edits user account
+    } else {
+      return sendError(res, 403, "Access denied");
     }
-  } else {
-    return sendError(res, 401, "User is not logged in");
+  } catch (error) {
+    console.log(error);
+    return sendError(res, 500);
   }
 });
 

@@ -1,0 +1,10 @@
+# macOS
+.DS_Store
+
+# local agent state
+.omo/
+/node_modules
+
+
+# Personal agent guidance
+/AGENTS.md

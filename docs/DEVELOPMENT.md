@@ -169,15 +169,39 @@ git submodule update --remote
 
 ## Testing
 
-The project currently has **limited test infrastructure**:
+The repository has a small but real test surface, although coverage is incomplete:
 
-- Frontend includes `@testing-library/react` (installed) but no test files were found during documentation authoring.
-- Backend has no test runner or test files.
+- **Frontend:** Jest and React Testing Library tests under `frontend/src/` (currently eight test files). Run them with:
+  ```bash
+  cd frontend
+  CI=true npm test -- --watchAll=false
+  ```
+- **Backend:** two Node built-in test suites under `backend/test/` (`sendError` and `sendSuccess`), plus their test fixture. Run them with:
+  ```bash
+  cd backend
+  node --test
+  ```
+- **CI deploy helper:** regression tests for the health-gated deploy sequence in `ci/deploy.groovy`, under `ci/test/`. They stub `docker` and assert the invoke/rollback behavior, so no daemon is needed. Run them with:
+  ```bash
+  node --test 'ci/test/*.test.js'
+  ```
+- **CI deploy end-to-end test:** `ci/test/e2e-deploy.sh` runs the same sequence against a real Docker daemon. It builds the actual app image, pushes it to a temporary local registry, starts a disposable Mongo 7 container, then runs the exact deploy commands from `ci/deploy.groovy` with test-only credentials. It only uses loopback ports (16766/16767/5011), never touches the live deployment, and cleans up after itself. Requires Docker; run it with:
+  ```bash
+  bash ci/test/e2e-deploy.sh
+  ```
+- **Root:** `npm test` is still a placeholder that exits with `Error: no test specified`; it is not a meaningful project test command.
 
-To add tests, the project would benefit from:
+### Required verification workflow
 
-- **Frontend**: `react-scripts test` (Jest) — add tests alongside components in `__tests__/` directories
-- **Backend**: Jest or Mocha for controller integration tests with a test MongoDB
+For every code, CI, Docker, or runtime behavior change:
+
+1. Define the intended observable behavior and reproduce the current failure or boundary.
+2. Add or update a behavior-focused test or script. Ideally **before** implementation — it can be written either before or after, but before is the best way: it proves the test actually detects the issue and keeps the change honest.
+3. If no existing test surface covers the behavior, invent the smallest deterministic regression test at the public boundary.
+4. Run the test against the current state. It should fail or reproduce the current issue when applicable; if it already passes, confirm that it covers the intended behavior.
+5. Implement the smallest change, rerun the test until it passes, and complete the narrow integration/build smoke check before considering a Jenkins build — the local test suites listed in the Testing section above, plus (for deploy/pipeline changes) the full end-to-end test `ci/test/e2e-deploy.sh`.
+
+Tests must verify behavior through public interfaces, rendered output, HTTP responses, logs, or real integration boundaries. Do not replace a test with a source-text assertion. For MongoDB or backend changes, use a disposable Docker MongoDB setup when feasible. One-off scripts written to diagnose a single issue should stay out of the repository (for example in /tmp); only reusable tests belong in the codebase.
 
 ---
 

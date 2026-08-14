@@ -233,7 +233,7 @@ If no ports are shown, the `-p` flag was omitted from `docker run`.
 ### Step 3 — Can you reach the application from the host?
 
 ```bash
-curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:<host-port>/readyz
+curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:<host-port>/
 ```
 
 - **200:** The app is healthy. The issue is in nginx configuration (TLS, proxy_pass URL, upstream definition). **Not managed by this repo.**

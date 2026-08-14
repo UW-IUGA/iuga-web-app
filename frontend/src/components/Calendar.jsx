@@ -1,6 +1,6 @@
 import dateFormat from "dateformat";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowLeft, faArrowRight, faCheck } from '@fortawesome/free-solid-svg-icons'
+import { faCheck } from '@fortawesome/free-solid-svg-icons'
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { startOfMonth, endOfMonth, eachDayOfInterval, format, getDay, parseISO } from "date-fns";
 import EventDetailsLoader from "./EventDetailsLoader";
@@ -105,16 +105,12 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
     return (
         <div className="calendar">
             <div className="calendar-header">
-                <button className="calendar-nav-button" type="button" aria-label="Previous month" onClick={prevMonth}>
-                    <FontAwesomeIcon icon={faArrowLeft} aria-hidden="true" />
-                </button>
+                <img className="left-arrow" src="/assets/right-arrow.svg" alt="left arrow" onClick={prevMonth} />
                 <div>
                     <h1>{dateFormat(calendarDate, "mmmm yyyy")}</h1>
-                    <p>Click an event to learn more.</p>
+                    <p>Click a highlighted date to learn more about that event!</p>
                 </div>
-                <button className="calendar-nav-button" type="button" aria-label="Next month" onClick={nextMonth}>
-                    <FontAwesomeIcon icon={faArrowRight} aria-hidden="true" />
-                </button>
+                <img className="right-arrow" src="/assets/right-arrow.svg" alt="right arrow" onClick={nextMonth} />
             </div>
             <div className="calendar-wrapper">
                 <div className="calendar-content-wrapper">
@@ -157,6 +153,7 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
                                 </div>
                             })
                         }
+                        <img className="calendar-decoration" src="/assets/calendar-decoration.svg" alt="calendar decoration" />
                     </div>
                 </div>
                 {

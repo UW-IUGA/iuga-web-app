@@ -4,25 +4,23 @@ nav {
     left: 0;
     right: 0;
     z-index: 10;
-    background-color: transparent;
+    background-color: white;
 }
 
 .nav-container {
     position: relative;
-    box-sizing: border-box;
-    margin: $padding-content auto 0;
+    margin: 0 auto;
     background-color: white;
     color: black;
     overflow: hidden;
     align-items: center;
-    height: 100px;
-    max-width: 1200px;
+    height: 60px;
+    max-width: 1300px;
     display: flex;
     padding: 20px 30px;
     z-index: 100;
     gap: 12px;
-    border-radius: 999px;
-    box-shadow: 0 4px 20px rgba($color-uw-purple, 0.08);
+    transition: all 500ms cubic-bezier(0.19, 1, 0.22, 1);
     
     & > span:first-of-type {
         display: block;
@@ -49,19 +47,32 @@ nav {
 .nav-mobile-menu {
     display: none;
 }
-nav a,
-.nav-shop,
-.nav-auth-button {
-    font-family: inherit;
+
+.nav-scroll {
+    height: 40px;
+}
+
+.nav-border {
+    opacity: 0;
+    height: 1px;
+    display: block;
+    width: 100%;
+    transition: all 500ms cubic-bezier(0.19, 1, 0.22, 1);
+    @include bottom-gradient-border;
+}
+
+.nav-border-scroll {
+    opacity: 1;
+}
+
+nav a {
     font-size: 16px;
-    font-weight: inherit;
-    line-height: inherit;
     color: inherit;
     text-align: center;
     text-decoration: none;
-    border: 2px solid white;
-    border-radius: $radius-pill;
+    border-radius: $radius;
     padding: $padding-box-y $padding-box-x;
+    border: 2px solid white;
 }
 
 .nav-logo {
@@ -69,7 +80,41 @@ nav a,
 }
 
 .nav-items-wrapper a.active {
+    position: relative;
     background-color: $gray;
+
+    &::after {
+        content: "";
+        background: $gradient;
+        display: block;
+        height: 1px;
+        width: 94%;
+        position: absolute;
+        bottom: 1px;
+        left: 0;
+        right: 0;
+        margin: 0 auto;
+        border-radius: $radius;
+    }
+}
+
+nav a:not(:first-child):hover {
+    position: relative;
+    background-color: $gray;
+
+    &::after {
+        content: "";
+        background: $gradient;
+        display: block;
+        height: 1px;
+        width: 94%;
+        position: absolute;
+        bottom: 1px;
+        left: 0;
+        right: 0;
+        margin: 0 auto;
+        border-radius: $radius;
+    }
 }
 
 nav img {
@@ -91,88 +136,24 @@ nav img {
     gap: 14px;
 }
 
-.nav-shop {
-    cursor: default;
-}
-
-.nav-auth {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-
-    .nav-auth-greeting {
-        font-family: inherit;
-        font-size: 16px;
-        font-weight: inherit;
-        line-height: inherit;
-        color: inherit;
-        white-space: nowrap;
-    }
-
-    .nav-auth-button {
-        background: transparent;
-        cursor: pointer;
-        transition: background-color 200ms cubic-bezier(0.19, 1, 0.22, 1);
-        @include focus-ring;
-    }
-}
-
 @include media(">=sm-desktop", "<desktop") {
     .nav-container {
-        max-width: 1000px;
-        height: 80px;
+        max-width: 1100px;
+        height: 40px;
 
         p {
             font-size: 14px;
             max-width: 200px;
         }
     }
-    nav a,
-    .nav-shop,
-    .nav-auth-button,
-    .nav-auth-greeting {
+
+    .nav-scroll {
+        height: 26px;
+    }
+
+    nav a {
         font-size: 14px;
-    }
-}
-
-// --- Desktop pill states ---
-// Radius, hover, active, and auth fills are desktop-only (>=1024px) so the
-// tablet/mobile menu keeps its approved structure and styling untouched.
-@include media(">=sm-desktop") {
-    // Lavender hover fill mirrors $cta-lavender in _buttons.scss. Navigation is
-    // imported before buttons, and tokens/_buttons are out of scope for this
-    // task, so the shared value is restated as a file-scoped constant.
-    $nav-lavender: #F1E8FF;
-
-    .nav-items-wrapper a,
-    .nav-shop,
-    .nav-auth-button {
-        border-radius: $radius-pill;
-    }
-
-    // Interactive links only: canonical focus ring plus a soft lavender hover.
-    // The logo link lives outside .nav-items-wrapper, and inert Shop stays
-    // nonfocusable with no hover so it never suggests clickability.
-    .nav-items-wrapper a {
-        @include focus-ring;
-
-        &:hover {
-            background-color: $nav-lavender;
-        }
-    }
-
-    // Active route: filled purple pill with white text.
-    .nav-items-wrapper a.active {
-        background-color: $color-primary;
-        border-color: $color-primary;
-        color: white;
-    }
-
-    // Filled UW NetID auth pill.
-    .nav-auth .nav-auth-button {
-        background-color: $color-primary;
-        border-color: $color-primary;
-        color: white;
+        padding: 12px 18px;
     }
 }
 
@@ -180,12 +161,14 @@ nav img {
     .nav-container {
         position: relative;
         align-items: start;
-        width: auto;
+        width: 100%;
+        box-sizing: border-box;
         display: block;
         padding: 0;
         flex-direction: column;
         height: fit-content;
         gap: 12px;
+        transition: all 500ms cubic-bezier(0.19, 1, 0.22, 1);
         @include bottom-gradient-border;
 
         .nav-header {
@@ -229,29 +212,20 @@ nav img {
 
     }
 
-    .nav-items-wrapper a,
-    .nav-shop {
+    .nav-items-wrapper a {
         width: 100%;
         font-size: 14px;
         padding: 12px 0;
     }
 
+    .nav-items-wrapper a.active {
+        &::after {
+            width: 100%;
+        }
+    }
 
     nav button {
         width: 100%;
-    }
-
-    .nav-auth {
-        width: 100%;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0;
-
-        .nav-auth-greeting,
-        .nav-auth-button {
-            font-size: 14px;
-            padding: 12px 0;
-        }
     }
 
     .nav-button-wrapper {
@@ -265,16 +239,12 @@ nav img {
         display: block;
         @include gradient-border-thin;
         padding: 8px 14px;
-        border-radius: $radius-pill;
+        border-radius: $radius;
 
         svg {
             display: block;
             color: rgb(77, 77, 77);
         }
-    }
-
-    .nav-header .nav-mobile-menu {
-        width: auto;
     }
 
     .nav-show-items {

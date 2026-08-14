@@ -1,37 +1,3 @@
-// prod.jenkinsfile
-/*
-Purpose: CI/CD pipeline for the production environment (iuga.info). Builds, pushes, and
-         health-gated-deploys the app image whenever code lands on the `main` branch.
-         Deploy logic is loaded from ci/deploy.groovy; this file only supplies the
-         per-environment configuration (image names, ports, mounts, network).
-Authentication/Authorization Requirements: N/A (Jenkins job, triggered by GitHub push webhook)
-
-Expected Request Information:
-- SCM: checks out the `main` branch with its submodules
-- Credentials used (Configure Jenkins > Credentials): dockerhub (image push),
-  DB_URI, SESSION_SECRET (runtime env vars)
-- cfg (Map): per-environment values passed to the shared deploy helpers
-
-Expected Response Information:
-- return N/A (sets GitHub status context iuga/jenkins/cicd/prod; deploys or fails safely)
-*/
-
-// Shared Docker build/push/deploy helpers, defined once in ci/deploy.groovy.
-// Loaded inside the Checkout stage below: `load` needs a workspace context, which
-// only exists inside a stage (top-level load fails with MissingContextVariableException).
-def deploy = null
-
-// Per-environment config consumed by the shared helpers in ci/deploy.groovy.
-def cfg = [
-    image:     'iuga/iuga-web-app-production',
-    deployEnv: 'production',
-    container: 'iuga-web-prod',
-    tempPort:  8889,
-    realPort:  8888,
-    uploadsDir: '/var/lib/iuga-web-app/uploads/prod',
-    network:   true,   // prod joins the shared docker network
-]
-
 void setBuildStatus(String credential_id, String context, String state, String message) {
     def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
     def targetUrl = env.RUN_DISPLAY_URL
@@ -43,9 +9,7 @@ void setBuildStatus(String credential_id, String context, String state, String m
 
 pipeline {
     agent any
-    options {
-        disableConcurrentBuilds()
-    }
+    
     stages {
         stage('Checkout') {
             steps {
@@ -62,46 +26,50 @@ pipeline {
                         url: 'https://github.com/UW-IUGA/iuga-web-app.git'
                     ]]
                 ])
-                // load needs a workspace; the file is only present after checkout
-                script { deploy = load 'ci/deploy.groovy' }
             }
         }
         stage('Initialize Submodules') {
             steps {
                 sh 'git submodule update --init --recursive'
             }
-        }
+        }   
         stage('Build') {
             steps {
                 setBuildStatus("github_classic", "iuga/jenkins/cicd/prod", "pending", "Building application...");
-                script { deploy.buildImage(cfg) }
+                sh 'docker build . -t "iuga/iuga-web-app-production" --build-arg DEPLOY_ENV=production'
             }
         }
         stage('Push to Registry') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                    sh 'docker login -u $USERNAME -p $PASSWORD'
+                        sh 'docker login -u $USERNAME -p $PASSWORD'
                 }
-                script { deploy.pushImage(cfg) }
+                sh 'docker push iuga/iuga-web-app-production'
             }
         }
         stage('Deploy') {
             steps {
                 setBuildStatus("github_classic", "iuga/jenkins/cicd/prod", "pending", "Deploying application...");
+                sh 'docker pull iuga/iuga-web-app-production'
+                sh 'docker rm -f iuga-web-prod || true'
                 withCredentials([
-                    string(credentialsId: 'DB_URI', variable: 'DB_URI'),
+                    string(credentialsId: 'devDBUri', variable: 'DB_URI'),
                     string(credentialsId: 'SESSION_SECRET', variable: 'SESSION_SECRET'),
                 ]) {
-                    script { deploy.healthGatedDeploy(cfg) }
-                }
-                // Record this build as the known-good image, available for future rollbacks.
-                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                    script { deploy.tagLastGood(cfg) }
+                    sh '''
+                    docker run -d -p "127.0.0.1:8888:7777" --name iuga-web-prod \
+                    -e DEPLOY_ENV=production \
+                    -e DB_URI="$DB_URI" \
+                    -e SESSION_SECRET="$SESSION_SECRET" \
+                    -v /var/lib/iuga-web-app/uploads/prod:/app/backend/public/uploads \
+                    --network iuga-server-config_default \
+                    iuga/iuga-web-app-production
+                    '''
                 }
             }
         }
     }
-
+    
     post {
         success {
             setBuildStatus("github_classic", "iuga/jenkins/cicd/prod", "success", "Pipeline succeeded!");

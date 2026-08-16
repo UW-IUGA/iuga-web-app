@@ -6,7 +6,6 @@ Schemas addressed in users.js:
 */
 
 import express from "express";
-import fetch from "node-fetch";
 import { sendError } from "../helpers/sendError.js";
 import { sendSuccess } from "../helpers/sendSuccess.js";
 import { requireAuth } from "../utils/auth.js";
@@ -14,15 +13,24 @@ import { requireAuth } from "../utils/auth.js";
 var router = express.Router();
 
 /*
-    @endpoint: /login
-    @method: GET
-    @description: Given the Microsoft Access Token in the Authorization header,
-                  get information about the user using Graph API. Save information
-                  about the user if already exists. Create user session.
+Purpose: Log the user in via a Microsoft access token: fetch the Graph /me
+         profile, create or sync the Users doc, and establish the session.
+Authentication/Authorization Requirements: None (this is the login endpoint)
+
+Expected Request Information:
+- Headers: Authorization: Bearer <Microsoft access token>
+
+Expected Response Information:
+- 200 with the Users doc on success
+- 401 when the token is missing or Microsoft Graph rejects it
+- 500 on unexpected server error
 */
 router.post("/login", async function (req, res) {
   const authorizationHeader = req.headers.authorization;
   try {
+    if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
+      return sendError(res, 401, "Invalid access token or Microsoft Graph failure");
+    }
     const accessToken = authorizationHeader.split(" ")[1];
     const response = await fetch("https://graph.microsoft.com/v1.0/me", {
       headers: {
@@ -30,36 +38,46 @@ router.post("/login", async function (req, res) {
       },
     });
 
-    if (response.ok) {
-      const userData = await response.json();
-
-      // Create a new session with the user
-      req.session.isAuthenticated = true;
-      req.session.displayName = userData.displayName;
-      req.session.email = userData.mail;
-      req.session.firstName = userData.givenName;
-      req.session.lastName = userData.surname;
-
-      //Check if user is already in database, if not then make them an account
-      let user = await req.models.Users.findOne({ uEmail: req.session.email });
-      if (!user) {
-        const newUser = new req.models.Users({
-          uFirstName: req.session.firstName,
-          uLastName: req.session.lastName,
-          uDisplayName: req.session.displayName,
-          uEmail: req.session.email,
-        });
-
-        user = await newUser.save();
-      }
-
-      req.session.userId = user._id;
-      req.session.memberType = user.uType;
-      req.session.isAdmin = user.uType === "Admin";
-      res.status(200).json(user);
+    if (!response.ok) {
+      return sendError(res, 401, "Invalid access token or Microsoft Graph failure");
     }
+
+    const userData = await response.json();
+    // uEmail falls back to userPrincipalName when Graph omits mail so users are never orphaned
+    const email = userData.mail ?? userData.userPrincipalName;
+
+    // Create a new session with the user
+    req.session.isAuthenticated = true;
+    req.session.displayName = userData.displayName;
+    req.session.email = email;
+    req.session.firstName = userData.givenName;
+    req.session.lastName = userData.surname;
+
+    // Check if user is already in the database; if not, make them an account
+    let user = await req.models.Users.findOne({ uEmail: email });
+    if (!user) {
+      const newUser = new req.models.Users({
+        uFirstName: userData.givenName,
+        uLastName: userData.surname,
+        uDisplayName: userData.displayName,
+        uEmail: email,
+      });
+
+      user = await newUser.save();
+    } else {
+      // Sync profile drift on re-login; never duplicate the account
+      if (userData.givenName) user.uFirstName = userData.givenName;
+      if (userData.surname) user.uLastName = userData.surname;
+      if (userData.displayName) user.uDisplayName = userData.displayName;
+      user = await user.save();
+    }
+
+    req.session.userId = user._id;
+    req.session.memberType = user.uType;
+    req.session.isAdmin = user.uType === "Admin";
+    res.status(200).json(user);
   } catch (err) {
-    console.log(err);
+    console.error("login error:", err);
     return sendError(res, 500);
   }
 });

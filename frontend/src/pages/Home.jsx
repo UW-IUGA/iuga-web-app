@@ -4,13 +4,13 @@ import Button from "../components/Button";
 import EventStream from "../components/EventStream";
 import ImageCarousel from "../components/ImageCarousel";
 import formalImage from "../assets/iFormal-2026.jpeg";
-import gamenight from "../assets/gallery/gamenight.png";
+import gamenight from "../assets/gallery/gamenight.jpg";
 import gamenight2 from "../assets/gallery/gamenight-2.png";
 import bowling from "../assets/gallery/bowling.jpeg";
 import heart from "../assets/gallery/heart.jpeg";
-import groups from "../assets/gallery/groups.png";
+import groups from "../assets/gallery/groups.jpg";
 import officers from "../assets/gallery/officers-22.png";
-import panelists from "../assets/gallery/panelists.png";
+import panelists from "../assets/gallery/panelists.jpg";
 import merch from "../assets/gallery/merch.jpeg";
 
 // The three IUGA function streams; each stream's event list renders directly

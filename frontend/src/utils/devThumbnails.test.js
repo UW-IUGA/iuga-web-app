@@ -2,7 +2,7 @@ import { enrichWithDevThumbnails } from "./devThumbnails";
 import { mockCalendarData } from "../assets/mock-data/MockCalendarData";
 import { categoriesFor } from "./eventStreams";
 import bowling from "../assets/gallery/bowling.jpeg";
-import groups from "../assets/gallery/groups.png";
+import groups from "../assets/gallery/groups.jpg";
 
 const TEST_EVENT_5_ID = "662490263e10daba38e25686";
 

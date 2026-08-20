@@ -24,6 +24,16 @@ const COMMITTEES = [
             "Hi IUGA,\n\nI'm an Informatics student and I'd love to join the Creative Committee. Please add me to the loop!\n\nThanks,\n[Your name]"
         ),
     },
+    {
+        name: "Diversity Committee",
+        ledBy: "Nitya Shankar",
+        description:
+            "Leads events and initiatives that strengthen diversity across the iSchool, partnering with diversity-focused student organizations to build meaningful community.",
+        mailto: mailto(
+            "Joining the Diversity Committee",
+            "Hi IUGA,\n\nI'm an Informatics student and I'd love to join the Diversity Committee. Please add me to the loop!\n\nThanks,\n[Your name]"
+        ),
+    },
 ];
 
 function GetInvolvedPage() {

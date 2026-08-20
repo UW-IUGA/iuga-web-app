@@ -71,14 +71,14 @@
     min-height: $pill-height;
     gap: 8px;
     padding-right: 28px;
-    background-color: $color-uw-purple;
-    border-color: $color-uw-purple;
+    background-color: $color-primary;
+    border-color: $color-primary;
     color: white;
 
     &:hover,
     &:focus-visible {
-        background-color: $color-primary;
-        border-color: $color-primary;
+        background-color: $color-uw-purple;
+        border-color: $color-uw-purple;
     }
 }
 
@@ -1117,8 +1117,8 @@
     }
 
     .heroCategoryCareer {
-        top: 34%;
-        left: 27%;
+        top: 50%;
+        left: 22%;
         transform: rotate(-5deg);
 
         &::before {
@@ -1127,7 +1127,7 @@
     }
 
     .heroCategoryAcademic {
-        top: 19%;
+        top: 20%;
         right: 25%;
         transform: rotate(5deg);
 

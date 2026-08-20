@@ -24,7 +24,7 @@ describe("HomePage", () => {
     test("renders the landing-page hero region", () => {
         renderHome();
 
-        expect(screen.getByRole("region", { name: /By informatics students, for informatics students/i })).toBeInTheDocument();
+        expect(screen.getByRole("region", { name: /Informatics Undergraduate Association/i })).toBeInTheDocument();
     });
 
     test("keeps the primary event route accessible", async () => {

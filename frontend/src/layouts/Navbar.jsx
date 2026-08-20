@@ -1,25 +1,33 @@
-import { useEffect, useState } from "react";
-import { NavLink, useLocation } from 'react-router-dom';
+import { useState } from "react";
+import { NavLink } from 'react-router-dom';
 import { useAuthContext } from "../context/AuthContext";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBars } from "@fortawesome/free-solid-svg-icons";
+import {
+    faBars,
+    faBookOpen,
+    faBullhorn,
+    faCalendarDays,
+    faHand,
+    faHouse,
+    faRightFromBracket,
+    faRightToBracket,
+    faShop,
+    faUsers,
+} from "@fortawesome/free-solid-svg-icons";
 
 function Navbar({ signIn, signOut }) {
     const [showMenu, setMenu] = useState(false);
-    const { pathname } = useLocation();
     const { isAuthenticated, user } = useAuthContext();
     const userGreeting = user?.uFirstName || user?.uDisplayName || user?.name || user?.email;
-    const closeMenu = () => setMenu(false);
-
-    useEffect(() => {
-        setMenu(false);
-    }, [pathname]);
+    const userType = user?.uType || "IUGA member";
+    const avatarInitial = userGreeting?.trim().charAt(0).toUpperCase() || "I";
 
     return (
-        <nav>
-            <div className={`nav-container ${showMenu ? "nav-menu-open" : ""}`}>
+        <nav aria-label="Primary navigation">
+            <div className="nav-container">
                 <div className="nav-header">
+                    <NavLink to="/" className="nav-logo"><img src="/iuga-logo.png" alt="IUGA logo, links to home"></img></NavLink>
                     <button
                         type="button"
                         className="nav-mobile-menu"
@@ -30,16 +38,15 @@ function Navbar({ signIn, signOut }) {
                     >
                         <FontAwesomeIcon icon={faBars} />
                     </button>
-                    <NavLink to="/" className="nav-logo" onClick={closeMenu}><img src="/iuga-logo.png" alt="IUGA logo, links to home"></img></NavLink>
-                    <span></span>
                 </div>
                 <div id="nav-items" className={`nav-items-wrapper ${showMenu ? "nav-show-items" : "nav-hide-items"}`}>
-                    <NavLink to="/" end onClick={closeMenu}>Home</NavLink>
-                    <NavLink to="/events" onClick={closeMenu}>Events</NavLink>
-                    <NavLink to="/resources" onClick={closeMenu}>Resources</NavLink>
-                    <span className="nav-shop">Shop</span>
-                    <NavLink to="/get-involved" onClick={closeMenu}>Get Involved</NavLink>
-                    <span></span>
+                    <NavLink to="/" end><FontAwesomeIcon icon={faHouse} /><span>Home</span></NavLink>
+                    <NavLink to="/events"><FontAwesomeIcon icon={faCalendarDays} /><span>Events</span></NavLink>
+                    <NavLink to="/resources"><FontAwesomeIcon icon={faBookOpen} /><span>Resources</span></NavLink>
+                    <NavLink to="/student-voice"><FontAwesomeIcon icon={faBullhorn} /><span>Student Voice</span></NavLink>
+                    <NavLink to="/about"><FontAwesomeIcon icon={faUsers} /><span>About Us</span></NavLink>
+                    <span className="nav-shop"><FontAwesomeIcon icon={faShop} /><span>Shop</span></span>
+                    <NavLink to="/get-involved"><FontAwesomeIcon icon={faHand} /><span>Get Involved</span></NavLink>
                     <div className="nav-auth">
                         {isAuthenticated ? (
                             <>
@@ -51,6 +58,25 @@ function Navbar({ signIn, signOut }) {
                         )}
                     </div>
                 </div>
+            </div>
+            <div className="nav-account-float">
+                {isAuthenticated ? (
+                    <div className="nav-account-profile">
+                        <span className="nav-account-avatar" aria-hidden="true">{avatarInitial}</span>
+                        <div className="nav-account-copy">
+                            <strong>Welcome back, {userGreeting || "there"}</strong>
+                            <span>{userType}</span>
+                        </div>
+                        <button type="button" className="nav-account-logout" onClick={signOut} aria-label="Logout">
+                            <FontAwesomeIcon icon={faRightFromBracket} />
+                        </button>
+                    </div>
+                ) : (
+                    <button type="button" className="nav-account-login pill-button homePrimaryLink" onClick={signIn}>
+                        <FontAwesomeIcon icon={faRightToBracket} />
+                        <span>Login</span>
+                    </button>
+                )}
             </div>
         </nav>
     )

@@ -70,6 +70,11 @@
     }
 }
 
+@mixin photo-frame($radius: $radius-card-media, $border-width: 5px) {
+    border: $border-width solid white;
+    border-radius: $radius;
+}
+
 @mixin section-divider {
     position: relative;
     margin-bottom: $section-divider-gap;

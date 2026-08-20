@@ -723,9 +723,9 @@
 }
 
 .heroCenterpiece > p {
-    max-width: 420px !important;
+    max-width: 520px !important;
     margin: 0 auto 28px !important;
-    font-size: 1rem !important;
+    font-size: clamp(1.25rem, 1.7vw, 1.5rem) !important;
     line-height: 1.5;
 }
 
@@ -748,6 +748,11 @@
     pointer-events: none;
 }
 
+@mixin activeAppearance($background, $shadow) {
+    background: $background;
+    box-shadow: $shadow;
+}
+
 .heroCategory {
     position: absolute;
     display: inline-flex;
@@ -755,7 +760,7 @@
     gap: 12px;
     padding: 11px 16px;
     border: 1px solid rgba(255, 255, 255, 0.78);
-    border-radius: 999px;
+    border-radius: 6px 12px 12px 6px;
     background: rgba(255, 255, 255, 0.52);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
@@ -765,24 +770,51 @@
     font-weight: 700;
     text-decoration: none;
     pointer-events: auto;
+    animation: heroCategoryFloat 5.8s ease-in-out infinite;
     transition: transform 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
     @include focus-ring;
 
-    span {
+    .heroTagMark {
+        position: absolute;
+        top: 50%;
+        left: -18px;
+        width: 8px;
+        height: 8px;
+        border: 2px solid currentColor;
+        border-radius: 50%;
         color: $color-primary;
-        font-size: 1rem;
-        transition: transform 180ms ease;
+        transform: translateY(-50%);
+        transition: transform 180ms ease, background-color 180ms ease;
     }
 
-    &:hover,
     &:focus-visible {
-        background: rgba(255, 255, 255, 0.84);
-        box-shadow: 0 18px 34px rgba($color-uw-purple, 0.18);
+        @include activeAppearance(rgba(255, 255, 255, 0.84), 0 18px 34px rgba($color-uw-purple, 0.18));
+        animation: none;
         transform: translateY(-4px);
 
-        span {
-            transform: translate(2px, 2px);
+        .heroTagMark {
+            background: currentColor;
+            transform: translate(2px, -50%);
         }
+    }
+
+    @media (hover: hover) {
+        &:hover {
+            @include activeAppearance(rgba(255, 255, 255, 0.84), 0 18px 34px rgba($color-uw-purple, 0.18));
+            animation: none;
+            transform: translateY(-4px) scale(1.02);
+        }
+    }
+}
+
+@keyframes heroCategoryFloat {
+    0%,
+    100% {
+        transform: rotate(var(--hero-cat-rotate, 0deg)) translateY(0);
+    }
+
+    50% {
+        transform: rotate(var(--hero-cat-rotate, 0deg)) translateY(var(--hero-cat-float, -3px));
     }
 }
 
@@ -822,6 +854,7 @@
     width: 21%;
     height: 36%;
     object-position: center;
+    @include photo-frame($radius-media);
 }
 
 .heroPhotoTop {
@@ -829,8 +862,7 @@
     right: 40%;
     width: 12%;
     height: 16%;
-    border: 5px solid white;
-    border-radius: $radius-card-media;
+    @include photo-frame;
 }
 
 .heroPhotoBottom {
@@ -838,14 +870,13 @@
     left: 8%;
     width: 24%;
     height: 25%;
-    border: 5px solid white;
-    border-radius: $radius-card-media;
+    @include photo-frame;
 }
 
 .collageGlassCard {
     position: absolute;
     top: 9%;
-    left: 2%;
+    left: 1%;
     z-index: 3;
     display: flex;
     width: min(260px, 24%);
@@ -858,7 +889,29 @@
     backdrop-filter: blur(18px) saturate(120%);
     -webkit-backdrop-filter: blur(18px) saturate(120%);
     box-shadow: 0 20px 48px rgba($color-uw-purple, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.86);
+    color: inherit;
+    text-decoration: none;
     pointer-events: auto;
+    transition: transform 180ms ease, background 180ms ease, box-shadow 180ms ease;
+    @include focus-ring;
+
+    &:focus-visible {
+        @include activeAppearance(
+            linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(239, 231, 255, 0.62)),
+            (0 24px 54px rgba($color-uw-purple, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.9))
+        );
+        transform: translateY(-3px);
+    }
+
+    @media (hover: hover) {
+        &:hover {
+            @include activeAppearance(
+                linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(239, 231, 255, 0.62)),
+                (0 24px 54px rgba($color-uw-purple, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.9))
+            );
+            transform: translateY(-4px) scale(1.015);
+        }
+    }
 }
 
 .collageGlassEyebrow,
@@ -867,6 +920,13 @@
     margin: 0;
     font-size: 0.67rem;
     letter-spacing: 0.1em;
+}
+
+.collageGlassStatus {
+    margin-right: 5px;
+    color: $color-academic-capsule;
+    font-size: 0.55rem;
+    vertical-align: 1px;
 }
 
 .collageGlassTitle {
@@ -990,6 +1050,13 @@
     .heroSection * {
         transition: none !important;
         animation: none !important;
+        transform: none !important;
+    }
+
+    @include media(">=tablet") {
+        .heroCategory .heroTagMark {
+            transform: translateY(-50%) !important;
+        }
     }
 }
 
@@ -1022,25 +1089,30 @@
     }
 
     .heroCenterpiece > p {
-        font-size: 0.96rem !important;
+        font-size: 1.15rem !important;
+        line-height: 1.45;
     }
 
     .heroCategories {
         position: static;
         display: flex;
+        flex-wrap: wrap;
         justify-content: center;
         gap: 8px;
         margin: 30px 0 34px;
     }
 
     .heroCategory {
-        position: static;
+        position: relative;
         padding: 9px 12px;
         font-size: 0.76rem;
     }
 
-    .heroCategory span {
-        display: none;
+    .heroTagMark {
+        position: static;
+        transform: none;
+        width: 7px;
+        height: 7px;
     }
 
     .heroWorld {
@@ -1101,28 +1173,20 @@
 
 @include media(">=tablet") {
     .heroCategory {
-        border-radius: 5px;
+        border-radius: 6px 10px 10px 6px;
         background: rgba(255, 255, 255, 0.78);
         box-shadow: 0 12px 26px rgba($color-uw-purple, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.92);
 
-        &::before {
-            width: 18px;
-            height: 18px;
-            margin-left: -26px;
-            border-radius: 50%;
-            content: "";
-            background: $color-primary;
-            box-shadow: 0 0 0 3px rgba($color-primary, 0.16);
-        }
     }
 
     .heroCategoryCareer {
         top: 50%;
         left: 22%;
         transform: rotate(-5deg);
+        --hero-cat-rotate: -5deg;
 
-        &::before {
-            background: $color-uw-purple;
+        .heroTagMark {
+            color: $color-career;
         }
     }
 
@@ -1130,9 +1194,11 @@
         top: 20%;
         right: 25%;
         transform: rotate(5deg);
+        --hero-cat-rotate: 5deg;
+        --hero-cat-float: -2px;
 
-        &::before {
-            background: $color-academic-capsule;
+        .heroTagMark {
+            color: $color-academic;
         }
     }
 
@@ -1140,9 +1206,11 @@
         top: 54%;
         right: 24%;
         transform: rotate(4deg);
+        --hero-cat-rotate: 4deg;
 
-        &::before {
-            background: #bd55d8;
+        .heroTagMark {
+            color: $color-social;
         }
     }
 }
+

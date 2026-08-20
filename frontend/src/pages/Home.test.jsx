@@ -27,6 +27,12 @@ describe("HomePage", () => {
         expect(screen.getByRole("region", { name: /Informatics Undergraduate Association/i })).toBeInTheDocument();
     });
 
+    test("explains the student gateway in the hero subheadline", () => {
+        renderHome();
+
+        expect(screen.getByText(/events, resources, opportunities, and community/i)).toBeInTheDocument();
+    });
+
     test("keeps the primary event route accessible", async () => {
         renderHome();
 
@@ -43,11 +49,18 @@ describe("HomePage", () => {
     test("exposes category paths and compact secondary actions", () => {
         renderHome();
 
-        expect(screen.getByRole("link", { name: /Career/ })).toHaveAttribute("href", "/events");
-        expect(screen.getByRole("link", { name: /Academic/ })).toHaveAttribute("href", "/events");
-        expect(screen.getByRole("link", { name: /Social/ })).toHaveAttribute("href", "/events");
+        expect(screen.getByRole("navigation", { name: /interest tags/i })).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: /Career tag/i })).toHaveAttribute("href", "/events");
+        expect(screen.getByRole("link", { name: /Academic tag/i })).toHaveAttribute("href", "/events");
+        expect(screen.getByRole("link", { name: /Social tag/i })).toHaveAttribute("href", "/events");
         expect(screen.getByRole("link", { name: /Join IUGA/ })).toHaveAttribute("href", "/get-involved");
         expect(screen.getByRole("link", { name: /Shop merch/ })).toHaveAttribute("href", "/get-involved");
+    });
+
+    test("makes Happening This Week a direct event destination", () => {
+        renderHome();
+
+        expect(screen.getByRole("link", { name: /Happening this week/i })).toHaveAttribute("href", "/events");
     });
 
     test("has no form inputs and no disabled Coming Soon submit", () => {

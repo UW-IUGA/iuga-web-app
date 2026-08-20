@@ -1,10 +1,50 @@
-# macOS
+# === Environment ===
+.env
+.env.*
+backend/env/*
+!backend/env/.env.example
+
+# === Dependencies ===
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+
+# === Build artifacts ===
+frontend/build/
+dist/
+
+# === OS files ===
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+*.swp
+*.swo
+*~
 
-# local agent state
-.omo/
-/node_modules
+# === IDE / Editor ===
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+.project
+.classpath
+.settings/
 
+# === Logs ===
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Personal agent guidance
-/AGENTS.md
+# === Testing ===
+coverage/
+
+# === Docker ===
+docker-compose.override.yml
+
+# === Local agent state ===
+.om*/
+AGENTS.md

@@ -1,117 +1,174 @@
 import { useEffect, useMemo } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Button from "../components/Button";
 import EventStream from "../components/EventStream";
-import ImageCarousel from "../components/ImageCarousel";
 import formalImage from "../assets/iFormal-2026.jpeg";
-import gamenight from "../assets/gallery/gamenight.png";
-import gamenight2 from "../assets/gallery/gamenight-2.png";
 import bowling from "../assets/gallery/bowling.jpeg";
+import gamenight from "../assets/gallery/gamenight.jpg";
+import groups from "../assets/gallery/groups.jpg";
 import heart from "../assets/gallery/heart.jpeg";
-import groups from "../assets/gallery/groups.png";
 import officers from "../assets/gallery/officers-22.png";
-import panelists from "../assets/gallery/panelists.png";
+import panelists from "../assets/gallery/panelists.jpg";
 import merch from "../assets/gallery/merch.jpeg";
 
-// The three IUGA function streams; each stream's event list renders directly
-// below its own narrative. Academic and Professional rows read left-to-right;
-// Social is reversed.
 const FUNCTIONS = [
     {
         category: "Academic",
         title: "Learn together, grow together",
         body: "Workshops, info sessions, and study jams that help you get more out of the iSchool — with people who are figuring it out right alongside you.",
-        reversed: false,
-        images: [
-            { src: groups, alt: "IUGA members together in a group photo" },
-            { src: officers, alt: "The IUGA officer team" },
-        ],
     },
     {
         category: "Social",
         title: "Show up, connect, unwind",
         body: "Game nights, bowling, and mixers where the Informatics community actually gets to know each other. No agenda — just people.",
-        reversed: true,
-        images: [
-            { src: gamenight, alt: "IUGA members at a game night" },
-            { src: gamenight2, alt: "IUGA members playing games together" },
-            { src: bowling, alt: "IUGA bowling night" },
-            { src: heart, alt: "IUGA members forming a heart" },
-        ],
     },
     {
         category: "Professional",
         title: "Meet the people who make it",
         body: "Industry panels, networking nights, and career prep with the people doing the work you want to do.",
-        reversed: false,
-        images: [
-            { src: panelists, alt: "IUGA industry panelists speaking at an event" },
-            { src: merch, alt: "IUGA branded merchandise" },
-        ],
     },
 ];
+
+function formatEventDate(value) {
+    if (!value) return "New details coming soon";
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "New details coming soon";
+
+    return new Intl.DateTimeFormat("en-US", {
+        weekday: "long",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+    }).format(date);
+}
 
 function HomePage({ upcomingEvents }) {
     const navigate = useNavigate();
     const { pathname } = useLocation();
-    // One "now" per render so every stream classifies against the same clock.
     const now = useMemo(() => Date.now(), []);
+    const featuredEvent = upcomingEvents?.[0];
+    const featuredEventName = featuredEvent?.eName || "The next IUGA gathering";
+    const featuredEventDate = formatEventDate(featuredEvent?.eStartDate);
 
     useEffect(() => {
         window.scrollTo(0, 0);
     }, [pathname]);
 
     return (
-        <div className="baseContainer">
-            <section className="heroSection">
+        <main className="baseContainer homePage">
+            <section className="homeRegion heroSection" aria-labelledby="heroHeading">
                 <div className="heroCopy">
-                    <h1>Informatics Undergraduate Association</h1>
-                    <p>
-                        We&apos;re the student-run home for Informatics undergraduates at the
-                        University of Washington — a community that learns together, shows up
-                        for each other, and opens doors.
-                    </p>
-                    <Button text="Get Involved" className="pill-button" onClick={() => navigate("/get-involved")} />
+                    <div className="heroCenterpiece">
+                        <h1 id="heroHeading">By informatics<br />students,<br /><span>for informatics<br />students.</span></h1>
+                        <p>Events, people, and opportunities across the Informatics community.</p>
+                        <nav className="heroActions" aria-label="Homepage shortcuts">
+                            <Link className="pill-button homePrimaryLink" to="/events">Explore Events <span aria-hidden="true">→</span></Link>
+                        </nav>
+                    </div>
+                    <nav className="heroCategories" aria-label="Explore events by interest">
+                        <a className="heroCategory heroCategoryCareer" href="#events-professional">Career</a>
+                        <a className="heroCategory heroCategoryAcademic" href="#events-academic">Academic</a>
+                        <a className="heroCategory heroCategorySocial" href="#events-social">Social</a>
+                    </nav>
                 </div>
-                <img className="heroImage" src={formalImage} alt="IUGA members at iFormal 2026" />
+                <div className="heroWorld" aria-label="IUGA student community">
+                    <img className="heroPhoto heroPhotoMain" src={formalImage} alt="IUGA members at iFormal 2026" />
+                    <img className="heroPhoto heroPhotoTop" src={heart} alt="IUGA members forming a heart" />
+                    <img className="heroPhoto heroPhotoBottom" src={bowling} alt="IUGA bowling night" />
+                    <div className="collageGlassCard">
+                        <span className="collageGlassEyebrow">Happening this week</span>
+                        <strong className="collageGlassTitle">{featuredEventName}</strong>
+                        <span className="collageGlassMeta">{featuredEventDate}</span>
+                        <div className="collageGlassPeople" aria-label="Students are part of the IUGA community">
+                            <img src={groups} alt="" />
+                            <img src={officers} alt="" />
+                            <img src={panelists} alt="" />
+                            <span>Students welcome</span>
+                        </div>
+                        <Link className="collageGlassLink" to="/events">View event <span aria-hidden="true">→</span></Link>
+                    </div>
+                    <Link className="heroJoin glassObject" to="/get-involved">
+                        <span className="glassObjectKicker"><span aria-hidden="true">●</span> Get involved</span>
+                        <strong>Join IUGA</strong>
+                        <span>Help build what's next. <b aria-hidden="true">→</b></span>
+                    </Link>
+                    <a className="heroMerch glassObject" href="#merch">
+                        <img src={merch} alt="IUGA branded merchandise arranged for students" />
+                        <span><strong>Rep Informatics</strong><br />Shop merch <b aria-hidden="true">→</b></span>
+                    </a>
+                </div>
             </section>
 
-            <section className="functionsSection" aria-labelledby="functionsHeading">
-                <div className="homeSectionHeader functionsHeader">
-                    <h1 id="functionsHeading">OUR FUNCTIONS</h1>
+            <section className="homeRegion eventsSection" aria-labelledby="eventsHeading">
+                <div className="homeSectionHeader">
+                    <p className="homeEyebrow">On the calendar</p>
+                    <h2 id="eventsHeading">Happening in Informatics</h2>
+                    <p>Find a workshop, gathering, or conversation that fits where you are right now.</p>
                 </div>
-                <p className="functionsIntro">
-                    From study sessions to game nights to industry panels, everything IUGA puts
-                    on lives in one of three streams — and all of it exists so you can get more
-                    out of the iSchool.
-                </p>
 
-                {FUNCTIONS.map((fn) => (
-                    <div className="functionGroup" key={fn.category}>
-                        <div
-                            className={`functionRow ${fn.category.toLowerCase()}${fn.reversed ? " functionRowReversed" : ""}`}
-                        >
+                <div className="eventStreams">
+                    {FUNCTIONS.map((fn) => (
+                        <article className="functionGroup" id={`events-${fn.category.toLowerCase()}`} key={fn.category}>
                             <div className="functionCopy">
-                                <span className="functionKicker">{fn.category}</span>
-                                <h2>{fn.title}</h2>
+                                <p className="functionKicker">{fn.category}</p>
+                                <h3>{fn.title}</h3>
                                 <p>{fn.body}</p>
                             </div>
-                            <ImageCarousel images={fn.images} label={`${fn.category} event photos`} />
-                        </div>
-                        <EventStream category={fn.category} events={upcomingEvents} now={now} />
-                    </div>
-                ))}
+                            <EventStream category={fn.category} events={upcomingEvents} now={now} />
+                        </article>
+                    ))}
+                </div>
 
                 <div className="viewAllEvents">
-                    <Button
-                        text="View All Events"
-                        className="pill-button"
-                        onClick={() => navigate("/events")}
-                    />
+                    <Button text="View All Events" className="pill-button" onClick={() => navigate("/events")} />
                 </div>
             </section>
 
-        </div>
+            <section className="homeRegion contentRegion communitySection" id="community" aria-labelledby="communityHeading">
+                <div className="contentRegionCopy">
+                    <p className="homeEyebrow">Find your people</p>
+                    <h2 id="communityHeading">Community</h2>
+                    <p>
+                        Informatics is better with people beside you. IUGA creates low-pressure
+                        ways to meet classmates, celebrate together, and make the iSchool feel smaller.
+                    </p>
+                </div>
+                <div className="imageGrid" aria-label="IUGA community photos">
+                    <img src={gamenight} alt="IUGA members at a game night" />
+                    <img src={groups} alt="IUGA members gathered together" />
+                </div>
+            </section>
+
+            <section className="homeRegion contentRegion involvementSection" aria-labelledby="involvementHeading">
+                <div className="contentRegionCopy">
+                    <p className="homeEyebrow">Make it yours</p>
+                    <h2 id="involvementHeading">Get Involved</h2>
+                    <p>
+                        Bring an idea, join a committee, or help shape what the Informatics community
+                        does next. There is room for your version of participation.
+                    </p>
+                    <Link className="pill-button" to="/get-involved">Explore ways to get involved</Link>
+                </div>
+                <div className="imageGrid" aria-label="IUGA involvement photos">
+                    <img src={officers} alt="IUGA officer team members representing Informatics" />
+                    <img src={panelists} alt="IUGA industry panelists speaking at an event" />
+                </div>
+            </section>
+
+            <section className="homeRegion contentRegion merchSection" id="merch" aria-labelledby="merchHeading">
+                <div className="contentRegionCopy">
+                    <p className="homeEyebrow">Carry the community with you</p>
+                    <h2 id="merchHeading">Rep Informatics</h2>
+                    <p>
+                        Find your place, then rep it. Tees, hoodies, and more — wear the
+                        community you're already part of.
+                    </p>
+                </div>
+                <img className="featureImage" src={merch} alt="IUGA branded merchandise arranged for students" />
+            </section>
+        </main>
     );
 }
 

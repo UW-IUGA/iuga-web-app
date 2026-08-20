@@ -4,12 +4,12 @@
 // exactly once, so generic duplicates can never resolve ambiguously — then a
 // deterministic gallery default. Import assets, never raw "/assets/..." strings.
 import bowling from "../assets/gallery/bowling.jpeg";
-import gamenight from "../assets/gallery/gamenight.png";
-import gamenight2 from "../assets/gallery/gamenight-2.png";
-import groups from "../assets/gallery/groups.png";
+import gamenight from "../assets/gallery/gamenight.jpg";
+import gamenight2 from "../assets/gallery/gamenight-2.jpg";
+import groups from "../assets/gallery/groups.jpg";
 import heart from "../assets/gallery/heart.jpeg";
 import officers from "../assets/gallery/officers-22.png";
-import panelists from "../assets/gallery/panelists.png";
+import panelists from "../assets/gallery/panelists.jpg";
 
 // Tier 1: stable mock eIds mapped to imported assets; eName for readability.
 const THUMBNAIL_BY_EID = {

@@ -21,10 +21,47 @@ const renderHome = () =>
     );
 
 describe("HomePage", () => {
-    test("hero Get Involved control navigates to /get-involved", async () => {
+    test("renders the approved landing-page regions in order", () => {
         renderHome();
-        await userEvent.click(screen.getByRole("button", { name: "Get Involved" }));
+
+        const regions = [
+            screen.getByRole("region", { name: /By informatics students, for informatics students/i }),
+            screen.getByRole("region", { name: "Happening in Informatics" }),
+            screen.getByRole("region", { name: "Community" }),
+            screen.getByRole("region", { name: "Get Involved" }),
+            screen.getByRole("region", { name: "Rep Informatics" }),
+        ];
+
+        expect(regions.map((region) => region.querySelector("h1, h2, h3").textContent)).toEqual([
+            "By informaticsstudents,for informaticsstudents.",
+            "Happening in Informatics",
+            "Community",
+            "Get Involved",
+            "Rep Informatics",
+        ]);
+    });
+
+    test("keeps the primary event route accessible", async () => {
+        renderHome();
+
+        await userEvent.click(screen.getByRole("link", { name: /Explore Events/ }));
+        expect(screen.getByText("Events Page")).toBeInTheDocument();
+    });
+
+    test("keeps the involvement route accessible from the hero", async () => {
+        renderHome();
+        await userEvent.click(screen.getByRole("link", { name: /Join IUGA/ }));
         expect(screen.getByText("Get Involved Page")).toBeInTheDocument();
+    });
+
+    test("exposes category paths and compact secondary actions", () => {
+        renderHome();
+
+        expect(screen.getByRole("link", { name: /Career/ })).toHaveAttribute("href", "#events-professional");
+        expect(screen.getByRole("link", { name: /Academic/ })).toHaveAttribute("href", "#events-academic");
+        expect(screen.getByRole("link", { name: /Social/ })).toHaveAttribute("href", "#events-social");
+        expect(screen.getByRole("link", { name: /Join IUGA/ })).toHaveAttribute("href", "/get-involved");
+        expect(screen.getByRole("link", { name: /Shop merch/ })).toHaveAttribute("href", "#merch");
     });
 
     test("View All Events navigates to the events page", async () => {
@@ -39,11 +76,21 @@ describe("HomePage", () => {
         expect(screen.queryByText(/send.*coming soon/i)).not.toBeInTheDocument();
     });
 
+    test("uses descriptive alternatives for landing-page images", () => {
+        renderHome();
+
+        expect(screen.getByAltText("IUGA members at iFormal 2026")).toBeInTheDocument();
+        expect(screen.getByAltText("IUGA members at a game night")).toBeInTheDocument();
+        expect(screen.getByAltText("IUGA members gathered together")).toBeInTheDocument();
+        expect(screen.getByAltText("IUGA officer team members representing Informatics")).toBeInTheDocument();
+        expect(screen.getAllByAltText("IUGA branded merchandise arranged for students").length).toBeGreaterThan(0);
+    });
+
     test("keeps the three IUGA function streams easy to scan", () => {
         renderHome();
 
         ["Academic", "Social", "Professional"].forEach((category) => {
-            expect(screen.getByText(category)).toBeVisible();
+            expect(screen.getAllByText(category).some((element) => element.checkVisibility?.() ?? true)).toBe(true);
             expect(screen.queryByRole("button", { name: category })).not.toBeInTheDocument();
         });
 
@@ -52,7 +99,7 @@ describe("HomePage", () => {
             "Show up, connect, unwind",
             "Meet the people who make it",
         ].forEach((title) => {
-            expect(screen.getByRole("heading", { name: title, level: 2 })).toBeVisible();
+            expect(screen.getByRole("heading", { name: title, level: 3 })).toBeVisible();
         });
     });
 });

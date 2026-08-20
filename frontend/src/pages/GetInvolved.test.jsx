@@ -35,24 +35,30 @@ describe("GetInvolvedPage", () => {
 
     test("renders only committee join links", () => {
         render(<GetInvolvedPage teams={iugaTeams} />);
-        expect(screen.getAllByRole("link", { name: /join .* committee/i })).toHaveLength(2);
+        expect(screen.getAllByRole("link", { name: /join .* committee/i })).toHaveLength(3);
         expect(screen.queryByRole("heading", { name: /meet the .* team/i })).not.toBeInTheDocument();
     });
 
-    test("renders exactly two committee opportunities: IT and Creative, each with open membership and a Join CTA", () => {
+    test("renders three committee opportunities with open membership and a Join CTA", () => {
         render(<GetInvolvedPage teams={iugaTeams} />);
-        expect(screen.getAllByRole("link", { name: /join .* committee/i })).toHaveLength(2);
+        expect(screen.getAllByRole("link", { name: /join .* committee/i })).toHaveLength(3);
         expect(screen.getByRole("heading", { level: 3, name: "IT Committee" })).toBeInTheDocument();
         expect(screen.getByRole("heading", { level: 3, name: "Creative Committee" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { level: 3, name: "Diversity Committee" })).toBeInTheDocument();
         expect(screen.getByText(/led by yonie rivera/i)).toBeInTheDocument();
         expect(screen.getByText(/led by ellie marsh/i)).toBeInTheDocument();
-        expect(screen.getAllByText(/membership open/i)).toHaveLength(2);
+        expect(screen.getByText(/led by nitya shankar/i)).toBeInTheDocument();
+        expect(screen.getByText(/partnering with diversity-focused student organizations/i)).toBeInTheDocument();
+        expect(screen.getAllByText(/membership open/i)).toHaveLength(3);
 
         const itLink = screen.getByRole("link", { name: "Join IT Committee" });
         expect(itLink).toHaveAttribute("href", expect.stringMatching(/^mailto:iuga@uw\.edu\?subject=/));
 
         const creativeLink = screen.getByRole("link", { name: "Join Creative Committee" });
         expect(creativeLink).toHaveAttribute("href", expect.stringMatching(/^mailto:iuga@uw\.edu\?subject=/));
+
+        const diversityLink = screen.getByRole("link", { name: "Join Diversity Committee" });
+        expect(diversityLink).toHaveAttribute("href", expect.stringMatching(/^mailto:iuga@uw\.edu\?subject=/));
     });
 
     test("renders an editorial kicker above the Committees heading", () => {

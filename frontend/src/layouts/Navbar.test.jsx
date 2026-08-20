@@ -35,6 +35,7 @@ describe("Navbar", () => {
             "/",
             "/events",
             "/resources",
+            "/student-voice",
             "/about",
             "/get-involved",
         ]);
@@ -42,7 +43,8 @@ describe("Navbar", () => {
         const nav = screen.getByRole("navigation");
         const navText = nav.textContent;
         expect(navText.indexOf("Events")).toBeLessThan(navText.indexOf("Resources"));
-        expect(navText.indexOf("Resources")).toBeLessThan(navText.indexOf("About Us"));
+        expect(navText.indexOf("Resources")).toBeLessThan(navText.indexOf("Student Voice"));
+        expect(navText.indexOf("Student Voice")).toBeLessThan(navText.indexOf("About Us"));
         expect(navText.indexOf("About Us")).toBeLessThan(navText.indexOf("Shop"));
         expect(navText.indexOf("Shop")).toBeLessThan(navText.indexOf("Get Involved"));
     });

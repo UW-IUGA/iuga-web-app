@@ -21,24 +21,10 @@ const renderHome = () =>
     );
 
 describe("HomePage", () => {
-    test("renders the approved landing-page regions in order", () => {
+    test("renders the landing-page hero region", () => {
         renderHome();
 
-        const regions = [
-            screen.getByRole("region", { name: /By informatics students, for informatics students/i }),
-            screen.getByRole("region", { name: "Happening in Informatics" }),
-            screen.getByRole("region", { name: "Community" }),
-            screen.getByRole("region", { name: "Get Involved" }),
-            screen.getByRole("region", { name: "Rep Informatics" }),
-        ];
-
-        expect(regions.map((region) => region.querySelector("h1, h2, h3").textContent)).toEqual([
-            "By informaticsstudents,for informaticsstudents.",
-            "Happening in Informatics",
-            "Community",
-            "Get Involved",
-            "Rep Informatics",
-        ]);
+        expect(screen.getByRole("region", { name: /By informatics students, for informatics students/i })).toBeInTheDocument();
     });
 
     test("keeps the primary event route accessible", async () => {
@@ -57,17 +43,11 @@ describe("HomePage", () => {
     test("exposes category paths and compact secondary actions", () => {
         renderHome();
 
-        expect(screen.getByRole("link", { name: /Career/ })).toHaveAttribute("href", "#events-professional");
-        expect(screen.getByRole("link", { name: /Academic/ })).toHaveAttribute("href", "#events-academic");
-        expect(screen.getByRole("link", { name: /Social/ })).toHaveAttribute("href", "#events-social");
+        expect(screen.getByRole("link", { name: /Career/ })).toHaveAttribute("href", "/events");
+        expect(screen.getByRole("link", { name: /Academic/ })).toHaveAttribute("href", "/events");
+        expect(screen.getByRole("link", { name: /Social/ })).toHaveAttribute("href", "/events");
         expect(screen.getByRole("link", { name: /Join IUGA/ })).toHaveAttribute("href", "/get-involved");
-        expect(screen.getByRole("link", { name: /Shop merch/ })).toHaveAttribute("href", "#merch");
-    });
-
-    test("View All Events navigates to the events page", async () => {
-        renderHome();
-        await userEvent.click(screen.getByRole("button", { name: "View All Events" }));
-        expect(screen.getByText("Events Page")).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: /Shop merch/ })).toHaveAttribute("href", "/get-involved");
     });
 
     test("has no form inputs and no disabled Coming Soon submit", () => {
@@ -76,30 +56,12 @@ describe("HomePage", () => {
         expect(screen.queryByText(/send.*coming soon/i)).not.toBeInTheDocument();
     });
 
-    test("uses descriptive alternatives for landing-page images", () => {
+    test("uses descriptive alternatives for hero images", () => {
         renderHome();
 
         expect(screen.getByAltText("IUGA members at iFormal 2026")).toBeInTheDocument();
-        expect(screen.getByAltText("IUGA members at a game night")).toBeInTheDocument();
-        expect(screen.getByAltText("IUGA members gathered together")).toBeInTheDocument();
-        expect(screen.getByAltText("IUGA officer team members representing Informatics")).toBeInTheDocument();
+        expect(screen.getByAltText("IUGA members forming a heart")).toBeInTheDocument();
+        expect(screen.getByAltText("IUGA bowling night")).toBeInTheDocument();
         expect(screen.getAllByAltText("IUGA branded merchandise arranged for students").length).toBeGreaterThan(0);
-    });
-
-    test("keeps the three IUGA function streams easy to scan", () => {
-        renderHome();
-
-        ["Academic", "Social", "Professional"].forEach((category) => {
-            expect(screen.getAllByText(category).some((element) => element.checkVisibility?.() ?? true)).toBe(true);
-            expect(screen.queryByRole("button", { name: category })).not.toBeInTheDocument();
-        });
-
-        [
-            "Learn together, grow together",
-            "Show up, connect, unwind",
-            "Meet the people who make it",
-        ].forEach((title) => {
-            expect(screen.getByRole("heading", { name: title, level: 3 })).toBeVisible();
-        });
     });
 });

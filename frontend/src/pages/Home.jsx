@@ -37,7 +37,7 @@ function HomePage({ upcomingEvents }) {
             <section className="homeRegion heroSection" aria-labelledby="heroHeading">
                 <div className="heroCopy">
                     <div className="heroCenterpiece">
-                        <h1 id="heroHeading">By informatics<br />students,<br /><span>for informatics<br />students.</span></h1>
+                        <h1 id="heroHeading">Informatics Undergraduate Association</h1>
                         <p>Events, people, and opportunities across the Informatics community.</p>
                         <nav className="heroActions" aria-label="Homepage shortcuts">
                             <Link className="pill-button homePrimaryLink" to="/events">Explore Events <span aria-hidden="true">→</span></Link>

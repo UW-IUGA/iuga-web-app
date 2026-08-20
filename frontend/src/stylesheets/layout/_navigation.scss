@@ -15,14 +15,14 @@ nav {
     color: black;
     overflow: hidden;
     align-items: center;
-    height: 100px;
+    height: 88px;
     max-width: 1200px;
     display: flex;
-    padding: 20px 30px;
+    padding: 16px 28px;
     z-index: 100;
     gap: 12px;
     border-radius: 999px;
-    box-shadow: 0 4px 20px rgba($color-uw-purple, 0.08);
+    box-shadow: 0 3px 16px rgba($color-uw-purple, 0.07);
     
     & > span:first-of-type {
         display: block;

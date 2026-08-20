@@ -32,7 +32,7 @@ describe("Navbar", () => {
         expect(screen.getByRole("navigation", { name: "Primary navigation" })).toBeInTheDocument();
     });
 
-    test("sidebar navigation keeps About Us before the inert Shop item", () => {
+    test("sidebar navigation keeps About Us before Shop", () => {
         renderNavbar();
         const links = screen.getAllByRole("link");
         expect(links.map((link) => link.getAttribute("href"))).toEqual([
@@ -42,6 +42,7 @@ describe("Navbar", () => {
             "/resources",
             "/student-voice",
             "/about",
+            "/shop",
             "/get-involved",
         ]);
 

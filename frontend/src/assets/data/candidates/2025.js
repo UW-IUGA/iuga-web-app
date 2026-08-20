@@ -6,16 +6,16 @@ import { officerPositions } from "../Enum";
 // https://stackoverflow.com/questions/74502978/object-fit-cover-gives-pixelated-images-on-chrome
 
 /* 2025 candidates images */
-import _2025_bright from "../candidatePhotos/2025/bright_candidate.png";
-import _2025_abraham from "../candidatePhotos/2025/abraham_candidate.jpeg";
-import _2025_george from "../candidatePhotos/2025/george_candidate.jpg";
-import _2025_izzy from "../candidatePhotos/2025/izzy_candidate.jpeg";
-import _2025_preeti from "../candidatePhotos/2025/preeti_candidate.png";
-import _2025_nhu from "../candidatePhotos/2025/nhu_candidate.jpeg";
-import _2025_carlos from "../candidatePhotos/2025/carlos_candidate.jpg";
-import _2025_camilo from "../candidatePhotos/2025/camilo_candidate.jpeg";
-import _2025_asmi from "../candidatePhotos/2025/asmi_candidate.jpg";
-import _2025_akshat from "../candidatePhotos/2025/akshat_candidate.jpg";
+import _2025_bright from "../elections/2025/bright_candidate.png";
+import _2025_abraham from "../elections/2025/abraham_candidate.jpeg";
+import _2025_george from "../elections/2025/george_candidate.jpg";
+import _2025_izzy from "../elections/2025/izzy_candidate.jpeg";
+import _2025_preeti from "../elections/2025/preeti_candidate.png";
+import _2025_nhu from "../elections/2025/nhu_candidate.jpeg";
+import _2025_carlos from "../elections/2025/carlos_candidate.jpg";
+import _2025_camilo from "../elections/2025/camilo_candidate.jpeg";
+import _2025_asmi from "../elections/2025/asmi_candidate.jpg";
+import _2025_akshat from "../elections/2025/akshat_candidate.jpg";
 
 /* 2025 candidates media */
 import _2025_bright_media from "../elections/2025/bright_2025.pdf";

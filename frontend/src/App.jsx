@@ -3,6 +3,7 @@ import EventsPage from "./pages/Events";
 import ResourcesPage from "./pages/Resources";
 import ElectionPage from "./pages/Elections";
 import ElectionsFAQPage from "./pages/ElectionsFAQ";
+import AboutPage from "./pages/About";
 import GetInvolvedPage from "./pages/GetInvolved";
 import { ToastContainer, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -61,7 +62,8 @@ function App() {
                 <Route path="/resources" element={<ResourcesPage resources={resources} />} />
                 <Route path="/elections" element={<ElectionPage candidates={iugaCandidates} />} />
                 <Route path="/electionfaq" element={<ElectionsFAQPage electionFAQ={electionFAQ} />} />
-                <Route path="/get-involved" element={<GetInvolvedPage teams={iugaTeams} />} />
+                <Route path="/about" element={<AboutPage teams={iugaTeams} />} />
+                <Route path="/get-involved" element={<GetInvolvedPage />} />
             </Routes>
             <Footer />
         </div>

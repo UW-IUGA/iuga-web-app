@@ -1,0 +1,63 @@
+.about {
+    width: min(1200px, 90vw);
+    margin: 0 auto;
+    padding: 48px 0 64px;
+}
+
+.about__summary {
+    max-width: 720px;
+    margin-bottom: 40px;
+}
+
+.about__summaryText {
+    h1 {
+        margin: 0 0 16px;
+        font-size: 3rem;
+    }
+
+    p {
+        margin: 0;
+        color: $dark-gray;
+        font-size: 1.05rem;
+        line-height: 1.65;
+    }
+}
+
+.about__header {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba($color-uw-purple, 0.12);
+
+    h2 { margin: 0; }
+}
+
+.about__kicker {
+    margin: 0 0 10px;
+    color: $dark-gray;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    line-height: 1.4;
+    text-transform: uppercase;
+}
+
+.about__yearFilter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 32px;
+}
+
+.about__teamGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: $grid-gap;
+}
+
+@include media(">=tablet", "<sm-desktop") {
+    .about__teamGrid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@include media(">=sm-desktop") {
+    .about__teamGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}

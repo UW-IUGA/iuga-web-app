@@ -13,6 +13,7 @@ function ResourcesPage({ resources }) {
     const { pathname } = useLocation();
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedCategory, setSelectedCategory] = useState(ALL_RESOURCES);
+    const [expandedCategories, setExpandedCategories] = useState(new Set());
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -40,6 +41,19 @@ function ResourcesPage({ resources }) {
     }, [resources, searchTerm, selectedCategory]);
 
     const resultCount = visibleCategories.reduce((count, category) => count + category.items.length, 0);
+    const isFiltering = searchTerm.trim().length > 0 || selectedCategory !== ALL_RESOURCES;
+
+    const toggleCategory = (category) => {
+        setExpandedCategories((expanded) => {
+            const nextExpanded = new Set(expanded);
+            if (nextExpanded.has(category)) {
+                nextExpanded.delete(category);
+            } else {
+                nextExpanded.add(category);
+            }
+            return nextExpanded;
+        });
+    };
 
     return (
         <div className="baseContainer">
@@ -56,14 +70,7 @@ function ResourcesPage({ resources }) {
                     </div>
                 </section>
 
-                <section className="resourcesDirectory" aria-labelledby="resource-directory-title">
-                    <div className="homeSectionHeader resourcesSectionHeader">
-                        <h2 id="resource-directory-title">Find what you need</h2>
-                    </div>
-                    <p className="resourcesDirectoryIntro">
-                        Search by topic or browse the categories below to find support, community, and opportunities around the iSchool and UW.
-                    </p>
-
+                <section className="resourcesDirectory" aria-label="Resource directory">
                     <div className="resourcesControls editorial-card">
                         <label className="resourcesSearch" htmlFor="resource-search">
                             <span>Search resources</span>
@@ -97,16 +104,36 @@ function ResourcesPage({ resources }) {
                     {visibleCategories.length > 0 ? (
                         <div className="resourceCategoryList">
                             {visibleCategories.map(({ category, items }) => (
-                                <section className="resourceCategory" id={categoryId(category)} key={category}>
+                                <section className="resourceCategory" key={category}>
                                     <div className="resourceCategoryHeader">
-                                        <h2>{category}</h2>
-                                        <span>{items.length} {items.length === 1 ? "resource" : "resources"}</span>
+                                        <h2>
+                                            <button
+                                                type="button"
+                                                className="resourceCategoryToggle"
+                                                aria-expanded={isFiltering || expandedCategories.has(category)}
+                                                aria-controls={`${categoryId(category)}-panel`}
+                                                aria-label={`${isFiltering || expandedCategories.has(category) ? "Hide" : "Show"} ${category}`}
+                                                onClick={() => toggleCategory(category)}
+                                            >
+                                                <span>{category}</span>
+                                                <span className="resourceCategoryMeta">
+                                                    {isFiltering && (
+                                                        <span className="resourceCategoryCount">
+                                                            {items.length} {items.length === 1 ? "match" : "matches"}
+                                                        </span>
+                                                    )}
+                                                    <span className="resourceCategoryChevron" aria-hidden="true" />
+                                                </span>
+                                            </button>
+                                        </h2>
                                     </div>
-                                    <div className="resourceGrid">
-                                        {items.map((resource) => (
-                                            <ResourceCard key={resource.rName} resource={resource} category={category} />
-                                        ))}
-                                    </div>
+                                    {(isFiltering || expandedCategories.has(category)) && (
+                                        <div className="resourceGrid" id={`${categoryId(category)}-panel`}>
+                                            {items.map((resource) => (
+                                                <ResourceCard key={resource.rName} resource={resource} category={category} />
+                                            ))}
+                                        </div>
+                                    )}
                                 </section>
                             ))}
                         </div>

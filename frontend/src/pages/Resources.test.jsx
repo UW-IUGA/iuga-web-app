@@ -35,11 +35,16 @@ function renderResourcesPage() {
 }
 
 describe("ResourcesPage", () => {
-    test("shows resource categories and links to the resource", () => {
+    test("keeps categories compact until their accordion is opened", () => {
         renderResourcesPage();
 
         expect(screen.getByRole("heading", { name: "Resources" })).toBeInTheDocument();
-        expect(screen.getByRole("heading", { name: resourceTags.ACADEMIC })).toBeInTheDocument();
+        const academicCategory = screen.getByRole("button", { name: `Show ${resourceTags.ACADEMIC}` });
+        expect(academicCategory).toHaveAttribute("aria-expanded", "false");
+        expect(screen.queryByRole("link", { name: /Visit resource/ })).not.toBeInTheDocument();
+
+        fireEvent.click(academicCategory);
+        expect(screen.getByRole("button", { name: `Hide ${resourceTags.ACADEMIC}` })).toHaveAttribute("aria-expanded", "true");
 
         const link = screen.getAllByRole("link", { name: /Visit resource/ })
             .find((resourceLink) => resourceLink.getAttribute("href") === "https://academicsupport.uw.edu/clue/");
@@ -47,17 +52,18 @@ describe("ResourcesPage", () => {
         expect(link).toHaveAttribute("target", "_blank");
     });
 
-    test("filters resources by category and search term", () => {
+    test("expands matching categories for category filters and keyword searches", () => {
         renderResourcesPage();
 
         fireEvent.click(screen.getByRole("button", { name: resourceTags.CAREER }));
-        expect(screen.getByRole("heading", { name: resourceTags.CAREER })).toBeInTheDocument();
-        expect(screen.queryByRole("heading", { name: resourceTags.ACADEMIC })).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: `Hide ${resourceTags.CAREER}` })).toHaveAttribute("aria-expanded", "true");
+        expect(screen.queryByRole("button", { name: `Show ${resourceTags.ACADEMIC}` })).not.toBeInTheDocument();
 
         fireEvent.change(screen.getByRole("searchbox", { name: "Search resources" }), {
             target: { value: "advising" },
         });
         expect(screen.getByText("1 resource found")).toBeInTheDocument();
+        expect(screen.getByText("1 match")).toBeInTheDocument();
         expect(screen.getByText("iSchool Career Services")).toBeInTheDocument();
     });
 });

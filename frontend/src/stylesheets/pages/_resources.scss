@@ -43,23 +43,6 @@
   padding-top: 10px;
 }
 
-.resourcesSectionHeader {
-  margin-bottom: 20px;
-  text-align: center;
-
-  h2 {
-    font-size: 2.2rem;
-  }
-}
-
-.resourcesDirectoryIntro {
-  max-width: 620px;
-  margin: 0 auto 34px;
-  color: $dark-gray;
-  line-height: 1.65;
-  text-align: center;
-}
-
 .resourcesControls {
   display: grid;
   grid-template-columns: minmax(250px, 350px) 1fr;
@@ -106,26 +89,78 @@
 }
 
 .resourceCategory {
-  margin-bottom: 56px;
+  margin-bottom: 18px;
+  border-bottom: 2px solid black;
 }
 
 .resourceCategoryHeader {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: 20px;
-  padding-bottom: 12px;
-  border-bottom: 2px solid $color-primary;
-
   h2 {
     margin: 0;
-    color: black;
-    font-size: 2rem;
+  }
+}
+
+.resourcesPage .resourceCategoryHeader::after {
+  content: none;
+}
+
+.resourceCategoryToggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 0;
+  color: black;
+  font: 700 clamp(1.35rem, 2.5vw, 2rem) / 1.15 $serif;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+
+  &:hover > span:first-child { color: $color-primary; }
+
+  &:focus-visible {
+    outline: 2px solid $color-primary;
+    outline-offset: 4px;
   }
 
-  span {
-    color: $dark-gray;
-    font-size: 0.85rem;
+  &[aria-expanded="true"] .resourceCategoryChevron {
+    transform: rotate(180deg);
+  }
+}
+
+.resourceCategoryMeta {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.resourceCategoryCount {
+  color: $dark-gray;
+  font: 700 0.78rem / 1 $sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.resourceCategoryChevron {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  color: $color-primary;
+  border: 1px solid rgba($color-uw-purple, 0.2);
+  border-radius: 50%;
+  transition: transform 180ms ease;
+
+  &::before {
+    width: 8px;
+    height: 8px;
+    margin-top: -4px;
+    content: "";
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg);
   }
 }
 
@@ -133,6 +168,7 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: $grid-gap;
+  padding: 2px 0 28px;
 }
 
 .resourcesEmptyState {
@@ -154,4 +190,6 @@
   .resourcesControls { grid-template-columns: 1fr; padding: 18px; }
   .resourceResultCount { text-align: left; }
   .resourceGrid { grid-template-columns: 1fr; }
+  .resourceCategoryToggle { gap: 12px; font-size: 1.35rem; }
+  .resourceCategoryMeta { gap: 8px; font-size: 0.7rem; }
 }

@@ -45,7 +45,7 @@ function Navbar({ signIn, signOut }) {
                     <NavLink to="/resources"><FontAwesomeIcon icon={faBookOpen} /><span>Resources</span></NavLink>
                     <NavLink to="/student-voice"><FontAwesomeIcon icon={faBullhorn} /><span>Student Voice</span></NavLink>
                     <NavLink to="/about"><FontAwesomeIcon icon={faUsers} /><span>About Us</span></NavLink>
-                    <span className="nav-shop"><FontAwesomeIcon icon={faShop} /><span>Shop</span></span>
+                    <NavLink to="/shop"><FontAwesomeIcon icon={faShop} /><span>Shop</span></NavLink>
                     <NavLink to="/get-involved"><FontAwesomeIcon icon={faHand} /><span>Get Involved</span></NavLink>
                     <div className="nav-auth">
                         {isAuthenticated ? (

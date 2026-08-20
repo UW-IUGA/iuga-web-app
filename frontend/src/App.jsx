@@ -6,6 +6,7 @@ import ElectionsFAQPage from "./pages/ElectionsFAQ";
 import AboutPage from "./pages/About";
 import GetInvolvedPage from "./pages/GetInvolved";
 import StudentVoicePage from "./pages/StudentVoice";
+import ShopPage from "./pages/Shop";
 import { ToastContainer, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Route, Routes } from "react-router-dom";
@@ -62,6 +63,7 @@ function App() {
                 <Route path="/events" element={<EventsPage />} />
                 <Route path="/resources" element={<ResourcesPage resources={resources} />} />
                 <Route path="/student-voice" element={<StudentVoicePage />} />
+                <Route path="/shop" element={<ShopPage />} />
                 <Route path="/elections" element={<ElectionPage candidates={iugaCandidates} />} />
                 <Route path="/electionfaq" element={<ElectionsFAQPage electionFAQ={electionFAQ} />} />
                 <Route path="/about" element={<AboutPage teams={iugaTeams} />} />

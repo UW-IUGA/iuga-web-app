@@ -27,7 +27,12 @@ describe("Navbar", () => {
         expect(link).toHaveAttribute("href", "/get-involved");
     });
 
-    test("nav order includes About Us before the inert Shop item", () => {
+    test("uses an accessible primary-navigation landmark", () => {
+        renderNavbar();
+        expect(screen.getByRole("navigation", { name: "Primary navigation" })).toBeInTheDocument();
+    });
+
+    test("sidebar navigation keeps About Us before the inert Shop item", () => {
         renderNavbar();
         const links = screen.getAllByRole("link");
         expect(links.map((link) => link.getAttribute("href"))).toEqual([
@@ -49,10 +54,21 @@ describe("Navbar", () => {
         expect(navText.indexOf("Shop")).toBeLessThan(navText.indexOf("Get Involved"));
     });
 
-    test("shows UW NetID Login for unauthenticated users", () => {
+    test("shows a compact desktop login alongside the mobile NetID action", () => {
         renderNavbar();
-        expect(
-            screen.getByRole("button", { name: "UW NetID Login" })
-        ).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Login" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "UW NetID Login" })).toBeInTheDocument();
+    });
+
+    test("shows a welcome account chip for authenticated users", () => {
+        useAuthContext.mockReturnValue({
+            isAuthenticated: true,
+            user: { uFirstName: "Abe", uType: "Student" },
+        });
+        renderNavbar();
+
+        expect(screen.getByText("Welcome back, Abe")).toBeInTheDocument();
+        expect(screen.getByText("Student")).toBeInTheDocument();
+        expect(screen.getAllByRole("button", { name: "Logout" })).toHaveLength(2);
     });
 });

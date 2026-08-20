@@ -33,9 +33,6 @@ nav {
     .nav-items-wrapper {
         flex: 1;
         display: flex;
-        & > span:last-of-type {
-            flex: 1;
-        }
     }
 
     p {
@@ -49,6 +46,11 @@ nav {
 .nav-mobile-menu {
     display: none;
 }
+
+.nav-account-float {
+    display: none;
+}
+
 nav a,
 .nav-shop,
 .nav-auth-button {
@@ -283,5 +285,236 @@ nav img {
 
     .nav-hide-items {
         display: none!important;
+    }
+}
+
+// Desktop navigation becomes a compact rail so new pages do not compete for
+// horizontal room. It expands on hover and keyboard focus, while keeping each
+// destination available as a recognizable icon when collapsed.
+@include media(">=tablet") {
+    nav[aria-label="Primary navigation"] {
+        position: fixed;
+        inset: 0 auto 0 0;
+        z-index: 100;
+        width: 0;
+    }
+
+    .nav-account-float {
+        position: fixed;
+        top: 24px;
+        right: 28px;
+        display: flex;
+        z-index: 101;
+        align-items: center;
+    }
+
+    .nav-account-profile {
+        display: flex;
+        min-height: 48px;
+        padding: 8px 10px 8px 12px;
+        align-items: center;
+        gap: 10px;
+        border: 1px solid rgba(white, 0.72);
+        border-radius: 14px;
+        background: linear-gradient(145deg, rgba(white, 0.88), rgba(#f3edff, 0.76));
+        box-shadow: 0 8px 22px rgba($color-uw-purple, 0.12);
+        backdrop-filter: blur(14px) saturate(1.1);
+        -webkit-backdrop-filter: blur(14px) saturate(1.1);
+    }
+
+    .nav-account-login svg {
+        font-size: 16px;
+    }
+
+    .nav-account-float .nav-account-login {
+        min-height: 36px;
+        padding: 0 14px;
+        gap: 6px;
+        font-size: 14px;
+    }
+
+    .nav-account-avatar {
+        display: grid;
+        width: 32px;
+        height: 32px;
+        place-items: center;
+        border-radius: 50%;
+        background-color: $color-primary;
+        color: white;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .nav-account-copy {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        line-height: 1.2;
+
+        strong { font-size: 14px; }
+        span { color: rgba(black, 0.62); font-size: 12px; }
+    }
+
+    .nav-account-logout {
+        display: grid;
+        width: 32px;
+        height: 32px;
+        margin-left: 2px;
+        place-items: center;
+        border: 0;
+        border-radius: 9px;
+        background: transparent;
+        color: $color-primary;
+        cursor: pointer;
+        transition: background-color 160ms ease, transform 160ms ease;
+        @include focus-ring;
+
+        &:hover {
+            background-color: rgba($color-primary, 0.1);
+            transform: translateX(2px);
+        }
+    }
+
+    .nav-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        display: flex;
+        width: 68px;
+        height: 100vh;
+        max-width: none;
+        max-height: none;
+        margin: 0;
+        padding: 22px 10px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        overflow: hidden;
+        transform: none;
+        border: 1px solid rgba(white, 0.72);
+        border-left: 0;
+        border-radius: 0 18px 18px 0;
+        background: linear-gradient(150deg, rgba(white, 0.88), rgba(#f3edff, 0.74));
+        box-shadow: 4px 10px 28px rgba($color-uw-purple, 0.13);
+        backdrop-filter: blur(14px) saturate(1.1);
+        -webkit-backdrop-filter: blur(14px) saturate(1.1);
+        transition: width 280ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 280ms cubic-bezier(0.16, 1, 0.3, 1);
+
+        &:hover,
+        &:focus-within {
+            width: 248px;
+            box-shadow: 12px 18px 46px rgba($color-uw-purple, 0.19);
+
+            .nav-items-wrapper a > span,
+            .nav-shop > span,
+            .nav-auth {
+                max-width: 180px;
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            .nav-items-wrapper > :nth-child(1) > span { transition-delay: 35ms; }
+            .nav-items-wrapper > :nth-child(2) > span { transition-delay: 55ms; }
+            .nav-items-wrapper > :nth-child(3) > span { transition-delay: 75ms; }
+            .nav-items-wrapper > :nth-child(4) > span { transition-delay: 95ms; }
+            .nav-items-wrapper > :nth-child(5) > span { transition-delay: 115ms; }
+            .nav-items-wrapper > :nth-child(6) > span { transition-delay: 135ms; }
+            .nav-items-wrapper > :nth-child(7) > span { transition-delay: 155ms; }
+            .nav-auth { transition-delay: 175ms; }
+        }
+
+        .nav-header {
+            display: flex;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .nav-logo {
+            padding: 2px 0 8px;
+        }
+
+        .nav-items-wrapper {
+            display: flex;
+            width: 100%;
+            flex: 1;
+            flex-direction: column;
+            justify-content: flex-start;
+            padding-top: clamp(128px, 18vh, 220px);
+            gap: 6px;
+        }
+
+        .nav-items-wrapper a,
+        .nav-shop {
+            display: flex;
+            box-sizing: border-box;
+            width: 100%;
+            min-height: 44px;
+            padding: 10px 12px;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 14px;
+            overflow: hidden;
+            border: 0;
+            border-radius: 10px;
+            text-align: left;
+            white-space: nowrap;
+
+            &.active {
+                position: relative;
+
+                &::before {
+                    position: absolute;
+                    top: 10px;
+                    bottom: 10px;
+                    left: 0;
+                    width: 3px;
+                    content: "";
+                    border-radius: 0 99px 99px 0;
+                    background-color: white;
+                    box-shadow: 0 0 10px rgba(white, 0.8);
+                }
+            }
+
+            svg {
+                width: 20px;
+                min-width: 20px;
+                font-size: 18px;
+                transition: transform 180ms ease;
+            }
+
+            &:hover svg { transform: translateX(3px) scale(1.04); }
+
+            > span {
+                max-width: 0;
+                overflow: hidden;
+                opacity: 0;
+                transform: translateX(-6px);
+                transition: max-width 210ms ease, opacity 170ms ease, transform 210ms ease;
+            }
+        }
+
+        .nav-auth {
+            display: none;
+            max-width: 0;
+            margin-top: auto;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateX(-6px);
+            transition: max-width 180ms ease, opacity 150ms ease, transform 180ms ease;
+
+            .nav-auth-button {
+                width: 100%;
+                padding: 10px 12px;
+                border-radius: 10px;
+                white-space: nowrap;
+            }
+        }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nav-container,
+    .nav-container * {
+        transition: none !important;
     }
 }

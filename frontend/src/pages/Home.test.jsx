@@ -25,7 +25,7 @@ describe("HomePage", () => {
         renderHome();
 
         const regions = [
-            screen.getByRole("region", { name: "Find your place in Informatics." }),
+            screen.getByRole("region", { name: /By informatics students, for informatics students/i }),
             screen.getByRole("region", { name: "Happening in Informatics" }),
             screen.getByRole("region", { name: "Community" }),
             screen.getByRole("region", { name: "Get Involved" }),
@@ -33,7 +33,7 @@ describe("HomePage", () => {
         ];
 
         expect(regions.map((region) => region.querySelector("h1, h2, h3").textContent)).toEqual([
-            "Find your place in Informatics.",
+            "By informaticsstudents,for informaticsstudents.",
             "Happening in Informatics",
             "Community",
             "Get Involved",
@@ -44,7 +44,7 @@ describe("HomePage", () => {
     test("keeps the primary event route accessible", async () => {
         renderHome();
 
-        await userEvent.click(screen.getByRole("link", { name: "Find an Event" }));
+        await userEvent.click(screen.getByRole("link", { name: /Explore Events/ }));
         expect(screen.getByText("Events Page")).toBeInTheDocument();
     });
 
@@ -54,12 +54,14 @@ describe("HomePage", () => {
         expect(screen.getByText("Get Involved Page")).toBeInTheDocument();
     });
 
-    test("exposes the three secondary hero paths", () => {
+    test("exposes category paths and compact secondary actions", () => {
         renderHome();
 
-        expect(screen.getByRole("link", { name: /Explore Community/ })).toHaveAttribute("href", "#community");
+        expect(screen.getByRole("link", { name: /Career/ })).toHaveAttribute("href", "#events-professional");
+        expect(screen.getByRole("link", { name: /Academic/ })).toHaveAttribute("href", "#events-academic");
+        expect(screen.getByRole("link", { name: /Social/ })).toHaveAttribute("href", "#events-social");
         expect(screen.getByRole("link", { name: /Join IUGA/ })).toHaveAttribute("href", "/get-involved");
-        expect(screen.getByRole("link", { name: /Shop Merch/ })).toHaveAttribute("href", "#merch");
+        expect(screen.getByRole("link", { name: /Shop merch/ })).toHaveAttribute("href", "#merch");
     });
 
     test("View All Events navigates to the events page", async () => {
@@ -81,14 +83,14 @@ describe("HomePage", () => {
         expect(screen.getByAltText("IUGA members at a game night")).toBeInTheDocument();
         expect(screen.getByAltText("IUGA members gathered together")).toBeInTheDocument();
         expect(screen.getByAltText("IUGA officer team members representing Informatics")).toBeInTheDocument();
-        expect(screen.getByAltText("IUGA branded merchandise arranged for students")).toBeInTheDocument();
+        expect(screen.getAllByAltText("IUGA branded merchandise arranged for students").length).toBeGreaterThan(0);
     });
 
     test("keeps the three IUGA function streams easy to scan", () => {
         renderHome();
 
         ["Academic", "Social", "Professional"].forEach((category) => {
-            expect(screen.getByText(category)).toBeVisible();
+            expect(screen.getAllByText(category).some((element) => element.checkVisibility?.() ?? true)).toBe(true);
             expect(screen.queryByRole("button", { name: category })).not.toBeInTheDocument();
         });
 

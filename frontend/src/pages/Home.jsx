@@ -29,10 +29,28 @@ const FUNCTIONS = [
     },
 ];
 
+function formatEventDate(value) {
+    if (!value) return "New details coming soon";
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "New details coming soon";
+
+    return new Intl.DateTimeFormat("en-US", {
+        weekday: "long",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+    }).format(date);
+}
+
 function HomePage({ upcomingEvents }) {
     const navigate = useNavigate();
     const { pathname } = useLocation();
     const now = useMemo(() => Date.now(), []);
+    const featuredEvent = upcomingEvents?.[0];
+    const featuredEventName = featuredEvent?.eName || "The next IUGA gathering";
+    const featuredEventDate = formatEventDate(featuredEvent?.eStartDate);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -42,42 +60,44 @@ function HomePage({ upcomingEvents }) {
         <main className="baseContainer homePage">
             <section className="homeRegion heroSection" aria-labelledby="heroHeading">
                 <div className="heroCopy">
-                    <p className="homeEyebrow">IUGA · Informatics Undergraduate Association</p>
-                    <h1 id="heroHeading">Find your place in Informatics.</h1>
-                    <p>
-                        A student-run community for learning together, showing up for each other,
-                        and finding your next way into Informatics.
-                    </p>
-                    <nav className="heroActions" aria-label="Homepage shortcuts">
-                        <Link className="pill-button homePrimaryLink" to="/events">Find an Event</Link>
-                    </nav>
-                    <nav className="heroPaths" aria-label="Explore the Informatics community">
-                        <a className="glassPath" href="#community">
-                            <span className="glassPathLabel">Explore Community</span>
-                            <span className="glassPathHint">People &amp; organizations</span>
-                            <span className="glassPathArrow" aria-hidden="true">→</span>
-                        </a>
-                        <Link className="glassPath" to="/get-involved">
-                            <span className="glassPathLabel">Join IUGA</span>
-                            <span className="glassPathHint">Committees &amp; leadership</span>
-                            <span className="glassPathArrow" aria-hidden="true">→</span>
-                        </Link>
-                        <a className="glassPath" href="#merch">
-                            <span className="glassPathLabel">Shop Merch</span>
-                            <span className="glassPathHint">Rep Informatics</span>
-                            <span className="glassPathArrow" aria-hidden="true">→</span>
-                        </a>
+                    <div className="heroCenterpiece">
+                        <h1 id="heroHeading">By informatics<br />students,<br /><span>for informatics<br />students.</span></h1>
+                        <p>Events, people, and opportunities across the Informatics community.</p>
+                        <nav className="heroActions" aria-label="Homepage shortcuts">
+                            <Link className="pill-button homePrimaryLink" to="/events">Explore Events <span aria-hidden="true">→</span></Link>
+                        </nav>
+                    </div>
+                    <nav className="heroCategories" aria-label="Explore events by interest">
+                        <a className="heroCategory heroCategoryCareer" href="#events-professional">Career</a>
+                        <a className="heroCategory heroCategoryAcademic" href="#events-academic">Academic</a>
+                        <a className="heroCategory heroCategorySocial" href="#events-social">Social</a>
                     </nav>
                 </div>
-                <div className="heroCollage">
-                    <img className="collageAnchor" src={formalImage} alt="IUGA members at iFormal 2026" />
-                    <img className="collageTile collageTileTop" src={heart} alt="IUGA members forming a heart" />
-                    <img className="collageTile collageTileBottom" src={bowling} alt="IUGA bowling night" />
-                    <p className="collageGlassCard" role="note">
-                        <span className="collageGlassEyebrow">For Informatics students</span>
-                        <span className="collageGlassTitle">Informatics Undergraduate Association</span>
-                        <span className="collageGlassMeta">UW · Seattle</span>
-                    </p>
+                <div className="heroWorld" aria-label="IUGA student community">
+                    <img className="heroPhoto heroPhotoMain" src={formalImage} alt="IUGA members at iFormal 2026" />
+                    <img className="heroPhoto heroPhotoTop" src={heart} alt="IUGA members forming a heart" />
+                    <img className="heroPhoto heroPhotoBottom" src={bowling} alt="IUGA bowling night" />
+                    <div className="collageGlassCard">
+                        <span className="collageGlassEyebrow">Happening this week</span>
+                        <strong className="collageGlassTitle">{featuredEventName}</strong>
+                        <span className="collageGlassMeta">{featuredEventDate}</span>
+                        <div className="collageGlassPeople" aria-label="Students are part of the IUGA community">
+                            <img src={groups} alt="" />
+                            <img src={officers} alt="" />
+                            <img src={panelists} alt="" />
+                            <span>Students welcome</span>
+                        </div>
+                        <Link className="collageGlassLink" to="/events">View event <span aria-hidden="true">→</span></Link>
+                    </div>
+                    <Link className="heroJoin glassObject" to="/get-involved">
+                        <span className="glassObjectKicker"><span aria-hidden="true">●</span> Get involved</span>
+                        <strong>Join IUGA</strong>
+                        <span>Help build what's next. <b aria-hidden="true">→</b></span>
+                    </Link>
+                    <a className="heroMerch glassObject" href="#merch">
+                        <img src={merch} alt="IUGA branded merchandise arranged for students" />
+                        <span><strong>Rep Informatics</strong><br />Shop merch <b aria-hidden="true">→</b></span>
+                    </a>
                 </div>
             </section>
 
@@ -90,7 +110,7 @@ function HomePage({ upcomingEvents }) {
 
                 <div className="eventStreams">
                     {FUNCTIONS.map((fn) => (
-                        <article className="functionGroup" key={fn.category}>
+                        <article className="functionGroup" id={`events-${fn.category.toLowerCase()}`} key={fn.category}>
                             <div className="functionCopy">
                                 <p className="functionKicker">{fn.category}</p>
                                 <h3>{fn.title}</h3>

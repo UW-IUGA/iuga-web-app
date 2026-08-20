@@ -31,6 +31,7 @@ function Navbar({ signIn, signOut }) {
                     <NavLink to="/" end>Home</NavLink>
                     <NavLink to="/events">Events</NavLink>
                     <NavLink to="/resources">Resources</NavLink>
+                    <NavLink to="/about">About Us</NavLink>
                     <span className="nav-shop">Shop</span>
                     <NavLink to="/get-involved">Get Involved</NavLink>
                     <span></span>

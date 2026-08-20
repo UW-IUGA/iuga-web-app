@@ -27,7 +27,7 @@ describe("Navbar", () => {
         expect(link).toHaveAttribute("href", "/get-involved");
     });
 
-    test("nav order includes Resources before the inert Shop item", () => {
+    test("nav order includes About Us before the inert Shop item", () => {
         renderNavbar();
         const links = screen.getAllByRole("link");
         expect(links.map((link) => link.getAttribute("href"))).toEqual([
@@ -35,13 +35,15 @@ describe("Navbar", () => {
             "/",
             "/events",
             "/resources",
+            "/about",
             "/get-involved",
         ]);
 
         const nav = screen.getByRole("navigation");
         const navText = nav.textContent;
         expect(navText.indexOf("Events")).toBeLessThan(navText.indexOf("Resources"));
-        expect(navText.indexOf("Resources")).toBeLessThan(navText.indexOf("Shop"));
+        expect(navText.indexOf("Resources")).toBeLessThan(navText.indexOf("About Us"));
+        expect(navText.indexOf("About Us")).toBeLessThan(navText.indexOf("Shop"));
         expect(navText.indexOf("Shop")).toBeLessThan(navText.indexOf("Get Involved"));
     });
 

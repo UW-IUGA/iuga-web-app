@@ -53,15 +53,12 @@ function HomePage({ upcomingEvents }) {
                         {HERO_CATEGORIES.map(({ className, label }) => (
                             <Link className={`heroCategory ${className}`} to="/events" aria-label={`${label} tag`} key={className}>
                                 <span className="heroTagMark" aria-hidden="true" />
-                                {label}
+                                <span className="heroCategoryLabel">{label}</span>
                             </Link>
                         ))}
                     </nav>
                 </div>
                 <div className="heroWorld" aria-label="IUGA student community">
-                    <img className="heroPhoto heroPhotoMain" src={formalImage} alt="IUGA members at iFormal 2026" />
-                    <img className="heroPhoto heroPhotoTop" src={heart} alt="IUGA members forming a heart" />
-                    <img className="heroPhoto heroPhotoBottom" src={bowling} alt="IUGA bowling night" />
                     <Link
                         className="collageGlassCard"
                         to="/events"
@@ -81,6 +78,9 @@ function HomePage({ upcomingEvents }) {
                         </div>
                         <span className="collageGlassLink">View event <span aria-hidden="true">→</span></span>
                     </Link>
+                    <img className="heroPhoto heroPhotoMain" src={formalImage} alt="IUGA members at iFormal 2026" />
+                    <img className="heroPhoto heroPhotoTop" src={heart} alt="IUGA members forming a heart" />
+                    <img className="heroPhoto heroPhotoBottom" src={bowling} alt="IUGA bowling night" />
                     <Link className="heroJoin glassObject" to="/get-involved">
                         <span className="glassObjectKicker"><span aria-hidden="true">●</span> Get involved</span>
                         <strong>Join IUGA</strong>

@@ -665,7 +665,7 @@
     }
 
     .heroActions {
-        align-items: flex-start;
+        align-items: center;
         flex-direction: column;
         gap: 12px;
     }
@@ -1095,24 +1095,40 @@
 
     .heroCategories {
         position: static;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 8px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
         margin: 30px 0 34px;
     }
 
     .heroCategory {
         position: relative;
-        padding: 9px 12px;
+        inset: auto;
+        width: 100%;
+        height: 50px;
+        min-width: 0;
+        box-sizing: border-box;
+        justify-content: center;
+        gap: 8px;
+        padding: 0 8px;
+        border-radius: $radius-pill;
         font-size: 0.76rem;
+        white-space: nowrap;
     }
 
-    .heroTagMark {
-        position: static;
-        transform: none;
-        width: 7px;
-        height: 7px;
+    .heroCategoryCareer {
+        --hero-cat-float: -6px;
+        animation-duration: 4.8s;
+    }
+
+    .heroCategoryAcademic {
+        --hero-cat-float: -5px;
+        animation-duration: 5.6s;
+    }
+
+    .heroCategorySocial {
+        --hero-cat-float: -7px;
+        animation-duration: 4.3s;
     }
 
     .heroWorld {
@@ -1120,7 +1136,7 @@
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 12px;
-        padding-top: 42%;
+        padding-top: 0;
     }
 
     .heroPhoto {
@@ -1137,11 +1153,6 @@
         aspect-ratio: 4 / 3;
     }
 
-    .heroPhotoTop,
-    .heroPhotoBottom {
-        border: 0;
-    }
-
     .heroPhotoTop {
         grid-column: 1;
     }
@@ -1151,10 +1162,9 @@
     }
 
     .collageGlassCard {
-        position: absolute;
-        top: 8%;
-        left: 5%;
-        width: 86%;
+        position: static;
+        grid-column: 1 / -1;
+        width: auto;
         padding: 17px;
     }
 
@@ -1168,6 +1178,22 @@
         position: static;
         grid-column: 1 / -1;
         width: auto;
+    }
+
+    .heroTagMark {
+        display: none;
+    }
+
+    .heroCategoryCareer {
+        border-color: $color-career;
+    }
+
+    .heroCategoryAcademic {
+        border-color: $color-academic;
+    }
+
+    .heroCategorySocial {
+        border-color: $color-social;
     }
 }
 
@@ -1185,9 +1211,6 @@
         transform: rotate(-5deg);
         --hero-cat-rotate: -5deg;
 
-        .heroTagMark {
-            color: $color-career;
-        }
     }
 
     .heroCategoryAcademic {
@@ -1197,9 +1220,6 @@
         --hero-cat-rotate: 5deg;
         --hero-cat-float: -2px;
 
-        .heroTagMark {
-            color: $color-academic;
-        }
     }
 
     .heroCategorySocial {
@@ -1208,9 +1228,17 @@
         transform: rotate(4deg);
         --hero-cat-rotate: 4deg;
 
-        .heroTagMark {
-            color: $color-social;
-        }
     }
 }
 
+.heroCategoryCareer .heroTagMark {
+    color: $color-career;
+}
+
+.heroCategoryAcademic .heroTagMark {
+    color: $color-academic;
+}
+
+.heroCategorySocial .heroTagMark {
+    color: $color-social;
+}

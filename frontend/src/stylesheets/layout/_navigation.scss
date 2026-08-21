@@ -66,10 +66,6 @@ nav a,
     padding: $padding-box-y $padding-box-x;
 }
 
-.nav-logo {
-    padding: 0 12px 0 0;;
-}
-
 .nav-items-wrapper a.active {
     background-color: $gray;
 }
@@ -153,8 +149,7 @@ nav img {
     }
 
     // Interactive links only: canonical focus ring plus a soft lavender hover.
-    // The logo link lives outside .nav-items-wrapper, and inert Shop stays
-    // nonfocusable with no hover so it never suggests clickability.
+    // Inert Shop stays nonfocusable with no hover so it never suggests clickability.
     .nav-items-wrapper a {
         @include focus-ring;
 
@@ -192,7 +187,7 @@ nav img {
 
         .nav-header {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
             align-items: center;
             box-sizing: border-box;
             padding: 12px 24px;
@@ -427,10 +422,6 @@ nav img {
             display: flex;
             width: 100%;
             justify-content: center;
-        }
-
-        .nav-logo {
-            padding: 2px 0 8px;
         }
 
         .nav-items-wrapper {

@@ -37,7 +37,6 @@ describe("Navbar", () => {
         const links = screen.getAllByRole("link");
         expect(links.map((link) => link.getAttribute("href"))).toEqual([
             "/",
-            "/",
             "/events",
             "/resources",
             "/student-voice",

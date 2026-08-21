@@ -2,34 +2,51 @@
     display: inline-block;
 }
 
+.category-pill {
+    @include focus-ring;
+}
+
+.category-pill.academic {
+    border-color: $color-academic-primary;
+}
+
+.category-pill.social {
+    border-color: $color-social-primary;
+}
+
+.category-pill.professional,
+.category-pill.career {
+    border-color: $color-career-primary;
+}
+
 .tagText {
     @extend %pill-surface;
     margin: 0;
 }
 
 .social {
-    .tagText {
+    .tagText:not(.category-pill) {
         background-color: $color-social-secondary;
         color: $color-social-capsule;
     }
 }
 
 .career {
-    .tagText {
+    .tagText:not(.category-pill) {
         background-color: $color-career-secondary;
         color: $color-career-primary;
     }
 }
 
 .academic {
-    .tagText {
+    .tagText:not(.category-pill) {
         background-color: $color-academic-secondary;
         color: $color-academic-capsule;
     }
 }
 
 .professional {
-    .tagText {
+    .tagText:not(.category-pill) {
         background-color: $color-career-secondary;
         color: $color-career-primary;
     }

@@ -2,12 +2,185 @@
     width: 100%;
     max-width: 1200px;
     box-sizing: border-box;
-    padding: 24px 0 64px;
+    padding: 40px 0 64px;
+
+    h1,
+    h2,
+    h3,
+    p {
+        margin-top: 0;
+    }
 
     .calendar-tag-wrapper .tagText {
         background-color: white;
         border-width: $pill-border-width;
         color: black;
+    }
+}
+
+.eventsHero {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 32px;
+    padding: 10px 0 20px;
+
+    h1 {
+        max-width: 760px;
+        margin-bottom: 16px;
+        color: $color-uw-purple;
+        font-size: clamp(2.8rem, 6vw, 5.5rem);
+        letter-spacing: -0.045em;
+        line-height: 0.98;
+    }
+
+    p {
+        max-width: 600px;
+        margin-bottom: 0;
+        color: $dark-gray;
+        font-size: 1.05rem;
+        line-height: 1.65;
+    }
+}
+
+.eventStreamsSection {
+    margin-top: 72px;
+}
+
+.eventStreamsIntro {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 28px;
+
+    h2 {
+        margin-bottom: 0;
+        color: $color-uw-purple;
+        font-size: clamp(2rem, 4vw, 3.2rem);
+        line-height: 1.05;
+    }
+
+    > p {
+        max-width: 300px;
+        margin-bottom: 3px;
+        color: $dark-gray;
+        line-height: 1.5;
+    }
+}
+
+.eventStreamsGrid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: $grid-gap;
+}
+
+.eventStreamColumn {
+    min-width: 0;
+
+    > h3 {
+        margin-bottom: 12px;
+        color: $color-uw-purple;
+        font-size: 1rem;
+        letter-spacing: 0.02em;
+    }
+
+    .eventStream {
+        margin: 0;
+    }
+
+    .streamHeader {
+        margin-bottom: 14px;
+
+        h1 {
+            margin: 0;
+            color: $dark-gray;
+            font-family: $sans-serif;
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+        }
+    }
+
+    .eventStreamCards {
+        grid-template-columns: 1fr;
+    }
+
+    .eventStreamEmpty {
+        min-height: 220px;
+        padding: 28px 18px;
+
+        h2 {
+            font-size: 1.2rem;
+        }
+    }
+}
+
+.eventStreamColumn-academic {
+    .eventStreamEmptyIcon {
+        background-color: $color-academic-primary;
+    }
+}
+
+.eventStreamColumn-social {
+    .eventStreamEmptyIcon {
+        background-color: $color-social-primary;
+    }
+}
+
+.eventStreamColumn-professional {
+    .eventStreamEmptyIcon {
+        background-color: $color-career-primary;
+    }
+}
+
+.eventsDetailsPanel {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 24px;
+
+    .event-details-container {
+        width: min(100%, 360px);
+        height: auto;
+        max-height: 700px;
+    }
+}
+
+@include media("screen", "<sm-desktop") {
+    .eventsPage {
+        padding: 28px $padding-content 56px;
+    }
+
+    .eventsHero {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .eventStreamsGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@include media("screen", "<phone") {
+    .eventsPage {
+        padding-right: 12px;
+        padding-left: 12px;
+    }
+
+    .eventsHero {
+        padding-top: 8px;
+
+        h1 {
+            font-size: 3rem;
+        }
+    }
+
+    .eventStreamsSection {
+        margin-top: 52px;
+    }
+
+    .eventStreamsIntro {
+        align-items: flex-start;
+        flex-direction: column;
     }
 }
 

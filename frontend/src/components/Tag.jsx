@@ -1,7 +1,7 @@
 const Tag = ({text, type, isSmall}) => {
     return (
-      <div className={`tag${isSmall ? "-small" : ""} ${type.toLowerCase()}`}>
-        <p className="tagText">{text}</p>
+      <div className={`tag ${type.toLowerCase()}`}>
+        <p className={`tagText category-pill${isSmall ? "-small" : ""} ${type.toLowerCase()}`}>{text}</p>
       </div>
     );
   };

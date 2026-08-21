@@ -760,7 +760,7 @@
     gap: 12px;
     padding: 11px 16px;
     border: 1px solid rgba(255, 255, 255, 0.78);
-    border-radius: 6px 12px 12px 6px;
+    border-radius: $radius-pill;
     background: rgba(255, 255, 255, 0.52);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
@@ -1199,7 +1199,7 @@
 
 @include media(">=tablet") {
     .heroCategory {
-        border-radius: 6px 10px 10px 6px;
+        border-radius: $radius-pill;
         background: rgba(255, 255, 255, 0.78);
         box-shadow: 0 12px 26px rgba($color-uw-purple, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.92);
 

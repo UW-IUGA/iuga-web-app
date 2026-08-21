@@ -1,19 +1,9 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-
 function Footer() {
     const year = new Date().getFullYear();
 
     return (
         <footer>
             <div className="footerContainer">
-                <div className="footerTopRow">
-                    <Link to="/" className="footerLogo"><img src="/iuga-logo.png" alt="IUGA logo, links to home"></img></Link>
-                    <div className="footerLinks">
-                        <Link to="/events">Events</Link>
-                        <Link to="/get-involved">Get Involved</Link>
-                    </div>
-                </div>
                 <div className="footerBottomRow">
                     <p className="footerCopyright">© {year} Informatics Undergraduate Association</p>
                     <div className="footerSocials">

@@ -47,6 +47,16 @@ nav {
     display: none;
 }
 
+.nav-logo {
+    display: inline-flex;
+    @include focus-ring;
+
+    img {
+        display: block;
+        width: 60px;
+    }
+}
+
 .nav-account-float {
     display: none;
 }
@@ -68,11 +78,6 @@ nav a,
 
 .nav-items-wrapper a.active {
     background-color: $gray;
-}
-
-nav img {
-    display: block;
-    width: 60px;
 }
 
 .nav-container > div {
@@ -174,6 +179,20 @@ nav img {
 }
 
 @include media("screen", "<tablet") {
+    .nav-logo {
+        position: absolute;
+        top: calc(#{$padding-content} + 12px);
+        left: 24px;
+        z-index: 101;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+
+        img {
+            width: 50px;
+        }
+    }
+
     .nav-container {
         position: relative;
         align-items: start;
@@ -190,7 +209,7 @@ nav img {
             justify-content: flex-end;
             align-items: center;
             box-sizing: border-box;
-            padding: 12px 24px;
+            padding: 12px 24px 12px 96px;
             width: 100%;
             border-bottom: 1px solid $gray;
         }
@@ -499,6 +518,19 @@ nav img {
                 border-radius: 10px;
                 white-space: nowrap;
             }
+        }
+    }
+
+    .nav-logo {
+        position: fixed;
+        top: 22px;
+        left: 92px;
+        z-index: 102;
+        padding: 0;
+        border: 0;
+
+        img {
+            width: 56px;
         }
     }
 }

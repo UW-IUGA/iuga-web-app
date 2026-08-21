@@ -181,21 +181,30 @@ nav img {
         position: relative;
         align-items: start;
         width: auto;
+        margin: $padding-content 12px 0;
         display: block;
         padding: 0;
         flex-direction: column;
         height: fit-content;
         gap: 12px;
-        @include bottom-gradient-border;
+        border-radius: $radius-pill;
 
         .nav-header {
+            position: relative;
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-start;
             align-items: center;
             box-sizing: border-box;
             padding: 12px 24px;
             width: 100%;
             border-bottom: 1px solid $gray;
+
+            .nav-logo {
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 0;
+            }
         }
 
         .nav-items-wrapper {
@@ -227,6 +236,10 @@ nav img {
             text-overflow: ellipsis;
         }
 
+    }
+
+    .nav-container.nav-menu-open {
+        border-radius: 0;
     }
 
     .nav-items-wrapper a,
@@ -263,9 +276,13 @@ nav img {
 
     .nav-mobile-menu {
         display: block;
-        @include gradient-border-thin;
-        padding: 8px 14px;
-        border-radius: $radius-pill;
+        border: 0;
+        background: transparent;
+        min-width: 44px;
+        min-height: 44px;
+        padding: 8px;
+        border-radius: 0;
+        @include focus-ring;
 
         svg {
             display: block;

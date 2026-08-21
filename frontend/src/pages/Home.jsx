@@ -7,6 +7,12 @@ import heart from "../assets/gallery/heart.jpeg";
 import officers from "../assets/gallery/officers-22.png";
 import panelists from "../assets/gallery/panelists.jpg";
 import merch from "../assets/gallery/merch.jpeg";
+
+const HERO_CATEGORIES = [
+    { className: "heroCategoryCareer", label: "Career" },
+    { className: "heroCategoryAcademic", label: "Academic" },
+    { className: "heroCategorySocial", label: "Social" },
+];
 function formatEventDate(value) {
     if (!value) return "New details coming soon";
 
@@ -38,23 +44,30 @@ function HomePage({ upcomingEvents }) {
                 <div className="heroCopy">
                     <div className="heroCenterpiece">
                         <h1 id="heroHeading">Informatics Undergraduate Association</h1>
-                        <p>Events, people, and opportunities across the Informatics community.</p>
+                        <p>Events, resources, opportunities, and community for Informatics students.</p>
                         <nav className="heroActions" aria-label="Homepage shortcuts">
                             <Link className="pill-button homePrimaryLink" to="/events">Explore Events <span aria-hidden="true">→</span></Link>
                         </nav>
                     </div>
-                    <nav className="heroCategories" aria-label="Explore events by interest">
-                        <Link className="heroCategory heroCategoryCareer" to="/events">Career</Link>
-                        <Link className="heroCategory heroCategoryAcademic" to="/events">Academic</Link>
-                        <Link className="heroCategory heroCategorySocial" to="/events">Social</Link>
+                    <nav className="heroCategories" aria-label="Explore events by interest tags">
+                        {HERO_CATEGORIES.map(({ className, label }) => (
+                            <Link className={`heroCategory ${className}`} to="/events" aria-label={`${label} tag`} key={className}>
+                                <span className="heroTagMark" aria-hidden="true" />
+                                <span className="heroCategoryLabel">{label}</span>
+                            </Link>
+                        ))}
                     </nav>
                 </div>
                 <div className="heroWorld" aria-label="IUGA student community">
-                    <img className="heroPhoto heroPhotoMain" src={formalImage} alt="IUGA members at iFormal 2026" />
-                    <img className="heroPhoto heroPhotoTop" src={heart} alt="IUGA members forming a heart" />
-                    <img className="heroPhoto heroPhotoBottom" src={bowling} alt="IUGA bowling night" />
-                    <div className="collageGlassCard">
-                        <span className="collageGlassEyebrow">Happening this week</span>
+                    <Link
+                        className="collageGlassCard"
+                        to="/events"
+                        aria-label={`Happening this week: ${featuredEventName}`}
+                    >
+                        <span className="collageGlassEyebrow">
+                            <span className="collageGlassStatus" aria-hidden="true">●</span>
+                            Happening this week
+                        </span>
                         <strong className="collageGlassTitle">{featuredEventName}</strong>
                         <span className="collageGlassMeta">{featuredEventDate}</span>
                         <div className="collageGlassPeople" aria-label="Students are part of the IUGA community">
@@ -63,8 +76,11 @@ function HomePage({ upcomingEvents }) {
                             <img src={panelists} alt="" />
                             <span>Students welcome</span>
                         </div>
-                        <Link className="collageGlassLink" to="/events">View event <span aria-hidden="true">→</span></Link>
-                    </div>
+                        <span className="collageGlassLink">View event <span aria-hidden="true">→</span></span>
+                    </Link>
+                    <img className="heroPhoto heroPhotoMain" src={formalImage} alt="IUGA members at iFormal 2026" />
+                    <img className="heroPhoto heroPhotoTop" src={heart} alt="IUGA members forming a heart" />
+                    <img className="heroPhoto heroPhotoBottom" src={bowling} alt="IUGA bowling night" />
                     <Link className="heroJoin glassObject" to="/get-involved">
                         <span className="glassObjectKicker"><span aria-hidden="true">●</span> Get involved</span>
                         <strong>Join IUGA</strong>

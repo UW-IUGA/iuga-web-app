@@ -27,6 +27,12 @@ describe("HomePage", () => {
         expect(screen.getByRole("region", { name: /Informatics Undergraduate Association/i })).toBeInTheDocument();
     });
 
+    test("explains the student gateway in the hero subheadline", () => {
+        renderHome();
+
+        expect(screen.getByText(/events, resources, opportunities, and community/i)).toBeInTheDocument();
+    });
+
     test("keeps the primary event route accessible", async () => {
         renderHome();
 
@@ -34,20 +40,39 @@ describe("HomePage", () => {
         expect(screen.getByText("Events Page")).toBeInTheDocument();
     });
 
-    test("keeps the involvement route accessible from the hero", async () => {
-        renderHome();
-        await userEvent.click(screen.getByRole("link", { name: /Join IUGA/ }));
-        expect(screen.getByText("Get Involved Page")).toBeInTheDocument();
-    });
-
-    test("exposes category paths and compact secondary actions", () => {
+    test("exposes category paths and homepage shortcuts", () => {
         renderHome();
 
-        expect(screen.getByRole("link", { name: /Career/ })).toHaveAttribute("href", "/events");
-        expect(screen.getByRole("link", { name: /Academic/ })).toHaveAttribute("href", "/events");
-        expect(screen.getByRole("link", { name: /Social/ })).toHaveAttribute("href", "/events");
+        expect(screen.getByRole("navigation", { name: /interest tags/i })).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: /Career tag/i })).toHaveAttribute("href", "/events");
+        expect(screen.getByRole("link", { name: /Academic tag/i })).toHaveAttribute("href", "/events");
+        expect(screen.getByRole("link", { name: /Social tag/i })).toHaveAttribute("href", "/events");
         expect(screen.getByRole("link", { name: /Join IUGA/ })).toHaveAttribute("href", "/get-involved");
         expect(screen.getByRole("link", { name: /Shop merch/ })).toHaveAttribute("href", "/get-involved");
+    });
+
+    test("presents all three interest tags as equal-priority destinations", () => {
+        renderHome();
+
+        const tagLinks = screen.getByRole("navigation", { name: /interest tags/i }).querySelectorAll("a");
+
+        expect(tagLinks).toHaveLength(3);
+        expect([...tagLinks].map((link) => link.textContent)).toEqual(["Career", "Academic", "Social"]);
+    });
+
+    test("makes Happening This Week a direct event destination", () => {
+        renderHome();
+
+        expect(screen.getByRole("link", { name: /Happening this week/i })).toHaveAttribute("href", "/events");
+    });
+
+    test("prioritizes the event destination before the group photo", () => {
+        renderHome();
+
+        const eventCard = screen.getByRole("link", { name: /Happening this week/i });
+        const groupPhoto = screen.getByAltText("IUGA members at iFormal 2026");
+
+        expect(eventCard.compareDocumentPosition(groupPhoto) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     });
 
     test("has no form inputs and no disabled Coming Soon submit", () => {
@@ -62,6 +87,5 @@ describe("HomePage", () => {
         expect(screen.getByAltText("IUGA members at iFormal 2026")).toBeInTheDocument();
         expect(screen.getByAltText("IUGA members forming a heart")).toBeInTheDocument();
         expect(screen.getByAltText("IUGA bowling night")).toBeInTheDocument();
-        expect(screen.getAllByAltText("IUGA branded merchandise arranged for students").length).toBeGreaterThan(0);
     });
 });

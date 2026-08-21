@@ -2,7 +2,6 @@ $footer-lavender: #F1E8FF;
 
 footer {
     background-color: white;
-    border-top: 1px solid rgba($color-uw-purple, 0.12);
 }
 
 .footerContainer {
@@ -13,43 +12,6 @@ footer {
     margin: 0 auto;
     max-width: 1200px;
     padding: $padding-content*3 $padding-content*2;
-}
-
-.footerTopRow {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: $grid-gap;
-
-    .footerLogo {
-        display: inline-flex;
-        @include focus-ring;
-
-        img {
-            display: block;
-            width: 100px;
-        }
-    }
-
-    .footerLinks {
-        display: flex;
-        gap: 8px;
-
-        a {
-            color: black;
-            text-decoration: none;
-            border: 2px solid white;
-            border-radius: $radius-pill;
-            padding: $padding-box-y $padding-box-x;
-            font-size: 16px;
-            transition: background-color 200ms cubic-bezier(0.19, 1, 0.22, 1);
-            @include focus-ring;
-
-            &:hover {
-                background-color: $footer-lavender;
-            }
-        }
-    }
 }
 
 .footerBottomRow {
@@ -105,16 +67,6 @@ footer {
         max-width: 1000px;
     }
 
-    .footerTopRow {
-        .footerLogo img {
-            width: 80px;
-        }
-
-        .footerLinks a {
-            font-size: 14px;
-        }
-    }
-
     .footerBottomRow {
         .footerCopyright {
             font-size: 0.8rem;
@@ -138,11 +90,6 @@ footer {
     .footerContainer {
         gap: $grid-gap;
         padding: $padding-content*2 24px;
-    }
-
-    .footerTopRow {
-        flex-direction: column;
-        text-align: center;
     }
 
     .footerBottomRow {

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import formalImage from "../assets/iFormal-2026.jpeg";
 import bowling from "../assets/gallery/bowling.jpeg";
@@ -24,6 +24,8 @@ function formatEventDate(value) {
 
 function HomePage({ upcomingEvents }) {
     const { pathname } = useLocation();
+    const [contact, setContact] = useState({ name: "", email: "", inquiryType: "", message: "" });
+    const [contactStatus, setContactStatus] = useState({ type: "idle", message: "" });
     const featuredEvent = upcomingEvents?.[0];
     const featuredEventName = featuredEvent?.eName || "The next IUGA gathering";
     const featuredEventDate = formatEventDate(featuredEvent?.eStartDate);
@@ -31,6 +33,39 @@ function HomePage({ upcomingEvents }) {
     useEffect(() => {
         window.scrollTo(0, 0);
     }, [pathname]);
+
+    const updateContactField = (event) => {
+        const { name, value } = event.target;
+        setContact((currentContact) => ({ ...currentContact, [name]: value }));
+    };
+
+    const sendContactMessage = async (event) => {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const website = form.elements.website?.value || "";
+        setContactStatus({ type: "submitting", message: "" });
+
+        try {
+            const response = await fetch("/api/v1/contact", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ...contact, website }),
+            });
+            const result = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(result.message || "We could not send your message. Please try again.");
+            }
+
+            setContact({ name: "", email: "", inquiryType: "", message: "" });
+            setContactStatus({ type: "success", message: "Thanks — your message has been sent." });
+        } catch (error) {
+            setContactStatus({
+                type: "error",
+                message: error.message || "We could not send your message. Please try again.",
+            });
+        }
+    };
 
     return (
         <main className="baseContainer homePage">
@@ -70,10 +105,58 @@ function HomePage({ upcomingEvents }) {
                         <strong>Join IUGA</strong>
                         <span>Help build what's next. <b aria-hidden="true">→</b></span>
                     </Link>
-                    <Link className="heroMerch glassObject" to="/get-involved">
+                    <Link className="heroMerch glassObject" to="/shop">
                         <img src={merch} alt="IUGA branded merchandise arranged for students" />
                         <span><strong>Rep Informatics</strong><br />Shop merch <b aria-hidden="true">→</b></span>
                     </Link>
+                </div>
+            </section>
+
+            <section className="contactUsCard" aria-labelledby="contact-title">
+                <div className="contactUsCard__content">
+                    <p className="homeEyebrow">Contact us</p>
+                    <h2 id="contact-title">Get in touch</h2>
+                    <p>
+                        Questions, partnership ideas, or feedback for IUGA? We would love to hear from students,
+                        faculty, and the wider iSchool community.
+                    </p>
+                    <a className="contactUsCard__email" href="mailto:iuga@uw.edu">iuga@uw.edu</a>
+
+                    <form className="contactUsCard__form" onSubmit={sendContactMessage}>
+                        <input className="contactUsCard__honeypot" name="website" tabIndex="-1" autoComplete="off" aria-hidden="true" />
+                        <div className="contactUsCard__formRow">
+                            <label>
+                                Name
+                                <input name="name" value={contact.name} onChange={updateContactField} autoComplete="name" required />
+                            </label>
+                            <label>
+                                Inquiry type
+                                <select name="inquiryType" value={contact.inquiryType} onChange={updateContactField} required>
+                                    <option value="" disabled>Select one</option>
+                                    <option value="Student">Student</option>
+                                    <option value="Faculty">Faculty</option>
+                                    <option value="Professional">Professional</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </label>
+                        </div>
+                        <label>
+                            Email
+                            <input name="email" type="email" value={contact.email} onChange={updateContactField} autoComplete="email" required />
+                        </label>
+                        <label>
+                            Your message
+                            <textarea name="message" value={contact.message} onChange={updateContactField} rows="4" required />
+                        </label>
+                        <button className="pill-button homePrimaryLink" type="submit" disabled={contactStatus.type === "submitting"}>
+                            {contactStatus.type === "submitting" ? "Sending…" : "Send message"} <span aria-hidden="true">→</span>
+                        </button>
+                        {contactStatus.type !== "idle" && contactStatus.type !== "submitting" && (
+                            <p className={`contactUsCard__formStatus contactUsCard__formStatus--${contactStatus.type}`} role="status">
+                                {contactStatus.message}
+                            </p>
+                        )}
+                    </form>
                 </div>
             </section>
         </main>

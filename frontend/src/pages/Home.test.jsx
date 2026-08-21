@@ -16,6 +16,7 @@ const renderHome = () =>
                 <Route path="/" element={<HomePage upcomingEvents={[]} />} />
                 <Route path="/get-involved" element={<div>Get Involved Page</div>} />
                 <Route path="/events" element={<div>Events Page</div>} />
+                <Route path="/shop" element={<div>Shop Page</div>} />
             </Routes>
         </MemoryRouter>
     );
@@ -47,13 +48,45 @@ describe("HomePage", () => {
         expect(screen.getByRole("link", { name: /Academic/ })).toHaveAttribute("href", "/events");
         expect(screen.getByRole("link", { name: /Social/ })).toHaveAttribute("href", "/events");
         expect(screen.getByRole("link", { name: /Join IUGA/ })).toHaveAttribute("href", "/get-involved");
-        expect(screen.getByRole("link", { name: /Shop merch/ })).toHaveAttribute("href", "/get-involved");
+        expect(screen.getByRole("link", { name: /Shop merch/ })).toHaveAttribute("href", "/shop");
     });
 
-    test("has no form inputs and no disabled Coming Soon submit", () => {
+    test("provides a contact form for student, faculty, and professional inquiries", () => {
         renderHome();
-        expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
-        expect(screen.queryByText(/send.*coming soon/i)).not.toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Get in touch" })).toBeInTheDocument();
+        expect(screen.getByLabelText("Name")).toBeInTheDocument();
+        expect(screen.getByLabelText("Email")).toBeInTheDocument();
+        expect(screen.getByLabelText("Inquiry type")).toBeInTheDocument();
+        expect(screen.getByLabelText("Your message")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Send message" })).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "iuga@uw.edu" })).toHaveAttribute("href", "mailto:iuga@uw.edu");
+    });
+
+    test("submits a contact message through the API", async () => {
+        const originalFetch = global.fetch;
+        const fetchMock = jest.fn().mockResolvedValue({
+            ok: true,
+            json: async () => ({ status: "success" }),
+        });
+        global.fetch = fetchMock;
+
+        try {
+            renderHome();
+
+            await userEvent.type(screen.getByLabelText("Name"), "Avery Chen");
+            await userEvent.type(screen.getByLabelText("Email"), "avery@example.com");
+            await userEvent.selectOptions(screen.getByLabelText("Inquiry type"), "Student");
+            await userEvent.type(screen.getByLabelText("Your message"), "I would like to learn more about IUGA.");
+            await userEvent.click(screen.getByRole("button", { name: "Send message" }));
+
+            expect(await screen.findByText("Thanks — your message has been sent.")).toBeInTheDocument();
+            expect(fetchMock).toHaveBeenCalledWith("/api/v1/contact", expect.objectContaining({
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+            }));
+        } finally {
+            global.fetch = originalFetch;
+        }
     });
 
     test("uses descriptive alternatives for hero images", () => {

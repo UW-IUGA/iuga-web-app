@@ -25,6 +25,9 @@ function Navbar({ signIn, signOut }) {
 
     return (
         <nav aria-label="Primary navigation">
+            <NavLink to="/" className="nav-logo">
+                <img src="/iuga-logo.png" alt="IUGA home" />
+            </NavLink>
             <div className="nav-container">
                 <div className="nav-header">
                     <button

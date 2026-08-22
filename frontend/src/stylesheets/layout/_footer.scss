@@ -1,10 +1,38 @@
 $footer-lavender: #F1E8FF;
 
 footer {
-    background-color: white;
+    position: relative;
+    overflow: hidden;
+    background-color: transparent;
+    box-shadow: 0 -18px 48px rgba($color-primary, 0.08);
+
+    &::before {
+        position: absolute;
+        top: -96px;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 0;
+        background:
+            linear-gradient(
+                to bottom,
+                transparent 0,
+                rgba($color-social-light, 0.16) 42%,
+                rgba($color-social-light, 0.42) 100%
+            ),
+            radial-gradient(
+                ellipse 80% 100% at 50% 100%,
+                rgba($color-primary, 0.13),
+                transparent 78%
+            );
+        content: "";
+        pointer-events: none;
+    }
 }
 
 .footerContainer {
+    position: relative;
+    z-index: 1;
     display: flex;
     flex-direction: column;
     gap: $section-divider-gap;
@@ -15,23 +43,37 @@ footer {
 }
 
 .footerBottomRow {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    justify-content: space-between;
     gap: $grid-gap;
-    border-top: 1px solid rgba($color-uw-purple, 0.12);
     padding-top: $section-divider-gap;
+
+    .footerBrand {
+        display: inline-flex;
+        width: fit-content;
+        align-items: center;
+        @include focus-ring;
+
+        img {
+            display: block;
+            width: 82px;
+            height: auto;
+        }
+    }
 
     .footerCopyright {
         margin: 0;
         font-size: 0.9rem;
         color: $dark-gray;
+        text-align: center;
     }
 
     .footerSocials {
         display: flex;
         align-items: center;
         gap: 12px;
+        justify-content: flex-end;
 
         a {
             display: inline-flex;
@@ -93,8 +135,18 @@ footer {
     }
 
     .footerBottomRow {
-        flex-direction: column-reverse;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         gap: 16px;
         padding-top: $grid-gap;
+
+        .footerBrand { order: 1; }
+        .footerCopyright { order: 2; }
+        .footerSocials { order: 3; }
+    }
+
+    .footerSocials {
+        gap: 8px;
     }
 }

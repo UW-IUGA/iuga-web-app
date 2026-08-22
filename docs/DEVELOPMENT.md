@@ -194,7 +194,7 @@ The repository has a small but real test surface, although coverage is incomplet
   ```bash
   bash ci/test/e2e-deploy.sh
   ```
-- **Root:** `npm test` is still a placeholder that exits with `Error: no test specified`; it is not a meaningful project test command.
+- **Root:** `npm test` runs the backend and frontend suites.
 
 ### Required verification workflow
 

@@ -16,6 +16,24 @@
     flex: 1;
 }
 
+%pageKicker {
+    margin: 0;
+    color: $color-primary;
+    font-family: $sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    line-height: 1.4;
+    text-transform: uppercase;
+}
+
+%pageFrame {
+    box-sizing: border-box;
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+}
+
 @include media(">=sm-desktop", "<desktop") {
     .left-arrow {
         width: 18px;

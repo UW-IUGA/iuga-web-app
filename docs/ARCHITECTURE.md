@@ -33,7 +33,7 @@ Browser
    ├──[SPA route]──→ React (frontend/build/)
    │                    │
    │                    ├── page components (pages/)
-│                    ├── shared UI (components/ + layouts/)
+   │                    ├── shared UI (components/ + layouts/)
    │                    ├── auth context (context/AuthContext.jsx)
    │                    └── API calls via fetch()
    │                         │

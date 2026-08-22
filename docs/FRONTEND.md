@@ -61,6 +61,7 @@ frontend/src/
     ├── layout/            ← Container, split responsive navigation, footer, form
     ├── pages/             ← Page-specific styles (e.g., _getInvolved.scss for page and member-card styles)
     └── addons/            ← Third-party overrides (toastify)
+```
 
 ### Shared navigation
 
@@ -75,7 +76,6 @@ markup at every breakpoint. Its presentation is split across these partials:
 Use the shared variables in `stylesheets/abstracts/_variables.scss` for layout
 tokens such as `$radius-pill`, `$radius-card`, and `$pill-height`. Avoid hard-coded
 navigation radii or dimensions in page styles.
-```
 
 ---
 

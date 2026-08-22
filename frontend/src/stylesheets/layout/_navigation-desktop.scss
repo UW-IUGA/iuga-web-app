@@ -1,0 +1,279 @@
+// DESKTOP PRESENTATION: the shared Navbar is a fixed left Sidebar/navigation
+// rail. The React component remains Navbar at both breakpoints; this file only
+// documents and styles its desktop presentation.
+@include media(">=tablet") {
+    nav[aria-label="Primary navigation"] {
+        position: fixed;
+        inset: 0 auto 0 0;
+        z-index: 100;
+        width: 0;
+    }
+
+    .nav-account-float {
+        position: fixed;
+        top: 24px;
+        right: 28px;
+        display: flex;
+        z-index: 101;
+        align-items: center;
+    }
+
+    .nav-account-profile {
+        display: flex;
+        min-height: 48px;
+        padding: 8px 10px 8px 12px;
+        align-items: center;
+        gap: 10px;
+        border: 1px solid rgba(white, 0.72);
+        border-radius: 14px;
+        background: linear-gradient(145deg, rgba(white, 0.88), rgba(#f3edff, 0.76));
+        box-shadow: 0 8px 22px rgba($color-uw-purple, 0.12);
+        backdrop-filter: blur(14px) saturate(1.1);
+        -webkit-backdrop-filter: blur(14px) saturate(1.1);
+    }
+
+    .nav-account-float .nav-account-login {
+        min-height: 36px;
+        padding: 0 14px;
+        gap: 6px;
+        font-size: 14px;
+        border-color: $color-primary;
+        background-color: $color-primary;
+        color: white;
+
+        &:hover,
+        &:focus-visible {
+            border-color: $color-uw-purple;
+            background-color: $color-uw-purple;
+            color: white;
+        }
+    }
+
+    .nav-account-avatar {
+        display: grid;
+        width: 32px;
+        height: 32px;
+        place-items: center;
+        border-radius: 50%;
+        background-color: $color-primary;
+        color: white;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .nav-account-copy {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        line-height: 1.2;
+
+        strong { font-size: 14px; }
+        span { color: rgba(black, 0.62); font-size: 12px; }
+    }
+
+    .nav-account-logout {
+        display: grid;
+        width: 32px;
+        height: 32px;
+        margin-left: 2px;
+        place-items: center;
+        border: 0;
+        border-radius: 9px;
+        background: transparent;
+        color: $color-primary;
+        cursor: pointer;
+        transition: background-color 160ms ease, transform 160ms ease;
+        @include focus-ring;
+
+        &:hover {
+            background-color: rgba($color-primary, 0.1);
+            transform: translateX(2px);
+        }
+    }
+
+    .nav-container {
+        position: fixed;
+        top: 50%;
+        left: 0;
+        display: flex;
+        width: 68px;
+        height: auto;
+        max-width: none;
+        max-height: none;
+        margin: 0;
+        padding: 16px 10px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        overflow: hidden;
+        transform: translateY(-50%);
+        border: 1px solid rgba(white, 0.72);
+        border-radius: $radius-card;
+        background: linear-gradient(150deg, rgba(white, 0.88), rgba(#f3edff, 0.74));
+        box-shadow: 4px 10px 28px rgba($color-uw-purple, 0.13);
+        backdrop-filter: blur(18px) saturate(1.2);
+        -webkit-backdrop-filter: blur(18px) saturate(1.2);
+        transition: width 280ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 280ms cubic-bezier(0.16, 1, 0.3, 1);
+
+        &:hover,
+        &:focus-within {
+            width: 248px;
+            box-shadow: 12px 18px 46px rgba($color-uw-purple, 0.19);
+
+            .nav-items-wrapper a > span,
+            .nav-auth {
+                max-width: 180px;
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            .nav-items-wrapper > :nth-child(1) > span { transition-delay: 35ms; }
+            .nav-items-wrapper > :nth-child(2) > span { transition-delay: 55ms; }
+            .nav-items-wrapper > :nth-child(3) > span { transition-delay: 75ms; }
+            .nav-items-wrapper > :nth-child(4) > span { transition-delay: 95ms; }
+            .nav-items-wrapper > :nth-child(5) > span { transition-delay: 115ms; }
+            .nav-items-wrapper > :nth-child(6) > span { transition-delay: 135ms; }
+            .nav-items-wrapper > :nth-child(7) > span { transition-delay: 155ms; }
+            .nav-auth { transition-delay: 175ms; }
+        }
+
+        .nav-header {
+            display: flex;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .nav-items-wrapper {
+            display: flex;
+            width: 100%;
+            flex: none;
+            flex-direction: column;
+            justify-content: flex-start;
+            padding-top: 0;
+            gap: 6px;
+        }
+
+        .nav-items-wrapper a {
+            display: flex;
+            box-sizing: border-box;
+            width: 100%;
+            min-height: 44px;
+            padding: 10px 12px;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 18px;
+            overflow: hidden;
+            border: 0;
+            border-radius: 10px;
+            text-align: left;
+            white-space: nowrap;
+
+            &.active {
+                position: relative;
+                background-color: $color-primary;
+                color: white;
+
+                &::before,
+                &::after {
+                    position: absolute;
+                    right: 12px;
+                    left: 12px;
+                    height: 2px;
+                    content: "";
+                    border-radius: 99px;
+                    background: linear-gradient(90deg, rgba(white, 0), rgba(white, 0.95), rgba(white, 0));
+                    box-shadow: 0 0 10px rgba(white, 0.8);
+                }
+
+                &::before { top: 0; }
+                &::after { bottom: 0; }
+            }
+
+            svg {
+                width: 20px;
+                min-width: 20px;
+                font-size: 18px;
+                transition: transform 180ms ease;
+            }
+
+            &:hover svg { transform: translateX(3px) scale(1.04); }
+
+            > span {
+                max-width: 0;
+                overflow: hidden;
+                opacity: 0;
+                transform: translateX(-6px);
+                transition: max-width 210ms ease, opacity 170ms ease, transform 210ms ease;
+            }
+        }
+
+        .nav-auth {
+            display: none;
+            max-width: 0;
+            margin-top: auto;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateX(-6px);
+            transition: max-width 180ms ease, opacity 150ms ease, transform 180ms ease;
+
+            .nav-auth-button {
+                width: 100%;
+                padding: 10px 12px;
+                border-radius: 10px;
+                white-space: nowrap;
+            }
+        }
+    }
+
+    .nav-logo {
+        position: fixed;
+        top: 22px;
+        left: 24px;
+        z-index: 102;
+        padding: 0;
+        border: 0;
+
+        img {
+            width: 80px;
+        }
+    }
+}
+
+// Desktop-only pill states keep the tablet/mobile menu structure untouched.
+@include media(">=sm-desktop") {
+    // Navigation is imported before buttons, so this local value mirrors the
+    // lavender CTA token without changing the shared token load order.
+    $nav-lavender: #F1E8FF;
+
+    .nav-items-wrapper a,
+    .nav-auth-button {
+        border-radius: $radius-pill;
+    }
+
+    .nav-items-wrapper a {
+        @include focus-ring;
+
+        &:hover {
+            background-color: $nav-lavender;
+        }
+    }
+
+    .nav-items-wrapper a.active {
+        background-color: $color-primary;
+        border-color: $color-primary;
+        color: white;
+    }
+
+    .nav-auth .nav-auth-button {
+        background-color: $color-primary;
+        border-color: $color-primary;
+        color: white;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nav-container,
+    .nav-container * {
+        transition: none !important;
+    }
+}

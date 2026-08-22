@@ -22,10 +22,6 @@ resources[resourceTags.CAREER] = [
     },
 ];
 
-beforeEach(() => {
-    window.scrollTo = jest.fn();
-});
-
 function renderResourcesPage() {
     return render(
         <MemoryRouter>
@@ -34,7 +30,21 @@ function renderResourcesPage() {
     );
 }
 
+beforeEach(() => {
+    jest.spyOn(window, "scrollTo").mockImplementation(() => {});
+});
+
+afterEach(() => {
+    jest.restoreAllMocks();
+});
+
 describe("ResourcesPage", () => {
+    test("scrolls to the top when the page mounts", () => {
+        renderResourcesPage();
+
+        expect(window.scrollTo).toHaveBeenCalledWith(0, 0);
+    });
+
     test("keeps categories compact until their accordion is opened", () => {
         renderResourcesPage();
 

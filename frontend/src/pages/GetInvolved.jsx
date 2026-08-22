@@ -1,7 +1,3 @@
-import { useState } from "react";
-import GetInvolvedMemberCard from "../components/GetInvolvedMemberCard";
-import { groupType } from "../assets/data/Enum";
-
 const IUGA_EMAIL = "iuga@uw.edu";
 
 const mailto = (subject, body) =>
@@ -28,15 +24,19 @@ const COMMITTEES = [
             "Hi IUGA,\n\nI'm an Informatics student and I'd love to join the Creative Committee. Please add me to the loop!\n\nThanks,\n[Your name]"
         ),
     },
+    {
+        name: "Diversity Committee",
+        ledBy: "Nitya Shankar",
+        description:
+            "Leads events and initiatives that strengthen diversity across the iSchool, partnering with diversity-focused student organizations to build meaningful community.",
+        mailto: mailto(
+            "Joining the Diversity Committee",
+            "Hi IUGA,\n\nI'm an Informatics student and I'd love to join the Diversity Committee. Please add me to the loop!\n\nThanks,\n[Your name]"
+        ),
+    },
 ];
 
-function GetInvolvedPage({ teams }) {
-    // Object.keys returns integer-like keys in ascending numeric order (2015..2026),
-    // so the newest team is the LAST element, not years[0].
-    const years = Object.keys(teams);
-    const [selectedYear, setSelectedYear] = useState(years[years.length - 1]);
-    const officers = teams[selectedYear]?.[groupType.OFFICERS] ?? [];
-
+function GetInvolvedPage() {
     return (
         <div className="baseContainer">
             <div className="getInvolved__summary">
@@ -47,31 +47,6 @@ function GetInvolvedPage({ teams }) {
                         undergraduates. The best way to shape the community is to jump in: join a committee,
                         lend a hand at an event, or pitch the next idea worth doing.
                     </p>
-                </div>
-            </div>
-
-            <div className="getInvolved__section">
-                <div className="getInvolved__header">
-                    <p className="getInvolved__kicker">Team</p>
-                    <h2>Meet the {selectedYear} Team</h2>
-                </div>
-                <div className="getInvolved__yearFilter" role="group" aria-label="Team year">
-                    {years.map((year) => (
-                        <button
-                            key={year}
-                            type="button"
-                            className="pill-button"
-                            aria-pressed={selectedYear === year}
-                            onClick={() => setSelectedYear(year)}
-                        >
-                            {year}
-                        </button>
-                    ))}
-                </div>
-                <div className="getInvolved__teamGrid">
-                    {officers.map((member, index) => (
-                        <GetInvolvedMemberCard key={`${member.position}-${index}`} member={member} />
-                    ))}
                 </div>
             </div>
 

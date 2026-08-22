@@ -43,33 +43,6 @@
     }
 }
 
-.getInvolved {
-    width: 1200px;
-    margin: 0 auto;
-    box-sizing: border-box;
-    padding: 48px 0 64px;
-}
-
-.getInvolved__intro {
-    max-width: 720px;
-
-    h1 {
-        margin: 0 0 16px;
-        font-size: 3rem;
-    }
-
-    p {
-        margin: 0;
-        font-size: 1.05rem;
-        line-height: 1.65;
-        color: $dark-gray;
-    }
-}
-
-.getInvolved__section {
-    margin-top: 40px;
-}
-
 .getInvolved__header {
     margin-bottom: 24px;
     padding: 0 0 16px;
@@ -89,20 +62,6 @@
     line-height: 1.4;
     text-transform: uppercase;
     color: $dark-gray;
-}
-
-.getInvolved__yearFilter {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 32px;
-}
-
-.getInvolved__teamGrid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: $grid-gap;
-    align-items: stretch;
 }
 
 .getInvolvedCard {
@@ -241,32 +200,6 @@
 
     .pill-button {
         margin-top: auto;
-    }
-}
-
-
-@include media(">=sm-desktop", "<desktop") {
-    .getInvolved {
-        width: 1000px;
-    }
-}
-
-@include media("<sm-desktop") {
-    .getInvolved {
-        width: 90vw;
-    }
-}
-
-@include media(">=tablet", "<sm-desktop") {
-    .getInvolved__teamGrid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@include media(">=sm-desktop") {
-    .getInvolved__teamGrid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: $grid-gap;
     }
 }
 

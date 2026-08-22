@@ -1,6 +1,6 @@
 # IUGA Website — Frontend
 
-**Tech stack:** React 18, Create React App (react-scripts 5), React Router v6, SCSS, Azure MSAL
+**Tech stack:** React 18, Vite, Vitest, React Router v6, SCSS, Azure MSAL
 
 ---
 
@@ -8,7 +8,7 @@
 
 | File | Role |
 |---|---|
-| `public/index.html` | HTML shell — font loading, meta tags, `<div id="root">` |
+| `index.html` | HTML shell — font loading, meta tags, `<div id="root">` |
 | `src/index.jsx` | React bootstrap — MSAL provider, auth context, browser router |
 | `src/App.jsx` | Layout wrapper — navbar, toast notifications, route definitions |
 | `src/authConfig.js` | MSAL client ID, tenant authority, redirect URI |
@@ -100,7 +100,7 @@ The backend also serves `index.html` for each of these paths to enable deep link
 
 ### Development Mode
 
-In dev mode (`NODE_ENV !== "production"`), the frontend uses **mock data**:
+In Vite dev mode, the frontend uses **mock data**:
 
 - **Homepage events**: `MockCalendarData.js`
 - **Calendar events**: `MockCalendarData.js` (imported directly, no fetch)
@@ -110,13 +110,13 @@ No backend is required for frontend development.
 
 ### Production Mode
 
-In production (`NODE_ENV === "production"`), the frontend fetches from the API:
+In production, the frontend fetches from same-origin API routes:
 
-- `GET {REACT_APP_API_URL}/api/v1/events/upcoming` → homepage
-- `GET {REACT_APP_API_URL}/api/v1/events` → calendar
-- `GET {REACT_APP_API_URL}/api/v1/events/id/{eId}` → event details
+- `GET /api/v1/events/upcoming` → homepage
+- `GET /api/v1/events` → calendar
+- `GET /api/v1/events/id/{eId}` → event details
 
-The API base URL comes from the `REACT_APP_API_URL` environment variable, substituted at build time.
+The public `VITE_API_URL` Docker build argument configures the MSAL redirect URI at build time.
 
 ---
 

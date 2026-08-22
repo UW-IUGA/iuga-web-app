@@ -6,7 +6,7 @@ import EventStream from "./EventStream";
 // EventCard formats dates with the ESM-only "dateformat" package, which jest
 // cannot transform inside node_modules; a factory mock keeps the card's
 // rendering path exercised without parsing that module.
-jest.mock("dateformat", () => (date, mask) => "Mar 01");
+vi.mock("dateformat", () => ({ default: () => "Mar 01" }));
 
 const NOW = Date.parse("2024-03-01T00:00:00.000Z");
 

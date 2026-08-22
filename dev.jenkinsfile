@@ -25,6 +25,7 @@ def deploy = null
 def cfg = [
     image:     'iuga/iuga-web-app-development',
     deployEnv: 'development',
+    apiUrl:    'https://dev.iuga.info',
     container: 'iuga-web-dev',
     tempPort:  6667,
     realPort:  6666,

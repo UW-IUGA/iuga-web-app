@@ -20,21 +20,12 @@
     "react-ga4": "^2.1.0",
     "react-responsive": "^10.0.0",
     "react-router-dom": "^6.22.2",
-    "react-scripts": "5.0.1",
     "react-toastify": "^10.0.5"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test --watchAll=false",
-    "eject": "react-scripts eject"
-  },
-  "proxy": "http://localhost:7777",
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+    "start": "vite",
+    "build": "vite build",
+    "test": "vitest run"
   },
   "browserslist": {
     "production": [
@@ -49,6 +40,10 @@
     ]
   },
   "devDependencies": {
-    "sass": "^1.70.0"
+    "@vitejs/plugin-react": "^6.0.1",
+    "sass": "^1.70.0",
+    "vite": "^8.0.0",
+    "vitest": "^4.0.0",
+    "jsdom": "^26.1.0"
   }
 }

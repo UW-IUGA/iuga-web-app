@@ -7,7 +7,7 @@ Purpose: DRY the Docker build + push + health-gated deploy shared by the per-env
 Authentication/Authorization Requirements: N/A (pipeline helper, runs on the Jenkins agent)
 
 Expected Request Information (<r> indicates a required field):
-- cfg (Map, required): image, deployEnv, container, tempPort, realPort, uploadsDir, network
+- cfg (Map, required): image, deployEnv, apiUrl, container, tempPort, realPort, uploadsDir, network
 
 Expected Response Information:
 - return N/A (side effects: images built/pushed; candidate health-checked; live swap or rollback)
@@ -16,7 +16,7 @@ Expected Response Information:
 
 // Build an immutable, build-numbered image tag.
 void buildImage(Map cfg) {
-    sh "docker build . -t \"${cfg.image}:${env.BUILD_NUMBER}\" --build-arg DEPLOY_ENV=${cfg.deployEnv}"
+    sh "docker build . -t \"${cfg.image}:${env.BUILD_NUMBER}\" --build-arg DEPLOY_ENV=${cfg.deployEnv} --build-arg VITE_API_URL=${cfg.apiUrl}"
 }
 
 // Push the build-numbered image to the registry.

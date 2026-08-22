@@ -23,7 +23,7 @@ resources[resourceTags.CAREER] = [
 ];
 
 beforeEach(() => {
-    window.scrollTo = jest.fn();
+    window.scrollTo = vi.fn();
 });
 
 function renderResourcesPage() {

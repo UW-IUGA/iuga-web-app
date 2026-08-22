@@ -13,7 +13,7 @@ Every environment (dev, staging, production) follows the same five-stage pipelin
 | Stage | What happens | Responsibility |
 |---|---|---|
 | Checkout | Jenkins clones `github.com/UW-IUGA/iuga-web-app` (dev & prod use explicit branches; staging uses `checkout scm`) with submodules using the `github_classic` credential. | Jenkins |
-| Build | `docker build` with `--build-arg DEPLOY_ENV` selects the target environment's API URL via sed transforms in the Dockerfile. | Jenkins |
+| Build | `docker build` receives `--build-arg DEPLOY_ENV` and the public `--build-arg VITE_API_URL` for the target environment. | Jenkins |
 | Push to Registry | `docker push` to Docker Hub after authenticating with the `dockerhub` credential. | Docker Hub |
 | Deploy | `docker pull`, start the new build as a candidate on a temp port, health-check it (`/readyz`), then swap onto the live port only if healthy. **A broken build never takes the site down** — the previous working container keeps serving and the pipeline fails. | Production host |
 | Status report | Jenkins posts a commit status to GitHub (`iuga/jenkins/cicd/<env>`). | Jenkins |
@@ -89,7 +89,7 @@ The [Dockerfile](../Dockerfile) is a multi-stage build:
 1. **Build stage** (`FROM node:22-alpine AS build`)
    - Copies `frontend/` into `/app/frontend`
    - Installs npm dependencies
-   - Transforms API URLs via `sed` based on `DEPLOY_ENV`:
+   - Embeds the public `VITE_API_URL` supplied by the deployment pipeline:
 
      | `DEPLOY_ENV` | API URL in build | Served domain |
      |---|---|---|

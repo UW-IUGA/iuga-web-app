@@ -44,7 +44,7 @@ npm install
 npm start
 ```
 
-Starts the Create React App dev server on **http://localhost:3000** with hot reload. The frontend uses **mock data** — no backend or database needed.
+Starts the Vite dev server on **http://localhost:3000** with hot reload. The frontend uses **mock data** — no backend or database needed.
 
 ### Backend only
 
@@ -55,7 +55,7 @@ npm start                    # uses env/.env.dev
 ```
 
 The backend requires:
-1. A built frontend at `../frontend/build/` (run `npm run build` in `frontend/`)
+1. A built frontend at `../frontend/build/` (run `VITE_API_URL=http://localhost:7777 npm run build` in `frontend/`)
 2. Environment files in `backend/env/` (see [Environment Setup](#environment-setup) below)
 3. A MongoDB connection (Atlas for dev)
 
@@ -105,25 +105,25 @@ npm run backend-debug
 
 ### Frontend environment
 
-Frontend env files are checked in:
+Frontend environment files are local and should not be committed:
 
 | File | Variable | Value |
 |---|---|---|
-| `frontend/.env.dev` | `REACT_APP_API_URL` | `http://localhost:7777` |
-| `frontend/.env.production` | `REACT_APP_API_URL` | `https://dev.iuga.info` |
+| `frontend/.env.development` | `VITE_API_URL` | `http://localhost:7777` |
+| `frontend/.env.production` | `VITE_API_URL` | `https://dev.iuga.info` |
 
 ---
 
 ## How API Calls Work
 
-The frontend switches between mock data and live API based on `NODE_ENV`:
+The frontend switches between mock data and live API based on Vite's production mode:
 
-- **Development** (`NODE_ENV !== "production"`): The frontend imports **mock data** from `src/assets/mock-data/`. No backend or database is needed. This is the default when running `npm start` (CRA dev server) or `npm run dev`.
-- **Production build** (`NODE_ENV === "production"`): The frontend makes direct `fetch()` calls to `REACT_APP_API_URL`. For example:
+- **Development**: The frontend imports **mock data** from `src/assets/mock-data/`. No backend or database is needed. This is the default when running `npm start` (Vite dev server).
+- **Production build**: The frontend makes direct same-origin `fetch()` calls to `/api`. The public `VITE_API_URL` value configures the MSAL redirect URI at build time.
   ```js
-  fetch(`${process.env.REACT_APP_API_URL}/api/v1/events/upcoming`)
+  fetch(`/api/v1/events/upcoming`)
   ```
-  This value is substituted at build time. There is **no CRA proxy** — in production builds the frontend is served as static files by the Express backend, and API requests go directly to the same origin.
+  The public `VITE_API_URL` value is substituted at build time. In production builds the frontend is served as static files by the Express backend, and API requests go directly to the same origin.
 
 ---
 

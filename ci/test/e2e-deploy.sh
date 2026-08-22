@@ -111,7 +111,7 @@ wait_for "mongodb" 30 "docker exec iuga-e2e-mongo mongosh --quiet --eval 'db.run
 # Same build shape as CI: DEPLOY_ENV=development. Pushed to the local
 # registry, plus a :last-good tag to mirror tagLastGood().
 cd "${REPO_ROOT}"
-docker build --build-arg DEPLOY_ENV=development -t "${IMAGE_NAME}:local" .
+docker build --build-arg DEPLOY_ENV=development --build-arg VITE_API_URL=http://localhost:7777 -t "${IMAGE_NAME}:local" .
 docker tag "${IMAGE_NAME}:local" "${REGISTRY}/${IMAGE_NAME}:local"
 docker push "${REGISTRY}/${IMAGE_NAME}:local"
 docker tag "${IMAGE_NAME}:local" "${REGISTRY}/${IMAGE_NAME}:last-good"

@@ -20,13 +20,14 @@ import { electionFAQ } from "./assets/data/ElectionFAQData";
 import { iugaTeams } from "./assets/data/AboutData";
 import { useAuthContext } from "./context/AuthContext";
 import Footer from "./layouts/Footer";
+import { isProduction } from "./runtime";
 
 function App() {
     const { signIn, signOut } = useAuthContext();
     const [upcomingEvents, setUpcomingEvents] = useState([]);
 
     useEffect(() => {
-        if (process.env.NODE_ENV === "production") {
+        if (isProduction) {
             fetch('/api/v1/events/upcoming', {
                 method: "GET",
             })

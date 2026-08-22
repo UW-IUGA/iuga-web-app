@@ -163,10 +163,8 @@ The backend creates **server-side sessions** (express-session), so the frontend 
 |---|---|
 | `react-router-dom` | Client-side routing |
 | `@azure/msal-browser`, `@azure/msal-react` | UW Azure AD authentication |
-| `react-awesome-reveal` | Scroll-triggered animations |
 | `react-ga4` | Google Analytics 4 |
 | `react-responsive` | Responsive breakpoint rendering |
-| `react-bootstrap` / `bootstrap` | Bootstrap 5 UI components |
 | `react-toastify` | Toast notifications |
 | `date-fns` / `dateformat` | Date formatting |
 | `sass` | SCSS compilation |

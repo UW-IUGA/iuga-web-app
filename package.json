@@ -13,8 +13,5 @@
     "backend-debug": "cd backend; npm install && npm run debug"
   },
   "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "react-horizontal-scrolling-menu": "^7.1.1"
-  }
+  "license": "ISC"
 }

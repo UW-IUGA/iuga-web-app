@@ -285,10 +285,6 @@ Note: ETag is **disabled** (`app.disable('etag')`) to ensure clients always get 
 | `cookie-parser` | Cookie parsing |
 | `dotenv-cli` | Load environment files |
 | `node-fetch` | HTTP requests to Microsoft Graph API |
-| `@sendgrid/mail` | Email sending (installed, usage unconfirmed from source) |
-| `node-cache` | In-memory caching |
-| `node-cron` | Scheduled tasks |
-| `handlebars` | Template engine (installed, not used in current routes) |
 
 ---
 

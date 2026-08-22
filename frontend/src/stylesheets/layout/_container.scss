@@ -14,14 +14,31 @@
     z-index: 1;
 }
 
-@include media(">=sm-desktop", "<desktop") {
+@include media(">=tablet") {
     .baseContainer {
-        width: 1000px;
+        box-sizing: border-box;
+        width: min(1200px, calc(100vw - $desktop-sidebar-width - ($desktop-sidebar-gap * 2)));
+        margin-left: calc($desktop-sidebar-width + $desktop-sidebar-gap);
+        margin-right: $desktop-sidebar-gap;
+        padding-top: 106px;
     }
 }
 
-@include media("screen", "<sm-desktop") { 
+@include media(">=sm-desktop", "<desktop") {
     .baseContainer {
+        width: min(1000px, calc(100vw - $desktop-sidebar-width - ($desktop-sidebar-gap * 2)));
+    }
+}
+
+@include media("screen", "<tablet") {
+    .baseContainer {
+        box-sizing: border-box;
         width: 100vw;
+    }
+}
+
+@include media("screen", "<tablet") {
+    .baseContainer {
+        padding-inline: $padding-content;
     }
 }

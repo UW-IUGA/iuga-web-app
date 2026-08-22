@@ -188,10 +188,9 @@ router.get(
         $or: [
           { uDisplayName: pattern },
           { uEmail: pattern },
-          { uNetId: pattern },
         ],
       })
-        .select("_id uFirstName uLastName uDisplayName uEmail uNetId uType")
+        .select("_id uFirstName uLastName uDisplayName uEmail uType")
         .limit(25)
         .lean();
 

@@ -19,18 +19,19 @@ export async function makeTestApi({ router, mountPath, models, session = {} }) {
   const { port } = server.address();
 
   return {
-    async request(method, path, body, { session: sessionOverrides = {}, models: requestModels } = {}) {
+    async request(method, path, body, { session: sessionOverrides = {}, models: requestModels, headers: extraHeaders = {} } = {}) {
       currentSession = { ...session, ...sessionOverrides };
       currentModels = requestModels ?? models;
       const response = await fetch(`http://127.0.0.1:${port}${path}`, {
         method,
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", ...extraHeaders },
         body: body === undefined ? undefined : JSON.stringify(body),
       });
       const text = await response.text();
       return {
         status: response.status,
         body: text ? JSON.parse(text) : null,
+        session: currentSession,
       };
     },
     async close() {

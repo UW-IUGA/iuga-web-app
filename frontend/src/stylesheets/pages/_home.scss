@@ -754,21 +754,8 @@
 }
 
 .heroCategory {
+    @extend %category-pill-surface;
     position: absolute;
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    padding: 11px 16px;
-    border: 1px solid rgba(255, 255, 255, 0.78);
-    border-radius: $radius-pill;
-    background: rgba(255, 255, 255, 0.52);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    box-shadow: 0 14px 30px rgba($color-uw-purple, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.88);
-    color: $color-uw-purple;
-    font-size: 0.84rem;
-    font-weight: 700;
-    text-decoration: none;
     pointer-events: auto;
     animation: heroCategoryFloat 5.8s ease-in-out infinite;
     transition: transform 180ms ease, background-color 180ms ease, box-shadow 180ms ease;

@@ -91,6 +91,29 @@ $cta-lavender: #F1E8FF;
     text-align: center;
 }
 
+// Shared category treatment used by the Home hero and the Events page.
+%category-pill-surface {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.78);
+    border-radius: $radius-pill;
+    background: rgba(255, 255, 255, 0.52);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 14px 30px rgba($color-uw-purple, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.88);
+    color: $color-uw-purple;
+    font-size: 0.84rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.category-pill {
+    @extend %category-pill-surface;
+}
+
 .pill-button {
     @extend %pill-surface;
     gap: 6px;

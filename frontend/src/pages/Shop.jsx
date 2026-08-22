@@ -1,16 +1,15 @@
 import { shopProducts } from "../assets/data/ShopData";
 
+const shopAvailability = "Available Fall 2026";
+
 function ShopPage({ products = shopProducts }) {
     return (
         <div className="baseContainer">
             <main className="shopPage">
                 <section className="shopPage__hero" aria-labelledby="shop-title">
                     <p className="shopPage__kicker">IUGA collection</p>
-                    <h1 id="shop-title">Wear your Info pride.</h1>
-                    <p>
-                        A first look at IUGA gear made for the people, projects, and late nights that make up the
-                        Information School community.
-                    </p>
+                    <h1 id="shop-title">Informatics Merch</h1>
+                    <p>Fall 2026 Informatics Merch</p>
                 </section>
 
                 <section className="shopPage__collection" aria-labelledby="collection-title">
@@ -19,7 +18,7 @@ function ShopPage({ products = shopProducts }) {
                             <p className="shopPage__kicker">The collection</p>
                             <h2 id="collection-title">Coming soon</h2>
                         </div>
-                        <p>{products.length} pieces</p>
+                        <p>{products.length} items</p>
                     </div>
 
                     <div className="shopPage__grid">
@@ -33,7 +32,7 @@ function ShopPage({ products = shopProducts }) {
                                         <h3>{product.title}</h3>
                                         <p>{product.description}</p>
                                     </div>
-                                    <span className="shopCard__status">Coming soon</span>
+                                    <span className="shopCard__status">{shopAvailability}</span>
                                 </div>
                             </article>
                         ))}

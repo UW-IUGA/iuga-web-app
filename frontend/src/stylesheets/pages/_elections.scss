@@ -297,3 +297,9 @@
     display: none;
   }
 }
+
+@include media("screen", "<tablet") {
+  .electionContainer {
+    width: 100%;
+  }
+}

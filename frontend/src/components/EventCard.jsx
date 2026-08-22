@@ -47,7 +47,7 @@ const EventCard = ({ event }) => {
                 )}
             </div>
             <div className="eventCardHeader">
-                <h1>{event.eName}</h1>
+                <h2>{event.eName}</h2>
                 <p>{dateFormat(new Date(parsedTimestamp), "ddd, mmm dd")} | {event.eOrganizers}</p>
             </div>
             <div className="eventCardBody">

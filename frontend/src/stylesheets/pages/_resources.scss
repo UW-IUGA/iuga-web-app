@@ -1,6 +1,7 @@
 .resourcesPage {
-  width: min(1120px, 90vw);
-  margin: 0 auto 96px;
+  @extend %pageFrame;
+  max-width: 1120px;
+  margin-bottom: 96px;
 }
 
 .resourcesHero {
@@ -31,12 +32,7 @@
 
 .resourcesKicker,
 .resourceCardCategory {
-  margin: 0;
-  color: $color-primary;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  @extend %pageKicker;
 }
 
 .resourcesDirectory {
@@ -185,7 +181,7 @@
 }
 
 @include media("screen", "<tablet") {
-  .resourcesPage { width: 90vw; margin-bottom: 64px; }
+  .resourcesPage { width: 100%; margin-bottom: 64px; }
   .resourcesHero { padding: 48px 0 32px; }
   .resourcesControls { grid-template-columns: 1fr; padding: 18px; }
   .resourceResultCount { text-align: left; }

@@ -1,5 +1,5 @@
 .eventsPage {
-    width: 100%;
+    @extend %pageFrame;
     max-width: 1200px;
     box-sizing: border-box;
     padding: 40px 0 64px;

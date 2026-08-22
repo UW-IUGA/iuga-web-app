@@ -142,11 +142,26 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
                                 const isSelectedClass = "eLabels" in currentEvent && dateKey === selectedDate ? `calendar-day-selected-${currentEvent.eLabels[0].toLowerCase()}` : "";
                                 const today = new Date();
                                 const eventStartDate = new Date(currentEvent.eStartDate);
-                                return <div key={index} className={`calendar-item calendar-day-wrapper ${eventClassName} ${isSelectedClass}`} onClick={!currentEvent["isPlaceholder"] ? () => showEventDetails(currentEvent.eId, dateKey) : null}>
+                                const hasEvent = !currentEvent["isPlaceholder"];
+                                const openEvent = () => showEventDetails(currentEvent.eId, dateKey);
+                                return <div
+                                    key={index}
+                                    className={`calendar-item calendar-day-wrapper ${eventClassName} ${isSelectedClass}`}
+                                    role={hasEvent ? "button" : undefined}
+                                    tabIndex={hasEvent ? 0 : undefined}
+                                    aria-label={hasEvent ? `${currentEvent.eName} on ${format(day, "MMMM d, yyyy")}` : undefined}
+                                    onClick={hasEvent ? openEvent : undefined}
+                                    onKeyDown={hasEvent ? (event) => {
+                                        if (event.key === "Enter" || event.key === " ") {
+                                            event.preventDefault();
+                                            openEvent();
+                                        }
+                                    } : undefined}
+                                >
                                     <div className="calendar-day-container">
                                         {currentEvent.hasRSVPd && (
                                             <div>
-                                                <FontAwesomeIcon size="xs" icon={faCheck} />
+                                                <FontAwesomeIcon size="xs" icon={faCheck} aria-hidden="true" />
                                                 <span className="calendar-rsvp-status">{eventStartDate < today ? "" : "RSVPd"}</span>
                                             </div>
                                         )}

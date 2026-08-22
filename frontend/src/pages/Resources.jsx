@@ -14,6 +14,7 @@ function ResourcesPage({ resources }) {
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedCategory, setSelectedCategory] = useState(ALL_RESOURCES);
     const [expandedCategories, setExpandedCategories] = useState(new Set());
+    const [collapsedFilteredCategories, setCollapsedFilteredCategories] = useState(new Set());
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -43,7 +44,24 @@ function ResourcesPage({ resources }) {
     const resultCount = visibleCategories.reduce((count, category) => count + category.items.length, 0);
     const isFiltering = searchTerm.trim().length > 0 || selectedCategory !== ALL_RESOURCES;
 
+    useEffect(() => {
+        setCollapsedFilteredCategories(new Set());
+    }, [isFiltering]);
+
     const toggleCategory = (category) => {
+        if (isFiltering) {
+            setCollapsedFilteredCategories((collapsed) => {
+                const nextCollapsed = new Set(collapsed);
+                if (nextCollapsed.has(category)) {
+                    nextCollapsed.delete(category);
+                } else {
+                    nextCollapsed.add(category);
+                }
+                return nextCollapsed;
+            });
+            return;
+        }
+
         setExpandedCategories((expanded) => {
             const nextExpanded = new Set(expanded);
             if (nextExpanded.has(category)) {
@@ -104,15 +122,15 @@ function ResourcesPage({ resources }) {
                     {visibleCategories.length > 0 ? (
                         <div className="resourceCategoryList">
                             {visibleCategories.map(({ category, items }) => (
-                                <section className="resourceCategory" key={category}>
+                                <section className="resourceCategory" id={categoryId(category)} key={category}>
                                     <div className="resourceCategoryHeader">
                                         <h2>
                                             <button
                                                 type="button"
                                                 className="resourceCategoryToggle"
-                                                aria-expanded={isFiltering || expandedCategories.has(category)}
+                                                aria-expanded={isFiltering ? !collapsedFilteredCategories.has(category) : expandedCategories.has(category)}
                                                 aria-controls={`${categoryId(category)}-panel`}
-                                                aria-label={`${isFiltering || expandedCategories.has(category) ? "Hide" : "Show"} ${category}`}
+                                                aria-label={`${(isFiltering ? !collapsedFilteredCategories.has(category) : expandedCategories.has(category)) ? "Hide" : "Show"} ${category}`}
                                                 onClick={() => toggleCategory(category)}
                                             >
                                                 <span>{category}</span>
@@ -127,7 +145,7 @@ function ResourcesPage({ resources }) {
                                             </button>
                                         </h2>
                                     </div>
-                                    {(isFiltering || expandedCategories.has(category)) && (
+                                    {(isFiltering ? !collapsedFilteredCategories.has(category) : expandedCategories.has(category)) && (
                                         <div className="resourceGrid" id={`${categoryId(category)}-panel`}>
                                             {items.map((resource) => (
                                                 <ResourceCard key={resource.rName} resource={resource} category={category} />

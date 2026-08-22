@@ -1,4 +1,5 @@
 .shopPage {
+    @extend %pageFrame;
     padding: 48px 0 88px;
 
     &__hero {
@@ -7,7 +8,7 @@
         padding: 48px clamp(24px, 6vw, 72px);
         border: 1px solid rgba($color-uw-purple, 0.12);
         border-radius: $radius-card;
-        background: linear-gradient(135deg, #f8f4ff 0%, #ffffff 62%, #f5efe3 100%);
+        box-shadow: 0 20px 48px rgba($color-uw-purple, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.86);
 
         h1 {
             max-width: 560px;
@@ -27,12 +28,7 @@
     }
 
     &__kicker {
-        margin: 0;
-        color: $color-primary;
-        font-size: 0.78rem;
-        font-weight: 700;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
+        @extend %pageKicker;
     }
 
     &__collectionHeader {
@@ -95,8 +91,8 @@
     &__details {
         display: flex;
         padding: 20px;
-        align-items: start;
-        justify-content: space-between;
+        flex-direction: column;
+        align-items: stretch;
         gap: 18px;
 
         h3 {
@@ -113,16 +109,20 @@
     }
 
     &__status {
-        padding: 6px 9px;
-        flex: 0 0 auto;
+        display: flex;
+        min-height: 44px;
+        box-sizing: border-box;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 14px;
         border-radius: $radius-pill;
-        background: $color-academic-secondary;
-        color: $color-academic-capsule;
-        font-size: 0.7rem;
+        background: $color-uw-purple;
+        color: white;
+        font-size: 0.72rem;
         font-weight: 700;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.06em;
+        line-height: 1.35;
         text-transform: uppercase;
-        white-space: nowrap;
     }
 }
 

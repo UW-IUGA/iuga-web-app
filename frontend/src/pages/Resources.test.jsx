@@ -66,4 +66,23 @@ describe("ResourcesPage", () => {
         expect(screen.getByText("1 match")).toBeInTheDocument();
         expect(screen.getByText("iSchool Career Services")).toBeInTheDocument();
     });
+
+    test("allows filtered categories to be collapsed and reopened", () => {
+        renderResourcesPage();
+
+        fireEvent.click(screen.getByRole("button", { name: resourceTags.ACADEMIC }));
+
+        const academicSection = document.getElementById("resource-academic");
+        const hideButton = screen.getByRole("button", { name: `Hide ${resourceTags.ACADEMIC}` });
+        expect(academicSection).toHaveAttribute("id", "resource-academic");
+        expect(hideButton).toHaveAttribute("aria-expanded", "true");
+        expect(screen.getByText("UW CLUE Program")).toBeInTheDocument();
+
+        fireEvent.click(hideButton);
+        expect(screen.getByRole("button", { name: `Show ${resourceTags.ACADEMIC}` })).toHaveAttribute("aria-expanded", "false");
+        expect(screen.queryByText("UW CLUE Program")).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole("button", { name: `Show ${resourceTags.ACADEMIC}` }));
+        expect(screen.getByText("UW CLUE Program")).toBeInTheDocument();
+    });
 });

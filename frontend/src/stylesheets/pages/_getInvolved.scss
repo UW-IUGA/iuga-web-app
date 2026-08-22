@@ -1,4 +1,9 @@
 
+.getInvolved {
+    @extend %pageFrame;
+    padding: 48px 0 64px;
+}
+
 .getInvolved__summary {
     display: flex;
     align-items: center;
@@ -26,13 +31,6 @@
 }
 
 @include media("screen", "<tablet") {
-    .getInvolved__summary,
-    .getInvolved__section,
-    .getInvolved__committees {
-        box-sizing: border-box;
-        padding: 0 $padding-content;
-    }
-
     .getInvolved__summaryText,
     .getInvolved__header {
         text-align: center;
@@ -54,14 +52,9 @@
 }
 
 .getInvolved__kicker {
+    @extend %pageKicker;
     display: block;
-    margin: 0 0 10px;
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.16em;
-    line-height: 1.4;
-    text-transform: uppercase;
-    color: $dark-gray;
+    margin-bottom: 10px;
 }
 
 .getInvolvedCard {

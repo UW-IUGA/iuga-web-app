@@ -12,6 +12,7 @@ function AboutPage({ teams }) {
             <main className="about">
                 <section className="about__summary">
                     <div className="about__summaryText">
+                        <p className="about__kicker">Meet the {selectedYear} Team</p>
                         <h1>About Us</h1>
                         <p>
                             IUGA is a student-led organization run by Informatics undergraduates, for Informatics
@@ -20,11 +21,7 @@ function AboutPage({ teams }) {
                     </div>
                 </section>
 
-                <section className="about__section" aria-labelledby="team-heading">
-                    <div className="about__header">
-                        <p className="about__kicker">Team</p>
-                        <h2 id="team-heading">Meet the {selectedYear} Team</h2>
-                    </div>
+                <section className="about__section" aria-label={`Meet the ${selectedYear} Team`}>
                     <div className="about__yearFilter" role="group" aria-label="Team year">
                         {years.map((year) => (
                             <button

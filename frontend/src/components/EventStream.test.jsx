@@ -30,7 +30,7 @@ const renderStream = (events, category = "Academic") =>
 const cardNames = () =>
     screen
         .getAllByRole("link")
-        .map((card) => within(card).getByRole("heading", { level: 1 }).textContent);
+        .map((card) => within(card).getByRole("heading", { level: 2 }).textContent);
 
 describe("EventStream", () => {
     test("shows UPCOMING EVENTS with only future events, soonest first", () => {

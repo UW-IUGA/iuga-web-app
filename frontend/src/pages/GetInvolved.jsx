@@ -39,36 +39,38 @@ const COMMITTEES = [
 function GetInvolvedPage() {
     return (
         <div className="baseContainer">
-            <div className="getInvolved__summary">
-                <div className="getInvolved__summaryText">
-                    <h1>Get Involved</h1>
-                    <p>
-                        IUGA is a student-led organization run by Informatics undergraduates, for Informatics
-                        undergraduates. The best way to shape the community is to jump in: join a committee,
-                        lend a hand at an event, or pitch the next idea worth doing.
-                    </p>
+            <main className="getInvolved">
+                <div className="getInvolved__summary">
+                    <div className="getInvolved__summaryText">
+                        <h1>Get Involved</h1>
+                        <p>
+                            IUGA is a student-led organization run by Informatics undergraduates, for Informatics
+                            undergraduates. The best way to shape the community is to jump in: join a committee,
+                            lend a hand at an event, or pitch the next idea worth doing.
+                        </p>
+                    </div>
                 </div>
-            </div>
 
-            <div className="getInvolved__committees">
-                <div className="getInvolved__header">
-                    <p className="getInvolved__kicker">Committees</p>
-                    <h2>Committee Opportunities</h2>
+                <div className="getInvolved__committees">
+                    <div className="getInvolved__header">
+                        <p className="getInvolved__kicker">Committees</p>
+                        <h2>Committee Opportunities</h2>
+                    </div>
+                    <div className="getInvolved__committeeGrid">
+                        {COMMITTEES.map((committee) => (
+                            <article className="getInvolvedCommittee editorial-card" key={committee.name}>
+                                <h3>{committee.name}</h3>
+                                <p className="getInvolvedCommittee__ledBy">Led by {committee.ledBy}</p>
+                                <span className="getInvolvedCommittee__badge">Membership Open</span>
+                                <p className="getInvolvedCommittee__description">{committee.description}</p>
+                                <a className="pill-button" href={committee.mailto}>
+                                    Join {committee.name}
+                                </a>
+                            </article>
+                        ))}
+                    </div>
                 </div>
-                <div className="getInvolved__committeeGrid">
-                    {COMMITTEES.map((committee) => (
-                        <article className="getInvolvedCommittee editorial-card" key={committee.name}>
-                            <h3>{committee.name}</h3>
-                            <p className="getInvolvedCommittee__ledBy">Led by {committee.ledBy}</p>
-                            <span className="getInvolvedCommittee__badge">Membership Open</span>
-                            <p className="getInvolvedCommittee__description">{committee.description}</p>
-                            <a className="pill-button" href={committee.mailto}>
-                                Join {committee.name}
-                            </a>
-                        </article>
-                    ))}
-                </div>
-            </div>
+            </main>
         </div>
     );
 }

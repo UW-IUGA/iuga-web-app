@@ -1,6 +1,5 @@
 .about {
-    width: min(1200px, 90vw);
-    margin: 0 auto;
+    @extend %pageFrame;
     padding: 48px 0 64px;
 }
 
@@ -15,7 +14,7 @@
         font-size: 3rem;
     }
 
-    p {
+    > p:not(.about__kicker) {
         margin: 0;
         color: $dark-gray;
         font-size: 1.05rem;
@@ -32,13 +31,8 @@
 }
 
 .about__kicker {
-    margin: 0 0 10px;
-    color: $dark-gray;
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.16em;
-    line-height: 1.4;
-    text-transform: uppercase;
+    @extend %pageKicker;
+    margin-bottom: 10px;
 }
 
 .about__yearFilter {

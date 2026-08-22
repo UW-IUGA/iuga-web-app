@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { NavLink } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { NavLink, useLocation } from 'react-router-dom';
 import { useAuthContext } from "../context/AuthContext";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -11,25 +11,37 @@ import {
     faHand,
     faHouse,
     faRightFromBracket,
-    faRightToBracket,
-    faShop,
+    faShirt,
     faUsers,
 } from "@fortawesome/free-solid-svg-icons";
 
 function Navbar({ signIn, signOut }) {
     const [showMenu, setMenu] = useState(false);
+    const { pathname } = useLocation();
     const { isAuthenticated, user } = useAuthContext();
     const userGreeting = user?.uFirstName || user?.uDisplayName || user?.name || user?.email;
     const userType = user?.uType || "IUGA member";
     const avatarInitial = userGreeting?.trim().charAt(0).toUpperCase() || "I";
+    const closeMenu = () => setMenu(false);
+    const handleNavigation = (event) => {
+        closeMenu();
+        if (event.detail > 0) event.currentTarget.blur();
+    };
+
+    useEffect(() => {
+        setMenu(false);
+    }, [pathname]);
 
     return (
         <nav aria-label="Primary navigation">
-            <NavLink to="/" className="nav-logo">
+            <NavLink to="/" className="nav-logo nav-logo-desktop" onClick={handleNavigation}>
                 <img src="/iuga-logo.png" alt="IUGA home" />
             </NavLink>
-            <div className="nav-container">
+            <div className={`nav-container ${showMenu ? "nav-menu-open" : ""}`}>
                 <div className="nav-header">
+                    <NavLink to="/" className="nav-logo nav-logo-mobile" onClick={handleNavigation}>
+                        <img src="/iuga-logo.png" alt="IUGA home" />
+                    </NavLink>
                     <button
                         type="button"
                         className="nav-mobile-menu"
@@ -38,17 +50,18 @@ function Navbar({ signIn, signOut }) {
                         aria-controls="nav-items"
                         aria-label={showMenu ? "Close menu" : "Open menu"}
                     >
-                        <FontAwesomeIcon icon={faBars} />
+                        <FontAwesomeIcon icon={faBars} aria-hidden="true" />
                     </button>
                 </div>
                 <div id="nav-items" className={`nav-items-wrapper ${showMenu ? "nav-show-items" : "nav-hide-items"}`}>
-                    <NavLink to="/" end><FontAwesomeIcon icon={faHouse} /><span>Home</span></NavLink>
-                    <NavLink to="/events"><FontAwesomeIcon icon={faCalendarDays} /><span>Events</span></NavLink>
-                    <NavLink to="/resources"><FontAwesomeIcon icon={faBookOpen} /><span>Resources</span></NavLink>
-                    <NavLink to="/student-voice"><FontAwesomeIcon icon={faBullhorn} /><span>Student Voice</span></NavLink>
-                    <NavLink to="/about"><FontAwesomeIcon icon={faUsers} /><span>About Us</span></NavLink>
-                    <span className="nav-shop"><FontAwesomeIcon icon={faShop} /><span>Shop</span></span>
-                    <NavLink to="/get-involved"><FontAwesomeIcon icon={faHand} /><span>Get Involved</span></NavLink>
+                    <NavLink to="/" end onClick={handleNavigation}><FontAwesomeIcon icon={faHouse} aria-hidden="true" /><span>Home</span></NavLink>
+                    <NavLink to="/events" onClick={handleNavigation}><FontAwesomeIcon icon={faCalendarDays} aria-hidden="true" /><span>Events</span></NavLink>
+                    <NavLink to="/resources" onClick={handleNavigation}><FontAwesomeIcon icon={faBookOpen} aria-hidden="true" /><span>Resources</span></NavLink>
+                    <NavLink to="/student-voice" onClick={handleNavigation}><FontAwesomeIcon icon={faBullhorn} aria-hidden="true" /><span>Student Voice</span></NavLink>
+                    <NavLink to="/about" onClick={handleNavigation}><FontAwesomeIcon icon={faUsers} aria-hidden="true" /><span>About Us</span></NavLink>
+                    <NavLink to="/shop" onClick={handleNavigation}><FontAwesomeIcon icon={faShirt} aria-hidden="true" /><span>Shop</span></NavLink>
+                    <NavLink to="/get-involved" onClick={handleNavigation}><FontAwesomeIcon icon={faHand} aria-hidden="true" /><span>Get Involved</span></NavLink>
+                    <span></span>
                     <div className="nav-auth">
                         {isAuthenticated ? (
                             <>
@@ -70,13 +83,12 @@ function Navbar({ signIn, signOut }) {
                             <span>{userType}</span>
                         </div>
                         <button type="button" className="nav-account-logout" onClick={signOut} aria-label="Logout">
-                            <FontAwesomeIcon icon={faRightFromBracket} />
+                            <FontAwesomeIcon icon={faRightFromBracket} aria-hidden="true" />
                         </button>
                     </div>
                 ) : (
-                    <button type="button" className="nav-account-login pill-button homePrimaryLink" onClick={signIn}>
-                        <FontAwesomeIcon icon={faRightToBracket} />
-                        <span>Login</span>
+                    <button type="button" className="nav-account-login pill-button" onClick={signIn} aria-label="Sign in with UW NetID">
+                        <span>UW NetID</span>
                     </button>
                 )}
             </div>

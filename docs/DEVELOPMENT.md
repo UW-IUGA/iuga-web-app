@@ -16,7 +16,7 @@
 npm run dev
 ```
 
-This runs: `cd frontend; npm install && npm run build && cd ../backend; npm install && npm start`
+This runs: `cd frontend; npm install && npm run build && cd ../backend; npm install && npm start`.
 
 The app is served at **http://localhost:7777**.
 
@@ -26,7 +26,7 @@ The app is served at **http://localhost:7777**.
 
 | Command | What it does |
 |---|---|
-| `npm run frontend` | Install and start CRA dev server on `:3000` |
+| `npm run frontend` | Install dependencies and start CRA dev server on `:3000` |
 | `npm run backend`  | Install and start Express on `:7777` (uses production build of frontend) |
 | `npm run backend-debug` | Start backend with debug logging |
 | `npm run debug`    | Full rebuild + backend with debug logging |
@@ -121,6 +121,11 @@ In dev mode, the frontend uses **mock data** from `src/assets/mock-data/` instea
 - One component per file.
 - Pages go in `pages/`, reusable UI in `components/`, shared state in `context/`.
 - CSS class naming follows BEM-like conventions (`.nav-container`, `.nav-items-wrapper`).
+- Shared SCSS tokens live in `stylesheets/abstracts/_variables.scss`; use those tokens for
+  navigation dimensions and radii instead of adding one-off values.
+- The shared `Navbar` has a desktop sidebar presentation and a mobile top-navbar
+  presentation. Mobile layout rules are in `layout/_navigation-mobile.scss`; desktop
+  rules are in `layout/_navigation-desktop.scss`.
 
 ### Backend
 
@@ -144,7 +149,7 @@ In dev mode, the frontend uses **mock data** from `src/assets/mock-data/` instea
 1. Create `frontend/src/pages/YourPage.jsx`
 2. Add `<Route>` in `frontend/src/App.jsx`
 3. Add a matching `GET /your-page` route in `backend/app.js` (to serve SPA on direct navigation)
-4. Add a Navbar link in `frontend/src/layouts/Navbar.jsx`
+4. Add a link to the shared responsive `Navbar` component in `frontend/src/layouts/Navbar.jsx` (desktop presentation: sidebar rail; mobile presentation: centered logo with left hamburger)
 5. Create page-specific SCSS at `frontend/src/stylesheets/pages/_yourpage.scss` and import in `main.scss`
 
 ### Add a new API endpoint
@@ -171,7 +176,7 @@ git submodule update --remote
 
 The repository has a small but real test surface, although coverage is incomplete:
 
-- **Frontend:** Jest and React Testing Library tests under `frontend/src/` (currently eight test files). Run them with:
+- **Frontend:** Jest and React Testing Library tests under `frontend/src/`. Run them with:
   ```bash
   cd frontend
   CI=true npm test -- --watchAll=false

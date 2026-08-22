@@ -43,7 +43,7 @@ frontend/src/
 ├── hooks/
 │   └── useAuth.jsx       ← MSAL token acquisition + backend handshake
 ├── layouts/
-│   ├── Navbar.jsx        ← Top navigation (responsive, scroll-aware)
+│   ├── Navbar.jsx        ← Shared responsive navigation: desktop sidebar rail and mobile navbar with hamburger menu
 │   └── Footer.jsx
 ├── pages/
 │   ├── Home.jsx          ← Landing page: hero, WHO WE ARE cards, upcoming events
@@ -58,10 +58,24 @@ frontend/src/
     ├── abstracts/         ← Variables, mixins, functions, media queries
     ├── base/              ← Reset, typography, colors, misc
     ├── components/        ← Component-specific styles
-    ├── layout/            ← Container, navigation, footer, form
+    ├── layout/            ← Container, split responsive navigation, footer, form
     ├── pages/             ← Page-specific styles (e.g., _getInvolved.scss for page and member-card styles)
     └── addons/            ← Third-party overrides (toastify)
 ```
+
+### Shared navigation
+
+`layouts/Navbar.jsx` is rendered once by `App.jsx` and uses the same navigation
+markup at every breakpoint. Its presentation is split across these partials:
+
+- `_navigation-base.scss` — shared container, links, and auth controls
+- `_navigation-mobile.scss` — top navbar, centered IUGA logo, left hamburger,
+  and collapsible menu below the tablet breakpoint
+- `_navigation-desktop.scss` — fixed sidebar rail and desktop account controls
+
+Use the shared variables in `stylesheets/abstracts/_variables.scss` for layout
+tokens such as `$radius-pill`, `$radius-card`, and `$pill-height`. Avoid hard-coded
+navigation radii or dimensions in page styles.
 
 ---
 
@@ -136,7 +150,8 @@ The backend creates **server-side sessions** (express-session), so the frontend 
 - Compiled via `sass` (devDependency)
 - Main entry: `src/stylesheets/main.scss` — imports all partials
 - Fonts: **NotoSans** (body) and **PlayfairDisplay** (headings), served from `public/font/`
-- Responsive breakpoints: desktop (≥1024px) and mobile (340–1023px)
+- Responsive breakpoints: mobile below `768px`, tablet/desktop at `768px` and above,
+  with the sm-desktop breakpoint at `1024px`
 - Some pages (Events calendar) are desktop-only with a "under construction" message on mobile
 - Toast notifications: `react-toastify` for user feedback
 

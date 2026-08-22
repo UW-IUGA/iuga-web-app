@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 function Footer() {
     const year = new Date().getFullYear();
 
@@ -5,6 +7,9 @@ function Footer() {
         <footer>
             <div className="footerContainer">
                 <div className="footerBottomRow">
+                    <Link className="footerBrand" to="/" aria-label="IUGA home">
+                        <img src="/iuga-logo.png" alt="IUGA logo, links to home" />
+                    </Link>
                     <p className="footerCopyright">© {year} Informatics Undergraduate Association</p>
                     <div className="footerSocials">
                         <a href="mailto:iuga@uw.edu"><img src="/assets/icons/email-icon.svg" alt="Email IUGA"/></a>

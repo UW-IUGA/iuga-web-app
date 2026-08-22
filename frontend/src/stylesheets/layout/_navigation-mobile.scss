@@ -1,0 +1,134 @@
+// MOBILE PRESENTATION: the shared Navbar becomes a top navbar with a
+// hamburger menu. The React component remains Navbar at both breakpoints; the
+// menu state and existing selectors are shared rather than separate components.
+@include media("screen", "<tablet") {
+    .nav-logo-desktop {
+        display: none;
+    }
+
+    .nav-logo-mobile {
+        display: inline-flex;
+    }
+
+    .nav-container {
+        position: relative;
+        align-items: start;
+        width: auto;
+        margin: $padding-content 12px 0;
+        display: block;
+        padding: 0;
+        flex-direction: column;
+        height: fit-content;
+        gap: 12px;
+        border-radius: $radius-pill;
+
+        .nav-header {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-sizing: border-box;
+            min-height: 88px;
+            padding: 12px 24px;
+            width: 100%;
+            border-bottom: 1px solid $gray;
+
+            .nav-logo-mobile {
+                position: absolute;
+                left: 50%;
+                order: 0;
+                transform: translateX(-50%);
+                padding: 0;
+                border: 0;
+            }
+
+            .nav-mobile-menu {
+                position: absolute;
+                top: 50%;
+                left: 24px;
+                z-index: 1;
+                order: 0;
+                transform: translateY(-50%);
+            }
+        }
+
+        .nav-items-wrapper {
+            width: 100%;
+            box-sizing: border-box;
+            flex-direction: column;
+            padding: 12px 24px;
+            gap: 12px;
+
+            & > span:last-of-type {
+                display: block;
+                width: 100%;
+                border-bottom: 1px solid $gray;
+            }
+        }
+    }
+
+    .nav-container.nav-menu-open {
+        border-radius: $radius-card;
+    }
+
+    .nav-items-wrapper a {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        font-size: 14px;
+        padding: 12px 0;
+    }
+
+    nav button {
+        width: 100%;
+    }
+
+    .nav-auth {
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0;
+
+        .nav-auth-greeting,
+        .nav-auth-button {
+            font-size: 14px;
+            padding: 12px 0;
+        }
+    }
+
+    .nav-button-wrapper {
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0px;
+    }
+
+    .nav-mobile-menu {
+        display: block;
+        border: 0;
+        background: transparent;
+        min-width: 44px;
+        min-height: 44px;
+        padding: 8px;
+        border-radius: 0;
+        @include focus-ring;
+
+        svg {
+            display: block;
+            color: rgb(77, 77, 77);
+        }
+    }
+
+    .nav-header .nav-mobile-menu {
+        width: auto;
+    }
+
+    .nav-show-items {
+        display: block;
+    }
+
+    .nav-hide-items {
+        display: none!important;
+    }
+}

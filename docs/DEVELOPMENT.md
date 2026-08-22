@@ -16,7 +16,7 @@
 npm run dev
 ```
 
-This runs: `cd frontend; npm install && npm run build && cd ../backend; npm install && npm start`.
+This runs: `cd frontend; npm install && npm run build -- --mode development && cd ../backend; npm install && npm start`.
 
 The app is served at **http://localhost:7777**.
 
@@ -26,7 +26,7 @@ The app is served at **http://localhost:7777**.
 
 | Command | What it does |
 |---|---|
-| `npm run frontend` | Install dependencies and start CRA dev server on `:3000` |
+| `npm run frontend` | Install dependencies and start Vite dev server on `:3000` |
 | `npm run backend`  | Install and start Express on `:7777` (uses production build of frontend) |
 | `npm run backend-debug` | Start backend with debug logging |
 | `npm run debug`    | Full rebuild + backend with debug logging |
@@ -39,7 +39,7 @@ npm install
 npm start
 ```
 
-This starts the Create React App dev server on `http://localhost:3000` with hot reload. It uses **mock data** (no backend calls) because `NODE_ENV` is `development`.
+This starts the Vite dev server on `http://localhost:3000` with hot reload. It uses **mock data** (no backend calls) because Vite development mode is active.
 
 ### Backend-only development
 
@@ -83,12 +83,12 @@ Required variables (see `.env.example`):
 | `SESSION_SECRET` | Strong random string for session signing |
 | `DB_URI` | Full MongoDB connection string, e.g. `mongodb://<user>:<pass>@mongo:27017/iuga` (local dev: `mongodb://127.0.0.1:27017/iuga`) |
 
-Frontend environment (checked in):
+Frontend environment files are local and should not be committed:
 
 | File | Variable | Value |
 |---|---|---|
-| `frontend/.env.dev` | `REACT_APP_API_URL` | `http://localhost:7777` |
-| `frontend/.env.production` | `REACT_APP_API_URL` | `https://dev.iuga.info` |
+| `frontend/.env.development` | `VITE_API_URL` | `http://localhost:7777` |
+| `frontend/.env.production` | `VITE_API_URL` | `https://dev.iuga.info` |
 
 In dev mode, the frontend uses **mock data** from `src/assets/mock-data/` instead of fetching from the API. In production builds (`npm run build`), it uses the live API.
 
@@ -100,7 +100,7 @@ In dev mode, the frontend uses **mock data** from `src/assets/mock-data/` instea
 |---|---|
 | `npm run dev` | Build frontend → start backend (dev env) |
 | `npm run debug` | Build frontend → start backend (debug env) |
-| `npm run frontend` | Start CRA dev server only |
+| `npm run frontend` | Start Vite dev server only |
 | `npm run backend` | Install + start backend (dev env) |
 | `npm run backend-dev` | Same as above |
 | `npm run backend-debug` | Install + start backend (debug env) |
@@ -176,10 +176,10 @@ git submodule update --remote
 
 The repository has a small but real test surface, although coverage is incomplete:
 
-- **Frontend:** Jest and React Testing Library tests under `frontend/src/`. Run them with:
+- **Frontend:** Vitest and React Testing Library tests under `frontend/src/`. Run them with:
   ```bash
   cd frontend
-  CI=true npm test -- --watchAll=false
+  npm test
   ```
 - **Backend:** two Node built-in test suites under `backend/test/` (`sendError` and `sendSuccess`), plus their test fixture. Run them with:
   ```bash
@@ -213,13 +213,13 @@ Tests must verify behavior through public interfaces, rendered output, HTTP resp
 ## Docker Build
 
 ```bash
-docker build --build-arg DEPLOY_ENV=development -t iuga-web-app .
+docker build --build-arg DEPLOY_ENV=development --build-arg VITE_API_URL=http://localhost:7777 -t iuga-web-app .
 ```
 
 The Dockerfile performs a multi-stage build:
 
 1. Installs and builds the React frontend
-2. Replaces the API URL based on `DEPLOY_ENV` (production → `iuga.info`, staging → `staging.iuga.info`, development → `dev.iuga.info`)
+2. Embeds the public `VITE_API_URL` value for the selected environment
 3. Copies only production backend dependencies into the final image
 4. Runs `npm run deploy` as the container command
 

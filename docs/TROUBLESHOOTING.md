@@ -64,15 +64,15 @@ The command '/bin/sh -c npm run build' returned a non-zero code
 
 **Probable causes:**
 1. A frontend dependency changed without a lockfile update.
-2. The `sed` transform for API URL substitution failed (unexpected `DEPLOY_ENV` value).
+2. The `VITE_API_URL` build argument is missing or incorrect.
 3. Out of disk space on the Jenkins worker.
 
 **Diagnosis steps:**
-1. Check the Jenkins build log for the specific `npm` or `sed` error.
-2. Verify `DEPLOY_ENV` is one of `development`, `staging`, or `production`.
+1. Check the Jenkins build log for the specific `npm` or `VITE_API_URL` error.
+2. Verify the pipeline passes the intended `VITE_API_URL` build argument.
 3. Reproduce locally:
    ```bash
-   docker build . -t test --build-arg DEPLOY_ENV=development
+   docker build . -t test --build-arg DEPLOY_ENV=development --build-arg VITE_API_URL=http://localhost:7777
    ```
 
 ---

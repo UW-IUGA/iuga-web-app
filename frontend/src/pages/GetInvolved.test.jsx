@@ -6,19 +6,19 @@ import GetInvolvedPage from "./GetInvolved";
 import { iugaTeams } from "../assets/data/AboutData";
 import { useAuthContext } from "../context/AuthContext";
 
-jest.mock("../context/AuthContext", () => ({
-    useAuthContext: jest.fn(),
+vi.mock("../context/AuthContext", () => ({
+    useAuthContext: vi.fn(),
 }));
 
 // App imports Home -> EventStream -> EventCard, which formats dates with the
 // ESM-only "dateformat" package jest cannot transform; the same factory mock
 // used by EventStream.test.jsx keeps the import chain intact.
-jest.mock("dateformat", () => (date, mask) => "Mar 01");
+vi.mock("dateformat", () => ({ default: () => "Mar 01" }));
 
 const above = (a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
 
 const renderAppAtGetInvolved = () => {
-    useAuthContext.mockReturnValue({ signIn: jest.fn(), signOut: jest.fn() });
+    useAuthContext.mockReturnValue({ signIn: vi.fn(), signOut: vi.fn() });
     return render(
         <MemoryRouter initialEntries={["/get-involved"]}>
             <App />

@@ -27,7 +27,7 @@ const apiResponse = (eventRequest = request) => ({
 });
 
 describe("EventOperations", () => {
-    afterEach(() => jest.restoreAllMocks());
+    afterEach(() => vi.restoreAllMocks());
 
     test("an officer can find a request, open its details, and update a checkpoint", async () => {
         const updatedRequest = {
@@ -36,7 +36,7 @@ describe("EventOperations", () => {
                 checkpoint.key === "meeting" ? { ...checkpoint, status: "completed" } : checkpoint,
             ),
         };
-        const fetchSpy = jest.spyOn(global, "fetch").mockImplementation((url, options = {}) => {
+        const fetchSpy = vi.spyOn(global, "fetch").mockImplementation((url, options = {}) => {
             if (url.endsWith("/event-requests") || url.endsWith("/event-requests/")) return Promise.resolve(apiResponse());
             if (url.endsWith("/event-requests/request-1")) return Promise.resolve(apiResponse());
             if (url.endsWith("/event-requests/request-1/checklist/meeting")) return Promise.resolve(apiResponse(updatedRequest));
@@ -68,7 +68,7 @@ describe("EventOperations", () => {
     });
 
     test("submits a request without sending blank optional fields", async () => {
-        const fetchSpy = jest.spyOn(global, "fetch").mockImplementation((url, options = {}) => {
+        const fetchSpy = vi.spyOn(global, "fetch").mockImplementation((url, options = {}) => {
             if (url.endsWith("/event-requests") || url.endsWith("/event-requests/")) {
                 return Promise.resolve(apiResponse());
             }
@@ -98,7 +98,7 @@ describe("EventOperations", () => {
     });
 
     test("students are not offered officer controls and do not load request data", () => {
-        const fetchSpy = jest.spyOn(global, "fetch");
+        const fetchSpy = vi.spyOn(global, "fetch");
 
         render(<EventOperations isAdmin={false} />);
 

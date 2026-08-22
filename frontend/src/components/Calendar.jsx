@@ -7,6 +7,7 @@ import EventDetailsLoader from "./EventDetailsLoader";
 import Tag from "../components/Tag";
 import EventDetailsCard from "./EventDetailsCard";
 import { mockEvent } from "../assets/mock-data/MockCalendarData";
+import { isProduction } from "../runtime";
 
 const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const eventPlaceholder = {
@@ -60,7 +61,7 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
         setShowLoader(true);
         setActive(true);
         setSelectedDate(date);
-        if (process.env.NODE_ENV === "production") {
+        if (isProduction) {
             fetch(`/api/v1/events/id/${eid}`, {
                 method: "GET",
             }).then((res) => res.json())

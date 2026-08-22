@@ -29,7 +29,7 @@ See [Quickstart Guide](docs/QUICKSTART.md) for full setup instructions.
 ## Project Structure
 
 ```
-├── frontend/          # React SPA (Create React App, MSAL auth, SCSS)
+├── frontend/          # React SPA (Vite, MSAL auth, SCSS)
 ├── backend/           # Express.js API (MongoDB, express-session)
 │   ├── env/           # Environment files (gitignored except .env.example)
 │   └── schemas/       # Git submodule — shared Mongoose schemas
@@ -46,7 +46,7 @@ See [Quickstart Guide](docs/QUICKSTART.md) for full setup instructions.
 |---|---|
 | `npm run dev` | Build frontend → start backend (dev env) |
 | `npm run debug` | Build frontend → start backend (debug env) |
-| `npm run frontend` | Start CRA dev server only (`:3000`, hot reload) |
+| `npm run frontend` | Start Vite dev server only (`:3000`, hot reload) |
 | `npm run backend` | Install + start backend (dev env) |
 | `npm run backend-dev` | Same as above |
 | `npm run backend-debug` | Install + start backend (debug env) |

@@ -8,6 +8,7 @@ import EventOperations from "../components/EventOperations";
 import EventStream from "../components/EventStream";
 import WeeklyCalendar from "../components/WeeklyCalendar";
 import { useAuthContext } from "../context/AuthContext";
+import { isProduction } from "../runtime";
 
 const EVENT_CATEGORIES = ["Academic", "Social", "Professional"];
 
@@ -26,7 +27,7 @@ function EventsPage() {
     useEffect(() => {
         let isCurrent = true;
 
-        if (process.env.NODE_ENV !== "production") {
+        if (!isProduction) {
             setCalendarEvents(mockCalendarData);
             return () => {
                 isCurrent = false;
@@ -54,7 +55,7 @@ function EventsPage() {
         setDetailsActive(true);
         setShowLoader(true);
 
-        if (process.env.NODE_ENV !== "production") {
+        if (!isProduction) {
             setSelectedEvent({
                 ...mockEvent,
                 eId: event.eId,

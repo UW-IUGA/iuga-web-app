@@ -1,5 +1,4 @@
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import HomePage from "./Home";
@@ -21,6 +20,20 @@ const renderHome = () =>
     );
 
 describe("HomePage", () => {
+    beforeEach(() => {
+        jest.spyOn(window, "scrollTo").mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    test("scrolls to the top when the page mounts", () => {
+        renderHome();
+
+        expect(window.scrollTo).toHaveBeenCalledWith(0, 0);
+    });
+
     test("renders the landing-page hero region", () => {
         renderHome();
 
@@ -33,10 +46,10 @@ describe("HomePage", () => {
         expect(screen.getByText(/events, resources, opportunities, and community/i)).toBeInTheDocument();
     });
 
-    test("keeps the primary event route accessible", async () => {
+    test("keeps the primary event route accessible", () => {
         renderHome();
 
-        await userEvent.click(screen.getByRole("link", { name: /Explore Events/ }));
+        fireEvent.click(screen.getByRole("link", { name: /Explore Events/ }));
         expect(screen.getByText("Events Page")).toBeInTheDocument();
     });
 

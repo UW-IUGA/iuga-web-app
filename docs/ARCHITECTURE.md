@@ -33,7 +33,7 @@ Browser
    ├──[SPA route]──→ React (frontend/build/)
    │                    │
    │                    ├── page components (pages/)
-   │                    ├── shared UI (components/)
+│                    ├── shared UI (components/ + layouts/)
    │                    ├── auth context (context/AuthContext.jsx)
    │                    └── API calls via fetch()
    │                         │
@@ -53,7 +53,9 @@ Browser
 
 - Serve the single-page application (SPA) shell (`index.html`)
 - Client-side routing with React Router v6
-- Render pages: Home, Events, Resources, About, Elections, Election FAQ
+- Render pages: Home, Events, Resources, About, Get Involved, Shop, Student Voice,
+  Elections, and Election FAQ
+- Render shared responsive navigation and footer layouts around the routed pages
 - Manage authentication state via Azure MSAL (Microsoft Authentication Library)
 - In **production**: fetch data from `REACT_APP_API_URL` (set via `.env.production`)
 - In **development**: use mock data from `src/assets/mock-data/` — no backend needed

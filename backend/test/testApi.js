@@ -3,13 +3,14 @@ import { once } from "node:events";
 
 export async function makeTestApi({ router, mountPath, models, session = {} }) {
   const app = express();
-  let currentSession = session;
-  let currentModels = models;
+  const requestContexts = new Map();
+  let nextRequestId = 0;
 
   app.use(express.json());
   app.use((req, _res, next) => {
-    req.models = currentModels;
-    req.session = currentSession;
+    const context = requestContexts.get(req.headers["x-test-request-id"]);
+    req.models = context?.models ?? models;
+    req.session = context?.session ?? session;
     next();
   });
   app.use(mountPath, router);
@@ -19,21 +20,45 @@ export async function makeTestApi({ router, mountPath, models, session = {} }) {
   const { port } = server.address();
 
   return {
-    async request(method, path, body, { session: sessionOverrides = {}, models: requestModels } = {}) {
-      currentSession = { ...session, ...sessionOverrides };
-      currentModels = requestModels ?? models;
-      const response = await fetch(`http://127.0.0.1:${port}${path}`, {
-        method,
-        headers: { "content-type": "application/json" },
-        body: body === undefined ? undefined : JSON.stringify(body),
+    async request(
+      method,
+      path,
+      body,
+      {
+        session: sessionOverrides = {},
+        models: requestModels,
+        headers: requestHeaders = {},
+      } = {},
+    ) {
+      const requestId = String(++nextRequestId);
+      const requestSession = { ...session, ...sessionOverrides };
+      requestContexts.set(requestId, {
+        models: requestModels ?? models,
+        session: requestSession,
       });
-      const text = await response.text();
-      return {
-        status: response.status,
-        body: text ? JSON.parse(text) : null,
-      };
+
+      try {
+        const response = await fetch(`http://127.0.0.1:${port}${path}`, {
+          method,
+          headers: {
+            "content-type": "application/json",
+            ...requestHeaders,
+            "x-test-request-id": requestId,
+          },
+          body: body === undefined ? undefined : JSON.stringify(body),
+        });
+        const text = await response.text();
+        return {
+          status: response.status,
+          body: text ? JSON.parse(text) : null,
+          session: requestSession,
+        };
+      } finally {
+        requestContexts.delete(requestId);
+      }
     },
     async close() {
+      server.closeAllConnections?.();
       await new Promise((resolve, reject) => {
         server.close((error) => (error ? reject(error) : resolve()));
       });

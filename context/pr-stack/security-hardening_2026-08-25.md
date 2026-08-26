@@ -6,7 +6,7 @@ Trunk: `dev` at `63e9f70`
 
 | Position | Branch | Concern | Base | GitHub PR |
 | --- | --- | --- | --- | --- |
-| 1 | `fix/login-hardening` | Harden Graph-backed login failures and remove obsolete login dependencies | `dev` | Pending |
+| 1 | `fix/login-hardening` | Harden Graph-backed login failures and remove obsolete login dependencies | `dev` | [#90](https://github.com/UW-IUGA/iuga-web-app/pull/90) — draft |
 
 ## Scope boundary
 

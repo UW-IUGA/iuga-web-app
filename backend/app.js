@@ -6,6 +6,7 @@ import cors from 'cors';
 import path from 'path';
 
 import { models, connectToDatabase } from './models.js'
+import { createSessionOptions } from './sessionConfig.js';
 import apiv1Router from './routes/api/v1/apiv1.js';
 
 import { fileURLToPath } from 'url';
@@ -13,6 +14,12 @@ import { dirname } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+const sessionSecret = process.env.SESSION_SECRET?.trim();
+if (!sessionSecret) {
+    console.error('FATAL: SESSION_SECRET not set');
+    process.exit(1);
+}
 
 await connectToDatabase();
 const app = express();
@@ -35,11 +42,7 @@ app.disable('etag');
 
 app.use(express.static("../frontend/build"));
 
-app.use(sessions({
-    secret: "CDF45B4E15F646CF38464A9E747D1",
-    saveUninitialized: true,
-    resave: false,
-}))
+app.use(sessions(createSessionOptions(sessionSecret, process.env.DEPLOY_ENV)));
 
 
 app.use((req, res, next) => {

@@ -6,7 +6,9 @@ Trunk: `dev` at `63e9f70`
 
 | Position | Branch | Concern | Base | GitHub PR |
 | --- | --- | --- | --- | --- |
-| 1 | `fix/login-hardening` | Harden Graph-backed login failures and remove obsolete login dependencies | `dev` | [#90](https://github.com/UW-IUGA/iuga-web-app/pull/90) — draft |
+| 1 | `fix/login-hardening` | Graph-backed login hardening | `dev` | [#90](https://github.com/UW-IUGA/iuga-web-app/pull/90) — draft |
+| 2 | `fix/roles-netid` | Remove obsolete NetID search | `fix/login-hardening` | [#91](https://github.com/UW-IUGA/iuga-web-app/pull/91) — draft |
+| 3 | `chore/login-fetch-dependency` | Remove obsolete fetch dependency | `fix/roles-netid` | [#92](https://github.com/UW-IUGA/iuga-web-app/pull/92) — draft |
 
 ## Scope boundary
 

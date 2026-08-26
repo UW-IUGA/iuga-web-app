@@ -80,7 +80,7 @@ pipeline {
                 setBuildStatus('github_classic','iuga/jenkins/cicd/staging','pending','Deploying application...')
                 withCredentials([
                   string(credentialsId: 'DB_URI', variable: 'DB_URI'),
-                  string(credentialsId: 'SESSION_SECRET', variable: 'SESSION_SECRET'),
+                  string(credentialsId: 'SESSION_SECRET_STAGING', variable: 'SESSION_SECRET'),
                 ]) {
                     script { deploy.healthGatedDeploy(cfg) }
                 }

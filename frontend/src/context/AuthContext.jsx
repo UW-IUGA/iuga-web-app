@@ -5,14 +5,32 @@ import useAuth from '../hooks/useAuth';
 
 const AuthContext = createContext();
 const ADMIN_PREVIEW_PERMISSIONS = new Set([
+  "users.roles.manage",
+  "users.cycles.manage",
   "events.requests.view",
   "events.requests.create",
   "events.requests.edit",
+  "events.leadership.approve",
+  "events.meeting.manage",
+  "events.finance.manage",
+  "events.room.manage",
+  "events.marketing.manage",
+  "events.publication.manage",
+  "events.purchases.complete",
+  "events.operations.manage",
+  "events.review.manage",
   "charter.read",
+  "charter.manage",
   "journal.read",
+  "journal.create",
+  "journal.edit_own",
   "contacts.read",
+  "contacts.manage",
   "dashboard.read",
   "notifications.read",
+  "notifications.manage",
+  "exports.manage",
+  "cycles.archive",
 ]);
 const adminPreviewEnabled = import.meta.env.DEV && import.meta.env.VITE_ADMIN_PREVIEW === "true";
 

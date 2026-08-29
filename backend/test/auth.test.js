@@ -227,7 +227,7 @@ describe("requirePermission", () => {
     }
   });
 
-  it("does not grant unrelated mutation permissions in local preview mode", async () => {
+  it("grants the complete admin surface in local preview mode", async () => {
     const previousEnvironment = process.env.DEPLOY_ENV;
     const previousPreview = process.env.ADMIN_PREVIEW;
     process.env.DEPLOY_ENV = "development";
@@ -237,10 +237,13 @@ describe("requirePermission", () => {
       const req = requestWithAssignments([], null);
       const res = makeFakeRes();
 
-      await requirePermission("events.finance.manage")(req, res, () => {});
+      let nextCalled = false;
+      await requirePermission("events.finance.manage")(req, res, () => {
+        nextCalled = true;
+      });
 
-      assert.strictEqual(res.statusCode, 403);
-      assert.strictEqual(res.body.message, "Not authorized");
+      assert.strictEqual(res.statusCode, null);
+      assert.strictEqual(nextCalled, true);
     } finally {
       if (previousEnvironment === undefined) delete process.env.DEPLOY_ENV;
       else process.env.DEPLOY_ENV = previousEnvironment;

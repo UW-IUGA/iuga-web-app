@@ -27,16 +27,9 @@ export const ADMIN_PERMISSIONS = Object.freeze([
   "cycles.archive",
 ]);
 
-export const ADMIN_PREVIEW_PERMISSIONS = Object.freeze([
-  "events.requests.view",
-  "events.requests.create",
-  "events.requests.edit",
-  "charter.read",
-  "journal.read",
-  "contacts.read",
-  "dashboard.read",
-  "notifications.read",
-]);
+// Local preview intentionally exposes the complete admin surface so the full
+// workflow can be tested before cycle-scoped assignments are configured.
+export const ADMIN_PREVIEW_PERMISSIONS = Object.freeze([...ADMIN_PERMISSIONS]);
 
 export const KNOWN_ADMIN_PERMISSIONS = new Set(ADMIN_PERMISSIONS);
 export const ADMIN_PREVIEW_PERMISSION_SET = new Set(ADMIN_PREVIEW_PERMISSIONS);

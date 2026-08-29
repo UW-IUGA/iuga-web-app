@@ -21,6 +21,7 @@ export const ADMIN_PERMISSIONS = Object.freeze([
   "contacts.read",
   "contacts.manage",
   "dashboard.read",
+  "notifications.read",
   "notifications.manage",
   "exports.manage",
   "cycles.archive",

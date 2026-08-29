@@ -194,6 +194,8 @@ Canonical event requests use `DRAFT → PVP_REVIEW → AGENDA → FINANCE_REVIEW
 | `POST` | `/:id/publish` | `events.publication.manage` | Explicitly publish a scheduled event to the public Events collection. |
 | `GET` | `/:id/audit` | `events.requests.view` | Read the append-only decision history. |
 
+The reporting routes `/api/v1/exports/event-requests.csv`, `/api/v1/exports/reviews.csv`, and `/api/v1/exports/budget-ledger.csv` require `exports.manage` and return server-generated CSV files. `/api/v1/dashboard` requires `dashboard.read` and returns role-scoped queues, the user's requests, stalled requests, and the active budget when relevant. `/api/v1/notifications` and `/api/v1/notifications/preferences` provide in-app notifications and channel/frequency preferences.
+
 Money is displayed as dollars and cents in the UI, then converted to integer cents before the API call. For example, `$125.50` becomes `{ "fundingRequestedCents": 12550 }`; the backend never stores floating-point currency.
 
 ### Administration (`/api/v1/administration`) — *not currently wired*

@@ -10,6 +10,9 @@ import cyclesRouter from "./controllers/cycles.js";
 import charterRouter from "./controllers/charter.js";
 import journalRouter from "./controllers/journal.js";
 import contactsRouter from "./controllers/contacts.js";
+import dashboardRouter from "./controllers/dashboard.js";
+import notificationsRouter from "./controllers/notifications.js";
+import exportsRouter from "./controllers/exports.js";
 
 router.use("/user", usersRouter);
 router.use("/events", eventsRouter);
@@ -20,5 +23,8 @@ router.use("/cycles", cyclesRouter);
 router.use("/charter", charterRouter);
 router.use("/journal", journalRouter);
 router.use("/contacts", contactsRouter);
+router.use("/dashboard", dashboardRouter);
+router.use("/notifications", notificationsRouter);
+router.use("/exports", exportsRouter);
 
 export default router;

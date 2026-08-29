@@ -96,6 +96,19 @@ router.patch(
         { new: true, runValidators: true },
       );
       if (!cycle) return sendError(res, 404, "Open cycle not found");
+      if (typeof req.models.EventRequests?.find === "function") {
+        const requests = await req.models.EventRequests.find({ cycleId: req.params.id, status: "REVIEWED" }).lean();
+        for (const request of requests) {
+          const archived = await req.models.EventRequests.findOneAndUpdate(
+            { _id: request._id, status: "REVIEWED" },
+            { $set: { status: "ARCHIVED" } },
+            { new: true, runValidators: true },
+          );
+          if (archived && typeof req.models.AuditEntries?.create === "function") {
+            await req.models.AuditEntries.create({ eventRequestId: request._id, cycleId: req.params.id, actorId: req.session.userId, action: "archived", fromStatus: "REVIEWED", toStatus: "ARCHIVED" });
+          }
+        }
+      }
       return sendSuccess(res, { cycle });
     } catch (error) {
       console.error(error);

@@ -142,6 +142,34 @@
     margin-bottom: $grid-gap;
 }
 
+.adminDashboardBudget {
+    max-width: 28rem;
+    margin-bottom: $grid-gap;
+
+    h2 {
+        margin: 0.5rem 0;
+    }
+
+    p {
+        margin: 0;
+        color: $color-primary;
+        font-size: 2rem;
+        font-weight: 700;
+    }
+}
+
+.adminDashboardGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: $grid-gap;
+    margin-bottom: 3rem;
+}
+
+.adminDashboardItem {
+    margin: 0.5rem 0 0;
+    color: $dark-gray;
+}
+
 @include media("screen", "<tablet") {
     .adminNavigation {
         align-items: flex-start;

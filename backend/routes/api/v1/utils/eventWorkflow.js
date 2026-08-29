@@ -21,6 +21,14 @@ const LEGACY_STATE_MAP = Object.freeze({
   cancelled: "REJECTED",
 });
 
+const RESPONSIBLE_ROLE_BY_STATE = Object.freeze({
+  PVP_REVIEW: "president_or_vice_president",
+  AGENDA: "exec_board",
+  FINANCE_REVIEW: "director_of_finance",
+  MARKETING_QUEUED: "director_of_pr",
+  AWAITING_REVIEW: "requester",
+});
+
 export const STATE_TRANSITIONS = Object.freeze({
   DRAFT: ["PVP_REVIEW"],
   PVP_REVIEW: ["DRAFT", "AGENDA", "REJECTED"],
@@ -58,16 +66,26 @@ export async function recordAudit(req, {
   toStatus = null,
   comment = "",
   amountCents = null,
+  requesterId = null,
 }) {
-  if (typeof req.models?.AuditEntries?.create !== "function") return null;
-  return req.models.AuditEntries.create({
-    eventRequestId,
-    cycleId,
-    actorId: req.session.userId,
-    action,
-    fromStatus: fromStatus ? canonicalState(fromStatus) : null,
-    toStatus,
-    comment,
-    amountCents,
-  });
+  const audit = typeof req.models?.AuditEntries?.create === "function"
+    ? await req.models.AuditEntries.create({
+        eventRequestId,
+        cycleId,
+        actorId: req.session.userId,
+        action,
+        fromStatus: fromStatus ? canonicalState(fromStatus) : null,
+        toStatus,
+        comment,
+        amountCents,
+      })
+    : null;
+
+  if (typeof req.models?.Notifications?.create === "function" && (requesterId || toStatus)) {
+    const base = { eventRequestId, decision: action, comment, link: `/admin/event-requests/${eventRequestId}` };
+    if (requesterId) await req.models.Notifications.create({ ...base, recipientId: requesterId });
+    const recipientRole = RESPONSIBLE_ROLE_BY_STATE[toStatus];
+    if (recipientRole && recipientRole !== "requester") await req.models.Notifications.create({ ...base, recipientRole });
+  }
+  return audit;
 }

@@ -48,9 +48,15 @@ export async function makeTestApi({ router, mountPath, models, session = {} }) {
           body: body === undefined ? undefined : JSON.stringify(body),
         });
         const text = await response.text();
+        let parsedBody;
+        try {
+          parsedBody = text ? JSON.parse(text) : null;
+        } catch {
+          parsedBody = text;
+        }
         return {
           status: response.status,
-          body: text ? JSON.parse(text) : null,
+          body: parsedBody,
           session: requestSession,
         };
       } finally {

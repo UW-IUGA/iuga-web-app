@@ -4,6 +4,7 @@ import AdminEventRequests from "./pages/AdminEventRequests";
 import AdminCharter from "./pages/AdminCharter";
 import AdminJournal from "./pages/AdminJournal";
 import AdminContacts from "./pages/AdminContacts";
+import AdminDashboard from "./pages/AdminDashboard";
 import ResourcesPage from "./pages/Resources";
 import ElectionPage from "./pages/Elections";
 import ElectionsFAQPage from "./pages/ElectionsFAQ";
@@ -73,6 +74,7 @@ function App() {
                     <Route path="/get-involved" element={<GetInvolvedPage />} />
                 </Route>
                 <Route element={<AdminLayout />}>
+                    <Route path="/admin" element={<AdminDashboard />} />
                     <Route path="/admin/event-requests" element={<AdminEventRequests />} />
                     <Route path="/admin/charter" element={<AdminCharter />} />
                     <Route path="/admin/journal" element={<AdminJournal />} />

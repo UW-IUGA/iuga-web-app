@@ -131,7 +131,7 @@ describe("event request API", () => {
           version: "1",
         },
       },
-      { models: makeModels() },
+      { models: makeModels({ permissions: ["events.requests.create"] }) },
     );
 
     assert.equal(result.status, 201);
@@ -151,6 +151,8 @@ describe("event request API", () => {
       const result = await api.request(
         "GET",
         "/api/v1/event-requests/templates/slides",
+        undefined,
+        { models: makeModels({ permissions: ["events.requests.view"] }) },
       );
       assert.equal(result.status, 200);
       assert.equal(result.body.templates[0].name, "Workshop");
@@ -171,6 +173,16 @@ describe("event request API", () => {
       },
     );
     assert.equal(result.status, 401);
+  });
+
+  it("requires view permission to list event requests", async () => {
+    const result = await api.request(
+      "GET",
+      "/api/v1/event-requests",
+      undefined,
+      { models: makeModels() },
+    );
+    assert.equal(result.status, 403);
   });
 
   it("requires leadership permission to request changes", async () => {
@@ -205,7 +217,7 @@ describe("event request API", () => {
       "PATCH",
       `/api/v1/event-requests/${requestId}/review-tracking`,
       { reviewLink: "https://forms.example/review", received: true },
-      { models: makeModels() },
+      { models: makeModels({ permissions: ["events.review.manage"] }) },
     );
     assert.equal(result.status, 200);
     assert.equal(result.body.eventRequest.reviewLink, "https://forms.example/review");
@@ -259,7 +271,10 @@ describe("event request API", () => {
       "POST",
       `/api/v1/event-requests/${requestId}/reviews`,
       { attendeeCount: 20 },
-      { models, session: { userId: reviewerId } },
+      {
+        models: { ...models, RoleAssignments: makeModels({ permissions: ["events.review.manage"] }).RoleAssignments },
+        session: { userId: reviewerId },
+      },
     );
     assert.equal(result.status, 201);
     assert.equal(result.body.review.reviewerRole, "member");

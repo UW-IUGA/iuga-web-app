@@ -174,14 +174,17 @@ Officer-only event operations use separate EventRequests records before publishi
 | `POST` | `/:id/request-changes` | Leadership returns a request with a required reason. |
 | `POST` | `/:id/deny` | Leadership denies a request with a required reason. |
 | `POST` | `/:id/approve` | Leadership approves and publishes an Events record; this completes the `proposal` checkpoint. |
-| `PATCH` | `/:id/checklist/:step` | Update an independent checkpoint. The sequence is `proposal`, `meeting`, `finance`, `room`, `marketing`, `purchases`, `completion`, `review`. |
+| `PATCH` | `/:id/checklist/:step` | Update an independent checkpoint. The sequence is `proposal`, `meeting`, `room`, `finance`, `marketing`, `purchases`, `completion`, `review`. |
 | `PATCH` | `/:id/budget` | Finance records allocated and actual cents. |
-| `PATCH` | `/:id/booking` | Record room booking details and actor audit fields. |
+| `PATCH` | `/:id/booking` | Record room booking details and actor audit fields. A complete location, start, and end time completes the Room checkpoint; partial details leave it in progress. |
 | `PATCH` | `/:id/review-tracking` | Store the external OneDrive/Microsoft Forms review link and manually record receipt. |
 | `POST` | `/:id/reviews` | Submit an organizer or distinct-member post-event review. |
 | `GET` | `/:id/reviews` | List post-event reviews. |
 | `POST` | `/:id/complete` | Close an approved request after all checkpoints and both reviews are complete. |
-Canonical event requests use `DRAFT → PVP_REVIEW → AGENDA → FINANCE_REVIEW → MARKETING_QUEUED → SCHEDULED → AWAITING_REVIEW → REVIEWED → ARCHIVED`, with `REJECTED` terminal. Legacy lowercase statuses remain readable during migration, but new spec-form requests use the canonical states. P/VP advance, return, and reject actions require the leadership permission; agenda outcomes require a discussion note; finance decisions write a cycle ledger entry; PR completion moves an approved request to `SCHEDULED`; and publication is a separate `events.publication.manage` action.
+| `DELETE` | `/:id/test-data` | Delete a local preview request and cascade its related records. Development preview only; requires the confirmation string `DELETE TEST REQUEST`. |
+Canonical event requests use `DRAFT → PVP_REVIEW → AGENDA → FINANCE_REVIEW → MARKETING_QUEUED → SCHEDULED → AWAITING_REVIEW → REVIEWED → ARCHIVED`, with `REJECTED` terminal. Legacy lowercase statuses remain readable during migration, but new spec-form requests use the canonical states. P/VP advance, return, and reject actions require the leadership permission; agenda outcomes require a discussion note and a completed room booking before `proceed` can route to Finance; finance review records the funding decision and cycle ledger commitment; PR completion moves an approved request to `SCHEDULED`; and publication is a separate `events.publication.manage` action.
+
+The preview-only `DELETE /:id/test-data` route requires explicit confirmation, removes request-linked audit, notification, review, ledger, and published-event records, and recalculates the cycle's committed budget. This cleanup route is hidden outside development preview and is not a production deletion workflow.
 
 | Method | Path | Permission | Description |
 |---|---|---|---|
@@ -240,7 +243,7 @@ The backend uses **server-side sessions** with `express-session`.
 - `requireAdmin` — requires a logged-in admin/officer session
 - `requirePermission("users.roles.manage")` — requires an active role assignment granting the permission
 
-Local UI preview: when `ADMIN_PREVIEW=true` and `DEPLOY_ENV=development`, authenticated users receive preview permissions for admin reads and event-request creation/editing. The preview does not bypass sign-in or grant approval, finance, role-management, or other mutation permissions; do not enable it in staging or production.
+Local UI preview: when `ADMIN_PREVIEW=true` and `DEPLOY_ENV=development`, authenticated users receive the complete admin permission catalog so the entire workflow can be tested. The preview does not bypass sign-in and must not be enabled in staging or production. The guarded cleanup action described above is available only in this local preview mode.
 
 The permission middleware loads active role assignments for the session user and checks the populated role permissions before calling `next()`.
 

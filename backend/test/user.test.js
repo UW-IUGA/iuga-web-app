@@ -13,6 +13,7 @@ function makeUserDoc(overrides = {}) {
     uLastName: "Doe",
     uDisplayName: "Jane Doe",
     uEmail: "jane@uw.edu",
+    uNetId: "jdoe",
     uType: "Member",
     ...overrides,
   };
@@ -32,12 +33,22 @@ function makeUsersModel(existing = []) {
   }
   Users.docs = docs;
   Users.findOne = async (filter) =>
-    docs.find((doc) => doc.uEmail === filter.uEmail) ?? null;
+    docs.find((doc) =>
+      (filter.uEmail && doc.uEmail === filter.uEmail) ||
+      (filter.uNetId && doc.uNetId === filter.uNetId),
+    ) ?? null;
   return Users;
 }
 
 function makeModels(existing = []) {
-  return { Users: makeUsersModel(existing) };
+  return {
+    Users: makeUsersModel(existing),
+    RoleAssignments: {
+      find() {
+        return { async populate() { return []; } };
+      },
+    },
+  };
 }
 
 function graphProfile(overrides = {}) {
@@ -208,6 +219,25 @@ describe("POST /user/login", () => {
       assert.equal(result.status, 200);
       assert.equal(result.session.email, "jdoe@uw.edu");
       assert.equal(models.Users.docs[0].uEmail, "jdoe@uw.edu");
+      assert.equal(models.Users.docs[0].uNetId, "jdoe");
+    } finally {
+      await api.close();
+    }
+  });
+
+  test("matches an existing user by stable NetID", async (t) => {
+    const existing = makeUserDoc({ uEmail: "old@uw.edu", uNetId: "jdoe" });
+    const models = makeModels([existing]);
+    mockGraph(t, { data: graphProfile({ mail: "new@uw.edu" }) });
+    const api = await makeTestApi({ router: usersRouter, mountPath: "/user", models, session: {} });
+
+    try {
+      const result = await login(api);
+
+      assert.equal(result.status, 200);
+      assert.equal(models.Users.docs.length, 1);
+      assert.equal(existing.uEmail, "new@uw.edu");
+      assert.equal(existing.uNetId, "jdoe");
     } finally {
       await api.close();
     }

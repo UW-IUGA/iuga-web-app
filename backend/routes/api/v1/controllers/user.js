@@ -9,6 +9,7 @@ import express from "express";
 import { sendError } from "../helpers/sendError.js";
 import { sendSuccess } from "../helpers/sendSuccess.js";
 import { requireAuth } from "../utils/auth.js";
+import { getEffectivePermissions } from "../utils/permissions.js";
 
 var router = express.Router();
 const GRAPH_PROFILE_URL = "https://graph.microsoft.com/v1.0/me";
@@ -45,6 +46,9 @@ function readGraphProfile(userData) {
 
   return {
     email,
+    netId: isNonEmptyString(userData?.userPrincipalName)
+      ? userData.userPrincipalName.trim().split("@")[0].toLowerCase()
+      : null,
     displayName: userData.displayName.trim(),
     firstName: userData.givenName.trim(),
     lastName: userData.surname.trim(),
@@ -112,19 +116,25 @@ router.post("/login", async function (req, res) {
   }
 
   try {
-    let user = await req.models.Users.findOne({ uEmail: profile.email });
+    let user = profile.netId
+      ? await req.models.Users.findOne({ uNetId: profile.netId })
+      : null;
+    if (!user) user = await req.models.Users.findOne({ uEmail: profile.email });
     if (!user) {
       user = await new req.models.Users({
         uFirstName: profile.firstName,
         uLastName: profile.lastName,
         uDisplayName: profile.displayName,
         uEmail: profile.email,
+        uNetId: profile.netId,
       }).save();
     } else {
       const updates = {
         uFirstName: profile.firstName,
         uLastName: profile.lastName,
         uDisplayName: profile.displayName,
+        uEmail: profile.email,
+        uNetId: profile.netId,
       };
       let changed = false;
       for (const [field, value] of Object.entries(updates)) {
@@ -144,7 +154,9 @@ router.post("/login", async function (req, res) {
     req.session.userId = user._id;
     req.session.memberType = user.uType;
     req.session.isAdmin = user.uType === "Admin";
-    return res.status(200).json(user);
+    const permissions = await getEffectivePermissions(req);
+    const userResponse = user.toObject ? user.toObject() : user;
+    return res.status(200).json({ ...userResponse, permissions });
   } catch (error) {
     console.error("Login persistence failed:", error?.message);
     return sendError(res, 500);
@@ -163,13 +175,20 @@ router.post("/logout", requireAuth, function (req, res, next) {
 
 //Get the user's specific information from the user's perspective, from an outsider perspective, and from the admin perspective
 router.get("/", requireAuth, async function (req, res) {
-  res.status(200).json({
-    firstName: req.session.firstName,
-    lastName: req.session.lastName,
-    displayName: req.session.displayName,
-    email: req.session.email,
-    memberType: req.session.memberType,
-  });
+  try {
+    const permissions = await getEffectivePermissions(req);
+    return res.status(200).json({
+      firstName: req.session.firstName,
+      lastName: req.session.lastName,
+      displayName: req.session.displayName,
+      email: req.session.email,
+      memberType: req.session.memberType,
+      permissions,
+    });
+  } catch (error) {
+    console.error("Failed to load authorization context:", error?.message);
+    return sendError(res, 500);
+  }
 });
 
 //Get the user's specific information from the user's perspective, from an outsider perspective, and from the admin perspective
@@ -212,4 +231,3 @@ router.post("/:uId", requireAuth, async function (req, res) {
 });
 
 export default router;
-

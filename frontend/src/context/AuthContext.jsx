@@ -4,6 +4,17 @@ import { loginRequest } from '../authConfig';
 import useAuth from '../hooks/useAuth';
 
 const AuthContext = createContext();
+const ADMIN_PREVIEW_PERMISSIONS = new Set([
+  "events.requests.view",
+  "events.requests.create",
+  "events.requests.edit",
+  "charter.read",
+  "journal.read",
+  "contacts.read",
+  "dashboard.read",
+  "notifications.read",
+]);
+const adminPreviewEnabled = import.meta.env.DEV && import.meta.env.VITE_ADMIN_PREVIEW === "true";
 
 export const AuthProvider = ({ children }) => {
   const { instance, accounts } = useMsal();
@@ -80,8 +91,8 @@ export const AuthProvider = ({ children }) => {
 
   const permissions = user?.permissions || [];
   const activeCycle = user?.activeCycle || null;
-  const can = (permission) => permissions.includes(permission);
-  const isAdmin = user?.uType === "Admin" || permissions.length > 0;
+  const can = (permission) => permissions.includes(permission) || (adminPreviewEnabled && ADMIN_PREVIEW_PERMISSIONS.has(permission));
+  const isAdmin = user?.uType === "Admin" || permissions.length > 0 || (isAuthenticated && adminPreviewEnabled);
 
   return (
     <AuthContext.Provider value={{ user, permissions, activeCycle, can, isAuthenticated, isAdmin, authLoading, authError, signIn, signOut }}>

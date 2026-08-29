@@ -11,7 +11,8 @@ Purpose: Gate routes by session state so protected endpoints are only
 */
 
 import { sendError } from "../helpers/sendError.js";
-import { getEffectivePermissions } from "./permissions.js";
+import { getEffectivePermissions, isAdminPreviewEnabled } from "./permissions.js";
+import { ADMIN_PREVIEW_PERMISSION_SET } from "./permissionCatalog.js";
 
 /*
     @middleware: requireAuth
@@ -72,6 +73,9 @@ export function requirePermission(permission) {
   return async function (req, res, next) {
     if (!req.session.isAuthenticated) {
       return sendError(res, 401, "Not authenticated");
+    }
+    if (isAdminPreviewEnabled() && ADMIN_PREVIEW_PERMISSION_SET.has(permission)) {
+      return next();
     }
     try {
       const permissions = await getEffectivePermissions(req);

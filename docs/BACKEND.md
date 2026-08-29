@@ -240,6 +240,8 @@ The backend uses **server-side sessions** with `express-session`.
 - `requireAdmin` — requires a logged-in admin/officer session
 - `requirePermission("users.roles.manage")` — requires an active role assignment granting the permission
 
+Local UI preview: when `ADMIN_PREVIEW=true` and `DEPLOY_ENV=development`, authenticated users receive preview permissions for admin reads and event-request creation/editing. The preview does not bypass sign-in or grant approval, finance, role-management, or other mutation permissions; do not enable it in staging or production.
+
 The permission middleware loads active role assignments for the session user and checks the populated role permissions before calling `next()`.
 
 | Middleware | Blocks when | Returns |

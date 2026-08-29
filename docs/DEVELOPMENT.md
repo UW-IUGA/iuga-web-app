@@ -82,6 +82,7 @@ Required variables (see `.env.example`):
 | `DEPLOY_ENV` | `development`, `staging`, or `production` |
 | `SESSION_SECRET` | Strong random string for session signing |
 | `DB_URI` | Full MongoDB connection string, e.g. `mongodb://<user>:<pass>@mongo:27017/iuga` (local dev: `mongodb://127.0.0.1:27017/iuga`) |
+| `ADMIN_PREVIEW` | Set to `true` only for local development to let signed-in users preview admin pages without role assignments |
 
 Frontend environment files are local and should not be committed:
 
@@ -91,6 +92,8 @@ Frontend environment files are local and should not be committed:
 | `frontend/.env.production` | `VITE_API_URL` | `https://dev.iuga.info` |
 
 In dev mode, the frontend uses **mock data** from `src/assets/mock-data/` instead of fetching from the API. In production builds (`npm run build`), it uses the live API.
+
+For a local admin UI preview, set `ADMIN_PREVIEW=true` in `backend/env/.env.dev` and `VITE_ADMIN_PREVIEW=true` in `frontend/.env.development.local`. This keeps UW sign-in required, grants read access plus event-request creation/editing for UI testing, and is ignored outside `DEPLOY_ENV=development`.
 
 ---
 

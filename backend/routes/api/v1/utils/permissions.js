@@ -1,3 +1,9 @@
+import { ADMIN_PREVIEW_PERMISSIONS } from "./permissionCatalog.js";
+
+export function isAdminPreviewEnabled() {
+  return process.env.DEPLOY_ENV === "development" && process.env.ADMIN_PREVIEW === "true";
+}
+
 export async function getActiveCycle(req, now = new Date()) {
   if (typeof req.models?.Cycles?.findOne !== "function") return null;
 
@@ -14,6 +20,9 @@ export async function getEffectiveAuthorization(req) {
   }
 
   const cycle = await getActiveCycle(req);
+  if (isAdminPreviewEnabled()) {
+    return { cycle, permissions: [...ADMIN_PREVIEW_PERMISSIONS] };
+  }
   if (!cycle) return { cycle: null, permissions: [] };
 
   const assignmentFilter = {

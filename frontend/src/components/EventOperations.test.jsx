@@ -105,4 +105,24 @@ describe("EventOperations", () => {
         expect(screen.queryByRole("button", { name: /new event request/i })).not.toBeInTheDocument();
         expect(fetchSpy).not.toHaveBeenCalled();
     });
+
+    test("shows only controls granted by the current permissions", async () => {
+        vi.spyOn(global, "fetch").mockImplementation((url) => {
+            if (url.endsWith("/event-requests") || url.endsWith("/event-requests/")) return Promise.resolve(apiResponse());
+            if (url.endsWith("/event-requests/request-1")) return Promise.resolve(apiResponse());
+            throw new Error(`Unexpected API request: ${url}`);
+        });
+
+        const can = (permission) => permission === "events.requests.view";
+        render(<EventOperations can={can} />);
+
+        expect(await screen.findByRole("button", { name: /autumn workshop/i })).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: /new event request/i })).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole("button", { name: /autumn workshop/i }));
+        expect(screen.getByText("Request detail")).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "Approve & publish" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("heading", { name: "Finance" })).not.toBeInTheDocument();
+        expect(screen.getByRole("combobox", { name: "Meeting" })).toBeDisabled();
+    });
 });

@@ -26,6 +26,13 @@ function makeModels({
       },
     },
     Cycles: {
+      findOne() {
+        return {
+          async lean() {
+            return { _id: cycleId, status: "active" };
+          },
+        };
+      },
       async findById(id) {
         return id === cycleId ? { _id: cycleId, status: cycleStatus } : null;
       },

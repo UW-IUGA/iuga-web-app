@@ -59,6 +59,15 @@ function permissionsFor(names) {
 
 function makeModels({ request = submittedRequest, permissions = [] } = {}) {
   return {
+    Cycles: {
+      findOne() {
+        return {
+          async lean() {
+            return { _id: "507f1f77bcf86cd799439016", status: "active" };
+          },
+        };
+      },
+    },
     EventRequests: {
       async create(fields) {
         return { _id: requestId, ...fields };

@@ -9,23 +9,25 @@ export async function getActiveCycle(req, now = new Date()) {
 }
 
 export async function getEffectiveAuthorization(req) {
-  const cycle = await getActiveCycle(req);
-  if (!cycle && typeof req.models?.Cycles?.findOne === "function") {
+  if (typeof req.models?.Cycles?.findOne !== "function") {
     return { cycle: null, permissions: [] };
   }
+
+  const cycle = await getActiveCycle(req);
+  if (!cycle) return { cycle: null, permissions: [] };
 
   const assignmentFilter = {
     userId: req.session.userId,
     isActive: true,
   };
-  if (cycle) assignmentFilter.cycleId = cycle._id;
+  assignmentFilter.cycleId = cycle._id;
   const assignments = await req.models.RoleAssignments.find(assignmentFilter).populate("roleId");
 
   const now = Date.now();
   const permissions = [
     ...new Set(
       assignments.flatMap((assignment) => {
-        if (cycle &&
+        if (
           assignment.cycleId !== undefined &&
           String(assignment.cycleId) !== String(cycle._id)
         ) {

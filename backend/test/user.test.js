@@ -42,6 +42,15 @@ function makeUsersModel(existing = []) {
 
 function makeModels(existing = []) {
   return {
+    Cycles: {
+      findOne() {
+        return {
+          async lean() {
+            return null;
+          },
+        };
+      },
+    },
     Users: makeUsersModel(existing),
     RoleAssignments: {
       find() {

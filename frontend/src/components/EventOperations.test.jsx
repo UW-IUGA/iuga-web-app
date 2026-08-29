@@ -67,6 +67,25 @@ describe("EventOperations", () => {
         );
     });
 
+    test("shows the canonical single-officer P/VP decision actions", async () => {
+        const canonicalRequest = { ...request, status: "PVP_REVIEW" };
+        const fetchSpy = vi.spyOn(global, "fetch").mockImplementation((url, options = {}) => {
+            if (url.endsWith("/event-requests") || url.endsWith("/event-requests/")) return Promise.resolve(apiResponse(canonicalRequest));
+            if (url.endsWith("/event-requests/request-1")) return Promise.resolve(apiResponse(canonicalRequest));
+            if (url.endsWith("/event-requests/request-1/advance")) return Promise.resolve(apiResponse({ ...canonicalRequest, status: "AGENDA" }));
+            throw new Error(`Unexpected API request: ${url} ${options.method || "GET"}`);
+        });
+
+        render(<EventOperations can={(permission) => permission === "events.requests.view" || permission === "events.leadership.approve"} />);
+        fireEvent.click(await screen.findByRole("button", { name: /autumn workshop/i }));
+        fireEvent.click(await screen.findByRole("button", { name: "Advance to agenda" }));
+
+        await waitFor(() => expect(fetchSpy).toHaveBeenCalledWith(
+            "/api/v1/event-requests/request-1/advance",
+            expect.objectContaining({ method: "POST" }),
+        ));
+    });
+
     test("submits a request without sending blank optional fields", async () => {
         const fetchSpy = vi.spyOn(global, "fetch").mockImplementation((url, options = {}) => {
             if (url.endsWith("/event-requests") || url.endsWith("/event-requests/")) {
@@ -77,10 +96,14 @@ describe("EventOperations", () => {
 
         render(<EventOperations isAdmin />);
         fireEvent.click(await screen.findByRole("button", { name: /new event request/i }));
-        fireEvent.change(screen.getByRole("textbox", { name: "Event name" }), { target: { value: "Winter Social" } });
+        fireEvent.change(screen.getByRole("textbox", { name: "Event title" }), { target: { value: "Winter Social" } });
         fireEvent.change(screen.getByRole("textbox", { name: "Requesting group" }), { target: { value: "Tech Committee" } });
-        fireEvent.change(screen.getByLabelText("Proposed start"), { target: { value: "2026-12-15T18:00" } });
-        fireEvent.change(screen.getByRole("textbox", { name: "Description" }), { target: { value: "A social event." } });
+        fireEvent.change(screen.getByLabelText("Event date"), { target: { value: "2026-12-15" } });
+        fireEvent.change(screen.getByLabelText("Event time"), { target: { value: "18:00" } });
+        fireEvent.change(screen.getByRole("textbox", { name: "Location" }), { target: { value: "HUB 145" } });
+        fireEvent.change(screen.getByRole("spinbutton", { name: "Estimated attendance" }), { target: { value: "40" } });
+        fireEvent.change(screen.getByRole("spinbutton", { name: "Funding request ($)" }), { target: { value: "125.50" } });
+        fireEvent.change(screen.getByRole("textbox", { name: "Event purpose" }), { target: { value: "A social event." } });
         fireEvent.click(screen.getByRole("button", { name: "Submit request" }));
 
         await waitFor(() => expect(fetchSpy).toHaveBeenLastCalledWith(
@@ -88,10 +111,15 @@ describe("EventOperations", () => {
             expect.objectContaining({
                 method: "POST",
                 body: JSON.stringify({
-                    eventName: "Winter Social",
+                    title: "Winter Social",
                     requestingGroup: "Tech Committee",
-                    description: "A social event.",
-                    proposedStartDate: "2026-12-15T18:00",
+                    eventDate: "2026-12-15",
+                    eventTime: "18:00",
+                    location: "HUB 145",
+                    purpose: "A social event.",
+                    estimatedAttendance: 40,
+                    marketingNotes: "",
+                    fundingRequestedCents: 12550,
                 }),
             }),
         ));

@@ -505,6 +505,34 @@
     }
 }
 
+.event-ops-budget-hint {
+    align-self: end;
+    margin: 0;
+    color: $dark-gray;
+    font-size: 0.9rem;
+}
+
+.event-ops-audit-list {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+    padding-left: 1.25rem;
+
+    li {
+        padding-left: 0.25rem;
+    }
+
+    span {
+        display: block;
+        color: $dark-gray;
+        font-size: 0.8rem;
+    }
+
+    p {
+        margin: 0.25rem 0 0;
+    }
+}
+
 .event-ops-checkpoint-list {
     display: grid;
     gap: 8px;

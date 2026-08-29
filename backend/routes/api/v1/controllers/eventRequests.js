@@ -3,6 +3,12 @@ import mongoose from "mongoose";
 import { sendError } from "../helpers/sendError.js";
 import { sendSuccess } from "../helpers/sendSuccess.js";
 import { requirePermission } from "../utils/auth.js";
+import { getActiveCycle } from "../utils/permissions.js";
+import {
+  REQUEST_STATES,
+  assertTransition,
+  recordAudit,
+} from "../utils/eventWorkflow.js";
 
 const router = express.Router();
 const CHECKPOINT_KEYS = [
@@ -17,6 +23,7 @@ const CHECKPOINT_KEYS = [
 ];
 const CHECKPOINT_STATUSES = new Set(["pending", "in_progress", "completed"]);
 const LEADERSHIP_STATUSES = ["submitted", "changes_requested"];
+const SHORT_NOTICE_DAYS = Number(process.env.EVENT_SHORT_NOTICE_DAYS || 14);
 
 function validId(value) {
   return mongoose.isValidObjectId(value);
@@ -28,6 +35,45 @@ function defaultCheckpoints() {
 
 function readRequestFields(body = {}) {
   const fields = {};
+  const canonicalInput = [
+    "title",
+    "eventDate",
+    "eventTime",
+    "location",
+    "purpose",
+    "estimatedAttendance",
+    "fundingRequestedCents",
+  ].some((key) => body[key] !== undefined);
+
+  if (canonicalInput) {
+    const title = body.title ?? body.eventName;
+    const purpose = body.purpose ?? body.description;
+    const eventDate = body.eventDate ?? body.proposedStartDate;
+    if (typeof body.requestingGroup !== "string" || body.requestingGroup.trim() === "") return { error: "requestingGroup is required" };
+    fields.requestingGroup = body.requestingGroup.trim();
+    for (const [key, value] of [["title", title], ["purpose", purpose], ["eventTime", body.eventTime], ["location", body.location]]) {
+      if (typeof value !== "string" || value.trim() === "") return { error: `${key} is required` };
+      fields[key] = value.trim();
+    }
+    if (!eventDate || Number.isNaN(new Date(eventDate).getTime())) return { error: "eventDate must be a valid date" };
+    fields.eventDate = new Date(eventDate);
+    if (!Number.isInteger(body.estimatedAttendance) || body.estimatedAttendance < 0) return { error: "estimatedAttendance must be a non-negative integer" };
+    if (!cents(body.fundingRequestedCents)) return { error: "fundingRequestedCents must be a non-negative integer" };
+    fields.estimatedAttendance = body.estimatedAttendance;
+    fields.fundingRequestedCents = body.fundingRequestedCents;
+    fields.eventName = fields.title;
+    fields.description = fields.purpose;
+    fields.proposedStartDate = fields.eventDate;
+    fields.marketingNotes = typeof body.marketingNotes === "string" ? body.marketingNotes.trim() : "";
+    if (body.promotionalAssets !== undefined && (!Array.isArray(body.promotionalAssets) || body.promotionalAssets.some((asset) => typeof asset !== "string"))) {
+      return { error: "promotionalAssets must be an array of strings" };
+    }
+    fields.promotionalAssets = (body.promotionalAssets || []).map((asset) => asset.trim()).filter(Boolean);
+    fields.shortNotice = new Date() > new Date(fields.eventDate.getTime() - SHORT_NOTICE_DAYS * 24 * 60 * 60 * 1000);
+    fields.shortNoticeDays = SHORT_NOTICE_DAYS;
+    return { fields, canonicalInput: true };
+  }
+
   for (const key of ["eventName", "requestingGroup", "description", "audience"]) {
     if (body[key] !== undefined) {
       if (typeof body[key] !== "string" || body[key].trim() === "") {
@@ -96,7 +142,10 @@ function readRequestFields(body = {}) {
     };
   }
 
-  return { fields };
+  fields.title = fields.eventName;
+  fields.purpose = fields.description;
+  fields.eventDate = fields.proposedStartDate;
+  return { fields, canonicalInput: false };
 }
 
 function readReason(body = {}, name = "reason") {
@@ -109,6 +158,42 @@ function readReason(body = {}, name = "reason") {
 
 function cents(value) {
   return Number.isInteger(value) && value >= 0;
+}
+
+function canonicalRequest(request) {
+  return REQUEST_STATES.includes(request.status);
+}
+
+function parseOptionalDate(value, message) {
+  if (value === undefined || value === null || value === "") return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? { error: message } : date;
+}
+
+function nextAgendaDate() {
+  const date = new Date();
+  date.setDate(date.getDate() + 7);
+  return date;
+}
+
+async function canonicalTransition(req, id, request, toStatus, update, audit) {
+  assertTransition(request.status, toStatus);
+  const updated = await req.models.EventRequests.findOneAndUpdate(
+    { _id: id, status: request.status },
+    { $set: { ...update, status: toStatus } },
+    { new: true, runValidators: true },
+  );
+  if (!updated) return null;
+  await recordAudit(req, {
+    eventRequestId: id,
+    cycleId: request.cycleId,
+    action: audit.action,
+    fromStatus: request.status,
+    toStatus,
+    comment: audit.comment,
+    amountCents: audit.amountCents,
+  });
+  return updated;
 }
 
 function completeCheckpoint(checkpoints, key, actorId) {
@@ -152,20 +237,265 @@ async function requireCheckpointPermission(req, res, next) {
 }
 
 router.post("/", requirePermission("events.requests.create"), async (req, res) => {
-  const { fields, error } = readRequestFields(req.body);
+  const { fields, error, canonicalInput } = readRequestFields(req.body);
   if (error) return sendError(res, 400, error);
 
   try {
+    const cycle = canonicalInput ? await getActiveCycle(req) : null;
+    if (canonicalInput && !cycle) return sendError(res, 409, "No active academic year");
+    const status = canonicalInput ? (req.body.saveAsDraft ? "DRAFT" : "PVP_REVIEW") : "submitted";
     const request = await req.models.EventRequests.create({
       ...fields,
       requesterId: req.session.userId,
       organizerId: req.session.userId,
       submittedBy: req.session.userId,
       submittedAt: new Date(),
-      status: "submitted",
+      status,
+      cycleId: cycle?._id ?? null,
       checkpoints: defaultCheckpoints(),
     });
+    await recordAudit(req, {
+      eventRequestId: request._id,
+      cycleId: cycle?._id ?? null,
+      action: "submitted",
+      toStatus: canonicalInput ? status : null,
+    });
     return res.status(201).json({ status: "success", eventRequest: request });
+  } catch (error) {
+    console.error(error);
+    return sendError(res, 500);
+  }
+});
+
+router.patch("/:id/draft", requirePermission("events.requests.edit"), async (req, res) => {
+  if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
+  const { fields, error } = readRequestFields(req.body);
+  if (error) return sendError(res, 400, error);
+  try {
+    const request = await findRequest(req, req.params.id);
+    if (!request) return sendError(res, 404, "Event request not found");
+    if (!canonicalRequest(request) || request.status !== "DRAFT") return sendError(res, 409, "Only draft requests can be edited");
+    if (String(request.requesterId) !== String(req.session.userId)) return sendError(res, 403, "Only the requester can edit this event request");
+    const updated = await req.models.EventRequests.findOneAndUpdate({ _id: req.params.id, status: "DRAFT", requesterId: req.session.userId }, { $set: fields }, { new: true, runValidators: true });
+    if (!updated) return sendError(res, 409, "Event request changed; retry the update");
+    await recordAudit(req, { eventRequestId: req.params.id, cycleId: request.cycleId, action: "draft_saved" });
+    return sendSuccess(res, { eventRequest: updated });
+  } catch (error) {
+    console.error(error);
+    return sendError(res, 500);
+  }
+});
+
+router.post("/:id/submit", requirePermission("events.requests.edit"), async (req, res) => {
+  if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
+  try {
+    const request = await findRequest(req, req.params.id);
+    if (!request) return sendError(res, 404, "Event request not found");
+    if (!canonicalRequest(request) || request.status !== "DRAFT") return sendError(res, 409, "Only draft requests can be submitted");
+    if (String(request.requesterId) !== String(req.session.userId)) return sendError(res, 403, "Only the requester can submit this event request");
+    const updated = await canonicalTransition(req, req.params.id, request, "PVP_REVIEW", { submittedAt: new Date(), submittedBy: req.session.userId }, { action: "submitted" });
+    if (!updated) return sendError(res, 409, "Event request changed; retry the update");
+    return sendSuccess(res, { eventRequest: updated });
+  } catch (error) {
+    if (error.statusCode) return sendError(res, error.statusCode, error.message);
+    console.error(error);
+    return sendError(res, 500);
+  }
+});
+
+router.delete("/:id", requirePermission("events.requests.edit"), async (req, res) => {
+  if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
+  try {
+    const request = await findRequest(req, req.params.id);
+    if (!request) return sendError(res, 404, "Event request not found");
+    if (!canonicalRequest(request) || request.status !== "DRAFT") return sendError(res, 409, "Only draft requests can be deleted");
+    if (String(request.requesterId) !== String(req.session.userId)) return sendError(res, 403, "Only the requester can delete this event request");
+    await recordAudit(req, { eventRequestId: req.params.id, cycleId: request.cycleId, action: "draft_deleted", fromStatus: request.status });
+    if (typeof req.models.EventRequests.deleteOne === "function") await req.models.EventRequests.deleteOne({ _id: req.params.id, status: "DRAFT", requesterId: req.session.userId });
+    return sendSuccess(res);
+  } catch (error) {
+    console.error(error);
+    return sendError(res, 500);
+  }
+});
+
+router.post("/:id/advance", requirePermission("events.leadership.approve"), async (req, res) => {
+  if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
+  const agendaDate = parseOptionalDate(req.body?.agendaDate, "agendaDate must be a valid date") || nextAgendaDate();
+  if (agendaDate.error) return sendError(res, 400, agendaDate.error);
+  try {
+    const request = await findRequest(req, req.params.id);
+    if (!request) return sendError(res, 404, "Event request not found");
+    if (!canonicalRequest(request)) return sendError(res, 409, "This request uses the legacy workflow");
+    const updated = await canonicalTransition(req, req.params.id, request, "AGENDA", {
+      agendaDate,
+      pvpDecision: { decision: "advance", actedBy: req.session.userId, actedAt: new Date(), comment: "" },
+    }, { action: "pvp_advance" });
+    if (!updated) return sendError(res, 409, "Event request changed; retry the update");
+    return sendSuccess(res, { eventRequest: updated });
+  } catch (error) {
+    if (error.statusCode) return sendError(res, error.statusCode, error.message);
+    console.error(error);
+    return sendError(res, 500);
+  }
+});
+
+router.post("/:id/return", requirePermission("events.leadership.approve"), async (req, res) => {
+  if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
+  if (typeof req.body?.comment !== "string" || !req.body.comment.trim()) return sendError(res, 400, "comment is required");
+  try {
+    const request = await findRequest(req, req.params.id);
+    if (!request) return sendError(res, 404, "Event request not found");
+    if (!canonicalRequest(request)) return sendError(res, 409, "This request uses the legacy workflow");
+    const updated = await canonicalTransition(req, req.params.id, request, "DRAFT", {
+      reviewComments: [...(request.reviewComments || []), { actorId: req.session.userId, comment: req.body.comment.trim(), createdAt: new Date() }],
+      pvpDecision: { decision: "return", actedBy: req.session.userId, actedAt: new Date(), comment: req.body.comment.trim() },
+    }, { action: "pvp_return", comment: req.body.comment.trim() });
+    if (!updated) return sendError(res, 409, "Event request changed; retry the update");
+    return sendSuccess(res, { eventRequest: updated });
+  } catch (error) {
+    if (error.statusCode) return sendError(res, error.statusCode, error.message);
+    console.error(error);
+    return sendError(res, 500);
+  }
+});
+
+router.post("/:id/reject", requirePermission("events.leadership.approve"), async (req, res) => {
+  if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
+  if (typeof req.body?.comment !== "string" || !req.body.comment.trim()) return sendError(res, 400, "comment is required");
+  try {
+    const request = await findRequest(req, req.params.id);
+    if (!request) return sendError(res, 404, "Event request not found");
+    if (!canonicalRequest(request)) return sendError(res, 409, "This request uses the legacy workflow");
+    const updated = await canonicalTransition(req, req.params.id, request, "REJECTED", {
+      reviewComments: [...(request.reviewComments || []), { actorId: req.session.userId, comment: req.body.comment.trim(), createdAt: new Date() }],
+      pvpDecision: { decision: "reject", actedBy: req.session.userId, actedAt: new Date(), comment: req.body.comment.trim() },
+    }, { action: "pvp_reject", comment: req.body.comment.trim() });
+    if (!updated) return sendError(res, 409, "Event request changed; retry the update");
+    return sendSuccess(res, { eventRequest: updated });
+  } catch (error) {
+    if (error.statusCode) return sendError(res, error.statusCode, error.message);
+    console.error(error);
+    return sendError(res, 500);
+  }
+});
+
+router.post("/:id/agenda-outcome", requirePermission("events.meeting.manage"), async (req, res) => {
+  if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
+  const { outcome, note } = req.body || {};
+  if (!["proceed", "table", "decline"].includes(outcome)) return sendError(res, 400, "outcome must be proceed, table, or decline");
+  if (typeof note !== "string" || !note.trim()) return sendError(res, 400, "note is required");
+  const nextMeetingDate = parseOptionalDate(req.body?.nextMeetingDate, "nextMeetingDate must be a valid date");
+  if (nextMeetingDate?.error) return sendError(res, 400, nextMeetingDate.error);
+  try {
+    const request = await findRequest(req, req.params.id);
+    if (!request) return sendError(res, 404, "Event request not found");
+    if (!canonicalRequest(request)) return sendError(res, 409, "This request uses the legacy workflow");
+    const toStatus = outcome === "proceed" ? "FINANCE_REVIEW" : outcome === "decline" ? "REJECTED" : "AGENDA";
+    const updated = await canonicalTransition(req, req.params.id, request, toStatus, {
+      agendaDate: outcome === "table" ? (nextMeetingDate || nextAgendaDate()) : request.agendaDate,
+      agendaOutcome: { decision: outcome, note: note.trim(), recordedBy: req.session.userId, recordedAt: new Date() },
+    }, { action: `agenda_${outcome}`, comment: note.trim() });
+    if (!updated) return sendError(res, 409, "Event request changed; retry the update");
+    return sendSuccess(res, { eventRequest: updated });
+  } catch (error) {
+    if (error.statusCode) return sendError(res, error.statusCode, error.message);
+    console.error(error);
+    return sendError(res, 500);
+  }
+});
+
+router.post("/:id/finance", requirePermission("events.finance.manage"), async (req, res) => {
+  if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
+  const { decision, approvedAmountCents, note = "", confirmOverBudget = false } = req.body || {};
+  if (!["approve", "approve_partial", "deny"].includes(decision)) return sendError(res, 400, "decision must be approve, approve_partial, or deny");
+  if (typeof note !== "string") return sendError(res, 400, "note must be a string");
+  if (typeof confirmOverBudget !== "boolean") return sendError(res, 400, "confirmOverBudget must be a boolean");
+  if (decision !== "deny" && !cents(approvedAmountCents)) return sendError(res, 400, "approvedAmountCents must be a non-negative integer");
+  if (decision === "approve_partial" && (!note.trim() || approvedAmountCents === undefined)) return sendError(res, 400, "note is required for partial approval");
+  try {
+    const request = await findRequest(req, req.params.id);
+    if (!request) return sendError(res, 404, "Event request not found");
+    if (!canonicalRequest(request)) return sendError(res, 409, "This request uses the legacy workflow");
+    const amount = decision === "deny" ? 0 : approvedAmountCents;
+    const requestedAmount = request.fundingRequestedCents ?? request.finance?.allocatedCents ?? 0;
+    if (decision !== "deny" && amount !== requestedAmount && !note.trim()) return sendError(res, 400, "note is required when the approved amount differs");
+    if (confirmOverBudget && !note.trim()) return sendError(res, 400, "note is required to confirm an over-budget approval");
+    assertTransition(request.status, decision === "deny" ? "REJECTED" : "MARKETING_QUEUED");
+    if (!request.cycleId) return sendError(res, 409, "Event request has no academic year");
+
+    if (typeof req.models.BudgetLedgerEntries?.findOne === "function" && await req.models.BudgetLedgerEntries.findOne({ eventRequestId: req.params.id })) {
+      return sendError(res, 409, "Funding has already been decided");
+    }
+
+    if (amount > 0) {
+      if (typeof req.models.Cycles?.findOneAndUpdate !== "function") return sendError(res, 500);
+      const cycleFilter = confirmOverBudget ? { _id: request.cycleId } : {
+        _id: request.cycleId,
+        $expr: { $lte: [{ $add: [{ $ifNull: ["$budgetCommittedCents", 0] }, amount] }, "$budgetTotalCents"] },
+      };
+      const cycle = await req.models.Cycles.findOneAndUpdate(cycleFilter, { $inc: { budgetCommittedCents: amount } }, { new: true });
+      if (!cycle) return sendError(res, 409, "Approval exceeds the remaining academic-year budget");
+    }
+
+    if (typeof req.models.BudgetLedgerEntries?.create === "function") {
+      await req.models.BudgetLedgerEntries.create({ cycleId: request.cycleId, eventRequestId: req.params.id, amountCents: amount, decision: decision === "deny" ? "denied" : "approved", decidedBy: req.session.userId, note: note.trim() });
+    }
+    const updated = await canonicalTransition(req, req.params.id, request, decision === "deny" ? "REJECTED" : "MARKETING_QUEUED", {
+      financeDecision: { decision, approvedAmountCents: amount, note: note.trim(), actedBy: req.session.userId, actedAt: new Date() },
+      finance: { ...(request.finance || {}), allocatedCents: amount, approvedBy: req.session.userId, approvedAt: new Date(), notes: note.trim() },
+    }, { action: `finance_${decision}`, comment: note.trim(), amountCents: amount });
+    if (!updated) return sendError(res, 409, "Event request changed; retry the update");
+    return sendSuccess(res, { eventRequest: updated });
+  } catch (error) {
+    if (error.statusCode) return sendError(res, error.statusCode, error.message);
+    if (error.code === 11000) return sendError(res, 409, "Funding has already been decided");
+    console.error(error);
+    return sendError(res, 500);
+  }
+});
+
+router.post("/:id/marketing-complete", requirePermission("events.marketing.manage"), async (req, res) => {
+  if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
+  try {
+    const request = await findRequest(req, req.params.id);
+    if (!request) return sendError(res, 404, "Event request not found");
+    if (!canonicalRequest(request)) return sendError(res, 409, "This request uses the legacy workflow");
+    const updated = await canonicalTransition(req, req.params.id, request, "SCHEDULED", {
+      marketingCompletedBy: req.session.userId,
+      marketingCompletedAt: new Date(),
+    }, { action: "marketing_complete" });
+    if (!updated) return sendError(res, 409, "Event request changed; retry the update");
+    return sendSuccess(res, { eventRequest: updated });
+  } catch (error) {
+    if (error.statusCode) return sendError(res, error.statusCode, error.message);
+    console.error(error);
+    return sendError(res, 500);
+  }
+});
+
+router.post("/:id/publish", requirePermission("events.publication.manage"), async (req, res) => {
+  if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
+  try {
+    const request = await findRequest(req, req.params.id);
+    if (!request) return sendError(res, 404, "Event request not found");
+    if (!canonicalRequest(request) || request.status !== "SCHEDULED") return sendError(res, 409, "Only scheduled requests can be published");
+    let event = request.publishedEventId;
+    if (!event) {
+      event = await req.models.Events.create({
+        eName: request.title || request.eventName,
+        eOrganizers: request.requestingGroup,
+        eStartDate: request.eventDate || request.proposedStartDate,
+        eLocation: request.location || request.booking?.location || "TBD",
+        eDescription: request.purpose || request.description,
+        eRsvpEnabled: request.rsvpEnabled,
+        rsvpQuestions: request.rsvpQuestions || [],
+      });
+    }
+    const updated = await req.models.EventRequests.findOneAndUpdate({ _id: req.params.id, status: "SCHEDULED" }, { $set: { publishedEventId: event } }, { new: true, runValidators: true });
+    if (!updated) return sendError(res, 409, "Event request changed; retry the update");
+    await recordAudit(req, { eventRequestId: req.params.id, cycleId: request.cycleId, action: "published" });
+    return sendSuccess(res, { eventRequest: updated, event });
   } catch (error) {
     console.error(error);
     return sendError(res, 500);
@@ -257,7 +587,25 @@ router.get("/:id", requirePermission("events.requests.view"), async (req, res) =
   try {
     const request = await findRequest(req, req.params.id);
     if (!request) return sendError(res, 404, "Event request not found");
+    if (typeof req.models.AuditEntries?.find === "function") {
+      request.auditEntries = await req.models.AuditEntries.find({ eventRequestId: req.params.id }).sort({ createdAt: 1 }).populate("actorId", "uDisplayName uEmail").lean();
+    }
     return sendSuccess(res, { eventRequest: request });
+  } catch (error) {
+    console.error(error);
+    return sendError(res, 500);
+  }
+});
+
+router.get("/:id/audit", requirePermission("events.requests.view"), async (req, res) => {
+  if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
+  try {
+    const request = await findRequest(req, req.params.id);
+    if (!request) return sendError(res, 404, "Event request not found");
+    const entries = typeof req.models.AuditEntries?.find === "function"
+      ? await req.models.AuditEntries.find({ eventRequestId: req.params.id }).sort({ createdAt: 1 }).populate("actorId", "uDisplayName uEmail").lean()
+      : [];
+    return sendSuccess(res, { auditEntries: entries });
   } catch (error) {
     console.error(error);
     return sendError(res, 500);
@@ -514,7 +862,13 @@ router.patch("/:id/booking", requirePermission("events.room.manage"), async (req
 
 router.post("/:id/reviews", requirePermission("events.review.manage"), async (req, res) => {
   if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
-  const { attendeeCount, whatWentWell, whatMissedExpectations, totalSpentCents, locationReview, timingReview, extenuatingCircumstances } = req.body ?? {};
+  const { attendeeCount, whatWentWell, whatMissedExpectations, totalSpentCents, locationReview, timingReview, extenuatingCircumstances, pros, cons, actualAttendance, repeatRecommendation } = req.body ?? {};
+  if (actualAttendance !== undefined && (!Number.isInteger(actualAttendance) || actualAttendance < 0)) {
+    return sendError(res, 400, "actualAttendance must be a non-negative integer");
+  }
+  if (repeatRecommendation !== undefined && !["yes", "no", "with_changes"].includes(repeatRecommendation)) {
+    return sendError(res, 400, "repeatRecommendation must be yes, no, or with_changes");
+  }
   if (attendeeCount !== undefined && (!Number.isInteger(attendeeCount) || attendeeCount < 0)) {
     return sendError(res, 400, "attendeeCount must be a non-negative integer");
   }
@@ -525,6 +879,34 @@ router.post("/:id/reviews", requirePermission("events.review.manage"), async (re
   try {
     const request = await findRequest(req, req.params.id);
     if (!request) return sendError(res, 404, "Event request not found");
+    if (canonicalRequest(request)) {
+      if (String(request.requesterId) !== String(req.session.userId)) return sendError(res, 403, "Only the requester can submit this review");
+      if (request.status === "SCHEDULED" && new Date(request.eventDate || request.proposedStartDate) <= new Date()) {
+        const awaiting = await canonicalTransition(req, req.params.id, request, "AWAITING_REVIEW", {}, { action: "review_due" });
+        if (!awaiting) return sendError(res, 409, "Event request changed; retry the update");
+        request.status = awaiting.status;
+      }
+      if (request.status !== "AWAITING_REVIEW") return sendError(res, 409, "Event is not awaiting review");
+      if (typeof pros !== "string" || !pros.trim() || typeof cons !== "string" || !cons.trim() || actualAttendance === undefined || repeatRecommendation === undefined) {
+        return sendError(res, 400, "pros, cons, actualAttendance, and repeatRecommendation are required");
+      }
+      const review = await req.models.EventReviews.create({
+        eventRequestId: req.params.id,
+        reviewerId: req.session.userId,
+        reviewerRole: "organizer",
+        pros: pros.trim(),
+        cons: cons.trim(),
+        actualAttendance,
+        attendeeCount: actualAttendance,
+        repeatRecommendation,
+      });
+      const updated = await canonicalTransition(req, req.params.id, request, "REVIEWED", {
+        reviewReceivedAt: new Date(),
+        reviewReceivedBy: req.session.userId,
+      }, { action: "review_submitted" });
+      if (!updated) return sendError(res, 409, "Event request changed; retry the update");
+      return res.status(201).json({ status: "success", review, eventRequest: updated });
+    }
     if (!["approved", "completed"].includes(request.status)) return sendError(res, 409, "Event is not ready for review");
     const reviewerRole = String(request.organizerId) === String(req.session.userId) ? "organizer" : "member";
     const existing = await req.models.EventReviews.findOne({ eventRequestId: req.params.id, reviewerId: req.session.userId });
@@ -540,6 +922,10 @@ router.post("/:id/reviews", requirePermission("events.review.manage"), async (re
       locationReview,
       timingReview,
       extenuatingCircumstances,
+      pros,
+      cons,
+      actualAttendance,
+      repeatRecommendation,
     });
     const reviews = await req.models.EventReviews.find({
       eventRequestId: req.params.id,

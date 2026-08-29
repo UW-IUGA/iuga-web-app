@@ -22,17 +22,22 @@ const CHECKPOINT_PERMISSIONS = {
     completion: "events.operations.manage",
     review: "events.review.manage",
 };
+const CANONICAL_STATES = new Set(["DRAFT", "PVP_REVIEW", "AGENDA", "FINANCE_REVIEW", "MARKETING_QUEUED", "SCHEDULED", "AWAITING_REVIEW", "REVIEWED", "REJECTED", "ARCHIVED"]);
 const emptyForm = {
-    eventName: "",
+    title: "",
     requestingGroup: "",
-    description: "",
-    proposedStartDate: "",
-    proposedEndDate: "",
-    audience: "",
+    eventDate: "",
+    eventTime: "",
+    location: "",
+    purpose: "",
+    estimatedAttendance: "",
+    fundingRequested: "",
+    marketingNotes: "",
 };
 
 async function apiRequest(path, options = {}) {
     const response = await fetch(`${API_PATH}${path}`, {
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         ...options,
     });
@@ -84,7 +89,7 @@ function StatusBadge({ status }) {
     return <span className={`event-ops-status event-ops-status-${status || "unknown"}`}>{label}</span>;
 }
 
-function EventRequestForm({ onCreated, onCancel }) {
+function EventRequestForm({ onCreated, onCancel, activeCycle }) {
     const [form, setForm] = useState(emptyForm);
     const [saving, setSaving] = useState(false);
 
@@ -94,16 +99,22 @@ function EventRequestForm({ onCreated, onCancel }) {
         event.preventDefault();
         setSaving(true);
         try {
-            const payload = { ...form };
-            if (!payload.audience) delete payload.audience;
-            if (!payload.proposedEndDate) delete payload.proposedEndDate;
+            const amount = Number(form.fundingRequested);
+            const saveAsDraft = event.nativeEvent.submitter?.value === "draft";
+            const payload = {
+                ...form,
+                estimatedAttendance: Number(form.estimatedAttendance),
+                fundingRequestedCents: Number.isFinite(amount) ? Math.round(amount * 100) : null,
+            };
+            if (saveAsDraft) payload.saveAsDraft = true;
+            delete payload.fundingRequested;
             const data = await apiRequest("/", {
                 method: "POST",
                 body: JSON.stringify(payload),
             });
             onCreated(data.eventRequest);
             setForm(emptyForm);
-            toast.success("Event request submitted.");
+            toast.success(saveAsDraft ? "Event request draft saved." : "Event request submitted.");
         } catch (error) {
             toast.error(error.message);
         } finally {
@@ -121,15 +132,20 @@ function EventRequestForm({ onCreated, onCancel }) {
                 <button type="button" className="event-ops-close" onClick={onCancel}>Close</button>
             </div>
             <div className="event-ops-form-grid">
-                <label className="form-label">Event name<input className="form-input" name="eventName" value={form.eventName} onChange={update} required maxLength="120" /></label>
+                <label className="form-label">Event title<input className="form-input" name="title" value={form.title} onChange={update} required maxLength="120" /></label>
                 <label className="form-label">Requesting group<input className="form-input" name="requestingGroup" value={form.requestingGroup} onChange={update} required maxLength="120" /></label>
-                <label className="form-label">Proposed start<input className="form-input" type="datetime-local" name="proposedStartDate" value={form.proposedStartDate} onChange={update} required /></label>
-                <label className="form-label">Proposed end<input className="form-input" type="datetime-local" name="proposedEndDate" value={form.proposedEndDate} onChange={update} /></label>
-                <label className="form-label event-ops-full-width">Audience<input className="form-input" name="audience" value={form.audience} onChange={update} maxLength="500" placeholder="Who is this event for?" /></label>
-                <label className="form-label event-ops-full-width">Description<textarea className="form-input" name="description" value={form.description} onChange={update} required maxLength="2000" rows="4" /></label>
+                <label className="form-label">Event date<input className="form-input" type="date" name="eventDate" value={form.eventDate} onChange={update} required /></label>
+                <label className="form-label">Event time<input className="form-input" type="time" name="eventTime" value={form.eventTime} onChange={update} required /></label>
+                <label className="form-label">Location<input className="form-input" name="location" value={form.location} onChange={update} required maxLength="500" /></label>
+                <label className="form-label">Estimated attendance<input className="form-input" type="number" min="0" name="estimatedAttendance" value={form.estimatedAttendance} onChange={update} required /></label>
+                <label className="form-label">Funding request ($)<input className="form-input" type="number" min="0" step="0.01" name="fundingRequested" value={form.fundingRequested} onChange={update} required /></label>
+                {activeCycle && <p className="event-ops-budget-hint">Remaining academic-year budget: ${(Math.max(0, (activeCycle.budgetTotalCents || 0) - (activeCycle.budgetCommittedCents || 0)) / 100).toFixed(2)}</p>}
+                <label className="form-label event-ops-full-width">Event purpose<textarea className="form-input" name="purpose" value={form.purpose} onChange={update} required maxLength="2000" rows="4" /></label>
+                <label className="form-label event-ops-full-width">Marketing notes<textarea className="form-input" name="marketingNotes" value={form.marketingNotes} onChange={update} maxLength="2000" rows="3" /></label>
             </div>
             <div className="event-ops-form-actions">
-                <button type="submit" className="cta-secondary" disabled={saving}>{saving ? "Submitting…" : "Submit request"}</button>
+                <button type="submit" name="action" value="submit" className="cta-secondary" disabled={saving}>{saving ? "Submitting…" : "Submit request"}</button>
+                <button type="submit" name="action" value="draft" className="cta-primary" disabled={saving}>Save draft</button>
                 <button type="button" className="cta-primary" onClick={onCancel}>Cancel</button>
             </div>
         </form>
@@ -156,6 +172,10 @@ function EventDetail({ request, onUpdate, can }) {
         setReview({
             reviewLink: request.reviewLink || "",
             received: Boolean(request.reviewReceivedAt),
+            pros: "",
+            cons: "",
+            actualAttendance: "",
+            repeatRecommendation: "with_changes",
         });
     }, [request]);
 
@@ -185,6 +205,19 @@ function EventDetail({ request, onUpdate, can }) {
         }
     };
 
+    const postAction = async (path, body = {}) => {
+        try {
+            const data = await apiRequest(`/${request._id}${path}`, {
+                method: "POST",
+                body: JSON.stringify(body),
+            });
+            onUpdate(data.eventRequest);
+            toast.success("Event request updated.");
+        } catch (error) {
+            toast.error(error.message);
+        }
+    };
+
     const askForReason = (action, label) => {
         const reason = window.prompt(label);
         if (reason?.trim()) reviewAction(action, reason.trim());
@@ -198,7 +231,15 @@ function EventDetail({ request, onUpdate, can }) {
             toast.error("Budget amounts must be valid dollar values.");
             return;
         }
-        mutate("/budget", { allocatedCents, actualSpendCents, notes: budget.notes });
+        if (CANONICAL_STATES.has(request.status)) {
+            postAction("/finance", {
+                decision: budget.decision || "approve",
+                approvedAmountCents: allocatedCents,
+                note: budget.notes || "",
+            });
+        } else {
+            mutate("/budget", { allocatedCents, actualSpendCents, notes: budget.notes });
+        }
     };
 
     const saveBooking = (event) => {
@@ -211,14 +252,24 @@ function EventDetail({ request, onUpdate, can }) {
         });
     };
 
+    const submitReview = (event) => {
+        event.preventDefault();
+        postAction("/reviews", {
+            pros: review.pros,
+            cons: review.cons,
+            actualAttendance: Number(review.actualAttendance),
+            repeatRecommendation: review.repeatRecommendation,
+        });
+    };
+
     return (
         <aside className="event-ops-detail editorial-card" aria-label={`${request.eventName} details`}>
             <div className="event-ops-detail-heading">
                 <div><span className="event-ops-kicker">Request detail</span><h3>{request.eventName}</h3></div>
                 <StatusBadge status={request.status} />
             </div>
-            <p className="event-ops-detail-meta">{request.requestingGroup} · {formatDate(request.proposedStartDate)}</p>
-            <p>{request.description}</p>
+            <p className="event-ops-detail-meta">{request.requestingGroup} · {formatDate(request.eventDate || request.proposedStartDate)}</p>
+            <p>{request.purpose || request.description}</p>
 
             {(request.status === "submitted" || request.status === "changes_requested") && can("events.leadership.approve") ? (
                 <div className="event-ops-actions">
@@ -227,6 +278,21 @@ function EventDetail({ request, onUpdate, can }) {
                     <button className="event-ops-danger" onClick={() => askForReason("deny", "Why is this request denied?")}>Deny</button>
                 </div>
             ) : null}
+
+            {request.status === "PVP_REVIEW" && can("events.leadership.approve") && <div className="event-ops-actions">
+                <button className="cta-secondary" onClick={() => postAction("/advance")}>Advance to agenda</button>
+                <button className="cta-primary" onClick={() => { const comment = window.prompt("What should the requester revise?"); if (comment?.trim()) postAction("/return", { comment: comment.trim() }); }}>Return for revision</button>
+                <button className="event-ops-danger" onClick={() => { const comment = window.prompt("Why is this request rejected?"); if (comment?.trim()) postAction("/reject", { comment: comment.trim() }); }}>Reject request</button>
+            </div>}
+
+            {request.status === "AGENDA" && can("events.meeting.manage") && <div className="event-ops-actions">
+                <button className="cta-secondary" onClick={() => { const note = window.prompt("What did the board decide?"); if (note?.trim()) postAction("/agenda-outcome", { outcome: "proceed", note: note.trim() }); }}>Record proceed</button>
+                <button className="cta-primary" onClick={() => { const note = window.prompt("Why is this item tabled?"); if (note?.trim()) postAction("/agenda-outcome", { outcome: "table", note: note.trim() }); }}>Table item</button>
+                <button className="event-ops-danger" onClick={() => { const note = window.prompt("Why is this item declined?"); if (note?.trim()) postAction("/agenda-outcome", { outcome: "decline", note: note.trim() }); }}>Decline item</button>
+            </div>}
+
+            {request.status === "MARKETING_QUEUED" && can("events.marketing.manage") && <div className="event-ops-actions"><button className="cta-secondary" onClick={() => postAction("/marketing-complete")}>Mark marketing complete</button></div>}
+            {request.status === "SCHEDULED" && can("events.publication.manage") && !request.publishedEventId && <div className="event-ops-actions"><button className="cta-secondary" onClick={() => postAction("/publish")}>Publish event</button></div>}
 
             <section className="event-ops-detail-section">
                 <h4>Checkpoint progress</h4>
@@ -244,14 +310,15 @@ function EventDetail({ request, onUpdate, can }) {
                 </div>
             </section>
 
-            {can("events.finance.manage") && <form className="event-ops-detail-section" onSubmit={saveBudget}>
+            {can("events.finance.manage") && (request.status === "FINANCE_REVIEW" || !CANONICAL_STATES.has(request.status)) && <form className="event-ops-detail-section" onSubmit={saveBudget}>
                 <h4>Finance</h4>
                 <div className="event-ops-inline-fields">
-                    <label className="form-label">Allocated ($)<input className="form-input" inputMode="decimal" value={budget.allocated || ""} onChange={(event) => setBudget({ ...budget, allocated: event.target.value })} /></label>
+                    <label className="form-label">{request.status === "FINANCE_REVIEW" ? "Approved amount ($)" : "Allocated ($)"}<input className="form-input" inputMode="decimal" value={budget.allocated || ""} onChange={(event) => setBudget({ ...budget, allocated: event.target.value })} /></label>
                     <label className="form-label">Actual spend ($)<input className="form-input" inputMode="decimal" value={budget.actual || ""} onChange={(event) => setBudget({ ...budget, actual: event.target.value })} /></label>
                 </div>
                 <label className="form-label">Finance notes<textarea className="form-input" rows="2" value={budget.notes || ""} onChange={(event) => setBudget({ ...budget, notes: event.target.value })} /></label>
-                <button className="standard-button" type="submit">Save finance</button>
+                {request.status === "FINANCE_REVIEW" && <label className="form-label">Decision<select className="form-input" value={budget.decision || "approve"} onChange={(event) => setBudget({ ...budget, decision: event.target.value })}><option value="approve">Approve as requested</option><option value="approve_partial">Approve different amount</option><option value="deny">Deny funding</option></select></label>}
+                <button className="standard-button" type="submit">{request.status === "FINANCE_REVIEW" ? "Record funding decision" : "Save finance"}</button>
             </form>}
 
             {can("events.room.manage") && <form className="event-ops-detail-section" onSubmit={saveBooking}>
@@ -271,17 +338,36 @@ function EventDetail({ request, onUpdate, can }) {
                 <label className="event-ops-checkbox"><input type="checkbox" checked={review.received || false} onChange={(event) => setReview({ ...review, received: event.target.checked })} /> Review received</label>
                 <button type="button" className="standard-button" onClick={() => mutate("/review-tracking", review)}>Save review tracking</button>
             </section>}
+
+            {request.status === "AWAITING_REVIEW" && can("events.review.manage") && <form className="event-ops-detail-section" onSubmit={submitReview}>
+                <h4>Post-event review</h4>
+                <p>Estimated attendance: {request.estimatedAttendance ?? "—"}</p>
+                <label className="form-label">Pros<textarea className="form-input" rows="3" value={review.pros || ""} onChange={(event) => setReview({ ...review, pros: event.target.value })} required /></label>
+                <label className="form-label">Cons<textarea className="form-input" rows="3" value={review.cons || ""} onChange={(event) => setReview({ ...review, cons: event.target.value })} required /></label>
+                <label className="form-label">Actual attendance<input className="form-input" type="number" min="0" value={review.actualAttendance || ""} onChange={(event) => setReview({ ...review, actualAttendance: event.target.value })} required /></label>
+                {review.actualAttendance !== "" && <p className="event-ops-budget-hint">Attendance variance: {Number(review.actualAttendance) - Number(request.estimatedAttendance || 0)}</p>}
+                <label className="form-label">Repeat recommendation<select className="form-input" value={review.repeatRecommendation} onChange={(event) => setReview({ ...review, repeatRecommendation: event.target.value })}><option value="yes">Yes</option><option value="no">No</option><option value="with_changes">With changes</option></select></label>
+                <button className="standard-button" type="submit">Submit post-event review</button>
+            </form>}
+
+            {request.auditEntries?.length > 0 && <section className="event-ops-detail-section" aria-labelledby="event-audit-heading">
+                <h4 id="event-audit-heading">Decision history</h4>
+                <ol className="event-ops-audit-list">
+                    {request.auditEntries.map((entry) => <li key={entry._id || `${entry.action}-${entry.createdAt}`}><strong>{String(entry.action).replace(/_/g, " ")}</strong><span>{formatDate(entry.createdAt)}</span>{entry.comment && <p>{entry.comment}</p>}</li>)}
+                </ol>
+            </section>}
         </aside>
     );
 }
 
-function EventOperations({ isAdmin = false, can: canPermission }) {
+function EventOperations({ isAdmin = false, can: canPermission, activeCycle }) {
     const can = canPermission || (() => isAdmin);
     const canView = can("events.requests.view");
     const canCreate = can("events.requests.create");
     const [requests, setRequests] = useState([]);
     const [selectedId, setSelectedId] = useState(null);
     const [showForm, setShowForm] = useState(false);
+    const [ledger, setLedger] = useState([]);
     const [filters, setFilters] = useState({ year: "", quarter: "", week: "", stage: "", requester: "", search: "" });
     const [error, setError] = useState("");
 
@@ -291,6 +377,14 @@ function EventOperations({ isAdmin = false, can: canPermission }) {
             .then((data) => setRequests(data.eventRequests || []))
             .catch((requestError) => setError(requestError.message));
     }, [canView]);
+
+    useEffect(() => {
+        if (!activeCycle?._id || !can("events.finance.manage")) return;
+        fetch(`/api/v1/cycles/${activeCycle._id}/ledger`, { credentials: "include" })
+            .then((response) => response.json())
+            .then((data) => setLedger(data.entries || []))
+            .catch((requestError) => setError(requestError.message));
+    }, [activeCycle?._id, can]);
 
     const years = useMemo(() => [...new Set(requests.map((request) => new Date(request.proposedStartDate).getFullYear()))].sort(), [requests]);
     const requesters = useMemo(() => [...new Set(requests.map((request) => request.requestingGroup).filter(Boolean))].sort(), [requests]);
@@ -318,7 +412,9 @@ function EventOperations({ isAdmin = false, can: canPermission }) {
 
     const updateRequest = (updated) => setRequests((current) => current.map((request) => request._id === updated._id ? updated : request));
     const addRequest = (created) => {
-        setRequests((current) => [...current, created]);
+        setRequests((current) => current.some((request) => request._id === created._id)
+            ? current.map((request) => request._id === created._id ? created : request)
+            : [...current, created]);
         setSelectedId(created._id);
         setShowForm(false);
     };
@@ -331,7 +427,7 @@ function EventOperations({ isAdmin = false, can: canPermission }) {
                 <div><span className="event-ops-kicker">Officer workspace</span><h2 id="event-operations-heading">Event operations</h2><p>Track requests from proposal through post-event review.</p></div>
                 {canCreate && <button className="cta-secondary" onClick={() => setShowForm(!showForm)}>{showForm ? "Hide form" : "New event request"}</button>}
             </div>
-            {showForm && canCreate && <EventRequestForm onCreated={addRequest} onCancel={() => setShowForm(false)} />}
+            {showForm && canCreate && <EventRequestForm onCreated={addRequest} onCancel={() => setShowForm(false)} activeCycle={activeCycle} />}
             <div className="event-ops-filters" role="group" aria-label="Event request filters">
                 <label>Year<select value={filters.year} onChange={(event) => setFilters({ ...filters, year: event.target.value })}><option value="">All years</option>{years.map((year) => <option key={year}>{year}</option>)}</select></label>
                 <label>Quarter<select value={filters.quarter} onChange={(event) => setFilters({ ...filters, quarter: event.target.value })}><option value="">All quarters</option>{["Q1", "Q2", "Q3", "Q4"].map((quarter) => <option key={quarter}>{quarter}</option>)}</select></label>
@@ -341,6 +437,10 @@ function EventOperations({ isAdmin = false, can: canPermission }) {
                 <label className="event-ops-search">Search<input value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} placeholder="Event or group" /></label>
             </div>
             {error && <p className="event-ops-error" role="alert">{error}</p>}
+            {activeCycle && can("events.finance.manage") && <section className="event-ops-ledger editorial-card" aria-labelledby="budget-ledger-heading">
+                <div><span className="event-ops-kicker">{activeCycle.cycleName || "Academic year"}</span><h3 id="budget-ledger-heading">Budget ledger</h3><p>Remaining: ${Math.max(0, (activeCycle.budgetTotalCents || 0) - (activeCycle.budgetCommittedCents || 0)) / 100}</p></div>
+                {ledger.length > 0 && <table className="event-ops-table"><caption className="sr-only">Academic-year funding commitments</caption><thead><tr><th scope="col">Request</th><th scope="col">Amount</th><th scope="col">Decision date</th></tr></thead><tbody>{ledger.map((entry) => <tr key={entry._id}><th scope="row">{entry.eventRequestId?.title || entry.eventRequestId?.eventName || "Event request"}</th><td>${(entry.amountCents / 100).toFixed(2)}</td><td>{formatDate(entry.decidedAt)}</td></tr>)}</tbody></table>}
+            </section>}
             <div className={`event-ops-layout${selected ? "" : " event-ops-layout-full"}`}>
                 <div className="event-ops-table-wrapper">
                     <table className="event-ops-table">

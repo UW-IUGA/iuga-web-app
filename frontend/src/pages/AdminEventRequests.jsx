@@ -3,7 +3,7 @@ import EventOperations from "../components/EventOperations";
 import { useAuthContext } from "../context/AuthContext";
 
 function AdminEventRequests() {
-    const { can } = useAuthContext();
+    const { can, activeCycle } = useAuthContext();
 
     return (
         <AdminRoute requiredPermission="events.requests.view">
@@ -13,7 +13,7 @@ function AdminEventRequests() {
                     <h1>Event request administration</h1>
                     <p>Review submissions and coordinate each event from proposal through completion.</p>
                 </header>
-                <EventOperations can={can} />
+                <EventOperations can={can} activeCycle={activeCycle} />
             </main>
         </AdminRoute>
     );

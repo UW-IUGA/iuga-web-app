@@ -138,6 +138,8 @@ In production, the frontend fetches from same-origin API routes:
 
 The public `VITE_API_URL` Docker build argument configures the MSAL redirect URI at build time.
 
+The admin event request form submits the canonical workflow fields (title, date, time, location, purpose, estimated attendance, and funding request in cents). Event detail actions are permission-driven: leadership advances/returns/rejects, the board records an agenda outcome, Finance records funding, PR completes marketing, and PR publication is explicit.
+
 ---
 
 ## Authentication

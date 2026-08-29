@@ -12,6 +12,8 @@ import {
   contactsSchema,
   eventRequestsSchema,
   eventReviewsSchema,
+  auditEntriesSchema,
+  budgetLedgerEntriesSchema,
 } from "./schemas/schemas.js";
 
 let models = {};
@@ -36,6 +38,8 @@ async function connectToDatabase(){
   models.Contacts = mongoose.model("Contacts", contactsSchema);
   models.EventRequests = mongoose.model("EventRequests", eventRequestsSchema);
   models.EventReviews = mongoose.model("EventReviews", eventReviewsSchema);
+  models.AuditEntries = mongoose.model("AuditEntries", auditEntriesSchema);
+  models.BudgetLedgerEntries = mongoose.model("BudgetLedgerEntries", budgetLedgerEntriesSchema);
 
   console.log(`[startup] mongoose models created after ${Date.now() - connectionStartedAt}ms`);
 }

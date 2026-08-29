@@ -62,6 +62,19 @@ router.post("/", requirePermission("users.cycles.manage"), async (req, res) => {
   }
 });
 
+router.get("/:id/ledger", requirePermission("events.finance.manage"), async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id)) return sendError(res, 400, "Invalid cycle ID");
+  try {
+    const entries = typeof req.models.BudgetLedgerEntries?.find === "function"
+      ? await req.models.BudgetLedgerEntries.find({ cycleId: req.params.id }).sort({ decidedAt: -1 }).populate("eventRequestId", "title eventName fundingRequestedCents").populate("decidedBy", "uDisplayName uEmail").lean()
+      : [];
+    return sendSuccess(res, { entries });
+  } catch (error) {
+    console.error(error);
+    return sendError(res, 500);
+  }
+});
+
 router.patch(
   "/:id/close",
   requirePermission("cycles.archive"),

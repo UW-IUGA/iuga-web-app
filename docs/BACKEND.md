@@ -38,6 +38,7 @@ backend/
 │       │   ├── feedback.js       ← Feedback form CRUD
 │       │   ├── roles.js           ← Role catalog and role-assignment API
 │       │   ├── eventRequests.js   ← Event request workflow and operations API
+│       │   ├── utils/eventWorkflow.js ← Canonical request states, transitions, and audit helper
 │       │   ├── cycles.js          ← Academic-year cycle setup and closure
 │       │   ├── charter.js         ← Charter and guideline content
 │       │   ├── journal.js         ← Advocacy journal entries
@@ -138,6 +139,7 @@ Academic-year cycles are explicit date ranges with a half-open active interval: 
 |---|---|---|
 | `GET` | `/` | List academic cycles. Requires `users.cycles.manage`. |
 | `POST` | `/` | Create a cycle with `cycleKey`, `cycleName`, `startsAt`, `endsAt`, and optional integer `budgetTotalCents`. Requires `users.cycles.manage`. |
+| `GET` | `/:id/ledger` | Read immutable funding commitments for a cycle. Requires `events.finance.manage`. |
 | `PATCH` | `/:id/close` | Close a cycle while retaining its history. Requires `cycles.archive`. |
 
 The permission middleware resolves the active cycle from the current timestamp and filters role assignments by that cycle, active assignment state, active role state, and assignment expiration. If no active academic year exists, permission-protected admin requests receive `403`.
@@ -179,7 +181,20 @@ Officer-only event operations use separate EventRequests records before publishi
 | `POST` | `/:id/reviews` | Submit an organizer or distinct-member post-event review. |
 | `GET` | `/:id/reviews` | List post-event reviews. |
 | `POST` | `/:id/complete` | Close an approved request after all checkpoints and both reviews are complete. |
-Money is displayed as dollars and cents in the UI, then converted to an integer number of cents before the API call. For example, `$125.50` becomes `{ "allocatedCents": 12550 }`; the backend never stores floating-point currency.
+Canonical event requests use `DRAFT → PVP_REVIEW → AGENDA → FINANCE_REVIEW → MARKETING_QUEUED → SCHEDULED → AWAITING_REVIEW → REVIEWED → ARCHIVED`, with `REJECTED` terminal. Legacy lowercase statuses remain readable during migration, but new spec-form requests use the canonical states. P/VP advance, return, and reject actions require the leadership permission; agenda outcomes require a discussion note; finance decisions write a cycle ledger entry; PR completion moves an approved request to `SCHEDULED`; and publication is a separate `events.publication.manage` action.
+
+| Method | Path | Permission | Description |
+|---|---|---|---|
+| `POST` | `/:id/advance` | `events.leadership.approve` | Advance a P/VP-reviewed request to the next agenda. |
+| `POST` | `/:id/return` | `events.leadership.approve` | Return a request to draft with a required revision comment. |
+| `POST` | `/:id/reject` | `events.leadership.approve` | Reject a request with a required comment. |
+| `POST` | `/:id/agenda-outcome` | `events.meeting.manage` | Record proceed, table, or decline plus discussion note. |
+| `POST` | `/:id/finance` | `events.finance.manage` | Approve requested/partial funding or deny against the academic-year budget. |
+| `POST` | `/:id/marketing-complete` | `events.marketing.manage` | Complete the PR handoff after funding approval. |
+| `POST` | `/:id/publish` | `events.publication.manage` | Explicitly publish a scheduled event to the public Events collection. |
+| `GET` | `/:id/audit` | `events.requests.view` | Read the append-only decision history. |
+
+Money is displayed as dollars and cents in the UI, then converted to integer cents before the API call. For example, `$125.50` becomes `{ "fundingRequestedCents": 12550 }`; the backend never stores floating-point currency.
 
 ### Administration (`/api/v1/administration`) — *not currently wired*
 

@@ -9,6 +9,7 @@ export const ADMIN_PERMISSIONS = Object.freeze([
   "events.finance.manage",
   "events.room.manage",
   "events.marketing.manage",
+  "events.publication.manage",
   "events.purchases.complete",
   "events.operations.manage",
   "events.review.manage",

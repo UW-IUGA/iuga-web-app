@@ -80,11 +80,13 @@ export function requireOfficerRolePermission(permission) {
       const assignments = await req.models.RoleAssignments.find({
         userId: req.session.userId,
         isActive: true,
+        $or: [{ expiresAt: null }, { expiresAt: { $gt: new Date() } }],
       }).populate("roleId");
 
-      const hasPermission = assignments.some((assignment) =>
-        assignment.roleId?.isActive &&
-        assignment.roleId.permissions.includes(permission),
+      const hasPermission = assignments.some(
+        (assignment) =>
+          assignment.roleId?.isActive &&
+          assignment.roleId.permissions.includes(permission),
       );
 
       if (!hasPermission) {

@@ -110,6 +110,14 @@ app.get('/get-involved', function(req, res) {
     })
 })
 
+app.get('/admin/event-requests', function(req, res) {
+  res.sendFile(path.join(__dirname, '../frontend/build/index.html'), function(err) {
+    if (err) {
+      res.status(500).send(err)
+    }
+  })
+})
+
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 app.use('/api/v1', apiv1Router);

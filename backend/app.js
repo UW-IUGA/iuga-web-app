@@ -118,6 +118,24 @@ app.get('/admin/event-requests', function(req, res) {
   })
 })
 
+app.get('/admin/charter', function(req, res) {
+  res.sendFile(path.join(__dirname, '../frontend/build/index.html'), function(err) {
+    if (err) res.status(500).send(err)
+  })
+})
+
+app.get('/admin/journal', function(req, res) {
+  res.sendFile(path.join(__dirname, '../frontend/build/index.html'), function(err) {
+    if (err) res.status(500).send(err)
+  })
+})
+
+app.get('/admin/contacts', function(req, res) {
+  res.sendFile(path.join(__dirname, '../frontend/build/index.html'), function(err) {
+    if (err) res.status(500).send(err)
+  })
+})
+
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 app.use('/api/v1', apiv1Router);

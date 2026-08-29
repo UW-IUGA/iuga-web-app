@@ -38,6 +38,10 @@ backend/
 │       │   ├── feedback.js       ← Feedback form CRUD
 │       │   ├── roles.js           ← Role catalog and role-assignment API
 │       │   ├── eventRequests.js   ← Event request workflow and operations API
+│       │   ├── cycles.js          ← Academic-year cycle setup and closure
+│       │   ├── charter.js         ← Charter and guideline content
+│       │   ├── journal.js         ← Advocacy journal entries
+│       │   ├── contacts.js        ← Board contact directory
 │       │   └── administration.js ← Officer/committee stubs (not currently mounted — see Administration section)
 │       └── utils/
 │           └── auth.js          ← requireAuth / requireAdmin / requirePermission middleware
@@ -61,6 +65,7 @@ These routes in `app.js` serve the built frontend (`frontend/build/index.html`) 
 | `GET /get-involved` | Get involved page (team, committees, idea engagement) |
 | `GET /electionfaq` | Election FAQ |
 | `GET /contact` | Contact page |
+| `GET /admin/*` | Admin SPA shell for the board workspace |
 
 Each handler reads `../frontend/build/index.html` and sends it. If the build directory is missing, these routes return 500.
 
@@ -118,7 +123,7 @@ These endpoints require the `users.roles.manage` permission. They manage role de
 | `PATCH` | `/:id` | Update role details without changing `roleKey` |
 | `GET` | `/users?search=` | Search users by display name, email, or NetID |
 | `GET` | `/users/:id/assignments` | Read a user's active role assignments |
-| `POST` | `/users/:id/assignments` | Assign an active role to a user. Body: `{ roleId, committeeId?, reportsToUserId?, expiresAt? }` |
+| `POST` | `/users/:id/assignments` | Assign an active role to a user for an academic year. Body: `{ roleId, cycleId, committeeId?, reportsToUserId?, expiresAt? }` |
 | `DELETE` | `/users/:id/assignments/:assignmentId` | Deactivate an assignment without deleting its history |
 
 `roleName` is the display name. `roleKey` is the stable internal identifier, such as `finance_director`. The API validates role keys, field lengths, booleans, and recognized permissions. It returns only deliberate user identity fields during search.
@@ -136,6 +141,21 @@ Academic-year cycles are explicit date ranges with a half-open active interval: 
 | `PATCH` | `/:id/close` | Close a cycle while retaining its history. Requires `cycles.archive`. |
 
 The permission middleware resolves the active cycle from the current timestamp and filters role assignments by that cycle, active assignment state, active role state, and assignment expiration. If no active academic year exists, permission-protected admin requests receive `403`.
+
+### Institutional memory (`/api/v1/charter`, `/api/v1/journal`, `/api/v1/contacts`)
+
+These routes are available only through named permissions and keep board reference material separate from public pages. Charter readers can list sections or deep-link to one section; charter managers can edit content, with each prior version retained in revision history. Journal entries derive `authorId` and the active academic `cycleId` from the session; only the author can edit an entry. Contacts are searchable by name, organization, and notes, and contact creation derives the relationship owner from the session.
+
+| Method | Path | Permission | Description |
+|---|---|---|---|
+| `GET` | `/charter` or `/charter/:sectionKey` | `charter.read` | Read charter/guideline sections. |
+| `PATCH` | `/charter/:sectionKey` | `charter.manage` | Update a section and append its previous content to revision history. |
+| `GET` | `/journal` | `journal.read` | Filter advocacy entries by author, tag, and date range. |
+| `POST` | `/journal` | `journal.create` | Create an anonymized advocacy entry for the signed-in author. |
+| `PATCH` | `/journal/:id` | `journal.edit_own` | Edit only the signed-in author's entry. |
+| `GET` | `/contacts` | `contacts.read` | Search the private contact directory and show linked event history. |
+| `POST` | `/contacts` | `contacts.manage` | Create a contact owned by the signed-in user. |
+| `PATCH` | `/contacts/:id` | `contacts.manage` | Update contact details. |
 
 ### Event administration (`/api/v1/event-requests`)
 

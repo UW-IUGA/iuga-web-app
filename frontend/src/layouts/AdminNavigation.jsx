@@ -12,6 +12,9 @@ function AdminNavigation() {
             </div>
             <nav aria-label="Admin navigation" className="adminNavigation__links">
                 {can("events.requests.view") && <NavLink to="/admin/event-requests">Event requests</NavLink>}
+                {can("charter.read") && <NavLink to="/admin/charter">Charter</NavLink>}
+                {can("journal.read") && <NavLink to="/admin/journal">Journal</NavLink>}
+                {can("contacts.read") && <NavLink to="/admin/contacts">Contacts</NavLink>}
             </nav>
             <Link to="/" className="adminNavigation__exit">Back to student site</Link>
         </header>

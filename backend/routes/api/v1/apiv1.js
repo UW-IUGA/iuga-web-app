@@ -7,6 +7,9 @@ import feedbackRouter from "./controllers/feedback.js";
 import rolesRouter from "./controllers/roles.js";
 import eventRequestsRouter from "./controllers/eventRequests.js";
 import cyclesRouter from "./controllers/cycles.js";
+import charterRouter from "./controllers/charter.js";
+import journalRouter from "./controllers/journal.js";
+import contactsRouter from "./controllers/contacts.js";
 
 router.use("/user", usersRouter);
 router.use("/events", eventsRouter);
@@ -14,5 +17,8 @@ router.use("/feedback", feedbackRouter);
 router.use("/roles", rolesRouter);
 router.use("/event-requests", eventRequestsRouter);
 router.use("/cycles", cyclesRouter);
+router.use("/charter", charterRouter);
+router.use("/journal", journalRouter);
+router.use("/contacts", contactsRouter);
 
 export default router;

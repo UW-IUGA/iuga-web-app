@@ -1,6 +1,9 @@
 import HomePage from "./pages/Home";
 import EventsPage from "./pages/Events";
 import AdminEventRequests from "./pages/AdminEventRequests";
+import AdminCharter from "./pages/AdminCharter";
+import AdminJournal from "./pages/AdminJournal";
+import AdminContacts from "./pages/AdminContacts";
 import ResourcesPage from "./pages/Resources";
 import ElectionPage from "./pages/Elections";
 import ElectionsFAQPage from "./pages/ElectionsFAQ";
@@ -71,6 +74,9 @@ function App() {
                 </Route>
                 <Route element={<AdminLayout />}>
                     <Route path="/admin/event-requests" element={<AdminEventRequests />} />
+                    <Route path="/admin/charter" element={<AdminCharter />} />
+                    <Route path="/admin/journal" element={<AdminJournal />} />
+                    <Route path="/admin/contacts" element={<AdminContacts />} />
                 </Route>
             </Routes>
         </div>

@@ -56,7 +56,10 @@ frontend/src/
 │   ├── GetInvolved.jsx   ← Team, committee, and idea-engagement page
 │   ├── Elections.jsx     ← Candidate profiles for current election
 │   ├── ElectionsFAQ.jsx  ← FAQ accordion about elections
-│   └── AdminEventRequests.jsx ← Admin event request workspace
+│   ├── AdminEventRequests.jsx ← Admin event request workspace
+│   ├── AdminCharter.jsx        ← Charter and guideline reference
+│   ├── AdminJournal.jsx        ← Advocacy journal
+│   └── AdminContacts.jsx       ← Private contact directory
 └── stylesheets/
     ├── main.scss          ← Central import file (7-1 architecture)
     ├── abstracts/         ← Variables, mixins, functions, media queries
@@ -104,6 +107,10 @@ Defined in `src/App.jsx`:
 | `/elections` | `ElectionPage` | Static data from `assets/data/CandidateData.js` |
 | `/electionfaq` | `ElectionsFAQPage` | Static data from `assets/data/ElectionFAQData.js` |
 | `/get-involved` | `GetInvolvedPage` | Static data from `frontend/src/assets/data/teams/2026.js` (2026 roster, no API) |
+| `/admin/event-requests` | `AdminEventRequests` | Authenticated admin API |
+| `/admin/charter` | `AdminCharter` | `GET/PATCH /api/v1/charter` |
+| `/admin/journal` | `AdminJournal` | `GET/POST/PATCH /api/v1/journal` |
+| `/admin/contacts` | `AdminContacts` | `GET/POST/PATCH /api/v1/contacts` |
 
 The backend also serves `index.html` for each of these paths to enable deep linking (see [BACKEND.md](./BACKEND.md#spa-routes)).
 

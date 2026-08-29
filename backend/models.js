@@ -7,6 +7,9 @@ import {
   rolesSchema,
   roleAssignmentsSchema,
   cyclesSchema,
+  charterDocumentsSchema,
+  journalEntriesSchema,
+  contactsSchema,
   eventRequestsSchema,
   eventReviewsSchema,
 } from "./schemas/schemas.js";
@@ -28,6 +31,9 @@ async function connectToDatabase(){
   models.Roles = mongoose.model("Roles", rolesSchema);
   models.RoleAssignments = mongoose.model("RoleAssignments", roleAssignmentsSchema);
   models.Cycles = mongoose.model("Cycles", cyclesSchema);
+  models.CharterDocuments = mongoose.model("CharterDocuments", charterDocumentsSchema);
+  models.JournalEntries = mongoose.model("JournalEntries", journalEntriesSchema);
+  models.Contacts = mongoose.model("Contacts", contactsSchema);
   models.EventRequests = mongoose.model("EventRequests", eventRequestsSchema);
   models.EventReviews = mongoose.model("EventReviews", eventReviewsSchema);
 

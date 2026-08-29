@@ -73,6 +73,75 @@
     text-decoration: none;
 }
 
+.adminMemoryLayout {
+    display: grid;
+    grid-template-columns: minmax(12rem, 16rem) 1fr;
+    gap: $grid-gap;
+}
+
+.adminMemoryNav,
+.adminMemoryList {
+    display: grid;
+    gap: 12px;
+}
+
+.adminMemoryCard {
+    padding: 1.5rem;
+
+    h2 {
+        margin-top: 0;
+    }
+}
+
+.adminMemoryContent {
+    white-space: pre-wrap;
+    line-height: 1.7;
+}
+
+.adminMemoryForm {
+    display: grid;
+    gap: 12px;
+    max-width: 48rem;
+    margin-bottom: $grid-gap;
+}
+
+.adminMemoryGuidance {
+    color: $dark-gray;
+    font-size: 0.9rem;
+}
+
+.adminMemoryEmpty {
+    color: $dark-gray;
+}
+
+.adminMemoryOwner {
+    display: block;
+    margin-top: 12px;
+    color: $color-primary;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.adminMemoryFormActions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.text-button {
+    border: 0;
+    padding: 0;
+    color: $color-primary;
+    background: transparent;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.adminSearchLabel {
+    max-width: 34rem;
+    margin-bottom: $grid-gap;
+}
+
 @include media("screen", "<tablet") {
     .adminNavigation {
         align-items: flex-start;
@@ -86,6 +155,10 @@
 
     .adminNavigation__exit {
         font-size: 0.8rem;
+    }
+
+    .adminMemoryLayout {
+        grid-template-columns: 1fr;
     }
 }
 

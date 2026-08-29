@@ -6,6 +6,7 @@ import {
   feedbackSchema,
   rolesSchema,
   roleAssignmentsSchema,
+  cyclesSchema,
   eventRequestsSchema,
   eventReviewsSchema,
 } from "./schemas/schemas.js";
@@ -26,6 +27,7 @@ async function connectToDatabase(){
   models.Feedback = mongoose.model("Feedback", feedbackSchema);
   models.Roles = mongoose.model("Roles", rolesSchema);
   models.RoleAssignments = mongoose.model("RoleAssignments", roleAssignmentsSchema);
+  models.Cycles = mongoose.model("Cycles", cyclesSchema);
   models.EventRequests = mongoose.model("EventRequests", eventRequestsSchema);
   models.EventReviews = mongoose.model("EventReviews", eventReviewsSchema);
 
@@ -34,4 +36,3 @@ async function connectToDatabase(){
 
 //Ship the models variable with all the schemas in it to be used externally.
 export { models, connectToDatabase };
-

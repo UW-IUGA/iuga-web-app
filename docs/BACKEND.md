@@ -123,7 +123,19 @@ These endpoints require the `users.roles.manage` permission. They manage role de
 
 `roleName` is the display name. `roleKey` is the stable internal identifier, such as `finance_director`. The API validates role keys, field lengths, booleans, and recognized permissions. It returns only deliberate user identity fields during search.
 
-Assignment creation validates the target user, role, optional committee, optional reporting user, expiration date, duplicate active assignments, inactive roles, and self-reporting. Assignment creation records `assignedBy` from the authenticated session. Deactivation records `deactivatedBy` and `deactivatedAt` while preserving the assignment record.
+Assignment creation validates the target user, role, academic cycle, optional committee, optional reporting user, expiration date, duplicate active user/role/cycle assignments, inactive/closed records, and self-reporting. Assignment creation records `assignedBy` from the authenticated session. Deactivation records `deactivatedBy` and `deactivatedAt` while preserving the assignment record.
+
+### Academic cycles (`/api/v1/cycles`)
+
+Academic-year cycles are explicit date ranges with a half-open active interval: a cycle is active at or after `startsAt` and before `endsAt`. Role assignments reference `cycleId`; assignments remain stored after a cycle closes but no longer contribute permissions outside the active cycle.
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/` | List academic cycles. Requires `users.cycles.manage`. |
+| `POST` | `/` | Create a cycle with `cycleKey`, `cycleName`, `startsAt`, `endsAt`, and optional integer `budgetTotalCents`. Requires `users.cycles.manage`. |
+| `PATCH` | `/:id/close` | Close a cycle while retaining its history. Requires `cycles.archive`. |
+
+The permission middleware resolves the active cycle from the current timestamp and filters role assignments by that cycle, active assignment state, active role state, and assignment expiration. If no active academic year exists, permission-protected admin requests receive `403`.
 
 ### Event administration (`/api/v1/event-requests`)
 

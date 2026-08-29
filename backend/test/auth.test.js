@@ -83,10 +83,27 @@ describe("requireAdmin", () => {
 });
 
 describe("requirePermission", () => {
-  function requestWithAssignments(assignments) {
+  const activeCycle = {
+    _id: "cycle-2026",
+    cycleKey: "2026-2027",
+    startsAt: new Date("2026-09-01T00:00:00Z"),
+    endsAt: new Date("2027-09-01T00:00:00Z"),
+    status: "active",
+  };
+
+  function requestWithAssignments(assignments, cycle = activeCycle) {
     return {
       session: { isAuthenticated: true, isAdmin: false, userId: "user-1" },
       models: {
+        Cycles: {
+          findOne() {
+            return {
+              async lean() {
+                return cycle;
+              },
+            };
+          },
+        },
         RoleAssignments: {
           find() {
             return {
@@ -138,6 +155,33 @@ describe("requirePermission", () => {
         roleId: { isActive: true, permissions: ["users.roles.manage"] },
       },
     ]);
+    const res = makeFakeRes();
+
+    await requirePermission("users.roles.manage")(req, res, () => {});
+
+    assert.strictEqual(res.statusCode, 403);
+    assert.strictEqual(res.body.message, "Not authorized");
+  });
+
+  it("ignores permissions from assignments in another academic year", async () => {
+    const req = requestWithAssignments([
+      {
+        cycleId: "cycle-2025",
+        roleId: { isActive: true, permissions: ["users.roles.manage"] },
+      },
+    ]);
+    const res = makeFakeRes();
+
+    await requirePermission("users.roles.manage")(req, res, () => {});
+
+    assert.strictEqual(res.statusCode, 403);
+    assert.strictEqual(res.body.message, "Not authorized");
+  });
+
+  it("rejects permission checks when no academic year is active", async () => {
+    const req = requestWithAssignments([
+      { roleId: { isActive: true, permissions: ["users.roles.manage"] } },
+    ], null);
     const res = makeFakeRes();
 
     await requirePermission("users.roles.manage")(req, res, () => {});

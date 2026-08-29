@@ -9,7 +9,7 @@ import express from "express";
 import { sendError } from "../helpers/sendError.js";
 import { sendSuccess } from "../helpers/sendSuccess.js";
 import { requireAuth } from "../utils/auth.js";
-import { getEffectivePermissions } from "../utils/permissions.js";
+import { getEffectiveAuthorization } from "../utils/permissions.js";
 
 var router = express.Router();
 const GRAPH_PROFILE_URL = "https://graph.microsoft.com/v1.0/me";
@@ -154,9 +154,9 @@ router.post("/login", async function (req, res) {
     req.session.userId = user._id;
     req.session.memberType = user.uType;
     req.session.isAdmin = user.uType === "Admin";
-    const permissions = await getEffectivePermissions(req);
+    const { cycle, permissions } = await getEffectiveAuthorization(req);
     const userResponse = user.toObject ? user.toObject() : user;
-    return res.status(200).json({ ...userResponse, permissions });
+    return res.status(200).json({ ...userResponse, permissions, activeCycle: cycle });
   } catch (error) {
     console.error("Login persistence failed:", error?.message);
     return sendError(res, 500);
@@ -176,7 +176,7 @@ router.post("/logout", requireAuth, function (req, res, next) {
 //Get the user's specific information from the user's perspective, from an outsider perspective, and from the admin perspective
 router.get("/", requireAuth, async function (req, res) {
   try {
-    const permissions = await getEffectivePermissions(req);
+    const { cycle, permissions } = await getEffectiveAuthorization(req);
     return res.status(200).json({
       firstName: req.session.firstName,
       lastName: req.session.lastName,
@@ -184,6 +184,7 @@ router.get("/", requireAuth, async function (req, res) {
       email: req.session.email,
       memberType: req.session.memberType,
       permissions,
+      activeCycle: cycle,
     });
   } catch (error) {
     console.error("Failed to load authorization context:", error?.message);

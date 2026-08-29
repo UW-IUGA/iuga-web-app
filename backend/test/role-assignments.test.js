@@ -6,10 +6,12 @@ import { makeTestApi } from "./testApi.js";
 const userId = "507f1f77bcf86cd799439011";
 const roleId = "507f1f77bcf86cd799439012";
 const assignmentId = "507f1f77bcf86cd799439013";
+const cycleId = "507f1f77bcf86cd799439014";
 
 function makeModels({
   existingAssignment = null,
   roleActive = true,
+  cycleStatus = "active",
   updatedAssignment = null,
 } = {}) {
   return {
@@ -21,6 +23,11 @@ function makeModels({
     Roles: {
       async findById(id) {
         return id === roleId ? { _id: roleId, isActive: roleActive } : null;
+      },
+    },
+    Cycles: {
+      async findById(id) {
+        return id === cycleId ? { _id: cycleId, status: cycleStatus } : null;
       },
     },
     Committees: {
@@ -72,13 +79,14 @@ describe("role assignment API", () => {
     const result = await api.request(
       "POST",
       `/api/v1/roles/users/${userId}/assignments`,
-      { roleId },
+      { roleId, cycleId },
     );
 
     assert.equal(result.status, 201);
     assert.equal(result.body.status, "success");
     assert.equal(result.body.assignment.userId, userId);
     assert.equal(result.body.assignment.roleId, roleId);
+    assert.equal(result.body.assignment.cycleId, cycleId);
     assert.equal(result.body.assignment.assignedBy, "507f1f77bcf86cd799439014");
     assert.equal(result.body.assignment.isActive, true);
   });
@@ -105,11 +113,22 @@ describe("role assignment API", () => {
     assert.equal(result.body.message, "Invalid role ID");
   });
 
-  it("rejects a duplicate active role assignment", async () => {
+  it("rejects an assignment without a cycle ID", async () => {
     const result = await api.request(
       "POST",
       `/api/v1/roles/users/${userId}/assignments`,
       { roleId },
+    );
+
+    assert.equal(result.status, 400);
+    assert.equal(result.body.message, "Invalid cycle ID");
+  });
+
+  it("rejects a duplicate active role assignment", async () => {
+    const result = await api.request(
+      "POST",
+      `/api/v1/roles/users/${userId}/assignments`,
+      { roleId, cycleId },
       { models: makeModels({ existingAssignment: { _id: assignmentId } }) },
     );
 
@@ -121,7 +140,7 @@ describe("role assignment API", () => {
     const result = await api.request(
       "POST",
       `/api/v1/roles/users/${userId}/assignments`,
-      { roleId },
+      { roleId, cycleId },
       { models: makeModels({ roleActive: false }) },
     );
 
@@ -129,11 +148,23 @@ describe("role assignment API", () => {
     assert.equal(result.body.message, "Role is inactive");
   });
 
+  it("rejects an assignment to a closed academic year", async () => {
+    const result = await api.request(
+      "POST",
+      `/api/v1/roles/users/${userId}/assignments`,
+      { roleId, cycleId },
+      { models: makeModels({ cycleStatus: "closed" }) },
+    );
+
+    assert.equal(result.status, 409);
+    assert.equal(result.body.message, "Cycle is closed");
+  });
+
   it("rejects a user reporting to themselves", async () => {
     const result = await api.request(
       "POST",
       `/api/v1/roles/users/${userId}/assignments`,
-      { roleId, reportsToUserId: userId },
+      { roleId, cycleId, reportsToUserId: userId },
     );
 
     assert.equal(result.status, 400);

@@ -11,7 +11,6 @@ import ShopPage from "./pages/Shop";
 import { ToastContainer, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Route, Routes } from "react-router-dom";
-import Navbar from "./layouts/Navbar";
 import { useState, useEffect } from "react";
 import { mockCalendarData } from "./assets/mock-data/MockCalendarData";
 import { enrichWithDevThumbnails } from "./utils/devThumbnails";
@@ -19,12 +18,11 @@ import { resources } from "./assets/data/ResourcesData";
 import { iugaCandidates } from "./assets/data/CandidateData";
 import { electionFAQ } from "./assets/data/ElectionFAQData";
 import { iugaTeams } from "./assets/data/AboutData";
-import { useAuthContext } from "./context/AuthContext";
-import Footer from "./layouts/Footer";
+import PublicLayout from "./layouts/PublicLayout";
+import AdminLayout from "./layouts/AdminLayout";
 import { isProduction } from "./runtime";
 
 function App() {
-    const { signIn, signOut } = useAuthContext();
     const [upcomingEvents, setUpcomingEvents] = useState([]);
 
     useEffect(() => {
@@ -59,20 +57,22 @@ function App() {
                 theme="light"
                 transition={Bounce}
             />
-            <Navbar signIn={signIn} signOut={signOut} />
             <Routes>
-                <Route path="/" element={<HomePage upcomingEvents={upcomingEvents} />} />
-                <Route path="/events" element={<EventsPage />} />
-                <Route path="/admin/event-requests" element={<AdminEventRequests />} />
-                <Route path="/resources" element={<ResourcesPage resources={resources} />} />
-                <Route path="/student-voice" element={<StudentVoicePage />} />
-                <Route path="/shop" element={<ShopPage />} />
-                <Route path="/elections" element={<ElectionPage candidates={iugaCandidates} />} />
-                <Route path="/electionfaq" element={<ElectionsFAQPage electionFAQ={electionFAQ} />} />
-                <Route path="/about" element={<AboutPage teams={iugaTeams} />} />
-                <Route path="/get-involved" element={<GetInvolvedPage />} />
+                <Route element={<PublicLayout />}>
+                    <Route path="/" element={<HomePage upcomingEvents={upcomingEvents} />} />
+                    <Route path="/events" element={<EventsPage />} />
+                    <Route path="/resources" element={<ResourcesPage resources={resources} />} />
+                    <Route path="/student-voice" element={<StudentVoicePage />} />
+                    <Route path="/shop" element={<ShopPage />} />
+                    <Route path="/elections" element={<ElectionPage candidates={iugaCandidates} />} />
+                    <Route path="/electionfaq" element={<ElectionsFAQPage electionFAQ={electionFAQ} />} />
+                    <Route path="/about" element={<AboutPage teams={iugaTeams} />} />
+                    <Route path="/get-involved" element={<GetInvolvedPage />} />
+                </Route>
+                <Route element={<AdminLayout />}>
+                    <Route path="/admin/event-requests" element={<AdminEventRequests />} />
+                </Route>
             </Routes>
-            <Footer />
         </div>
     );
 }

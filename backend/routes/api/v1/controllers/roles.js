@@ -15,6 +15,7 @@ import mongoose from "mongoose";
 import { sendError } from "../helpers/sendError.js";
 import { sendSuccess } from "../helpers/sendSuccess.js";
 import { requirePermission } from "../utils/auth.js";
+import { KNOWN_ADMIN_PERMISSIONS } from "../utils/permissionCatalog.js";
 
 const router = express.Router();
 
@@ -22,19 +23,7 @@ const ROLE_NAME_MAX_LENGTH = 80;
 const ROLE_KEY_MAX_LENGTH = 80;
 const ROLE_DESCRIPTION_MAX_LENGTH = 500;
 
-const knownPermissions = new Set([
-  "users.roles.manage",
-  "events.requests.view",
-  "events.requests.create",
-  "events.requests.edit",
-  "events.leadership.approve",
-  "events.finance.manage",
-  "events.room.manage",
-  "events.marketing.manage",
-  "events.purchases.complete",
-  "events.operations.manage",
-  "events.review.manage",
-]);
+const knownPermissions = KNOWN_ADMIN_PERMISSIONS;
 
 function escapeRegex(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -222,10 +211,15 @@ router.get(
     }
 
     try {
-      const assignments = await req.models.RoleAssignments.find({
-        userId: req.params.id,
-        isActive: true,
-      })
+      const filter = { userId: req.params.id, isActive: true };
+      if (req.query.cycleId !== undefined) {
+        if (!mongoose.isValidObjectId(req.query.cycleId)) {
+          return sendError(res, 400, "Invalid cycle ID");
+        }
+        filter.cycleId = req.query.cycleId;
+      }
+
+      const assignments = await req.models.RoleAssignments.find(filter)
         .populate("roleId")
         .populate("committeeId")
         .populate("reportsToUserId", "uDisplayName uEmail")
@@ -251,10 +245,13 @@ router.post(
       return sendError(res, 400, "Invalid user ID");
     }
 
-    const { roleId, committeeId, reportsToUserId, expiresAt } = req.body ?? {};
+    const { roleId, cycleId, committeeId, reportsToUserId, expiresAt } = req.body ?? {};
 
     if (!roleId || !mongoose.isValidObjectId(roleId)) {
       return sendError(res, 400, "Invalid role ID");
+    }
+    if (!cycleId || !mongoose.isValidObjectId(cycleId)) {
+      return sendError(res, 400, "Invalid cycle ID");
     }
 
     if (isProvided(committeeId) && !mongoose.isValidObjectId(committeeId)) {
@@ -290,6 +287,14 @@ router.post(
         return sendError(res, 409, "Role is inactive");
       }
 
+      const cycle = await req.models.Cycles.findById(cycleId);
+      if (!cycle) {
+        return sendError(res, 404, "Cycle not found");
+      }
+      if (cycle.status === "closed") {
+        return sendError(res, 409, "Cycle is closed");
+      }
+
       if (isProvided(committeeId)) {
         const committee = await req.models.Committees.findById(committeeId);
         if (!committee) {
@@ -310,6 +315,7 @@ router.post(
       const existingAssignment = await req.models.RoleAssignments.findOne({
         userId: req.params.id,
         roleId,
+        cycleId,
         isActive: true,
       });
       if (existingAssignment) {
@@ -319,6 +325,7 @@ router.post(
       const assignment = await req.models.RoleAssignments.create({
         userId: req.params.id,
         roleId,
+        cycleId,
         committeeId: committeeId ?? null,
         reportsToUserId: reportsToUserId ?? null,
         assignedBy: req.session.userId,

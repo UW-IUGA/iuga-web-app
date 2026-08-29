@@ -61,7 +61,6 @@ function Navbar({ signIn, signOut }) {
                     <NavLink to="/about" onClick={handleNavigation}><FontAwesomeIcon icon={faUsers} aria-hidden="true" /><span>About Us</span></NavLink>
                     <NavLink to="/shop" onClick={handleNavigation}><FontAwesomeIcon icon={faShirt} aria-hidden="true" /><span>Shop</span></NavLink>
                     <NavLink to="/get-involved" onClick={handleNavigation}><FontAwesomeIcon icon={faHand} aria-hidden="true" /><span>Get Involved</span></NavLink>
-                    {isAuthenticated && can("events.requests.view") && <NavLink to="/admin/event-requests" onClick={handleNavigation}><FontAwesomeIcon icon={faUsers} aria-hidden="true" /><span>Admin</span></NavLink>}
                     <span></span>
                     <div className="nav-auth">
                         {isAuthenticated ? (
@@ -82,6 +81,7 @@ function Navbar({ signIn, signOut }) {
                         <div className="nav-account-copy">
                             <strong>Welcome back, {userGreeting || "there"}</strong>
                             <span>{userType}</span>
+                            {isAuthenticated && can("events.requests.view") && <NavLink to="/admin/event-requests" className="nav-account-admin-link">Open board workspace</NavLink>}
                         </div>
                         <button type="button" className="nav-account-logout" onClick={signOut} aria-label="Logout">
                             <FontAwesomeIcon icon={faRightFromBracket} aria-hidden="true" />

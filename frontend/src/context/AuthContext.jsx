@@ -79,11 +79,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   const permissions = user?.permissions || [];
+  const activeCycle = user?.activeCycle || null;
   const can = (permission) => permissions.includes(permission);
   const isAdmin = user?.uType === "Admin" || permissions.length > 0;
 
   return (
-    <AuthContext.Provider value={{ user, permissions, can, isAuthenticated, isAdmin, authLoading, authError, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, permissions, activeCycle, can, isAuthenticated, isAdmin, authLoading, authError, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );

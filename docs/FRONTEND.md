@@ -44,7 +44,10 @@ frontend/src/
 │   └── useAuth.jsx       ← MSAL token acquisition + backend handshake
 ├── layouts/
 │   ├── Navbar.jsx        ← Shared responsive navigation: desktop sidebar rail and mobile navbar with hamburger menu
-│   └── Footer.jsx
+│   ├── Footer.jsx
+│   ├── PublicLayout.jsx  ← Public route shell
+│   ├── AdminLayout.jsx   ← Admin route shell
+│   └── AdminNavigation.jsx ← Admin-only navigation and context switch
 ├── pages/
 │   ├── Home.jsx          ← Landing page: hero, WHO WE ARE cards, upcoming events
 │   ├── Events.jsx        ← Calendar view (desktop only; mobile shows "under construction")
@@ -52,7 +55,8 @@ frontend/src/
 │   ├── About.jsx         ← Team member cards by year
 │   ├── GetInvolved.jsx   ← Team, committee, and idea-engagement page
 │   ├── Elections.jsx     ← Candidate profiles for current election
-│   └── ElectionsFAQ.jsx  ← FAQ accordion about elections
+│   ├── ElectionsFAQ.jsx  ← FAQ accordion about elections
+│   └── AdminEventRequests.jsx ← Admin event request workspace
 └── stylesheets/
     ├── main.scss          ← Central import file (7-1 architecture)
     ├── abstracts/         ← Variables, mixins, functions, media queries
@@ -76,6 +80,15 @@ markup at every breakpoint. Its presentation is split across these partials:
 Use the shared variables in `stylesheets/abstracts/_variables.scss` for layout
 tokens such as `$radius-pill`, `$radius-card`, and `$pill-height`. Avoid hard-coded
 navigation radii or dimensions in page styles.
+
+### Admin surface
+
+Admin routes live under `/admin` and render through `layouts/AdminLayout.jsx`, which
+owns admin navigation and does not render the public `Navbar` or `Footer`. Public
+pages provide only an authenticated account-level link into the board workspace.
+Each admin page must wrap its content with `components/AdminRoute.jsx` and use the
+permission contract exposed by `context/AuthContext.jsx`; client checks control
+presentation only, while the backend remains the authorization boundary.
 
 ---
 

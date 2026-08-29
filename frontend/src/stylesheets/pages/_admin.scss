@@ -3,6 +3,92 @@
     padding-bottom: 5rem;
 }
 
+.adminSurface {
+    min-height: 100vh;
+    background: $color-light-gray;
+}
+
+.adminSurface__content {
+    min-height: 100vh;
+}
+
+.adminNavigation {
+    display: flex;
+    align-items: center;
+    gap: $grid-gap;
+    padding: $padding-box-y $padding-content;
+    border-bottom: 1px solid rgba($color-uw-purple, 0.12);
+    background: white;
+}
+
+.adminNavigation__heading {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    color: $dark-gray;
+    font-size: 0.85rem;
+}
+
+.adminNavigation__brand,
+.adminNavigation__exit {
+    color: $color-uw-purple;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.adminNavigation__brand {
+    font-family: $serif;
+    font-size: 1.4rem;
+}
+
+.adminNavigation__links {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+
+    a {
+        padding: 8px 12px;
+        border-radius: $radius-pill;
+        color: $color-primary;
+        text-decoration: none;
+        font-weight: 700;
+
+        &.active,
+        &:hover {
+            background: $cta-lavender;
+        }
+    }
+}
+
+.adminNavigation__exit {
+    font-size: 0.9rem;
+}
+
+.nav-account-admin-link {
+    display: block;
+    margin-top: 4px;
+    color: $color-primary;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+@include media("screen", "<tablet") {
+    .adminNavigation {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .adminNavigation__links {
+        width: 100%;
+    }
+
+    .adminNavigation__exit {
+        font-size: 0.8rem;
+    }
+}
+
 .adminPageHeader {
     max-width: 48rem;
     margin-bottom: 3rem;

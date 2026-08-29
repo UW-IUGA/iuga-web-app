@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 
 const API_PATH = "/api/v1/event-requests";
+const adminPreviewEnabled = import.meta.env.DEV && import.meta.env.VITE_ADMIN_PREVIEW === "true";
 const CHECKPOINTS = [
     ["proposal", "Proposal"],
     ["meeting", "Meeting"],
@@ -152,7 +153,7 @@ function EventRequestForm({ onCreated, onCancel, activeCycle }) {
     );
 }
 
-function EventDetail({ request, onUpdate, can }) {
+function EventDetail({ request, onUpdate, onDelete, can, adminPreview }) {
     const [budget, setBudget] = useState({});
     const [booking, setBooking] = useState({});
     const [review, setReview] = useState({});
@@ -221,6 +222,21 @@ function EventDetail({ request, onUpdate, can }) {
     const askForReason = (action, label) => {
         const reason = window.prompt(label);
         if (reason?.trim()) reviewAction(action, reason.trim());
+    };
+
+    const deleteTestData = async () => {
+        const confirmation = window.prompt("This permanently deletes the test request and related preview records. Type DELETE TEST REQUEST to continue.");
+        if (confirmation !== "DELETE TEST REQUEST") return;
+        try {
+            const data = await apiRequest(`/${request._id}/test-data`, {
+                method: "DELETE",
+                body: JSON.stringify({ confirmation }),
+            });
+            onDelete(request._id, data.cycle);
+            toast.success("Test request deleted.");
+        } catch (error) {
+            toast.error(error.message);
+        }
     };
 
     const saveBudget = (event) => {
@@ -297,6 +313,12 @@ function EventDetail({ request, onUpdate, can }) {
             {request.status === "MARKETING_QUEUED" && can("events.marketing.manage") && <div className="event-ops-actions"><button className="cta-secondary" onClick={() => postAction("/marketing-complete")}>Mark marketing complete</button></div>}
             {request.status === "SCHEDULED" && can("events.publication.manage") && !request.publishedEventId && <div className="event-ops-actions"><button className="cta-secondary" onClick={() => postAction("/publish")}>Publish event</button></div>}
 
+            {adminPreview && <section className="event-ops-detail-section event-ops-preview-cleanup">
+                <h4>Development cleanup</h4>
+                <p>This local preview action also removes related notifications, reviews, audit entries, and ledger records.</p>
+                <button type="button" className="event-ops-danger" onClick={deleteTestData}>Delete preview request</button>
+            </section>}
+
             <section className="event-ops-detail-section">
                 <h4>Checkpoint progress</h4>
                 <div className="event-ops-checkpoint-list">
@@ -363,7 +385,7 @@ function EventDetail({ request, onUpdate, can }) {
     );
 }
 
-function EventOperations({ isAdmin = false, can: canPermission, activeCycle }) {
+function EventOperations({ isAdmin = false, can: canPermission, activeCycle, adminPreview = adminPreviewEnabled }) {
     const can = canPermission || (() => isAdmin);
     const canView = can("events.requests.view");
     const canCreate = can("events.requests.create");
@@ -373,6 +395,9 @@ function EventOperations({ isAdmin = false, can: canPermission, activeCycle }) {
     const [ledger, setLedger] = useState([]);
     const [filters, setFilters] = useState({ year: "", quarter: "", week: "", stage: "", requester: "", search: "" });
     const [error, setError] = useState("");
+    const [cycleBudget, setCycleBudget] = useState(activeCycle);
+
+    useEffect(() => setCycleBudget(activeCycle), [activeCycle]);
 
     useEffect(() => {
         if (!canView) return;
@@ -382,12 +407,12 @@ function EventOperations({ isAdmin = false, can: canPermission, activeCycle }) {
     }, [canView]);
 
     useEffect(() => {
-        if (!activeCycle?._id || !can("events.finance.manage")) return;
-        fetch(`/api/v1/cycles/${activeCycle._id}/ledger`, { credentials: "include" })
+        if (!cycleBudget?._id || !can("events.finance.manage")) return;
+        fetch(`/api/v1/cycles/${cycleBudget._id}/ledger`, { credentials: "include" })
             .then((response) => response.json())
             .then((data) => setLedger(data.entries || []))
             .catch((requestError) => setError(requestError.message));
-    }, [activeCycle?._id, can]);
+    }, [cycleBudget?._id, can]);
 
     const years = useMemo(() => [...new Set(requests.map((request) => new Date(request.proposedStartDate).getFullYear()))].sort(), [requests]);
     const requesters = useMemo(() => [...new Set(requests.map((request) => request.requestingGroup).filter(Boolean))].sort(), [requests]);
@@ -414,6 +439,12 @@ function EventOperations({ isAdmin = false, can: canPermission, activeCycle }) {
     };
 
     const updateRequest = (updated) => setRequests((current) => current.map((request) => request._id === updated._id ? updated : request));
+    const deleteRequest = (requestId, cycle) => {
+        setRequests((current) => current.filter((request) => request._id !== requestId));
+        setLedger((current) => current.filter((entry) => String(entry.eventRequestId?._id || entry.eventRequestId) !== requestId));
+        setSelectedId(null);
+        if (cycle) setCycleBudget((current) => current ? { ...current, ...cycle } : current);
+    };
     const addRequest = (created) => {
         setRequests((current) => current.some((request) => request._id === created._id)
             ? current.map((request) => request._id === created._id ? created : request)
@@ -430,7 +461,7 @@ function EventOperations({ isAdmin = false, can: canPermission, activeCycle }) {
                 <div><span className="event-ops-kicker">Officer workspace</span><h2 id="event-operations-heading">Event operations</h2><p>Track requests from proposal through post-event review.</p></div>
                 {canCreate && <button className="cta-secondary" onClick={() => setShowForm(!showForm)}>{showForm ? "Hide form" : "New event request"}</button>}
             </div>
-            {showForm && canCreate && <EventRequestForm onCreated={addRequest} onCancel={() => setShowForm(false)} activeCycle={activeCycle} />}
+            {showForm && canCreate && <EventRequestForm onCreated={addRequest} onCancel={() => setShowForm(false)} activeCycle={cycleBudget} />}
             <div className="event-ops-filters" role="group" aria-label="Event request filters">
                 <label>Year<select value={filters.year} onChange={(event) => setFilters({ ...filters, year: event.target.value })}><option value="">All years</option>{years.map((year) => <option key={year}>{year}</option>)}</select></label>
                 <label>Quarter<select value={filters.quarter} onChange={(event) => setFilters({ ...filters, quarter: event.target.value })}><option value="">All quarters</option>{["Q1", "Q2", "Q3", "Q4"].map((quarter) => <option key={quarter}>{quarter}</option>)}</select></label>
@@ -440,8 +471,8 @@ function EventOperations({ isAdmin = false, can: canPermission, activeCycle }) {
                 <label className="event-ops-search">Search<input value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} placeholder="Event or group" /></label>
             </div>
             {error && <p className="event-ops-error" role="alert">{error}</p>}
-            {activeCycle && can("events.finance.manage") && <section className="event-ops-ledger editorial-card" aria-labelledby="budget-ledger-heading">
-                <div><span className="event-ops-kicker">{activeCycle.cycleName || "Academic year"}</span><h3 id="budget-ledger-heading">Budget ledger</h3><p>Remaining: ${Math.max(0, (activeCycle.budgetTotalCents || 0) - (activeCycle.budgetCommittedCents || 0)) / 100}</p></div>
+            {cycleBudget && can("events.finance.manage") && <section className="event-ops-ledger editorial-card" aria-labelledby="budget-ledger-heading">
+                <div><span className="event-ops-kicker">{cycleBudget.cycleName || "Academic year"}</span><h3 id="budget-ledger-heading">Budget ledger</h3><p>Remaining: ${Math.max(0, (cycleBudget.budgetTotalCents || 0) - (cycleBudget.budgetCommittedCents || 0)) / 100}</p></div>
                 {ledger.length > 0 && <table className="event-ops-table"><caption className="sr-only">Academic-year funding commitments</caption><thead><tr><th scope="col">Request</th><th scope="col">Amount</th><th scope="col">Decision date</th></tr></thead><tbody>{ledger.map((entry) => <tr key={entry._id}><th scope="row">{entry.eventRequestId?.title || entry.eventRequestId?.eventName || "Event request"}</th><td>${(entry.amountCents / 100).toFixed(2)}</td><td>{formatDate(entry.decidedAt)}</td></tr>)}</tbody></table>}
             </section>}
             <div className={`event-ops-layout${selected ? "" : " event-ops-layout-full"}`}>
@@ -464,7 +495,7 @@ function EventOperations({ isAdmin = false, can: canPermission, activeCycle }) {
                     </table>
                     {!filteredRequests.length && <p className="event-ops-empty">No event requests match these filters.</p>}
                 </div>
-                {selected && <EventDetail request={selected} onUpdate={updateRequest} can={can} />}
+                {selected && <EventDetail request={selected} onUpdate={updateRequest} onDelete={deleteRequest} can={can} adminPreview={adminPreview} />}
             </div>
         </section>
     );

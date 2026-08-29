@@ -505,6 +505,13 @@
     }
 }
 
+.event-ops-preview-cleanup {
+    background: rgba($color-primary, 0.04);
+    border: 1px solid rgba($color-primary, 0.12);
+    border-radius: $radius;
+    padding: 18px;
+}
+
 .event-ops-budget-hint {
     align-self: end;
     margin: 0;

@@ -289,4 +289,86 @@ describe("event request API", () => {
     assert.equal(result.body.review.reviewerRole, "member");
     assert.equal(result.body.review.reviewerId, reviewerId);
   });
+
+  it("deletes preview test data and recalculates the cycle budget", async () => {
+    const previousEnvironment = process.env.DEPLOY_ENV;
+    const previousPreview = process.env.ADMIN_PREVIEW;
+    process.env.DEPLOY_ENV = "development";
+    process.env.ADMIN_PREVIEW = "true";
+
+    try {
+      const models = makeModels({
+        request: {
+          ...submittedRequest,
+          cycleId: "507f1f77bcf86cd799439016",
+          status: "FINANCE_REVIEW",
+        },
+      });
+      const deleted = {};
+      models.EventRequests.deleteOne = async (filter) => {
+        deleted.requestFilter = filter;
+        return { deletedCount: 1 };
+      };
+      models.AuditEntries = {};
+      models.Notifications = {};
+      models.BudgetLedgerEntries = {};
+      for (const [name, count] of [["AuditEntries", 3], ["Notifications", 2], ["EventReviews", 1], ["BudgetLedgerEntries", 1]]) {
+        models[name].deleteMany = async (filter) => {
+          deleted[name] = filter;
+          return { deletedCount: count };
+        };
+      }
+      models.BudgetLedgerEntries.find = () => query([{ amountCents: 2000, decision: "approved" }]);
+      models.Cycles.findOneAndUpdate = async (filter, update) => {
+        deleted.cycle = { filter, update };
+        return { _id: filter._id, budgetCommittedCents: update.$set.budgetCommittedCents };
+      };
+
+      const result = await api.request(
+        "DELETE",
+        `/api/v1/event-requests/${requestId}/test-data`,
+        { confirmation: "DELETE TEST REQUEST" },
+        { models },
+      );
+
+      assert.equal(result.status, 200);
+      assert.equal(result.body.deletedRequestId, requestId);
+      assert.deepEqual(result.body.removed, {
+        request: 1,
+        auditEntries: 3,
+        notifications: 2,
+        reviews: 1,
+        ledgerEntries: 1,
+        publishedEvent: 0,
+      });
+      assert.equal(result.body.cycle.budgetCommittedCents, 2000);
+      assert.equal(deleted.requestFilter._id, requestId);
+      assert.equal(deleted.cycle.update.$set.budgetCommittedCents, 2000);
+    } finally {
+      if (previousEnvironment === undefined) delete process.env.DEPLOY_ENV;
+      else process.env.DEPLOY_ENV = previousEnvironment;
+      if (previousPreview === undefined) delete process.env.ADMIN_PREVIEW;
+      else process.env.ADMIN_PREVIEW = previousPreview;
+    }
+  });
+
+  it("hides the test-data cleanup route outside preview mode", async () => {
+    const previousEnvironment = process.env.DEPLOY_ENV;
+    const previousPreview = process.env.ADMIN_PREVIEW;
+    process.env.DEPLOY_ENV = "production";
+    process.env.ADMIN_PREVIEW = "false";
+    try {
+      const result = await api.request(
+        "DELETE",
+        `/api/v1/event-requests/${requestId}/test-data`,
+        { confirmation: "DELETE TEST REQUEST" },
+      );
+      assert.equal(result.status, 404);
+    } finally {
+      if (previousEnvironment === undefined) delete process.env.DEPLOY_ENV;
+      else process.env.DEPLOY_ENV = previousEnvironment;
+      if (previousPreview === undefined) delete process.env.ADMIN_PREVIEW;
+      else process.env.ADMIN_PREVIEW = previousPreview;
+    }
+  });
 });

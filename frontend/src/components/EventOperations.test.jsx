@@ -119,6 +119,35 @@ describe("EventOperations", () => {
         expect(screen.getByLabelText("Approved amount ($)")).toBeInTheDocument();
     });
 
+    test("deletes a local preview request after explicit confirmation", async () => {
+        const testRequest = { ...request };
+        const fetchSpy = vi.spyOn(global, "fetch").mockImplementation((url, options = {}) => {
+            if (url.endsWith("/event-requests") || url.endsWith("/event-requests/")) return Promise.resolve(apiResponse(testRequest));
+            if (url.endsWith("/event-requests/request-1")) return Promise.resolve(apiResponse(testRequest));
+            if (url.endsWith("/event-requests/request-1/test-data")) {
+                return Promise.resolve({
+                    ok: true,
+                    json: async () => ({ status: "success", cycle: { budgetCommittedCents: 0 } }),
+                });
+            }
+            throw new Error(`Unexpected API request: ${url} ${options.method || "GET"}`);
+        });
+        vi.spyOn(window, "prompt").mockReturnValue("DELETE TEST REQUEST");
+
+        render(<EventOperations can={() => true} adminPreview />);
+        fireEvent.click(await screen.findByRole("button", { name: /autumn workshop/i }));
+        fireEvent.click(await screen.findByRole("button", { name: "Delete preview request" }));
+
+        await waitFor(() => expect(fetchSpy).toHaveBeenCalledWith(
+            "/api/v1/event-requests/request-1/test-data",
+            expect.objectContaining({
+                method: "DELETE",
+                body: JSON.stringify({ confirmation: "DELETE TEST REQUEST" }),
+            }),
+        ));
+        await waitFor(() => expect(screen.queryByRole("button", { name: /autumn workshop/i })).not.toBeInTheDocument());
+    });
+
     test("submits a request without sending blank optional fields", async () => {
         const fetchSpy = vi.spyOn(global, "fetch").mockImplementation((url, options = {}) => {
             if (url.endsWith("/event-requests") || url.endsWith("/event-requests/")) {

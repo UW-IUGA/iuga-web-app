@@ -2,7 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import { sendError } from "../helpers/sendError.js";
 import { sendSuccess } from "../helpers/sendSuccess.js";
-import { requirePermission } from "../utils/auth.js";
+import { requireAdminPreview, requirePermission } from "../utils/auth.js";
 import { getActiveCycle } from "../utils/permissions.js";
 import {
   REQUEST_STATES,
@@ -274,6 +274,27 @@ async function transitionRequest(req, id, statuses, update) {
   );
 }
 
+async function deleteManyIfAvailable(model, filter) {
+  if (typeof model?.deleteMany !== "function") return 0;
+  const result = await model.deleteMany(filter);
+  return result?.deletedCount || 0;
+}
+
+async function recalculateCommittedBudget(req, cycleId) {
+  const ledgerModel = req.models.BudgetLedgerEntries;
+  if (!cycleId || typeof ledgerModel?.find !== "function" || typeof req.models.Cycles?.findOneAndUpdate !== "function") {
+    return null;
+  }
+
+  const entries = await ledgerModel.find({ cycleId, decision: "approved" }).lean();
+  const budgetCommittedCents = entries.reduce((total, entry) => total + (entry.amountCents || 0), 0);
+  return req.models.Cycles.findOneAndUpdate(
+    { _id: cycleId },
+    { $set: { budgetCommittedCents } },
+    { new: true, runValidators: true },
+  );
+}
+
 async function requireCheckpointPermission(req, res, next) {
   const permission = {
     proposal: "events.leadership.approve",
@@ -348,6 +369,48 @@ router.post("/:id/submit", requirePermission("events.requests.edit"), async (req
     return sendSuccess(res, { eventRequest: updated });
   } catch (error) {
     if (error.statusCode) return sendError(res, error.statusCode, error.message);
+    console.error(error);
+    return sendError(res, 500);
+  }
+});
+
+router.delete("/:id/test-data", requireAdminPreview, requirePermission("events.requests.edit"), async (req, res) => {
+  if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
+  if (req.body?.confirmation !== "DELETE TEST REQUEST") {
+    return sendError(res, 400, "Type DELETE TEST REQUEST to confirm");
+  }
+
+  try {
+    const request = await findRequest(req, req.params.id);
+    if (!request) return sendError(res, 404, "Event request not found");
+    const requestFilter = { eventRequestId: req.params.id };
+    const removed = {
+      request: 0,
+      auditEntries: await deleteManyIfAvailable(req.models.AuditEntries, requestFilter),
+      notifications: await deleteManyIfAvailable(req.models.Notifications, requestFilter),
+      reviews: await deleteManyIfAvailable(req.models.EventReviews, requestFilter),
+      ledgerEntries: await deleteManyIfAvailable(req.models.BudgetLedgerEntries, requestFilter),
+      publishedEvent: 0,
+    };
+
+    const publishedEventId = request.publishedEventId?._id || request.publishedEventId;
+    if (publishedEventId) {
+      removed.publishedEvent = await deleteManyIfAvailable(req.models.Events, { _id: publishedEventId });
+    }
+
+    if (typeof req.models.EventRequests?.deleteOne === "function") {
+      const result = await req.models.EventRequests.deleteOne({ _id: req.params.id });
+      removed.request = result?.deletedCount || 0;
+    }
+    if (!removed.request) return sendError(res, 409, "Event request could not be deleted; retry the cleanup");
+
+    const cycle = await recalculateCommittedBudget(req, request.cycleId);
+    return sendSuccess(res, {
+      deletedRequestId: req.params.id,
+      removed,
+      cycle: cycle ? { _id: cycle._id, budgetCommittedCents: cycle.budgetCommittedCents } : null,
+    });
+  } catch (error) {
     console.error(error);
     return sendError(res, 500);
   }

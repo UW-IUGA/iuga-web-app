@@ -91,3 +91,13 @@ export function requirePermission(permission) {
     }
   };
 }
+
+export function requireAdminPreview(req, res, next) {
+  if (!req.session.isAuthenticated) {
+    return sendError(res, 401, "Not authenticated");
+  }
+  if (!isAdminPreviewEnabled()) {
+    return sendError(res, 404, "Not found");
+  }
+  next();
+}

@@ -1,5 +1,6 @@
 import HomePage from "./pages/Home";
 import EventsPage from "./pages/Events";
+import AdminEventRequests from "./pages/AdminEventRequests";
 import ResourcesPage from "./pages/Resources";
 import ElectionPage from "./pages/Elections";
 import ElectionsFAQPage from "./pages/ElectionsFAQ";
@@ -62,6 +63,7 @@ function App() {
             <Routes>
                 <Route path="/" element={<HomePage upcomingEvents={upcomingEvents} />} />
                 <Route path="/events" element={<EventsPage />} />
+                <Route path="/admin/event-requests" element={<AdminEventRequests />} />
                 <Route path="/resources" element={<ResourcesPage resources={resources} />} />
                 <Route path="/student-voice" element={<StudentVoicePage />} />
                 <Route path="/shop" element={<ShopPage />} />

@@ -1,0 +1,31 @@
+.adminPage {
+    padding-top: 5rem;
+    padding-bottom: 5rem;
+}
+
+.adminPageHeader {
+    max-width: 48rem;
+    margin-bottom: 3rem;
+
+    h1 {
+        margin: 0.5rem 0 1rem;
+    }
+
+    p {
+        max-width: 38rem;
+    }
+}
+
+.adminAccessCard {
+    max-width: 36rem;
+    margin: 4rem auto;
+    padding: 2rem;
+
+    h1 {
+        margin: 0.5rem 0 1rem;
+    }
+
+    .cta-secondary {
+        margin-top: 1rem;
+    }
+}

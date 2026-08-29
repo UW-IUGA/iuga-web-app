@@ -253,8 +253,8 @@ describe("event request API", () => {
     );
     assert.equal(result.status, 200);
     assert.equal(result.body.eventRequest.finance.allocatedCents, 12550);
-    assert.equal(result.body.eventRequest.checkpoints[2].key, "finance");
-    assert.equal(result.body.eventRequest.checkpoints[2].status, "completed");
+    const financeCheckpoint = result.body.eventRequest.checkpoints.find((checkpoint) => checkpoint.key === "finance");
+    assert.equal(financeCheckpoint.status, "completed");
   });
 
   it("rejects floating-point finance amounts", async () => {

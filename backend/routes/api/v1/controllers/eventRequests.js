@@ -14,8 +14,8 @@ const router = express.Router();
 const CHECKPOINT_KEYS = [
   "proposal",
   "meeting",
-  "finance",
   "room",
+  "finance",
   "marketing",
   "purchases",
   "completion",
@@ -31,6 +31,49 @@ function validId(value) {
 
 function defaultCheckpoints() {
   return CHECKPOINT_KEYS.map((key) => ({ key, status: "pending" }));
+}
+
+const WORKFLOW_CHECKPOINTS_BY_STATUS = Object.freeze({
+  DRAFT: { proposal: "pending" },
+  PVP_REVIEW: { proposal: "in_progress" },
+  AGENDA: { proposal: "completed", meeting: "in_progress" },
+  FINANCE_REVIEW: { proposal: "completed", meeting: "completed", finance: "in_progress" },
+  MARKETING_QUEUED: { proposal: "completed", meeting: "completed", finance: "completed", marketing: "in_progress" },
+  SCHEDULED: { proposal: "completed", meeting: "completed", finance: "completed", marketing: "completed" },
+  AWAITING_REVIEW: { proposal: "completed", meeting: "completed", finance: "completed", marketing: "completed", review: "in_progress" },
+  REVIEWED: { proposal: "completed", meeting: "completed", finance: "completed", marketing: "completed", review: "completed" },
+});
+
+function syncWorkflowCheckpoints(checkpoints, status, actorId) {
+  const statuses = WORKFLOW_CHECKPOINTS_BY_STATUS[status];
+  if (!statuses) return checkpoints;
+
+  const now = new Date();
+  const nextCheckpoints = (checkpoints || []).map((checkpoint) => ({ ...checkpoint }));
+  for (const [key, checkpointStatus] of Object.entries(statuses)) {
+    setCheckpointStatus(nextCheckpoints, key, checkpointStatus, actorId, now);
+  }
+  return nextCheckpoints;
+}
+
+function setCheckpointStatus(checkpoints, key, status, actorId, timestamp = new Date()) {
+  let checkpoint = checkpoints.find((item) => item.key === key);
+  if (!checkpoint) {
+    checkpoint = { key };
+    checkpoints.push(checkpoint);
+  }
+  checkpoint.status = status;
+  Object.assign(checkpoint, checkpointAuditFields(status, actorId, timestamp));
+  return checkpoints;
+}
+
+function checkpointAuditFields(status, actorId, timestamp) {
+  return {
+    updatedBy: actorId,
+    updatedAt: timestamp,
+    completedBy: status === "completed" ? actorId : null,
+    completedAt: status === "completed" ? timestamp : null,
+  };
 }
 
 function readRequestFields(body = {}) {
@@ -178,9 +221,14 @@ function nextAgendaDate() {
 
 async function canonicalTransition(req, id, request, toStatus, update, audit) {
   assertTransition(request.status, toStatus);
+  const checkpoints = syncWorkflowCheckpoints(
+    update.checkpoints || request.checkpoints,
+    toStatus,
+    req.session.userId,
+  );
   const updated = await req.models.EventRequests.findOneAndUpdate(
     { _id: id, status: request.status },
-    { $set: { ...update, status: toStatus } },
+    { $set: { ...update, status: toStatus, checkpoints } },
     { new: true, runValidators: true },
   );
   if (!updated) return null;
@@ -253,7 +301,7 @@ router.post("/", requirePermission("events.requests.create"), async (req, res) =
       submittedAt: new Date(),
       status,
       cycleId: cycle?._id ?? null,
-      checkpoints: defaultCheckpoints(),
+      checkpoints: syncWorkflowCheckpoints(defaultCheckpoints(), status, req.session.userId),
     });
     await recordAudit(req, {
       eventRequestId: request._id,
@@ -393,6 +441,13 @@ router.post("/:id/agenda-outcome", requirePermission("events.meeting.manage"), a
     const request = await findRequest(req, req.params.id);
     if (!request) return sendError(res, 404, "Event request not found");
     if (!canonicalRequest(request)) return sendError(res, 409, "This request uses the legacy workflow");
+    if (outcome === "proceed") {
+      const roomCheckpoint = request.checkpoints?.find((checkpoint) => checkpoint.key === "room");
+      const booking = request.booking || {};
+      if (roomCheckpoint?.status !== "completed" || !booking.location || !booking.startDate || !booking.endDate) {
+        return sendError(res, 409, "Complete room booking before proceeding to finance");
+      }
+    }
     const toStatus = outcome === "proceed" ? "FINANCE_REVIEW" : outcome === "decline" ? "REJECTED" : "AGENDA";
     const updated = await canonicalTransition(req, req.params.id, request, toStatus, {
       agendaDate: outcome === "table" ? (nextMeetingDate || nextAgendaDate()) : request.agendaDate,
@@ -849,9 +904,18 @@ router.patch("/:id/booking", requirePermission("events.room.manage"), async (req
       bookedBy: req.session.userId,
       bookedAt: new Date(),
     };
+    const savedLocation = booking.location;
+    const savedStartDate = booking.startDate;
+    const savedEndDate = booking.endDate;
+    const checkpoints = setCheckpointStatus(
+      (request.checkpoints || []).map((checkpoint) => ({ ...checkpoint })),
+      "room",
+      savedLocation && savedStartDate && savedEndDate ? "completed" : "in_progress",
+      req.session.userId,
+    );
     const updated = await req.models.EventRequests.findOneAndUpdate(
       { _id: req.params.id, status: request.status },
-      { $set: { booking } },
+      { $set: { booking, checkpoints } },
       { new: true, runValidators: true },
     );
     if (!updated) return sendError(res, 409, "Event request changed; retry the update");

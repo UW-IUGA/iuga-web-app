@@ -5,8 +5,8 @@ const API_PATH = "/api/v1/event-requests";
 const CHECKPOINTS = [
     ["proposal", "Proposal"],
     ["meeting", "Meeting"],
-    ["finance", "Finance"],
     ["room", "Room"],
+    ["finance", "Finance"],
     ["marketing", "Marketing"],
     ["purchases", "Purchases"],
     ["completion", "Completion"],
@@ -262,6 +262,8 @@ function EventDetail({ request, onUpdate, can }) {
         });
     };
 
+    const roomBookingComplete = request.checkpoints?.some((checkpoint) => checkpoint.key === "room" && checkpoint.status === "completed");
+
     return (
         <aside className="event-ops-detail editorial-card" aria-label={`${request.eventName} details`}>
             <div className="event-ops-detail-heading">
@@ -286,7 +288,8 @@ function EventDetail({ request, onUpdate, can }) {
             </div>}
 
             {request.status === "AGENDA" && can("events.meeting.manage") && <div className="event-ops-actions">
-                <button className="cta-secondary" onClick={() => { const note = window.prompt("What did the board decide?"); if (note?.trim()) postAction("/agenda-outcome", { outcome: "proceed", note: note.trim() }); }}>Record proceed</button>
+                {!roomBookingComplete && <p className="event-ops-budget-hint">Complete room booking before proceeding to finance.</p>}
+                <button className="cta-secondary" disabled={!roomBookingComplete} onClick={() => { const note = window.prompt("What did the board decide?"); if (note?.trim()) postAction("/agenda-outcome", { outcome: "proceed", note: note.trim() }); }}>Record proceed</button>
                 <button className="cta-primary" onClick={() => { const note = window.prompt("Why is this item tabled?"); if (note?.trim()) postAction("/agenda-outcome", { outcome: "table", note: note.trim() }); }}>Table item</button>
                 <button className="event-ops-danger" onClick={() => { const note = window.prompt("Why is this item declined?"); if (note?.trim()) postAction("/agenda-outcome", { outcome: "decline", note: note.trim() }); }}>Decline item</button>
             </div>}
@@ -314,7 +317,7 @@ function EventDetail({ request, onUpdate, can }) {
                 <h4>Finance</h4>
                 <div className="event-ops-inline-fields">
                     <label className="form-label">{request.status === "FINANCE_REVIEW" ? "Approved amount ($)" : "Allocated ($)"}<input className="form-input" inputMode="decimal" value={budget.allocated || ""} onChange={(event) => setBudget({ ...budget, allocated: event.target.value })} /></label>
-                    <label className="form-label">Actual spend ($)<input className="form-input" inputMode="decimal" value={budget.actual || ""} onChange={(event) => setBudget({ ...budget, actual: event.target.value })} /></label>
+                    {request.status !== "FINANCE_REVIEW" && <label className="form-label">Actual spend ($)<input className="form-input" inputMode="decimal" value={budget.actual || ""} onChange={(event) => setBudget({ ...budget, actual: event.target.value })} /></label>}
                 </div>
                 <label className="form-label">Finance notes<textarea className="form-input" rows="2" value={budget.notes || ""} onChange={(event) => setBudget({ ...budget, notes: event.target.value })} /></label>
                 {request.status === "FINANCE_REVIEW" && <label className="form-label">Decision<select className="form-input" value={budget.decision || "approve"} onChange={(event) => setBudget({ ...budget, decision: event.target.value })}><option value="approve">Approve as requested</option><option value="approve_partial">Approve different amount</option><option value="deny">Deny funding</option></select></label>}

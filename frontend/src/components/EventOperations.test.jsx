@@ -47,9 +47,11 @@ describe("EventOperations", () => {
 
         const search = await screen.findByRole("textbox", { name: "Search" });
         await screen.findByRole("button", { name: /autumn workshop/i });
+        const headers = screen.getAllByRole("columnheader").map((header) => header.textContent);
+        expect(headers.indexOf("Room")).toBeLessThan(headers.indexOf("Finance"));
 
         fireEvent.change(search, { target: { value: "does not exist" } });
-        expect(screen.queryByRole("button", { name: /autumn workshop/i })).not.toBeInTheDocument();
+        await waitFor(() => expect(screen.queryByRole("button", { name: /autumn workshop/i })).not.toBeInTheDocument());
 
         fireEvent.change(search, { target: { value: "autumn" } });
         fireEvent.click(await screen.findByRole("button", { name: /autumn workshop/i }));
@@ -84,6 +86,37 @@ describe("EventOperations", () => {
             "/api/v1/event-requests/request-1/advance",
             expect.objectContaining({ method: "POST" }),
         ));
+    });
+
+    test("requires room booking before the board can proceed to finance", async () => {
+        const agendaRequest = { ...request, status: "AGENDA" };
+        vi.spyOn(global, "fetch").mockImplementation((url) => {
+            if (url.endsWith("/event-requests") || url.endsWith("/event-requests/")) return Promise.resolve(apiResponse(agendaRequest));
+            if (url.endsWith("/event-requests/request-1")) return Promise.resolve(apiResponse(agendaRequest));
+            throw new Error(`Unexpected API request: ${url}`);
+        });
+
+        render(<EventOperations can={() => true} />);
+        fireEvent.click(await screen.findByRole("button", { name: /autumn workshop/i }));
+
+        expect(screen.getByText("Complete room booking before proceeding to finance.")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Record proceed" })).toBeDisabled();
+    });
+
+    test("does not ask for actual spend during finance review", async () => {
+        const financeRequest = { ...request, status: "FINANCE_REVIEW" };
+        vi.spyOn(global, "fetch").mockImplementation((url) => {
+            if (url.endsWith("/event-requests") || url.endsWith("/event-requests/")) return Promise.resolve(apiResponse(financeRequest));
+            if (url.endsWith("/event-requests/request-1")) return Promise.resolve(apiResponse(financeRequest));
+            throw new Error(`Unexpected API request: ${url}`);
+        });
+
+        render(<EventOperations can={() => true} />);
+        fireEvent.click(await screen.findByRole("button", { name: /autumn workshop/i }));
+
+        expect(await screen.findByRole("heading", { name: "Finance" })).toBeInTheDocument();
+        expect(screen.queryByLabelText("Actual spend ($)")).not.toBeInTheDocument();
+        expect(screen.getByLabelText("Approved amount ($)")).toBeInTheDocument();
     });
 
     test("submits a request without sending blank optional fields", async () => {

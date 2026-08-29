@@ -16,6 +16,10 @@ function chain(value) {
   };
 }
 
+function checkpointStatus(request, key) {
+  return request.checkpoints.find((checkpoint) => checkpoint.key === key)?.status;
+}
+
 function makeWorkflowModels({ permissions = [], initialStatus = "PVP_REVIEW", eventDate = "2026-09-01T18:00:00Z" } = {}) {
   const audits = [];
   const ledger = [];
@@ -37,7 +41,7 @@ function makeWorkflowModels({ permissions = [], initialStatus = "PVP_REVIEW", ev
     estimatedAttendance: 40,
     fundingRequestedCents: 25000,
     reviewComments: [],
-    checkpoints: [],
+    checkpoints: ["proposal", "meeting", "room", "finance", "marketing", "purchases", "completion", "review"].map((key) => ({ key, status: "pending" })),
   };
   let committed = 10000;
   const models = {
@@ -93,6 +97,7 @@ describe("canonical event workflow", () => {
     "events.leadership.approve",
     "events.meeting.manage",
     "events.finance.manage",
+    "events.room.manage",
     "events.marketing.manage",
     "events.publication.manage",
     "events.review.manage",
@@ -125,6 +130,7 @@ describe("canonical event workflow", () => {
     assert.equal(result.body.eventRequest.status, "PVP_REVIEW");
     assert.equal(result.body.eventRequest.cycleId, cycleId);
     assert.equal(result.body.eventRequest.shortNotice, true);
+    assert.equal(checkpointStatus(result.body.eventRequest, "proposal"), "in_progress");
   });
 
   it("allows one P/VP officer to advance a request to the agenda", async () => {
@@ -132,6 +138,8 @@ describe("canonical event workflow", () => {
 
     assert.equal(result.status, 200);
     assert.equal(result.body.eventRequest.status, "AGENDA");
+    assert.equal(checkpointStatus(result.body.eventRequest, "proposal"), "completed");
+    assert.equal(checkpointStatus(result.body.eventRequest, "meeting"), "in_progress");
     assert.equal(fixture.audits.at(-1).action, "pvp_advance");
   });
 
@@ -139,9 +147,22 @@ describe("canonical event workflow", () => {
     const missingNote = await api.request("POST", `/api/v1/event-requests/${requestId}/agenda-outcome`, { outcome: "proceed" });
     assert.equal(missingNote.status, 400);
 
+    const missingRoom = await api.request("POST", `/api/v1/event-requests/${requestId}/agenda-outcome`, { outcome: "proceed", note: "The board approved the concept." });
+    assert.equal(missingRoom.status, 409);
+
+    const booking = await api.request("PATCH", `/api/v1/event-requests/${requestId}/booking`, {
+      location: "HUB 145",
+      startDate: "2026-09-03T17:00:00Z",
+      endDate: "2026-09-03T20:00:00Z",
+    });
+    assert.equal(booking.status, 200);
+    assert.equal(checkpointStatus(booking.body.eventRequest, "room"), "completed");
+
     const result = await api.request("POST", `/api/v1/event-requests/${requestId}/agenda-outcome`, { outcome: "proceed", note: "The board approved the concept." });
     assert.equal(result.status, 200);
     assert.equal(result.body.eventRequest.status, "FINANCE_REVIEW");
+    assert.equal(checkpointStatus(result.body.eventRequest, "meeting"), "completed");
+    assert.equal(checkpointStatus(result.body.eventRequest, "finance"), "in_progress");
   });
 
   it("commits partial funding against the academic-year budget", async () => {
@@ -149,6 +170,8 @@ describe("canonical event workflow", () => {
 
     assert.equal(result.status, 200);
     assert.equal(result.body.eventRequest.status, "MARKETING_QUEUED");
+    assert.equal(checkpointStatus(result.body.eventRequest, "finance"), "completed");
+    assert.equal(checkpointStatus(result.body.eventRequest, "marketing"), "in_progress");
     assert.equal(fixture.ledger[0].amountCents, 20000);
     assert.equal(fixture.getCommitted(), 30000);
   });
@@ -157,6 +180,8 @@ describe("canonical event workflow", () => {
     const marketing = await api.request("POST", `/api/v1/event-requests/${requestId}/marketing-complete`);
     assert.equal(marketing.status, 200);
     assert.equal(marketing.body.eventRequest.status, "SCHEDULED");
+    assert.equal(checkpointStatus(marketing.body.eventRequest, "marketing"), "completed");
+    assert.equal(checkpointStatus(marketing.body.eventRequest, "room"), "completed");
 
     const publication = await api.request("POST", `/api/v1/event-requests/${requestId}/publish`);
     assert.equal(publication.status, 200);
@@ -177,6 +202,7 @@ describe("canonical event workflow", () => {
     });
     assert.equal(result.status, 201);
     assert.equal(result.body.eventRequest.status, "REVIEWED");
+    assert.equal(checkpointStatus(result.body.eventRequest, "review"), "completed");
     assert.equal(fixture.audits.at(-1).action, "review_submitted");
   });
 });

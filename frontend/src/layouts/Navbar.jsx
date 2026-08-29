@@ -18,7 +18,7 @@ import {
 function Navbar({ signIn, signOut }) {
     const [showMenu, setMenu] = useState(false);
     const { pathname } = useLocation();
-    const { isAuthenticated, user } = useAuthContext();
+    const { isAuthenticated, user, can } = useAuthContext();
     const userGreeting = user?.uFirstName || user?.uDisplayName || user?.name || user?.email;
     const userType = user?.uType || "IUGA member";
     const avatarInitial = userGreeting?.trim().charAt(0).toUpperCase() || "I";
@@ -61,6 +61,7 @@ function Navbar({ signIn, signOut }) {
                     <NavLink to="/about" onClick={handleNavigation}><FontAwesomeIcon icon={faUsers} aria-hidden="true" /><span>About Us</span></NavLink>
                     <NavLink to="/shop" onClick={handleNavigation}><FontAwesomeIcon icon={faShirt} aria-hidden="true" /><span>Shop</span></NavLink>
                     <NavLink to="/get-involved" onClick={handleNavigation}><FontAwesomeIcon icon={faHand} aria-hidden="true" /><span>Get Involved</span></NavLink>
+                    {isAuthenticated && can("events.requests.view") && <NavLink to="/admin/event-requests" onClick={handleNavigation}><FontAwesomeIcon icon={faUsers} aria-hidden="true" /><span>Admin</span></NavLink>}
                     <span></span>
                     <div className="nav-auth">
                         {isAuthenticated ? (

@@ -4,7 +4,6 @@ import { useLocation } from "react-router-dom";
 import { mockCalendarData, mockEvent } from "../assets/mock-data/MockCalendarData";
 import EventDetailsCard from "../components/EventDetailsCard";
 import EventDetailsLoader from "../components/EventDetailsLoader";
-import EventOperations from "../components/EventOperations";
 import EventStream from "../components/EventStream";
 import WeeklyCalendar from "../components/WeeklyCalendar";
 import { useAuthContext } from "../context/AuthContext";
@@ -13,7 +12,7 @@ import { isProduction } from "../runtime";
 const EVENT_CATEGORIES = ["Academic", "Social", "Professional"];
 
 function EventsPage() {
-    const { isAuthenticated, isAdmin } = useAuthContext();
+    const { isAuthenticated } = useAuthContext();
     const { state, pathname } = useLocation();
     const [calendarEvents, setCalendarEvents] = useState([]);
     const [selectedEvent, setSelectedEvent] = useState(null);
@@ -157,7 +156,6 @@ function EventsPage() {
                 </aside>
             )}
 
-            <EventOperations isAdmin={isAdmin} />
         </div>
     );
 }

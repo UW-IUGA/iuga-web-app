@@ -12,6 +12,16 @@ const CHECKPOINTS = [
     ["completion", "Completion"],
     ["review", "Review"],
 ];
+const CHECKPOINT_PERMISSIONS = {
+    proposal: "events.leadership.approve",
+    finance: "events.finance.manage",
+    room: "events.room.manage",
+    marketing: "events.marketing.manage",
+    purchases: "events.purchases.complete",
+    meeting: "events.operations.manage",
+    completion: "events.operations.manage",
+    review: "events.review.manage",
+};
 const emptyForm = {
     eventName: "",
     requestingGroup: "",
@@ -63,6 +73,10 @@ function dollarsToCents(value) {
 
 function centsToDollars(value) {
     return value === undefined || value === null ? "" : (value / 100).toFixed(2);
+}
+
+function permissionForCheckpoint(key) {
+    return CHECKPOINT_PERMISSIONS[key] || "events.operations.manage";
 }
 
 function StatusBadge({ status }) {
@@ -122,7 +136,7 @@ function EventRequestForm({ onCreated, onCancel }) {
     );
 }
 
-function EventDetail({ request, onUpdate }) {
+function EventDetail({ request, onUpdate, can }) {
     const [budget, setBudget] = useState({});
     const [booking, setBooking] = useState({});
     const [review, setReview] = useState({});
@@ -206,7 +220,7 @@ function EventDetail({ request, onUpdate }) {
             <p className="event-ops-detail-meta">{request.requestingGroup} · {formatDate(request.proposedStartDate)}</p>
             <p>{request.description}</p>
 
-            {request.status === "submitted" || request.status === "changes_requested" ? (
+            {(request.status === "submitted" || request.status === "changes_requested") && can("events.leadership.approve") ? (
                 <div className="event-ops-actions">
                     <button className="cta-secondary" onClick={() => reviewAction("approve")}>Approve & publish</button>
                     <button className="cta-primary" onClick={() => askForReason("request-changes", "What should the requester change?")}>Request changes</button>
@@ -220,7 +234,7 @@ function EventDetail({ request, onUpdate }) {
                     {CHECKPOINTS.map(([key, label]) => {
                         const checkpoint = request.checkpoints?.find((item) => item.key === key) || { status: "pending" };
                         return <label key={key} className="event-ops-checkpoint-edit">{label}
-                            <select value={checkpoint.status} onChange={(event) => mutate(`/checklist/${key}`, { status: event.target.value })}>
+                            <select value={checkpoint.status} disabled={!can(permissionForCheckpoint(key))} onChange={(event) => mutate(`/checklist/${key}`, { status: event.target.value })}>
                                 <option value="pending">Pending</option>
                                 <option value="in_progress">In progress</option>
                                 <option value="completed">Completed</option>
@@ -230,7 +244,7 @@ function EventDetail({ request, onUpdate }) {
                 </div>
             </section>
 
-            <form className="event-ops-detail-section" onSubmit={saveBudget}>
+            {can("events.finance.manage") && <form className="event-ops-detail-section" onSubmit={saveBudget}>
                 <h4>Finance</h4>
                 <div className="event-ops-inline-fields">
                     <label className="form-label">Allocated ($)<input className="form-input" inputMode="decimal" value={budget.allocated || ""} onChange={(event) => setBudget({ ...budget, allocated: event.target.value })} /></label>
@@ -238,9 +252,9 @@ function EventDetail({ request, onUpdate }) {
                 </div>
                 <label className="form-label">Finance notes<textarea className="form-input" rows="2" value={budget.notes || ""} onChange={(event) => setBudget({ ...budget, notes: event.target.value })} /></label>
                 <button className="standard-button" type="submit">Save finance</button>
-            </form>
+            </form>}
 
-            <form className="event-ops-detail-section" onSubmit={saveBooking}>
+            {can("events.room.manage") && <form className="event-ops-detail-section" onSubmit={saveBooking}>
                 <h4>Room booking</h4>
                 <label className="form-label">Location<input className="form-input" value={booking.location || ""} onChange={(event) => setBooking({ ...booking, location: event.target.value })} /></label>
                 <div className="event-ops-inline-fields">
@@ -249,19 +263,22 @@ function EventDetail({ request, onUpdate }) {
                 </div>
                 <label className="form-label">Booking notes<textarea className="form-input" rows="2" value={booking.notes || ""} onChange={(event) => setBooking({ ...booking, notes: event.target.value })} /></label>
                 <button className="standard-button" type="submit">Save booking</button>
-            </form>
+            </form>}
 
-            <section className="event-ops-detail-section">
+            {can("events.review.manage") && <section className="event-ops-detail-section">
                 <h4>Post-event review</h4>
                 <label className="form-label">OneDrive / Microsoft Forms link<input className="form-input" value={review.reviewLink || ""} onChange={(event) => setReview({ ...review, reviewLink: event.target.value })} /></label>
                 <label className="event-ops-checkbox"><input type="checkbox" checked={review.received || false} onChange={(event) => setReview({ ...review, received: event.target.checked })} /> Review received</label>
                 <button type="button" className="standard-button" onClick={() => mutate("/review-tracking", review)}>Save review tracking</button>
-            </section>
+            </section>}
         </aside>
     );
 }
 
-function EventOperations({ isAdmin }) {
+function EventOperations({ isAdmin = false, can: canPermission }) {
+    const can = canPermission || (() => isAdmin);
+    const canView = can("events.requests.view");
+    const canCreate = can("events.requests.create");
     const [requests, setRequests] = useState([]);
     const [selectedId, setSelectedId] = useState(null);
     const [showForm, setShowForm] = useState(false);
@@ -269,11 +286,11 @@ function EventOperations({ isAdmin }) {
     const [error, setError] = useState("");
 
     useEffect(() => {
-        if (!isAdmin) return;
+        if (!canView) return;
         apiRequest("")
             .then((data) => setRequests(data.eventRequests || []))
             .catch((requestError) => setError(requestError.message));
-    }, [isAdmin]);
+    }, [canView]);
 
     const years = useMemo(() => [...new Set(requests.map((request) => new Date(request.proposedStartDate).getFullYear()))].sort(), [requests]);
     const requesters = useMemo(() => [...new Set(requests.map((request) => request.requestingGroup).filter(Boolean))].sort(), [requests]);
@@ -306,15 +323,15 @@ function EventOperations({ isAdmin }) {
         setShowForm(false);
     };
 
-    if (!isAdmin) return null;
+    if (!canView) return null;
 
     return (
         <section className="event-operations" aria-labelledby="event-operations-heading">
             <div className="event-ops-header">
                 <div><span className="event-ops-kicker">Officer workspace</span><h2 id="event-operations-heading">Event operations</h2><p>Track requests from proposal through post-event review.</p></div>
-                <button className="cta-secondary" onClick={() => setShowForm(!showForm)}>{showForm ? "Hide form" : "New event request"}</button>
+                {canCreate && <button className="cta-secondary" onClick={() => setShowForm(!showForm)}>{showForm ? "Hide form" : "New event request"}</button>}
             </div>
-            {showForm && <EventRequestForm onCreated={addRequest} onCancel={() => setShowForm(false)} />}
+            {showForm && canCreate && <EventRequestForm onCreated={addRequest} onCancel={() => setShowForm(false)} />}
             <div className="event-ops-filters" role="group" aria-label="Event request filters">
                 <label>Year<select value={filters.year} onChange={(event) => setFilters({ ...filters, year: event.target.value })}><option value="">All years</option>{years.map((year) => <option key={year}>{year}</option>)}</select></label>
                 <label>Quarter<select value={filters.quarter} onChange={(event) => setFilters({ ...filters, quarter: event.target.value })}><option value="">All quarters</option>{["Q1", "Q2", "Q3", "Q4"].map((quarter) => <option key={quarter}>{quarter}</option>)}</select></label>
@@ -344,7 +361,7 @@ function EventOperations({ isAdmin }) {
                     </table>
                     {!filteredRequests.length && <p className="event-ops-empty">No event requests match these filters.</p>}
                 </div>
-                {selected && <EventDetail request={selected} onUpdate={updateRequest} />}
+                {selected && <EventDetail request={selected} onUpdate={updateRequest} can={can} />}
             </div>
         </section>
     );

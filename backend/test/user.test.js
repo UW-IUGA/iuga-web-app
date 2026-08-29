@@ -289,3 +289,30 @@ describe("POST /user/login", () => {
     }
   });
 });
+
+describe("POST /user/logout", () => {
+  test("returns a safe server error when session destruction fails", async () => {
+    const api = await makeTestApi({
+      router: usersRouter,
+      mountPath: "/api/v1/user",
+      models: {},
+      session: {
+        isAuthenticated: true,
+        destroy(callback) {
+          callback(new Error("session store unavailable"));
+        },
+      },
+    });
+
+    try {
+      const result = await api.request("POST", "/api/v1/user/logout");
+      assert.equal(result.status, 500);
+      assert.deepEqual(result.body, {
+        status: "error",
+        message: "There was an error on our side :(",
+      });
+    } finally {
+      await api.close();
+    }
+  });
+});

@@ -156,9 +156,14 @@ router.post("/login", async function (req, res) {
     @method: POST
     @description: destroy user session.
 */
-router.post("/logout", requireAuth, function (req, res, next) {
-  req.session.destroy();
-  return sendSuccess(res);
+router.post("/logout", requireAuth, function (req, res) {
+  req.session.destroy((error) => {
+    if (error) {
+      console.error("Logout session destruction failed:", error?.message);
+      return sendError(res, 500);
+    }
+    return sendSuccess(res);
+  });
 });
 
 //Get the user's specific information from the user's perspective, from an outsider perspective, and from the admin perspective

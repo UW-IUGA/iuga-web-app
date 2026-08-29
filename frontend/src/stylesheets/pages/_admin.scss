@@ -170,6 +170,13 @@
     color: $dark-gray;
 }
 
+.adminDashboardMeta {
+    display: block;
+    margin-top: 0.5rem;
+    color: $dark-gray;
+    font-size: 0.85rem;
+}
+
 @include media("screen", "<tablet") {
     .adminNavigation {
         align-items: flex-start;

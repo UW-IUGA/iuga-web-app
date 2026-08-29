@@ -75,6 +75,8 @@ describe("admin operations APIs", () => {
     const result = await dashboardApi.request("GET", "/api/v1/dashboard");
     assert.equal(result.status, 200);
     assert.deepEqual(result.body.queues.map((queue) => queue.key), ["FINANCE_REVIEW"]);
+    assert.equal(result.body.ownRequests[0].nextResponsibleRole, "Director of Finance");
+    assert.equal(result.body.stalled[0].nextResponsibleRole, "Director of Finance");
     assert.equal(result.body.activeCycle.cycleName, "2026–2027");
   });
 

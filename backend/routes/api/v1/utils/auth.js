@@ -34,6 +34,26 @@ export function requireAuth(req, res, next) {
 }
 
 /*
+    @helper: isOwnerOrAdmin
+    @description: Checks if the current session user is an administrator
+                  or owns the specified target record.
+
+    Expected Request Information:
+    - req.session.isAdmin (Boolean, set at login)
+    - req.session.userId (ObjectId or String of current user)
+    - targetUserId (ObjectId or String of the record owner)
+
+    Expected Return Information:
+    - true when the session user is an admin or matches targetUserId; false otherwise
+*/
+export function isOwnerOrAdmin(req, targetUserId) {
+  return Boolean(
+    req.session.isAdmin ||
+    targetUserId?.toString() === req.session.userId?.toString(),
+  );
+}
+
+/*
     @middleware: requireAdmin
     @method: N/A (Express middleware)
     @description: Checks that the request comes from a logged-in officer.

@@ -187,11 +187,12 @@ async function canonicalTransition(req, id, request, toStatus, update, audit) {
   await recordAudit(req, {
     eventRequestId: id,
     cycleId: request.cycleId,
-    action: audit.action,
-    fromStatus: request.status,
-    toStatus,
-    comment: audit.comment,
-    amountCents: audit.amountCents,
+      action: audit.action,
+      fromStatus: request.status,
+      toStatus,
+      comment: audit.comment,
+      amountCents: audit.amountCents,
+      requesterId: request.requesterId,
   });
   return updated;
 }
@@ -259,6 +260,7 @@ router.post("/", requirePermission("events.requests.create"), async (req, res) =
       cycleId: cycle?._id ?? null,
       action: "submitted",
       toStatus: canonicalInput ? status : null,
+      requesterId: req.session.userId,
     });
     return res.status(201).json({ status: "success", eventRequest: request });
   } catch (error) {
@@ -494,7 +496,7 @@ router.post("/:id/publish", requirePermission("events.publication.manage"), asyn
     }
     const updated = await req.models.EventRequests.findOneAndUpdate({ _id: req.params.id, status: "SCHEDULED" }, { $set: { publishedEventId: event } }, { new: true, runValidators: true });
     if (!updated) return sendError(res, 409, "Event request changed; retry the update");
-    await recordAudit(req, { eventRequestId: req.params.id, cycleId: request.cycleId, action: "published" });
+    await recordAudit(req, { eventRequestId: req.params.id, cycleId: request.cycleId, action: "published", requesterId: request.requesterId });
     return sendSuccess(res, { eventRequest: updated, event });
   } catch (error) {
     console.error(error);

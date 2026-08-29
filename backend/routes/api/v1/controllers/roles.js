@@ -24,9 +24,16 @@ const ROLE_DESCRIPTION_MAX_LENGTH = 500;
 
 const knownPermissions = new Set([
   "users.roles.manage",
+  "events.requests.view",
+  "events.requests.create",
+  "events.requests.edit",
   "events.leadership.approve",
   "events.finance.manage",
+  "events.room.manage",
+  "events.marketing.manage",
   "events.purchases.complete",
+  "events.operations.manage",
+  "events.review.manage",
 ]);
 
 function escapeRegex(value) {

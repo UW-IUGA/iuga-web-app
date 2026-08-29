@@ -85,7 +85,7 @@ describe("requireAdmin", () => {
 describe("requirePermission", () => {
   function requestWithAssignments(assignments) {
     return {
-      session: { isAuthenticated: true, isAdmin: true, userId: "user-1" },
+      session: { isAuthenticated: true, isAdmin: false, userId: "user-1" },
       models: {
         RoleAssignments: {
           find() {
@@ -113,6 +113,37 @@ describe("requirePermission", () => {
 
     assert.strictEqual(res.statusCode, null);
     assert.strictEqual(nextCalled, true);
+  });
+
+  it("passes for a non-admin user with an active role permission", async () => {
+    const req = requestWithAssignments([
+      { roleId: { isActive: true, permissions: ["events.view"] } },
+      { roleId: { isActive: true, permissions: ["users.roles.manage"] } },
+    ]);
+    const res = makeFakeRes();
+    let nextCalled = false;
+
+    await requirePermission("users.roles.manage")(req, res, () => {
+      nextCalled = true;
+    });
+
+    assert.strictEqual(res.statusCode, null);
+    assert.strictEqual(nextCalled, true);
+  });
+
+  it("ignores permissions from expired role assignments", async () => {
+    const req = requestWithAssignments([
+      {
+        expiresAt: new Date(Date.now() - 1000),
+        roleId: { isActive: true, permissions: ["users.roles.manage"] },
+      },
+    ]);
+    const res = makeFakeRes();
+
+    await requirePermission("users.roles.manage")(req, res, () => {});
+
+    assert.strictEqual(res.statusCode, 403);
+    assert.strictEqual(res.body.message, "Not authorized");
   });
 
   it("rejects an admin without the permission", async () => {

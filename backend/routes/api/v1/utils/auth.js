@@ -11,6 +11,7 @@ Purpose: Gate routes by session state so protected endpoints are only
 */
 
 import { sendError } from "../helpers/sendError.js";
+import { getEffectivePermissions } from "./permissions.js";
 
 /*
     @middleware: requireAuth
@@ -72,20 +73,9 @@ export function requirePermission(permission) {
     if (!req.session.isAuthenticated) {
       return sendError(res, 401, "Not authenticated");
     }
-    if (!req.session.isAdmin) {
-      return sendError(res, 403, "Not authorized");
-    }
-
     try {
-      const assignments = await req.models.RoleAssignments.find({
-        userId: req.session.userId,
-        isActive: true,
-      }).populate("roleId");
-
-      const hasPermission = assignments.some((assignment) =>
-        assignment.roleId?.isActive &&
-        assignment.roleId.permissions.includes(permission),
-      );
+      const permissions = await getEffectivePermissions(req);
+      const hasPermission = permissions.includes(permission);
 
       if (!hasPermission) {
         return sendError(res, 403, "Not authorized");

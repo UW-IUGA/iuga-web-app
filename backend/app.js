@@ -10,6 +10,7 @@ import { createSessionOptions } from "./sessionConfig.js";
 import apiv1Router from "./routes/api/v1/apiv1.js";
 import { httpErrorHandler, sendSpaError } from "./httpErrorHandler.js";
 import { ALLOWED_ORIGINS, REQUEST_BODY_LIMIT } from "./httpBoundaryConfig.js";
+import { createCsrfProtection } from "./routes/api/v1/utils/csrf.js";
 
 import { fileURLToPath } from "url";
 import { dirname } from "path";
@@ -120,6 +121,7 @@ Expected Response Information:
 - Requests receive session state only when a route uses it.
 */
 app.use(sessions(createSessionOptions(sessionSecret, process.env.DEPLOY_ENV)));
+app.use(createCsrfProtection({ allowedOrigins }));
 
 /*
 Purpose: Attach the shared Mongoose model registry to each request for controllers.

@@ -10,7 +10,7 @@ import express from "express";
 import mongoose from "mongoose";
 import { sendError } from "../helpers/sendError.js";
 import { sendSuccess } from "../helpers/sendSuccess.js";
-import { requireAuth } from "../utils/auth.js";
+import { requireAuth, isOwnerOrAdmin } from "../utils/auth.js";
 
 var router = express.Router();
 //-------------------------------Event Endpoints----------------------------------------------
@@ -320,14 +320,22 @@ router.delete("/withdraw/:eId/:pId", requireAuth, async function (req, res) {
     const eId = req.params.eId;
     const event = await req.models.Events.findById(eId);
 
-    let newParticipants = [];
-    event.eParticipants.forEach((participant) => {
-      if (participant.toString() !== pId) {
-        newParticipants.push(participant);
-      }
-    });
+    const participant = await req.models.Participants.findById(pId);
+    if (!participant || participant.eID?.toString() !== eId) {
+      return sendError(res, 404, "Participant not found");
+    }
 
-    event.eParticipants = newParticipants;
+    if (!isOwnerOrAdmin(req, participant.pUID)) {
+      return sendError(
+        res,
+        403,
+        "You are not authorized to withdraw this participant",
+      );
+    }
+
+    event.eParticipants = event.eParticipants.filter(
+      (participant) => participant.toString() !== pId,
+    );
     await event.save();
 
     return sendSuccess(res);
@@ -338,13 +346,22 @@ router.delete("/withdraw/:eId/:pId", requireAuth, async function (req, res) {
 });
 
 //Given a participant's id, pull their answer list, user profile, and other info about them
-router.get("/:pId", async function (req, res) {
+router.get("/:pId", requireAuth, async function (req, res) {
   try {
     const pId = req.params.pId;
     const participant = await req.models.Participants.findById(pId);
     if (!participant) {
       return sendError(res, 404, "Participant not found.");
     }
+
+    if (!isOwnerOrAdmin(req, participant.pUID)) {
+      return sendError(
+        res,
+        403,
+        "You are not authorized to view this participant",
+      );
+    }
+
     const participantData = {
       id: pId,
       userId: participant.pUID,

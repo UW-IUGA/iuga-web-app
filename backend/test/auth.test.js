@@ -5,6 +5,7 @@ import {
   requireAdmin,
   requireOfficerRolePermission,
 } from "../routes/api/v1/utils/auth.js";
+import { isOwnerOrAdmin } from "../routes/api/v1/utils/auth.js";
 import { makeFakeRes } from "./makeFakeRes.js";
 
 describe("requireAuth", () => {
@@ -163,5 +164,31 @@ describe("requireOfficerRolePermission", () => {
 
     assert.strictEqual(res.statusCode, 403);
     assert.strictEqual(res.body.message, "Not authorized");
+  });
+});
+
+describe("isOwnerOrAdmin", () => {
+  it("returns true for an admin even if the record belongs to someone else", () => {
+    const req = { session: { isAdmin: true, userId: "admin-1" } };
+    const res = isOwnerOrAdmin(req, "other-user-not-admin");
+    assert.strictEqual(res, true);
+  });
+
+  it("returns true for an admin accessing their own record", () => {
+    const req = { session: { isAdmin: true, userId: "admin-1" } };
+    const res = isOwnerOrAdmin(req, "admin-1");
+    assert.strictEqual(res, true);
+  });
+
+  it("returns true for an owner accessing their own record", () => {
+    const req = { session: { isAdmin: false, userId: "owner-1" } };
+    const res = isOwnerOrAdmin(req, "owner-1");
+    assert.strictEqual(res, true);
+  });
+
+  it("returns false for a user accessing someone else's record when not admin", () => {
+    const req = { session: { isAdmin: false, userId: "owner-1" } };
+    const res = isOwnerOrAdmin(req, "not-owner-1");
+    assert.strictEqual(res, false);
   });
 });

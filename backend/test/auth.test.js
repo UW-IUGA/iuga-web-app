@@ -88,10 +88,22 @@ describe("requireOfficerRolePermission", () => {
       session: { isAuthenticated: true, isAdmin: true, userId: "user-1" },
       models: {
         RoleAssignments: {
-          find() {
+          find(filter = {}) {
+            const filtered = assignments.filter((assignment) => {
+              if (!filter.$or) return true;
+              return filter.$or.some((condition) => {
+                if (condition.expiresAt === null) {
+                  return (
+                    assignment.expiresAt === null ||
+                    assignment.expiresAt === undefined
+                  );
+                }
+                return assignment.expiresAt > condition.expiresAt.$gt;
+              });
+            });
             return {
               async populate() {
-                return assignments;
+                return filtered;
               },
             };
           },
@@ -99,6 +111,28 @@ describe("requireOfficerRolePermission", () => {
       },
     };
   }
+
+  it("does not grant permissions from expired assignments", async () => {
+    const req = requestWithAssignments([
+      {
+        expiresAt: new Date(Date.now() - 1),
+        roleId: { isActive: true, permissions: ["users.roles.manage"] },
+      },
+    ]);
+    const res = makeFakeRes();
+    let nextCalled = false;
+
+    await requireOfficerRolePermission("users.roles.manage")(
+      req,
+      res,
+      () => {
+        nextCalled = true;
+      },
+    );
+
+    assert.strictEqual(res.statusCode, 403);
+    assert.strictEqual(nextCalled, false);
+  });
 
   it("passes when an active role grants the permission", async () => {
     const req = requestWithAssignments([

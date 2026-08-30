@@ -21,12 +21,58 @@ const LEADERSHIP_STATUSES = ["submitted", "changes_requested"];
 function validId(value) {
   return mongoose.isValidObjectId(value);
 }
+function readRsvpQuestions(value) {
+  if (!Array.isArray(value)) return { error: "rsvpQuestions must be an array" };
+
+  const questions = [];
+  for (const [index, question] of value.entries()) {
+    if (!question || typeof question !== "object" || Array.isArray(question)) {
+      return { error: `rsvpQuestions[${index}] must be an object` };
+    }
+    if (
+      typeof question.qId !== "string" ||
+      question.qId.trim() === "" ||
+      question.qId.trim().length > 100
+    ) {
+      return {
+        error: `rsvpQuestions[${index}].qId must be a non-empty string of 100 characters or fewer`,
+      };
+    }
+    if (
+      typeof question.qString !== "string" ||
+      question.qString.trim() === "" ||
+      question.qString.trim().length > 500
+    ) {
+      return {
+        error: `rsvpQuestions[${index}].qString must be a non-empty string of 500 characters or fewer`,
+      };
+    }
+    questions.push({
+      qId: question.qId.trim(),
+      qString: question.qString.trim(),
+    });
+  }
+
+  return { fields: questions };
+}
+
+function readDate(value) {
+  if (typeof value !== "string" || value.trim() === "") return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 
 function defaultCheckpoints() {
   return CHECKPOINT_KEYS.map((key) => ({ key, status: "pending" }));
 }
 
 function readRequestFields(body = {}) {
+  body ??= {};
+  if (typeof body !== "object" || Array.isArray(body)) {
+    return { error: "Event request body must be an object" };
+  }
+
   const fields = {};
   for (const key of ["eventName", "requestingGroup", "description", "audience"]) {
     if (body[key] !== undefined) {
@@ -48,15 +94,15 @@ function readRequestFields(body = {}) {
     return { error: "eventName, requestingGroup, and description are required" };
   }
 
-  const start = new Date(body.proposedStartDate);
-  if (!body.proposedStartDate || Number.isNaN(start.getTime())) {
+  const start = readDate(body.proposedStartDate);
+  if (!start) {
     return { error: "proposedStartDate must be a valid date" };
   }
   fields.proposedStartDate = start;
 
   if (body.proposedEndDate !== undefined && body.proposedEndDate !== null) {
-    const end = new Date(body.proposedEndDate);
-    if (Number.isNaN(end.getTime()) || end < start) {
+    const end = readDate(body.proposedEndDate);
+    if (!end || end < start) {
       return { error: "proposedEndDate must be a valid date after proposedStartDate" };
     }
     fields.proposedEndDate = end;
@@ -70,10 +116,9 @@ function readRequestFields(body = {}) {
     fields.rsvpEnabled = body.rsvpEnabled;
   }
   if (body.rsvpQuestions !== undefined) {
-    if (!Array.isArray(body.rsvpQuestions)) {
-      return { error: "rsvpQuestions must be an array" };
-    }
-    fields.rsvpQuestions = body.rsvpQuestions;
+    const questions = readRsvpQuestions(body.rsvpQuestions);
+    if (questions.error) return questions;
+    fields.rsvpQuestions = questions.fields;
   }
   if (body.slideTemplate !== undefined) {
     const template = body.slideTemplate;

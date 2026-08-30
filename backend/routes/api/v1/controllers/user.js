@@ -6,11 +6,19 @@ Schemas addressed in users.js:
 */
 
 import express from "express";
+import mongoose from "mongoose";
 import { sendError } from "../helpers/sendError.js";
 import { sendSuccess } from "../helpers/sendSuccess.js";
 import { requireAuth } from "../utils/auth.js";
 
 var router = express.Router();
+function validUserId(value) {
+  return (
+    typeof value === "string" &&
+    /^[0-9a-f]{24}$/i.test(value) &&
+    mongoose.isValidObjectId(value)
+  );
+}
 const GRAPH_PROFILE_URL = "https://graph.microsoft.com/v1.0/me";
 const GRAPH_REQUEST_TIMEOUT_MS = 5000;
 const INVALID_AUTHORIZATION_MESSAGE = "Invalid access token";
@@ -65,7 +73,7 @@ async function rotateSession(req) {
                   get information about the user using Graph API. Save information
                   about the user if already exists. Create user session.
 */
-router.post("/login", async function (req, res) {
+router.post("/login", loginRateLimiter, async function (req, res) {
   const accessToken = readBearerToken(req.headers.authorization);
   if (!accessToken) {
     return sendError(res, 401, INVALID_AUTHORIZATION_MESSAGE);
@@ -181,8 +189,11 @@ router.get("/", requireAuth, async function (req, res) {
 router.get("/:uId", requireAuth, async function (req, res) {
   try {
     const uId = req.params.uId;
-    const currId = req.session.id;
-    const currUser = await req.models.Users.findById({ currId });
+    if (!validUserId(uId)) {
+      return sendError(res, 400, "Invalid user ID");
+    }
+    const currId = req.session.userId;
+    const currUser = await req.models.Users.findById(currId);
 
     if (currId == uId) {
       //Current user is viewing their own account (account owner view)
@@ -201,8 +212,11 @@ router.get("/:uId", requireAuth, async function (req, res) {
 router.post("/:uId", requireAuth, async function (req, res) {
   try {
     const uId = req.params.uId;
-    const currId = req.session.id;
-    const currUser = await req.models.Users.findById({ currId });
+    if (!validUserId(uId)) {
+      return sendError(res, 400, "Invalid user ID");
+    }
+    const currId = req.session.userId;
+    const currUser = await req.models.Users.findById(currId);
     if (currId == uId) {
       //If current user edits their own account
     } else if (currId != uId && currUser.uType === "Admin") {

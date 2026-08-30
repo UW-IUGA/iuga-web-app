@@ -13,6 +13,39 @@ import { sendSuccess } from "../helpers/sendSuccess.js";
 import { requireAuth, isOwnerOrAdmin } from "../utils/auth.js";
 
 var router = express.Router();
+function validId(value) {
+  return (
+    typeof value === "string" &&
+    /^[0-9a-f]{24}$/i.test(value) &&
+    mongoose.isValidObjectId(value)
+  );
+}
+
+function readRsvpAnswers(value) {
+  if (!Array.isArray(value)) return "rsvpAnswers must be an array";
+
+  for (const answer of value) {
+    if (!answer || typeof answer !== "object" || Array.isArray(answer)) {
+      return "Each RSVP answer must be an object";
+    }
+    if (
+      typeof answer.qId !== "string" ||
+      answer.qId.trim() === "" ||
+      answer.qId.trim().length > 100
+    ) {
+      return "Each RSVP answer qId must be a non-empty string of 100 characters or fewer";
+    }
+    if (
+      typeof answer.aString !== "string" ||
+      answer.aString.length > 2000
+    ) {
+      return "Each RSVP answer aString must be a string of 2000 characters or fewer";
+    }
+  }
+
+  return null;
+}
+
 //-------------------------------Event Endpoints----------------------------------------------
 
 /*
@@ -116,62 +149,57 @@ Expected Response Information:
         }]
 */
 router.get("/id/:eId", async function (req, res) {
-  //When getting an event based on an id, get all info about the event asked for
   try {
     const eId = req.params.eId;
-    const regex = new RegExp("[0-9A-Fa-f]{24}");
-    if (regex.test(eId)) {
-      const event = await req.models.Events.findById(eId)
-        .populate("eParticipants", "pUID")
-        .exec();
-      if (event == null) {
-        return sendError(res, 404, "Event not found");
-      } else {
-        let hasRSVPd = false;
-        let rsvpAnswers = [];
-        if (req.session.isAuthenticated) {
-          const userObjectId = mongoose.Types.ObjectId(req.session.userId);
-          const participant = await req.models.Participants.findOne({
-            pUID: userObjectId,
-            eID: eId,
-          }).exec();
-          if (participant) {
-            hasRSVPd = true;
-            rsvpAnswers = participant.rsvpAnswers.map((answer) => ({
-              qId: answer.qId,
-              aString: answer.aString,
-            }));
-          }
-        }
-
-        const eventData = {
-          eId: event._id,
-          eName: event.eName,
-          eOrganizers: event.eOrganizers,
-          eStartDate: event.eStartDate,
-          eEndDate: event.eEndDate,
-          eLocation: event.eLocation,
-          eDescription: event.eDescription,
-          ePics: event.ePics,
-          eLabels: event.eLabels,
-          rsvpQuestions: event.rsvpQuestions,
-          rsvpAnswers: rsvpAnswers,
-          participants: event.eShowParticipants
-            ? event.eParticipants.length
-            : null,
-          showParticipants: event.eShowParticipants,
-          eThumbnailPath: event.eThumbnailPath,
-          rsvpEnabled: event.eRsvpEnabled,
-          eAltLink: event.eAltLink,
-          hasRSVPd: hasRSVPd,
-        };
-
-        res.json(eventData);
-      }
-    } else {
-      console.error(`/events/id/${eId} Failed regex test!`);
-      return sendError(res, 400, "Bad request...");
+    if (!validId(eId)) {
+      return sendError(res, 400, "Invalid event ID");
     }
+
+    const event = await req.models.Events.findById(eId)
+      .populate("eParticipants", "pUID")
+      .exec();
+    if (!event) {
+      return sendError(res, 404, "Event not found");
+    }
+
+    let hasRSVPd = false;
+    let rsvpAnswers = [];
+    if (req.session.isAuthenticated) {
+      const userObjectId = mongoose.Types.ObjectId(req.session.userId);
+      const participant = await req.models.Participants.findOne({
+        pUID: userObjectId,
+        eID: eId,
+      }).exec();
+      if (participant) {
+        hasRSVPd = true;
+        rsvpAnswers = participant.rsvpAnswers.map((answer) => ({
+          qId: answer.qId,
+          aString: answer.aString,
+        }));
+      }
+    }
+
+    const eventData = {
+      eId: event._id,
+      eName: event.eName,
+      eOrganizers: event.eOrganizers,
+      eStartDate: event.eStartDate,
+      eEndDate: event.eEndDate,
+      eLocation: event.eLocation,
+      eDescription: event.eDescription,
+      ePics: event.ePics,
+      eLabels: event.eLabels,
+      rsvpQuestions: event.rsvpQuestions,
+      rsvpAnswers,
+      participants: event.eShowParticipants ? event.eParticipants.length : null,
+      showParticipants: event.eShowParticipants,
+      eThumbnailPath: event.eThumbnailPath,
+      rsvpEnabled: event.eRsvpEnabled,
+      eAltLink: event.eAltLink,
+      hasRSVPd,
+    };
+
+    return res.json(eventData);
   } catch (error) {
     console.log(error);
     return sendError(res, 500);
@@ -251,7 +279,13 @@ Expected Response Information:
 router.post("/rsvp", requireAuth, async function (req, res) {
   //Using the given event id and user id parameters, create a participant profile for the user and this pId into the event's participant list
   try {
-    const { eId, rsvpAnswers } = req.body;
+    const { eId, rsvpAnswers } = req.body ?? {};
+    if (!validId(eId)) {
+      return sendError(res, 400, "Invalid event ID");
+    }
+    const rsvpError = readRsvpAnswers(rsvpAnswers);
+    if (rsvpError) return sendError(res, 400, rsvpError);
+
     const event = await req.models.Events.findById(eId)
       .populate("eParticipants")
       .exec();
@@ -284,7 +318,7 @@ router.post("/rsvp", requireAuth, async function (req, res) {
     const newParticipant = new req.models.Participants({
       pUID: userObjectId,
       eID: eId,
-      rsvpAnswers: rsvpAnswers,
+      rsvpAnswers,
     });
 
     const savedParticipant = await newParticipant.save();
@@ -318,7 +352,17 @@ router.delete("/withdraw/:eId/:pId", requireAuth, async function (req, res) {
   try {
     const pId = req.params.pId;
     const eId = req.params.eId;
+    if (!validId(eId)) {
+      return sendError(res, 400, "Invalid event ID");
+    }
+    if (!validId(pId)) {
+      return sendError(res, 400, "Invalid participant ID");
+    }
+
     const event = await req.models.Events.findById(eId);
+    if (!event) {
+      return sendError(res, 404, "Event not found");
+    }
 
     const participant = await req.models.Participants.findById(pId);
     if (!participant || participant.eID?.toString() !== eId) {
@@ -349,6 +393,10 @@ router.delete("/withdraw/:eId/:pId", requireAuth, async function (req, res) {
 router.get("/:pId", requireAuth, async function (req, res) {
   try {
     const pId = req.params.pId;
+    if (!validId(pId)) {
+      return sendError(res, 400, "Invalid participant ID");
+    }
+
     const participant = await req.models.Participants.findById(pId);
     if (!participant) {
       return sendError(res, 404, "Participant not found.");
@@ -368,7 +416,6 @@ router.get("/:pId", requireAuth, async function (req, res) {
       aList: participant.aList,
       isAnon: participant.isAnon,
     };
-    // fix this
     return sendSuccess(res, { participant: participantData });
   } catch (error) {
     console.log(error);
@@ -377,4 +424,3 @@ router.get("/:pId", requireAuth, async function (req, res) {
 });
 
 export default router;
-

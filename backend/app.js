@@ -8,6 +8,10 @@ import path from "path";
 import { models, connectToDatabase } from "./models.js";
 import { createSessionOptions } from "./sessionConfig.js";
 import apiv1Router from "./routes/api/v1/apiv1.js";
+import {
+  configureTrustedProxy,
+  createRateLimiter,
+} from "./routes/api/v1/utils/rateLimit.js";
 import { httpErrorHandler, sendSpaError } from "./httpErrorHandler.js";
 import { ALLOWED_ORIGINS, REQUEST_BODY_LIMIT } from "./httpBoundaryConfig.js";
 import { createCsrfProtection } from "./routes/api/v1/utils/csrf.js";
@@ -26,6 +30,12 @@ if (!sessionSecret) {
 
 await connectToDatabase();
 const app = express();
+configureTrustedProxy(app);
+
+const apiRateLimiter = createRateLimiter({
+  limit: 100,
+  windowMs: 15 * 60_000,
+});
 
 
 // Readiness probe for the pipeline health gate. The listener only starts
@@ -246,7 +256,7 @@ Expected Response Information:
 */
 app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
-app.use("/api/v1", apiv1Router);
+app.use("/api/v1", apiRateLimiter, apiv1Router);
 app.use(httpErrorHandler);
 
 export default app;

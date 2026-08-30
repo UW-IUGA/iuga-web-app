@@ -10,6 +10,7 @@ import mongoose from "mongoose";
 import { sendError } from "../helpers/sendError.js";
 import { sendSuccess } from "../helpers/sendSuccess.js";
 import { requireAuth } from "../utils/auth.js";
+import { createRateLimiter } from "../utils/rateLimit.js";
 
 var router = express.Router();
 function validUserId(value) {
@@ -19,6 +20,10 @@ function validUserId(value) {
     mongoose.isValidObjectId(value)
   );
 }
+const loginRateLimiter = createRateLimiter({
+  limit: 10,
+  windowMs: 60_000,
+});
 const GRAPH_PROFILE_URL = "https://graph.microsoft.com/v1.0/me";
 const GRAPH_REQUEST_TIMEOUT_MS = 5000;
 const INVALID_AUTHORIZATION_MESSAGE = "Invalid access token";

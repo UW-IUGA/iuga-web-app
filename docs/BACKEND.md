@@ -22,11 +22,12 @@
 
 ## Directory Layout
 
-```
 backend/
 ├── bin/
 │   └── www.cjs              ← Server entry point (CommonJS)
-├── app.js                   ← Express app config
+├── app.js                   ← Express app config and middleware order
+├── httpBoundaryConfig.js    ← Shared body-size and browser-origin policy
+├── httpErrorHandler.js      ← Safe JSON responses for parser/server errors
 ├── models.js                ← Database connection + model registration
 ├── schemas/                 ← Git submodule → UW-IUGA/iuga-web-schemas
 ├── routes/
@@ -34,17 +35,18 @@ backend/
 │       ├── apiv1.js         ← API router (mounts controller modules)
 │       ├── controllers/
 │       │   ├── user.js           ← Login, logout, user info
-│       │   ├── events.js         ← Event CRUD, RSVP
+│       │   ├── events.js         ← Event browsing and RSVP
 │       │   ├── feedback.js       ← Feedback form CRUD
-│       │   ├── roles.js           ← Role catalog and role-assignment API
-│       │   ├── eventRequests.js   ← Event request workflow and operations API
-│       │   └── administration.js ← Officer/committee stubs (not currently mounted — see Administration section)
+│       │   ├── roles.js           ← Role catalog and role assignments
+│       │   ├── eventRequests.js   ← Event request workflow and operations
+│       │   └── administration.js ← Unmounted officer/committee stubs
 │       └── utils/
-│           └── auth.js          ← requireAuth / requireAdmin / requirePermission middleware
-├── env/
-│   ├── .env.example          ← Template for environment files
-│   └── (actual .env.* files are gitignored)
-└── package.json             ← ES module ("type": "module")
+│           ├── auth.js        ← Authentication and permission middleware
+│           ├── csrf.js        ← Origin checks for session mutations
+│           └── rateLimit.js   ← Process-local request limits
+├── .env.example            ← Tracked runtime template
+├── env/                    ← Ignored runtime environment files
+└── package.json            ← ES module ("type": "module")
 ```
 
 ---
@@ -71,19 +73,16 @@ Express also serves:
 ---
 
 ## API Routes
-
-All API routes are mounted under `/api/v1`. They return JSON.
-
 ### Events (`/api/v1/events`)
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| `GET` | `/` | No | All events for the calendar. Populates participant info only if authenticated; otherwise `hasRSVPd: false`. |
+| `GET` | `/` | No | All events for the calendar. Authenticated callers also receive `hasRSVPd`; anonymous callers receive `false`. |
 | `GET` | `/upcoming` | No | Latest 3 events (sorted by start date descending). Used by the homepage. |
-| `GET` | `/id/:eId` | No | Single event details. Includes RSVP questions, participant count, thumbnail. If authenticated, includes user's RSVP answers. |
-| `POST` | `/rsvp` | Yes | RSVP to an event. Body: `{ eId, rsvpAnswers }`. Validates: event exists, RSVP enabled, event hasn't started, user not already RSVPed. |
-| `DELETE` | `/withdraw/:eId/:pId` | Yes | Withdraw from an event. |
-| `GET` | `/:pId` | No | Get participant info by participant ID. |
+| `GET` | `/id/:eId` | No | Single event details. Includes RSVP questions, participant count, thumbnail, and the caller's RSVP answers when authenticated. |
+| `POST` | `/rsvp` | Yes | RSVP to an event. Requires a valid event ID and an array of string answers; also checks event state and duplicate participation. |
+| `DELETE` | `/withdraw/:eId/:pId` | Yes | Withdraw only the caller's participant from the matching event. Admins may withdraw any participant. |
+| `GET` | `/:pId` | Yes | Return protected participant details only to the participant owner or an admin. |
 
 ### User (`/api/v1/user`)
 
@@ -92,8 +91,8 @@ All API routes are mounted under `/api/v1`. They return JSON.
 | `POST` | `/login` | No* | Exchange MS access token for a server session. Validates token via Microsoft Graph API. Creates user in MongoDB if new. |
 | `POST` | `/logout` | Yes | Destroy server session. |
 | `GET` | `/` | Yes | Return current session user info (firstName, lastName, displayName, email, memberType). |
-| `GET` | `/:uId` | Yes | Get user by ID (stub — controller has empty branches for owner/admin/outsider views). |
-| `POST` | `/:uId` | Yes | Update user by ID (stub — branches for self-edit and admin-edit, no implementation). |
+| `GET` | `/:uId` | Yes | Validate a user ID before entering the current owner/admin view stub. |
+| `POST` | `/:uId` | Yes | Validate a user ID before entering the current self/admin update stub. |
 
 \* `/login` does not require a session but does require a Bearer token from Microsoft.
 
@@ -189,7 +188,7 @@ The backend uses **server-side sessions** with `express-session`.
 
 - `requireAuth` — requires a logged-in session
 - `requireAdmin` — requires a logged-in admin/officer session
-- `requirePermission("users.roles.manage")` — requires an active role assignment granting the permission
+- `requireOfficerRolePermission("users.roles.manage")` — requires an active role assignment granting the permission.
 
 The permission middleware loads active role assignments for the session user and checks the populated role permissions before calling `next()`.
 
@@ -202,7 +201,25 @@ Attach them in the route chain, e.g. `router.post("/", requireAuth, handler)` or
 
 ### Session destruction
 
-`POST /api/v1/user/logout` destroys the session and responds with `{ status: "success" }`.
+`POST /api/v1/user/logout` destroys the session. A successful response is `{ status: "success" }`; a session-store failure returns the generic 500 error envelope.
+
+### HTTP security boundaries
+
+The application applies these checks before API handlers:
+
+- `SESSION_SECRET` must be supplied at startup; there is no source-controlled fallback.
+- Session cookies are `httpOnly`, use `SameSite=Lax`, and are `secure` in staging and production.
+- Authenticated `POST`, `PUT`, `PATCH`, and `DELETE` requests must include an allowed browser `Origin`. Login is exempt because it uses a Microsoft Bearer token instead of a session cookie.
+- CORS allows only `http://localhost:3000`, `http://localhost:5173`, and the documented IUGA domains. Backend ports such as `7777` are not browser origins.
+- JSON and URL-encoded bodies are limited to 32 KB. API traffic is limited to 100 requests per 15 minutes, and login is limited to 10 requests per minute per client address.
+- Malformed JSON, oversized bodies, CORS failures, and unexpected server failures return the repository JSON error envelope rather than HTML or stack traces.
+
+Production dependency audits currently pass for the backend. The frontend audit still reports two moderate React Router advisories:
+
+- `GHSA-wrjc-x8rr-h8h6` — open redirect through backslash handling.
+- `GHSA-337j-9hxr-rhxg` — constructor injection in SSR hydration error deserialization.
+
+The current frontend uses React Router 6 with `BrowserRouter` and does not use SSR hydration. Existing navigation targets are internal paths, so no affected external redirect flow is currently documented; future route-input changes must preserve that property. The available fix requires a breaking React Router 7 upgrade. **Owner:** frontend maintainer, in a separate migration.
 
 ---
 
@@ -258,18 +275,21 @@ Based on controller usage, the schemas include these fields:
 
 ## Middleware Stack (in order)
 
-1. `cors()` — enabled only when `DEPLOY` environment variable is not set (dev)
-2. `morgan('dev')` — HTTP request logging
-3. `express.json()` — JSON body parsing
-4. `express.urlencoded({ extended: false })` — URL-encoded body parsing
-5. `cookie-parser` — Cookie parsing
-6. `express.static("../frontend/build")` — Static file serving
-7. `express-session` — Server-side session management
-8. Custom middleware — attaches `req.models` (Mongoose models) to each request
-9. SPA route handlers — serve `index.html` for browser routes
-10. `app.use('/api/v1', apiv1Router)` — API route mount
+1. `cors()` — allows only configured browser origins and credentials
+2. Security-header middleware — adds `nosniff`, `DENY`, and strict referrer policy
+3. `morgan('dev')` — HTTP request logging
+4. `express.json()` and `express.urlencoded()` — parse bodies up to 32 KB
+5. `cookie-parser` — parses incoming cookies
+6. `express.static("../frontend/build")` — serves built frontend assets
+7. `express-session` — creates explicit, environment-aware session cookies
+8. CSRF middleware — rejects authenticated mutations without a trusted `Origin`
+9. Model middleware — attaches `req.models` to each request
+10. SPA route handlers — serve `index.html` for browser routes
+11. `/uploads` static delivery — serves public uploaded files
+12. `/api/v1` rate limiter and router — limits API traffic before dispatch
+13. `httpErrorHandler` — converts parser, CORS, and unexpected failures to safe JSON
 
-Note: ETag is **disabled** (`app.disable('etag')`) to ensure clients always get the latest version.
+ETags are disabled with `app.disable('etag')`, so responses do not use conditional-cache headers.
 
 ---
 
@@ -281,10 +301,10 @@ Note: ETag is **disabled** (`app.disable('etag')`) to ensure clients always get 
 | `mongoose` | MongoDB ODM |
 | `express-session` | Server-side sessions |
 | `morgan` | HTTP request logging |
-| `cors` | Cross-origin resource sharing (dev only) |
+| `cors` | Cross-origin resource sharing |
 | `cookie-parser` | Cookie parsing |
 | `dotenv-cli` | Load environment files |
-| `node-fetch` | HTTP requests to Microsoft Graph API |
+| Native `fetch` | HTTP requests to Microsoft Graph API |
 
 ---
 

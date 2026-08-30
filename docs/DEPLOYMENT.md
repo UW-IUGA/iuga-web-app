@@ -268,7 +268,7 @@ docker run ... iuga/iuga-web-app-<env>:last-good
 | Staging | 7777 | 7777 | `iuga-web-staging` |
 | Production | 7777 | 8888 | `iuga-web-prod` |
 
-All environments bind to `127.0.0.1` only. External access goes through nginx.
+The Node process binds to `0.0.0.0` in these environments so Docker and the host port mapping can reach it. External access is still expected to go through the documented host mapping and nginx.
 
 ---
 

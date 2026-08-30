@@ -65,9 +65,10 @@ Browser
 - Express.js HTTP server (default port **7777**)
 - Serve the built SPA as static files (`GET /`, `/events`, `/resources`, etc.)
 - Mount REST API at `/api/v1`
+- Apply explicit CORS, security headers, body-size, rate-limit, CSRF, and safe-error boundaries
 - Manage server-side sessions with `express-session`
 - Connect to MongoDB (Mongoose ODM)
-- Models registered at startup: `Events`, `Participants`, `Users`
+- Attach registered models to requests for controllers
 - Handle Microsoft Graph token exchange for authentication
 
 ### Database (MongoDB)
@@ -122,8 +123,9 @@ Frontend                         Backend                       Azure AD / Graph
    │                                ├─ GET /v1.0/me (Graph) ─────►│
    │                                │◄── user profile ────────────│
    │                                │                              │
+   │                                ├─ Rotate anonymous session    │
    │                                ├─ Create/Fetch MongoDB user   │
-   │                                ├─ Create server session       │
+   │                                ├─ Store authenticated session │
    │◄── { user object } ───────────│                              │
    │                                │                              │
    ├─ Session cookie set            │                              │
@@ -131,6 +133,8 @@ Frontend                         Backend                       Azure AD / Graph
 ```
 
 Authentication uses **Microsoft Azure AD** (UW enterprise directory). The frontend never sees the user's password — only MSAL access tokens. The backend validates tokens via Microsoft Graph API, then creates its own server-side session.
+
+After login, session-authenticated state changes must include an `Origin` header whose value is in the configured frontend/IUGA origin list. CORS and CSRF share that list; backend listening ports are not browser origins.
 
 ---
 

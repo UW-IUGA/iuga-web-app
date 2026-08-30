@@ -56,8 +56,8 @@ npm start                    # uses env/.env.dev
 
 The backend requires:
 1. A built frontend at `../frontend/build/` (run `VITE_API_URL=http://localhost:7777 npm run build` in `frontend/`)
-2. Environment files in `backend/env/` (see [Environment Setup](#environment-setup) below)
-3. A MongoDB connection (Atlas for dev)
+2. An environment file loaded by the selected backend script
+3. A MongoDB connection (Atlas for development)
 
 ---
 
@@ -65,24 +65,27 @@ The backend requires:
 
 ### Backend environment files
 
-Backend environment files live in `backend/env/` and are **gitignored** (except `.env.example`).
+The tracked template is `backend/.env.example`. Runtime files live in the ignored `backend/env/` directory because the npm scripts load `env/.env.dev`, `env/.env.debug`, or `env/.env.prod`.
 
 ```
-backend/env/
-├── .env.example       ← Copy this to create your config
-├── .env.dev           ← Used by `npm start`
-├── .env.debug         ← Used by `npm run debug` (must be created)
-└── .env.prod          ← Used by `npm run deploy` (production secrets)
+backend/
+├── .env.example       ← Tracked template
+└── env/
+    ├── .env.dev       ← Used by npm start
+    ├── .env.debug     ← Used by npm run debug
+    └── .env.prod      ← Used by npm run deploy
 ```
 
 **To create `.env.dev`:**
 
 ```bash
-cp backend/env/.env.example backend/env/.env.dev
+mkdir -p backend/env
+cp backend/.env.example backend/env/.env.dev
 # Then edit the file with your actual values
 ```
 
-Required variables (see `.env.example`):
+Required variables (see `backend/.env.example`):
+
 
 | Variable | Purpose |
 |---|---|
@@ -95,13 +98,14 @@ Required variables (see `.env.example`):
 
 The `npm run debug` and `npm run backend-debug` commands load `backend/env/.env.debug` with verbose logging.
 
-```bash
-cp backend/env/.env.example backend/env/.env.debug
+```
+mkdir -p backend/env
+cp backend/.env.example backend/env/.env.debug
 # Edit with your credentials, then:
 npm run backend-debug
 ```
 
-> **Note:** `.env.debug` is not committed to the repository. You must create it from `.env.example`. If it is missing, the `debug` scripts will fail with a missing-file error.
+> **Note:** `.env.debug` is not committed to the repository. Create it from the tracked `backend/.env.example`. If it is missing, the debug scripts fail with a missing-file error.
 
 ### Frontend environment
 
@@ -111,6 +115,8 @@ Frontend environment files are local and should not be committed:
 |---|---|---|
 | `frontend/.env.development` | `VITE_API_URL` | `http://localhost:7777` |
 | `frontend/.env.production` | `VITE_API_URL` | `https://dev.iuga.info` |
+
+When the frontend runs on Vite at `http://localhost:3000`, the browser sends that value as the `Origin` header on authenticated state-changing requests, so the backend CSRF check accepts them. Requests from another origin are rejected.
 
 ---
 

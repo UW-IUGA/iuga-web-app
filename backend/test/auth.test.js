@@ -3,7 +3,7 @@ import assert from "node:assert";
 import {
   requireAuth,
   requireAdmin,
-  requirePermission,
+  requireOfficerRolePermission,
 } from "../routes/api/v1/utils/auth.js";
 import { makeFakeRes } from "./makeFakeRes.js";
 
@@ -82,7 +82,7 @@ describe("requireAdmin", () => {
   });
 });
 
-describe("requirePermission", () => {
+describe("requireOfficerRolePermission", () => {
   function requestWithAssignments(assignments) {
     return {
       session: { isAuthenticated: true, isAdmin: true, userId: "user-1" },
@@ -107,7 +107,7 @@ describe("requirePermission", () => {
     const res = makeFakeRes();
     let nextCalled = false;
 
-    await requirePermission("users.roles.manage")(req, res, () => {
+    await requireOfficerRolePermission("users.roles.manage")(req, res, () => {
       nextCalled = true;
     });
 
@@ -121,7 +121,11 @@ describe("requirePermission", () => {
     ]);
     const res = makeFakeRes();
 
-    await requirePermission("users.roles.manage")(req, res, () => {});
+    await requireOfficerRolePermission("users.roles.manage")(
+      req,
+      res,
+      () => {},
+    );
 
     assert.strictEqual(res.statusCode, 403);
     assert.strictEqual(res.body.message, "Not authorized");

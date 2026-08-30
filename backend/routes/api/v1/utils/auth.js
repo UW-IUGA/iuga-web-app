@@ -60,14 +60,14 @@ export function requireAdmin(req, res, next) {
 }
 
 /*
-    @middleware: requirePermission
+    @middleware: requireOfficerRolePermission
     @method: N/A (Express middleware factory)
     @description: Checks that an authenticated admin has a specific
                   permission through an active role assignment.
 
-    Example: router.post("/roles", requirePermission("users.roles.manage"), handler)
+    Example: router.post("/roles", requireOfficerRolePermission("users.roles.manage"), handler)
 */
-export function requirePermission(permission) {
+export function requireOfficerRolePermission(permission) {
   return async function (req, res, next) {
     if (!req.session.isAuthenticated) {
       return sendError(res, 401, "Not authenticated");

@@ -1,8 +1,12 @@
 import express from "express";
 import { once } from "node:events";
 
+let nextTestIp = 1;
+
 export async function makeTestApi({ router, mountPath, models, session = {} }) {
   const app = express();
+  app.set("trust proxy", 1);
+  const testIp = `127.0.0.${nextTestIp++}`;
   const requestContexts = new Map();
   let nextRequestId = 0;
 
@@ -42,6 +46,7 @@ export async function makeTestApi({ router, mountPath, models, session = {} }) {
           method,
           headers: {
             "content-type": "application/json",
+            "x-forwarded-for": testIp,
             ...requestHeaders,
             "x-test-request-id": requestId,
           },

@@ -12,6 +12,39 @@ import { requireAuth, requireAdmin } from "../utils/auth.js";
 import mongoose from "mongoose";
 
 var router = express.Router();
+function readFeedbackFields(body = {}) {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return { error: "Feedback body must be an object" };
+  }
+
+  const fType = body.fType === undefined ? "General" : body.fType;
+  if (typeof fType !== "string" || fType.trim().length > 100) {
+    return { error: "fType must be a string of 100 characters or fewer" };
+  }
+  if (typeof body.fTopic !== "string" || body.fTopic.trim() === "") {
+    return { error: "fTopic must be a non-empty string" };
+  }
+  if (body.fTopic.trim().length > 200) {
+    return { error: "fTopic must be 200 characters or fewer" };
+  }
+  if (
+    typeof body.fDescription !== "string" ||
+    body.fDescription.trim() === ""
+  ) {
+    return { error: "fDescription must be a non-empty string" };
+  }
+  if (body.fDescription.trim().length > 5000) {
+    return { error: "fDescription must be 5000 characters or fewer" };
+  }
+
+  return {
+    fields: {
+      fType: fType.trim() || "General",
+      fTopic: body.fTopic.trim(),
+      fDescription: body.fDescription.trim(),
+    },
+  };
+}
 
 /*
 Purpose: Retrieve a feedback form's info from the database
@@ -65,19 +98,17 @@ Assumed req variables (Will need to check back with frontend for what is sent in
 - fDescription
 */
 router.post("/", requireAuth, async (req, res) => {
+  const { fields, error } = readFeedbackFields(req.body);
+  if (error) return sendError(res, 400, error);
+
   try {
-    //Fit the new feedback data into a new Feedback Schema Object
     const newFeedback = new req.models.Feedback({
-      fUID: req.session.userId, // Identity from the session
-      fType: req.body.fType,
-      fTopic: req.body.fTopic,
-      fDescription: req.body.fDescription,
+      fUID: req.session.userId,
+      ...fields,
     });
 
-    //Save the new Feedback object into the database.
     await newFeedback.save();
 
-    //Give the client a proper reply saying it went well.
     return sendSuccess(res);
   } catch (error) {
     console.log(error);
@@ -97,10 +128,16 @@ Assumed req variables (Will need to check back with frontend for what is sent in
 */
 router.delete("/", requireAdmin, async (req, res) => {
   const fID = req.query.fID;
+  if (
+    typeof fID !== "string" ||
+    !/^[0-9a-f]{24}$/i.test(fID) ||
+    !mongoose.isValidObjectId(fID)
+  ) {
+    return sendError(res, 400, "Invalid feedback ID");
+  }
+
   try {
-    //Delete the given feedback form
     await req.models.Feedback.deleteOne({ _id: fID });
-    //Tell the client it worked
     return sendSuccess(res);
   } catch (error) {
     console.log(error);

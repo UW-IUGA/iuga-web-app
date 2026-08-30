@@ -37,53 +37,51 @@ function isProvided(value) {
   return value !== undefined && value !== null;
 }
 
-function readRoleFields(body = {}, partial = false) {
-  body = body ?? {};
+function normalizeRoleFields(body, partial) {
+  const source = body ?? {};
   const fields = {};
   const roleName =
-    typeof body.roleName === "string" ? body.roleName.trim() : undefined;
+    typeof source.roleName === "string" ? source.roleName.trim() : undefined;
   const roleKey =
-    typeof body.roleKey === "string"
-      ? body.roleKey.trim().toLowerCase()
+    typeof source.roleKey === "string"
+      ? source.roleKey.trim().toLowerCase()
       : undefined;
   const roleDescription =
-    typeof body.roleDescription === "string"
-      ? body.roleDescription.trim()
+    typeof source.roleDescription === "string"
+      ? source.roleDescription.trim()
       : undefined;
 
   if (!partial || roleName !== undefined) fields.roleName = roleName;
   if (!partial || roleKey !== undefined) fields.roleKey = roleKey;
-  if (!partial || roleDescription !== undefined)
+  if (!partial || roleDescription !== undefined) {
     fields.roleDescription = roleDescription ?? "";
-  if (!partial || body.permissions !== undefined)
-    fields.permissions = body.permissions;
-  if (body.isActive !== undefined) fields.isActive = body.isActive;
+  }
+  if (!partial || source.permissions !== undefined) {
+    fields.permissions = source.permissions;
+  }
+  if (source.isActive !== undefined) fields.isActive = source.isActive;
 
+  return fields;
+}
+
+function validateRoleFields(fields, partial) {
   if (!partial && (!fields.roleName || !fields.roleKey)) {
-    return { error: "roleName and roleKey are required" };
+    return "roleName and roleKey are required";
   }
-  if (fields.roleName && fields.roleName.length > ROLE_NAME_MAX_LENGTH) {
-    return {
-      error: `roleName must be ${ROLE_NAME_MAX_LENGTH} characters or fewer`,
-    };
+
+  const maxLengths = {
+    roleName: ROLE_NAME_MAX_LENGTH,
+    roleKey: ROLE_KEY_MAX_LENGTH,
+    roleDescription: ROLE_DESCRIPTION_MAX_LENGTH,
+  };
+  for (const [field, maxLength] of Object.entries(maxLengths)) {
+    if (fields[field] && fields[field].length > maxLength) {
+      return `${field} must be ${maxLength} characters or fewer`;
+    }
   }
-  if (fields.roleKey && fields.roleKey.length > ROLE_KEY_MAX_LENGTH) {
-    return {
-      error: `roleKey must be ${ROLE_KEY_MAX_LENGTH} characters or fewer`,
-    };
-  }
-  if (
-    fields.roleDescription &&
-    fields.roleDescription.length > ROLE_DESCRIPTION_MAX_LENGTH
-  ) {
-    return {
-      error: `roleDescription must be ${ROLE_DESCRIPTION_MAX_LENGTH} characters or fewer`,
-    };
-  }
+
   if (fields.roleKey && !/^[a-z][a-z0-9_]*$/.test(fields.roleKey)) {
-    return {
-      error: "roleKey must use lowercase letters, numbers, and underscores",
-    };
+    return "roleKey must use lowercase letters, numbers, and underscores";
   }
   if (
     fields.permissions !== undefined &&
@@ -92,13 +90,19 @@ function readRoleFields(body = {}, partial = false) {
         (permission) => !knownPermissions.has(permission),
       ))
   ) {
-    return { error: "permissions contains an unknown permission" };
+    return "permissions contains an unknown permission";
   }
   if (fields.isActive !== undefined && typeof fields.isActive !== "boolean") {
-    return { error: "isActive must be a boolean" };
+    return "isActive must be a boolean";
   }
 
-  return { fields };
+  return null;
+}
+
+function readRoleFields(body = {}, partial = false) {
+  const fields = normalizeRoleFields(body, partial);
+  const error = validateRoleFields(fields, partial);
+  return error ? { error } : { fields };
 }
 
 /*

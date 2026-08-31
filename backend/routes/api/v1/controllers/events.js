@@ -75,7 +75,7 @@ router.get("/", async function (req, res) {
       const events = await req.models.Events.find({})
         .populate("eParticipants")
         .exec();
-      const userObjectId = mongoose.Types.ObjectId(req.session.userId);
+      const userObjectId = new mongoose.Types.ObjectId(req.session.userId);
 
       const eventsData = await Promise.all(
         events.map(async (event) => {
@@ -165,7 +165,7 @@ router.get("/id/:eId", async function (req, res) {
     let hasRSVPd = false;
     let rsvpAnswers = [];
     if (req.session.isAuthenticated) {
-      const userObjectId = mongoose.Types.ObjectId(req.session.userId);
+      const userObjectId = new mongoose.Types.ObjectId(req.session.userId);
       const participant = await req.models.Participants.findOne({
         pUID: userObjectId,
         eID: eId,
@@ -289,7 +289,7 @@ router.post("/rsvp", requireAuth, async function (req, res) {
     const event = await req.models.Events.findById(eId)
       .populate("eParticipants")
       .exec();
-    const userObjectId = mongoose.Types.ObjectId(req.session.userId);
+    const userObjectId = new mongoose.Types.ObjectId(req.session.userId);
 
     if (!event) {
       return sendError(res, 404, "Event not found");

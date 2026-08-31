@@ -7,6 +7,7 @@
     "test:backend": "npm test --prefix backend",
     "test:frontend": "npm test --prefix frontend",
     "test": "npm run test:backend && npm run test:frontend",
+    "test:runtime-resolution": "npm run test:runtime-resolution --prefix backend",
     "debug": "cd frontend; npm install && npm run build -- --mode development && cd ../backend; npm install && npm run debug",
     "dev": "cd frontend; npm install && npm run build -- --mode development && cd ../backend; npm install && npm start",
     "frontend": "cd frontend; npm install && npm start",

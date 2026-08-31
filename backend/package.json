@@ -7,7 +7,8 @@
     "start": "dotenv -e ./env/.env.dev node ./bin/www.cjs",
     "debug": "dotenv -e env/.env.debug node ./bin/www.cjs",
     "deploy": "dotenv -e ./env/.env.prod node ./bin/www.cjs",
-    "test": "node --test test/*.test.js"
+    "test": "node --test test/*.test.js",
+    "test:runtime-resolution": "node --test test/mongoose-runtime-resolution.smoke.js"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",

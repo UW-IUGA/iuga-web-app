@@ -93,7 +93,7 @@ describe("Mongoose integration behavior", { skip: !hasTestDatabase }, () => {
     const updated = await Roles.findByIdAndUpdate(
       role._id,
       { $set: { roleName: "Updated baseline role" } },
-      { new: true, runValidators: true },
+      { returnDocument: "after", runValidators: true },
     ).exec();
 
     assert.equal(updated.roleName, "Updated baseline role");
@@ -104,7 +104,7 @@ describe("Mongoose integration behavior", { skip: !hasTestDatabase }, () => {
       Roles.findByIdAndUpdate(
         role._id,
         { $set: { roleName: "" } },
-        { new: true, runValidators: true },
+        { returnDocument: "after", runValidators: true },
       ).exec(),
       /required/,
     );
@@ -180,7 +180,7 @@ describe("Mongoose integration behavior", { skip: !hasTestDatabase }, () => {
       { $set: { "checkpoints.$[checkpoint].status": "completed" } },
       {
         arrayFilters: [{ "checkpoint.key": "review" }],
-        new: true,
+        returnDocument: "after",
         runValidators: true,
       },
     ).exec();

@@ -136,7 +136,7 @@ async function transitionRequest(req, id, statuses, update) {
   return req.models.EventRequests.findOneAndUpdate(
     { _id: id, status: { $in: statuses } },
     { $set: update },
-    { new: true, runValidators: true },
+    { returnDocument: "after", runValidators: true },
   );
 }
 
@@ -195,7 +195,7 @@ router.patch("/:id", requireAdmin, async (req, res) => {
           submittedBy: req.session.userId,
         },
       },
-      { new: true, runValidators: true },
+      { returnDocument: "after", runValidators: true },
     );
     if (!updated) return sendError(res, 409, "Event request changed; retry the update");
     return sendSuccess(res, { eventRequest: updated });
@@ -382,7 +382,7 @@ router.patch("/:id/checklist/:step", requireCheckpointPermission, async (req, re
     const updated = await req.models.EventRequests.findOneAndUpdate(
       { _id: req.params.id, status: request.status },
       { $set: { checkpoints } },
-      { new: true, runValidators: true },
+      { returnDocument: "after", runValidators: true },
     );
     if (!updated) return sendError(res, 409, "Event request changed; retry the update");
     return sendSuccess(res, { eventRequest: updated });
@@ -429,7 +429,7 @@ router.patch("/:id/budget", requirePermission("events.finance.manage"), async (r
           }),
         },
       },
-      { new: true, runValidators: true },
+      { returnDocument: "after", runValidators: true },
     );
     if (!updated) return sendError(res, 409, "Event request changed; retry the update");
     return sendSuccess(res, { eventRequest: updated });
@@ -461,7 +461,7 @@ router.patch("/:id/review-tracking", requireAdmin, async (req, res) => {
     const updated = await req.models.EventRequests.findOneAndUpdate(
       { _id: req.params.id, status: request.status },
       { $set: update },
-      { new: true, runValidators: true },
+      { returnDocument: "after", runValidators: true },
     );
     if (!updated) return sendError(res, 409, "Event request changed; retry the update");
     return sendSuccess(res, { eventRequest: updated });
@@ -501,7 +501,7 @@ router.patch("/:id/booking", requireAdmin, async (req, res) => {
     const updated = await req.models.EventRequests.findOneAndUpdate(
       { _id: req.params.id, status: request.status },
       { $set: { booking } },
-      { new: true, runValidators: true },
+      { returnDocument: "after", runValidators: true },
     );
     if (!updated) return sendError(res, 409, "Event request changed; retry the update");
     return sendSuccess(res, { eventRequest: updated });

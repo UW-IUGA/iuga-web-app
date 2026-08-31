@@ -162,7 +162,7 @@ router.patch(
       const role = await req.models.Roles.findByIdAndUpdate(
         req.params.id,
         { $set: fields },
-        { new: true, runValidators: true },
+        { returnDocument: "after", runValidators: true },
       );
       if (!role) return sendError(res, 404, "Role not found");
       return sendSuccess(res, { role });
@@ -361,7 +361,7 @@ router.delete(
             deactivatedAt: new Date(),
           },
         },
-        { new: true, runValidators: true },
+        { returnDocument: "after", runValidators: true },
       );
 
       if (!assignment) {

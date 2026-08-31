@@ -10,6 +10,9 @@ import {
   eventReviewsSchema,
 } from "./schemas/schemas.js";
 
+// Preserve the Mongoose 6 unknown-filter behavior during the staged upgrade.
+mongoose.set("strictQuery", true);
+
 let models = {};
 
 async function connectToDatabase(){

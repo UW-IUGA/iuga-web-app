@@ -31,7 +31,10 @@ test("clean backend install uses one Mongoose runtime for model registration", a
     await cp(
       new URL("../schemas", import.meta.url),
       join(temporaryRoot, "schemas"),
-      { recursive: true },
+      {
+        recursive: true,
+        filter: (source) => !source.includes("node_modules"),
+      },
     );
 
     await execFileAsync("npm", ["ci", "--ignore-scripts"], {

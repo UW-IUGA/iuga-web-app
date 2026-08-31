@@ -94,6 +94,17 @@ describe("role assignment API", () => {
     assert.equal(result.body.message, "Invalid user ID");
   });
 
+  it("rejects a 12-character target user ID", async () => {
+    const result = await api.request(
+      "POST",
+      "/api/v1/roles/users/abcdefghijkl/assignments",
+      { roleId },
+    );
+
+    assert.equal(result.status, 400);
+    assert.equal(result.body.message, "Invalid user ID");
+  });
+
   it("rejects an assignment without a role ID", async () => {
     const result = await api.request(
       "POST",

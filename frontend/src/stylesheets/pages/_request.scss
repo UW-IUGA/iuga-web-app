@@ -1,0 +1,94 @@
+.adminBackLink {
+    display: inline-block;
+    margin-bottom: 1.5rem;
+    color: $color-uw-purple;
+    font-weight: 700;
+    text-decoration: none;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.adminRequestHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    max-width: none;
+
+    p {
+        color: $dark-gray;
+        margin: 0.5rem 0 0;
+    }
+}
+
+.requestStepper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    list-style: none;
+    margin: 0 0 2.5rem;
+    padding: 0;
+    counter-reset: step;
+}
+
+.requestStepper__step {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: $radius-pill;
+    background: rgba($color-uw-purple, 0.06);
+    color: $dark-gray;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.requestStepper__marker {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    font-size: 0.75rem;
+}
+
+.requestStepper__step--done {
+    background: rgba($color-uw-purple, 0.12);
+    color: $color-uw-purple;
+
+    .requestStepper__marker {
+        background: $color-uw-purple;
+        border-color: $color-uw-purple;
+        color: white;
+    }
+}
+
+.requestStepper__step--active {
+    background: $color-uw-purple;
+    color: white;
+}
+
+.requestStepper__step--rejected {
+    background: rgba(#b3261e, 0.12);
+    color: #b3261e;
+}
+
+.adminRequestReview {
+    margin: 1.5rem 0;
+    padding: 1.5rem;
+}
+
+.adminRequestPanel {
+    margin: 1rem 0;
+
+    summary {
+        cursor: pointer;
+        padding: 0.75rem 0;
+        color: $color-uw-purple;
+        font-weight: 700;
+    }
+}

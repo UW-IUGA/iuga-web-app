@@ -13,7 +13,7 @@ import {
     timeValue,
 } from "../../utils/eventRequest";
 
-function EventDetail({ request, onUpdate, can, onPurchaseComplete }) {
+function EventDetail({ request, onUpdate, can, onPurchaseComplete, showHeading = true, showHistory = true }) {
     const [budget, setBudget] = useState({});
     const [booking, setBooking] = useState({});
     const [meetingDecision, setMeetingDecision] = useState("");
@@ -191,12 +191,14 @@ function EventDetail({ request, onUpdate, can, onPurchaseComplete }) {
 
     return (
         <aside className="event-ops-detail editorial-card" aria-label={`${request.eventName} details`}>
-            <div className="event-ops-detail-heading">
-                <div><span className="event-ops-kicker">Request detail</span><h3>{request.eventName}</h3></div>
-                <StatusBadge status={request.status} />
-            </div>
-            <p className="event-ops-detail-meta">{request.requestingGroup} · {formatDate(request.eventDate || request.proposedStartDate)}</p>
-            <p>{request.purpose || request.description}</p>
+            {showHeading && <>
+                <div className="event-ops-detail-heading">
+                    <div><span className="event-ops-kicker">Request detail</span><h3>{request.eventName}</h3></div>
+                    <StatusBadge status={request.status} />
+                </div>
+                <p className="event-ops-detail-meta">{request.requestingGroup} · {formatDate(request.eventDate || request.proposedStartDate)}</p>
+                <p>{request.purpose || request.description}</p>
+            </>}
 
             {(request.status === "submitted" || request.status === "changes_requested") && can("events.leadership.approve") ? (
                 <div className="event-ops-actions">
@@ -277,7 +279,7 @@ function EventDetail({ request, onUpdate, can, onPurchaseComplete }) {
                 <button className="standard-button" type="submit" disabled={request.status === "FINANCE_REVIEW" && !roomBookingComplete}>{request.status === "FINANCE_REVIEW" ? "Record funding decision" : "Save finance"}</button>
             </form>}
 
-            <DecisionHistory entries={request.auditEntries} />
+            {showHistory && <DecisionHistory entries={request.auditEntries} />}
             </div>
         </aside>
     );

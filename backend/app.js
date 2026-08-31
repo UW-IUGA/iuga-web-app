@@ -132,6 +132,18 @@ app.get('/admin/calendar', function(req, res) {
   })
 })
 
+app.get('/admin/pipeline', function(req, res) {
+  res.sendFile(path.join(__dirname, '../frontend/build/index.html'), function(err) {
+    if (err) res.status(500).send(err)
+  })
+})
+
+app.get('/admin/pipeline/*', function(req, res) {
+  res.sendFile(path.join(__dirname, '../frontend/build/index.html'), function(err) {
+    if (err) res.status(500).send(err)
+  })
+})
+
 app.get('/admin/event-requests/review/*', function(req, res) {
   res.sendFile(path.join(__dirname, '../frontend/build/index.html'), function(err) {
     if (err) res.status(500).send(err)

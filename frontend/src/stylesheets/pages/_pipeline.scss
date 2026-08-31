@@ -1,0 +1,172 @@
+.adminPipelineHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    max-width: none;
+}
+
+.adminPipelineFilters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+
+    label {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: $dark-gray;
+    }
+
+    select,
+    input {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid rgba($color-uw-purple, 0.25);
+        border-radius: $radius-card;
+    }
+
+    &__search {
+        flex: 1;
+        min-width: 12rem;
+    }
+}
+
+.adminPipelineBoard {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(15rem, 1fr);
+    gap: 1rem;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+}
+
+.adminPipelineColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: $radius-card;
+    background: rgba($color-uw-purple, 0.04);
+
+    &__header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+
+        h2 {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        span {
+            color: $dark-gray;
+            font-weight: 700;
+        }
+    }
+
+    &__empty {
+        margin: 0;
+        color: $dark-gray;
+        font-size: 0.85rem;
+    }
+}
+
+.pipelineCard {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 1rem;
+
+    &__title {
+        font-family: $serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: $color-primary;
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    &__meta {
+        margin: 0;
+        color: $dark-gray;
+        font-size: 0.85rem;
+    }
+
+    &__action {
+        margin-top: 0.5rem;
+    }
+
+    &__actionRow {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+    }
+
+    &__inline {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    &__inlineFields {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    &__hint {
+        margin: 0;
+        font-size: 0.85rem;
+        color: $dark-gray;
+    }
+}
+
+.adminPipelineDone {
+    margin-top: 2rem;
+
+    &__list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+}
+
+.reasonModal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1000;
+
+    &__panel {
+        width: min(28rem, 100%);
+        padding: 1.5rem;
+
+        h3 {
+            margin-top: 0;
+        }
+    }
+
+    &__actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+}
+
+@include media("screen", "<tablet") {
+    .adminPipelineBoard {
+        grid-auto-flow: row;
+        grid-auto-columns: auto;
+    }
+}

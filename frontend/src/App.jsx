@@ -5,6 +5,7 @@ import AdminEvents from "./pages/AdminEvents";
 import AdminEventReview from "./pages/AdminEventReview";
 import AdminCalendar from "./pages/AdminCalendar";
 import AdminRequest from "./pages/AdminRequest";
+import AdminPipeline from "./pages/AdminPipeline";
 import AdminCharter from "./pages/AdminCharter";
 import AdminJournal from "./pages/AdminJournal";
 import AdminContacts from "./pages/AdminContacts";
@@ -81,6 +82,7 @@ function App() {
                     <Route path="/admin" element={<AdminDashboard />} />
                     <Route path="/admin/events" element={<AdminEvents />} />
                     <Route path="/admin/calendar" element={<AdminCalendar />} />
+                    <Route path="/admin/pipeline" element={<AdminPipeline />} />
                     <Route path="/admin/pipeline/:id" element={<AdminRequest />} />
                     <Route path="/admin/event-requests" element={<AdminEventRequests />} />
                     <Route path="/admin/events/review/:id" element={<AdminEventReview />} />

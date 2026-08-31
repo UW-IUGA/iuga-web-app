@@ -12,6 +12,33 @@ export const CHECKPOINTS = [
 
 export const CANONICAL_STATES = new Set(["DRAFT", "PVP_REVIEW", "AGENDA", "FINANCE_REVIEW", "MARKETING_QUEUED", "SCHEDULED", "AWAITING_REVIEW", "REVIEWED", "REJECTED", "ARCHIVED"]);
 
+const LEGACY_STATE_MAP = {
+    draft: "DRAFT",
+    submitted: "PVP_REVIEW",
+    changes_requested: "DRAFT",
+    approved: "SCHEDULED",
+    denied: "REJECTED",
+    completed: "REVIEWED",
+    cancelled: "REJECTED",
+};
+
+export function canonicalState(status) {
+    return LEGACY_STATE_MAP[status] || status;
+}
+
+// Ordered pipeline columns: canonical state -> board heading.
+export const PIPELINE_COLUMNS = [
+    ["DRAFT", "Proposal"],
+    ["PVP_REVIEW", "P/VP review"],
+    ["AGENDA", "Meeting"],
+    ["FINANCE_REVIEW", "Finance"],
+    ["MARKETING_QUEUED", "Marketing"],
+    ["SCHEDULED", "Purchases"],
+    ["AWAITING_REVIEW", "Review"],
+];
+
+export const DONE_STATES = new Set(["REVIEWED", "REJECTED", "ARCHIVED"]);
+
 export async function apiRequest(path, options = {}) {
     const response = await fetch(`${API_PATH}${path}`, {
         credentials: "include",

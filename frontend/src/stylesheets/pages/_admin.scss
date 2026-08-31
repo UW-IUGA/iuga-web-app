@@ -166,8 +166,36 @@
 }
 
 .adminDashboardItem {
+    display: block;
     margin: 0.5rem 0 0;
-    color: $dark-gray;
+    color: $color-primary;
+    text-decoration: none;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.adminDashboardHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    max-width: none;
+}
+
+.adminDashboardRow {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+
+    &:hover {
+        box-shadow: 0 8px 24px rgba($color-uw-purple, 0.16);
+    }
+
+    strong {
+        display: block;
+    }
 }
 
 .adminDashboardMeta {

@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
+import { MemoryRouter } from "react-router-dom";
 import AdminDashboard from "./AdminDashboard";
 import { adminRequest } from "../utils/adminApi";
 import { useAuthContext } from "../context/AuthContext";
@@ -8,8 +9,10 @@ vi.mock("../components/AdminRoute", () => ({ default: ({ children }) => children
 vi.mock("../context/AuthContext", () => ({ useAuthContext: vi.fn() }));
 vi.mock("../utils/adminApi", () => ({ adminRequest: vi.fn() }));
 
+const renderDashboard = () => render(<MemoryRouter><AdminDashboard /></MemoryRouter>);
+
 describe("AdminDashboard", () => {
-    test("renders role-scoped queues and budget context", async () => {
+    test("links queue, own, and stalled requests into the pipeline", async () => {
         useAuthContext.mockReturnValue({ can: vi.fn((permission) => ["events.leadership.approve", "events.finance.manage"].includes(permission)) });
         adminRequest.mockImplementation((path) => path === "dashboard"
             ? Promise.resolve({
@@ -20,27 +23,28 @@ describe("AdminDashboard", () => {
             })
             : Promise.resolve({ notifications: [] }));
 
-        render(<AdminDashboard />);
+        renderDashboard();
 
         expect(await screen.findByRole("heading", { name: "P/VP review" })).toBeInTheDocument();
-        expect(screen.getAllByText("Autumn workshop")).toHaveLength(2);
         expect(screen.getByText("$750.00")).toBeInTheDocument();
-        expect(screen.getByRole("heading", { name: "Your responsibilities" })).toBeInTheDocument();
-        expect(screen.getByRole("heading", { name: "President / Vice President" })).toBeInTheDocument();
-        expect(screen.getByRole("heading", { name: "Director of Finance" })).toBeInTheDocument();
+
+        const queueLink = screen.getAllByRole("link", { name: "Autumn workshop" })[0];
+        expect(queueLink).toHaveAttribute("href", "/admin/pipeline/request-1");
+        expect(screen.getByRole("link", { name: /Panel night/ })).toHaveAttribute("href", "/admin/pipeline/own-1");
         expect(screen.getByText("Next: Director of Finance")).toBeInTheDocument();
         expect(screen.getByText("Responsible role: President / Vice President")).toBeInTheDocument();
     });
 
-    test("does not show role-specific responsibilities to a board member without workflow permissions", async () => {
+    test("drops the static responsibilities section", async () => {
         useAuthContext.mockReturnValue({ can: vi.fn(() => false) });
         adminRequest.mockImplementation((path) => path === "dashboard"
             ? Promise.resolve({ queues: [], ownRequests: [], stalled: [], activeCycle: null })
             : Promise.resolve({ notifications: [] }));
 
-        render(<AdminDashboard />);
+        renderDashboard();
 
         expect(await screen.findByRole("heading", { name: "Board dashboard" })).toBeInTheDocument();
         expect(screen.queryByRole("heading", { name: "Your responsibilities" })).not.toBeInTheDocument();
+        expect(screen.getByText("You have no event requests.")).toBeInTheDocument();
     });
 });

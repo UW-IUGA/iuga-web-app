@@ -56,7 +56,10 @@ frontend/src/
 │   ├── GetInvolved.jsx   ← Team, committee, and idea-engagement page
 │   ├── Elections.jsx     ← Candidate profiles for current election
 │   ├── ElectionsFAQ.jsx  ← FAQ accordion about elections
-│   ├── AdminEvents.jsx         ← Published events and event-request workspace
+│   ├── AdminDashboard.jsx      ← Board hub: my queue, stalled, own requests, budget
+│   ├── AdminPipeline.jsx       ← Event-request board grouped by workflow stage
+│   ├── AdminRequest.jsx        ← Single request: stepper + current-stage forms + record
+│   ├── AdminCalendar.jsx       ← Published events grid → read-only event record
 │   ├── AdminCharter.jsx        ← Charter and guideline reference
 │   ├── AdminJournal.jsx        ← Advocacy journal
 │   └── AdminContacts.jsx       ← Private contact directory
@@ -93,6 +96,18 @@ Each admin page must wrap its content with `components/AdminRoute.jsx` and use t
 permission contract exposed by `context/AuthContext.jsx`; client checks control
 presentation only, while the backend remains the authorization boundary.
 
+The event workflow is organized around three surfaces: **Dashboard** (`/admin`)
+is the personalized hub whose queue, stalled, and own-request rows link into a
+single request; **Pipeline** (`/admin/pipeline`) is a board that groups every
+request into its workflow stage, with per-stage quick actions on each card and a
+collapsed done/archived lane; **`/admin/pipeline/:id`** shows one request as a
+seven-step stepper with only the current stage's forms expanded plus a
+collapsible event record and decision history. **Calendar** (`/admin/calendar`)
+opens the same read-only `components/events/EventRecord.jsx` for published
+events. Stage forms live in `components/events/` (`stage/` for per-checkpoint
+forms) and are shared between the pipeline card and the request page. Legacy
+`/admin/events` and `/admin/event-requests` paths redirect to the pipeline.
+
 ---
 
 ## Routing
@@ -107,7 +122,10 @@ Defined in `src/App.jsx`:
 | `/elections` | `ElectionPage` | Static data from `assets/data/CandidateData.js` |
 | `/electionfaq` | `ElectionsFAQPage` | Static data from `assets/data/ElectionFAQData.js` |
 | `/get-involved` | `GetInvolvedPage` | Static data from `frontend/src/assets/data/teams/2026.js` (2026 roster, no API) |
-| `/admin/events` | `AdminEvents` | Published events with event-request workflow |
+| `/admin` | `AdminDashboard` | `GET /api/v1/dashboard`, `/notifications` |
+| `/admin/pipeline` | `AdminPipeline` | `GET /api/v1/event-requests` (board by stage) |
+| `/admin/pipeline/:id` | `AdminRequest` | `GET /api/v1/event-requests/:id` + stage actions |
+| `/admin/calendar` | `AdminCalendar` | `GET /api/v1/events`, `/events/admin/:eId` |
 | `/admin/charter` | `AdminCharter` | `GET/PATCH /api/v1/charter` |
 | `/admin/journal` | `AdminJournal` | `GET/POST/PATCH /api/v1/journal` |
 | `/admin/contacts` | `AdminContacts` | `GET/POST/PATCH /api/v1/contacts` |

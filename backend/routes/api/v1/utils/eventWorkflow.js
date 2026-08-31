@@ -82,7 +82,7 @@ export async function recordAudit(req, {
     : null;
 
   if (typeof req.models?.Notifications?.create === "function" && (requesterId || toStatus)) {
-  const base = { eventRequestId, decision: action, comment, link: "/admin/events" };
+  const base = { eventRequestId, decision: action, comment, link: `/admin/pipeline/${eventRequestId}` };
     if (requesterId) await req.models.Notifications.create({ ...base, recipientId: requesterId });
     const recipientRole = RESPONSIBLE_ROLE_BY_STATE[toStatus];
     if (recipientRole && recipientRole !== "requester") await req.models.Notifications.create({ ...base, recipientRole });

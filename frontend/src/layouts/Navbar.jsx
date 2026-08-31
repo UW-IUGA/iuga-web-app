@@ -81,7 +81,7 @@ function Navbar({ signIn, signOut }) {
                         <div className="nav-account-copy">
                             <strong>Welcome back, {userGreeting || "there"}</strong>
                             <span>{userType}</span>
-                            {isAuthenticated && can("events.requests.view") && <NavLink to="/admin/events" className="nav-account-admin-link">Open board workspace</NavLink>}
+                            {isAuthenticated && can("events.requests.view") && <NavLink to="/admin/pipeline" className="nav-account-admin-link">Open board workspace</NavLink>}
                         </div>
                         <button type="button" className="nav-account-logout" onClick={signOut} aria-label="Logout">
                             <FontAwesomeIcon icon={faRightFromBracket} aria-hidden="true" />

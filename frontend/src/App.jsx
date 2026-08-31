@@ -1,8 +1,5 @@
 import HomePage from "./pages/Home";
 import EventsPage from "./pages/Events";
-import AdminEventRequests from "./pages/AdminEventRequests";
-import AdminEvents from "./pages/AdminEvents";
-import AdminEventReview from "./pages/AdminEventReview";
 import AdminCalendar from "./pages/AdminCalendar";
 import AdminRequest from "./pages/AdminRequest";
 import AdminPipeline from "./pages/AdminPipeline";
@@ -19,7 +16,7 @@ import StudentVoicePage from "./pages/StudentVoice";
 import ShopPage from "./pages/Shop";
 import { ToastContainer, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { mockCalendarData } from "./assets/mock-data/MockCalendarData";
 import { enrichWithDevThumbnails } from "./utils/devThumbnails";
@@ -30,6 +27,11 @@ import { iugaTeams } from "./assets/data/AboutData";
 import PublicLayout from "./layouts/PublicLayout";
 import AdminLayout from "./layouts/AdminLayout";
 import { isProduction } from "./runtime";
+
+function RedirectToRequest() {
+    const { id } = useParams();
+    return <Navigate to={`/admin/pipeline/${id}`} replace />;
+}
 
 function App() {
     const [upcomingEvents, setUpcomingEvents] = useState([]);
@@ -80,13 +82,13 @@ function App() {
                 </Route>
                 <Route element={<AdminLayout />}>
                     <Route path="/admin" element={<AdminDashboard />} />
-                    <Route path="/admin/events" element={<AdminEvents />} />
-                    <Route path="/admin/calendar" element={<AdminCalendar />} />
                     <Route path="/admin/pipeline" element={<AdminPipeline />} />
                     <Route path="/admin/pipeline/:id" element={<AdminRequest />} />
-                    <Route path="/admin/event-requests" element={<AdminEventRequests />} />
-                    <Route path="/admin/events/review/:id" element={<AdminEventReview />} />
-                    <Route path="/admin/event-requests/review/:id" element={<AdminEventReview />} />
+                    <Route path="/admin/calendar" element={<AdminCalendar />} />
+                    <Route path="/admin/events" element={<Navigate to="/admin/pipeline" replace />} />
+                    <Route path="/admin/event-requests" element={<Navigate to="/admin/pipeline" replace />} />
+                    <Route path="/admin/events/review/:id" element={<RedirectToRequest />} />
+                    <Route path="/admin/event-requests/review/:id" element={<RedirectToRequest />} />
                     <Route path="/admin/charter" element={<AdminCharter />} />
                     <Route path="/admin/journal" element={<AdminJournal />} />
                     <Route path="/admin/contacts" element={<AdminContacts />} />

@@ -14,10 +14,10 @@ describe("AdminLayout", () => {
         useAuthContext.mockReturnValue({ can: vi.fn().mockReturnValue(true) });
 
         render(
-            <MemoryRouter initialEntries={["/admin/event-requests"]}>
+            <MemoryRouter initialEntries={["/admin/pipeline"]}>
                 <Routes>
                     <Route element={<AdminLayout />}>
-                        <Route path="/admin/event-requests" element={<h1>Event request administration</h1>} />
+                        <Route path="/admin/pipeline" element={<h1>Event request administration</h1>} />
                     </Route>
                 </Routes>
             </MemoryRouter>,

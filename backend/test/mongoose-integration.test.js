@@ -4,10 +4,10 @@ import { after, before, describe, it } from "node:test";
 import {
   eventsSchema,
   eventRequestsSchema,
-  eventReviewsSchema,
   participantsSchema,
-  rolesSchema,
+  eventReviewsSchema,
   usersSchema,
+  rolesSchema,
 } from "../schemas/schemas.js";
 import {
   cleanupTestDatabase,
@@ -21,8 +21,8 @@ const modelNames = [
   "EventRequests",
   "EventReviews",
   "Participants",
-  "Roles",
   "Users",
+  "Roles",
 ];
 const userId = new mongoose.Types.ObjectId();
 const eventRequestId = new mongoose.Types.ObjectId();
@@ -41,8 +41,8 @@ describe("Mongoose integration behavior", { skip: !hasTestDatabase }, () => {
   let Events;
   let EventRequests;
   let EventReviews;
-  let Participants;
   let Roles;
+  let Participants;
   let Users;
 
   before(async () => {
@@ -52,8 +52,8 @@ describe("Mongoose integration behavior", { skip: !hasTestDatabase }, () => {
     Events = model("Events", eventsSchema);
     EventRequests = model("EventRequests", eventRequestsSchema);
     EventReviews = model("EventReviews", eventReviewsSchema);
-    Participants = model("Participants", participantsSchema);
     Roles = model("Roles", rolesSchema);
+    Participants = model("Participants", participantsSchema);
     Users = model("Users", usersSchema);
 
     await Promise.all([EventReviews.init(), Roles.init()]);
@@ -187,7 +187,6 @@ describe("Mongoose integration behavior", { skip: !hasTestDatabase }, () => {
 
     assert.equal(updated.checkpoints[0].status, "completed");
   });
-
   it("can create referenced user and participant models together", async () => {
     const user = await Users.create({
       uEmail: `baseline-${roleKey()}@example.com`,
@@ -208,6 +207,7 @@ describe("Mongoose integration behavior", { skip: !hasTestDatabase }, () => {
 
     assert.equal(participant.eID.toString(), event._id.toString());
   });
+
 });
 
 function roleKey() {

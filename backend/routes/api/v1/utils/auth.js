@@ -92,6 +92,27 @@ export function requirePermission(permission) {
   };
 }
 
+export function requireAnyPermission(...permissions) {
+  return async function (req, res, next) {
+    if (!req.session.isAuthenticated) {
+      return sendError(res, 401, "Not authenticated");
+    }
+    if (isAdminPreviewEnabled() && permissions.some((permission) => ADMIN_PREVIEW_PERMISSION_SET.has(permission))) {
+      return next();
+    }
+    try {
+      const effectivePermissions = await getEffectivePermissions(req);
+      if (!permissions.some((permission) => effectivePermissions.includes(permission))) {
+        return sendError(res, 403, "Not authorized");
+      }
+      next();
+    } catch (error) {
+      console.error(error);
+      return sendError(res, 500);
+    }
+  };
+}
+
 export function requireAdminPreview(req, res, next) {
   if (!req.session.isAuthenticated) {
     return sendError(res, 401, "Not authenticated");

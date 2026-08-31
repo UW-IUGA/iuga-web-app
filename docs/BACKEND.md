@@ -174,15 +174,16 @@ Officer-only event operations use separate EventRequests records before publishi
 | `POST` | `/:id/request-changes` | Leadership returns a request with a required reason. |
 | `POST` | `/:id/deny` | Leadership denies a request with a required reason. |
 | `POST` | `/:id/approve` | Leadership approves and publishes an Events record; this completes the `proposal` checkpoint. |
-| `PATCH` | `/:id/checklist/:step` | Update an independent checkpoint. The sequence is `proposal`, `meeting`, `room`, `finance`, `marketing`, `purchases`, `completion`, `review`. |
+| `PATCH` | `/:id/checklist/:step` | Update an independent checkpoint. The sequence is `proposal`, `meeting`, `room`, `finance`, `marketing`, `purchases`, `review`. |
 | `PATCH` | `/:id/budget` | Finance records allocated and actual cents. |
-| `PATCH` | `/:id/booking` | Record room booking details and actor audit fields. A complete location, start, and end time completes the Room checkpoint; partial details leave it in progress. |
+| `PATCH` | `/:id/booking` | Record room booking details and actor audit fields after the meeting decision for canonical requests. Requires `events.room.manage` or `events.finance.manage`; a complete location, start, and end time completes the Room checkpoint; partial details leave it in progress. |
+| `POST` | `/:id/purchases` | Add an itemized event purchase. The requester may log their own scheduled event purchases; `events.purchases.complete` may log purchases for any scheduled event. |
+| `PATCH` | `/:id/checklist/purchases` | Mark the organizer's purchase log complete before post-event review. |
 | `PATCH` | `/:id/review-tracking` | Store the external OneDrive/Microsoft Forms review link and manually record receipt. |
 | `POST` | `/:id/reviews` | Submit an organizer or distinct-member post-event review. |
 | `GET` | `/:id/reviews` | List post-event reviews. |
-| `POST` | `/:id/complete` | Close an approved request after all checkpoints and both reviews are complete. |
 | `DELETE` | `/:id/test-data` | Delete a local preview request and cascade its related records. Development preview only; requires the confirmation string `DELETE TEST REQUEST`. |
-Canonical event requests use `DRAFT → PVP_REVIEW → AGENDA → FINANCE_REVIEW → MARKETING_QUEUED → SCHEDULED → AWAITING_REVIEW → REVIEWED → ARCHIVED`, with `REJECTED` terminal. Legacy lowercase statuses remain readable during migration, but new spec-form requests use the canonical states. P/VP advance, return, and reject actions require the leadership permission; agenda outcomes require a discussion note and a completed room booking before `proceed` can route to Finance; finance review records the funding decision and cycle ledger commitment; PR completion moves an approved request to `SCHEDULED`; and publication is a separate `events.publication.manage` action.
+Canonical event requests use `DRAFT → PVP_REVIEW → AGENDA → FINANCE_REVIEW → MARKETING_QUEUED → SCHEDULED → AWAITING_REVIEW → REVIEWED → ARCHIVED`, with `REJECTED` terminal. Legacy lowercase statuses remain readable during migration, but new spec-form requests use the canonical states. P/VP advance, return, and reject actions require the leadership permission; the board records its meeting outcome before the request is sent to the Director of Finance; Finance completes room booking and then records the funding decision against the original request; PR completion moves an approved request to `SCHEDULED`; and publication is a separate `events.publication.manage` action.
 
 The preview-only `DELETE /:id/test-data` route requires explicit confirmation, removes request-linked audit, notification, review, ledger, and published-event records, and recalculates the cycle's committed budget. This cleanup route is hidden outside development preview and is not a production deletion workflow.
 
@@ -191,13 +192,13 @@ The preview-only `DELETE /:id/test-data` route requires explicit confirmation, r
 | `POST` | `/:id/advance` | `events.leadership.approve` | Advance a P/VP-reviewed request to the next agenda. |
 | `POST` | `/:id/return` | `events.leadership.approve` | Return a request to draft with a required revision comment. |
 | `POST` | `/:id/reject` | `events.leadership.approve` | Reject a request with a required comment. |
-| `POST` | `/:id/agenda-outcome` | `events.meeting.manage` | Record proceed, table, or decline plus discussion note. |
+| `POST` | `/:id/agenda-outcome` | `events.meeting.manage` or `events.operations.manage` | Record proceed, table, or decline plus discussion note. |
 | `POST` | `/:id/finance` | `events.finance.manage` | Approve requested/partial funding or deny against the academic-year budget. |
-| `POST` | `/:id/marketing-complete` | `events.marketing.manage` | Complete the PR handoff after funding approval. |
+| `POST` | `/:id/marketing-complete` | `events.marketing.manage` | Complete the PR handoff after funding approval and a saved marketing link. |
 | `POST` | `/:id/publish` | `events.publication.manage` | Explicitly publish a scheduled event to the public Events collection. |
 | `GET` | `/:id/audit` | `events.requests.view` | Read the append-only decision history. |
 
-The reporting routes `/api/v1/exports/event-requests.csv`, `/api/v1/exports/reviews.csv`, and `/api/v1/exports/budget-ledger.csv` require `exports.manage` and return server-generated CSV files. `/api/v1/dashboard` requires `dashboard.read` and returns role-scoped queues, the user's requests, stalled requests, and the active budget when relevant. `/api/v1/notifications` and `/api/v1/notifications/preferences` provide in-app notifications and channel/frequency preferences.
+The reporting routes `/api/v1/exports/event-requests.csv`, `/api/v1/exports/reviews.csv`, and `/api/v1/exports/budget-ledger.csv` require `exports.manage` and return server-generated CSV files. `/api/v1/dashboard` requires `dashboard.read` and returns role-scoped queues, the user's requests, stalled requests, and the active budget when relevant. `/api/v1/notifications` and `/api/v1/notifications/preferences` provide in-app notifications and channel/frequency preferences. Marketing design links are stored on the marketing checkpoint through `PATCH /event-requests/:id/checklist/marketing`.
 
 Money is displayed as dollars and cents in the UI, then converted to integer cents before the API call. For example, `$125.50` becomes `{ "fundingRequestedCents": 12550 }`; the backend never stores floating-point currency.
 

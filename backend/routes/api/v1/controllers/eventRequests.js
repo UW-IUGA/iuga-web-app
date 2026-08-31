@@ -2,8 +2,8 @@ import express from "express";
 import mongoose from "mongoose";
 import { sendError } from "../helpers/sendError.js";
 import { sendSuccess } from "../helpers/sendSuccess.js";
-import { requireAdminPreview, requirePermission } from "../utils/auth.js";
-import { getActiveCycle } from "../utils/permissions.js";
+import { requireAdminPreview, requireAnyPermission, requirePermission } from "../utils/auth.js";
+import { getActiveCycle, getEffectivePermissions } from "../utils/permissions.js";
 import {
   REQUEST_STATES,
   assertTransition,
@@ -18,7 +18,6 @@ const CHECKPOINT_KEYS = [
   "finance",
   "marketing",
   "purchases",
-  "completion",
   "review",
 ];
 const CHECKPOINT_STATUSES = new Set(["pending", "in_progress", "completed"]);
@@ -296,6 +295,12 @@ async function recalculateCommittedBudget(req, cycleId) {
 }
 
 async function requireCheckpointPermission(req, res, next) {
+  if (req.params.step === "purchases") {
+    return requirePurchaseAccess(req, res, next);
+  }
+  if (req.params.step === "room") {
+    return requireAnyPermission("events.room.manage", "events.finance.manage")(req, res, next);
+  }
   const permission = {
     proposal: "events.leadership.approve",
     finance: "events.finance.manage",
@@ -304,6 +309,21 @@ async function requireCheckpointPermission(req, res, next) {
     purchases: "events.purchases.complete",
   }[req.params.step];
   return requirePermission(permission || "events.operations.manage")(req, res, next);
+}
+
+async function requirePurchaseAccess(req, res, next) {
+  return requireAnyPermission("events.purchases.complete", "events.requests.edit")(req, res, async () => {
+    try {
+      const permissions = await getEffectivePermissions(req);
+      if (permissions.includes("events.purchases.complete")) return next();
+      const request = await findRequest(req, req.params.id);
+      if (request && String(request.requesterId?._id || request.requesterId) === String(req.session.userId)) return next();
+      return sendError(res, 403, "Only the event organizer can manage purchases");
+    } catch (error) {
+      console.error(error);
+      return sendError(res, 500);
+    }
+  });
 }
 
 router.post("/", requirePermission("events.requests.create"), async (req, res) => {
@@ -493,7 +513,7 @@ router.post("/:id/reject", requirePermission("events.leadership.approve"), async
   }
 });
 
-router.post("/:id/agenda-outcome", requirePermission("events.meeting.manage"), async (req, res) => {
+router.post("/:id/agenda-outcome", requireAnyPermission("events.meeting.manage", "events.operations.manage"), async (req, res) => {
   if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
   const { outcome, note } = req.body || {};
   if (!["proceed", "table", "decline"].includes(outcome)) return sendError(res, 400, "outcome must be proceed, table, or decline");
@@ -504,13 +524,6 @@ router.post("/:id/agenda-outcome", requirePermission("events.meeting.manage"), a
     const request = await findRequest(req, req.params.id);
     if (!request) return sendError(res, 404, "Event request not found");
     if (!canonicalRequest(request)) return sendError(res, 409, "This request uses the legacy workflow");
-    if (outcome === "proceed") {
-      const roomCheckpoint = request.checkpoints?.find((checkpoint) => checkpoint.key === "room");
-      const booking = request.booking || {};
-      if (roomCheckpoint?.status !== "completed" || !booking.location || !booking.startDate || !booking.endDate) {
-        return sendError(res, 409, "Complete room booking before proceeding to finance");
-      }
-    }
     const toStatus = outcome === "proceed" ? "FINANCE_REVIEW" : outcome === "decline" ? "REJECTED" : "AGENDA";
     const updated = await canonicalTransition(req, req.params.id, request, toStatus, {
       agendaDate: outcome === "table" ? (nextMeetingDate || nextAgendaDate()) : request.agendaDate,
@@ -537,6 +550,11 @@ router.post("/:id/finance", requirePermission("events.finance.manage"), async (r
     const request = await findRequest(req, req.params.id);
     if (!request) return sendError(res, 404, "Event request not found");
     if (!canonicalRequest(request)) return sendError(res, 409, "This request uses the legacy workflow");
+    const roomCheckpoint = request.checkpoints?.find((checkpoint) => checkpoint.key === "room");
+    const booking = request.booking || {};
+    if (roomCheckpoint?.status !== "completed" || !booking.location || !booking.startDate || !booking.endDate) {
+      return sendError(res, 409, "Complete room booking before recording the funding decision");
+    }
     const amount = decision === "deny" ? 0 : approvedAmountCents;
     const requestedAmount = request.fundingRequestedCents ?? request.finance?.allocatedCents ?? 0;
     if (decision !== "deny" && amount !== requestedAmount && !note.trim()) return sendError(res, 400, "note is required when the approved amount differs");
@@ -581,6 +599,8 @@ router.post("/:id/marketing-complete", requirePermission("events.marketing.manag
     const request = await findRequest(req, req.params.id);
     if (!request) return sendError(res, 404, "Event request not found");
     if (!canonicalRequest(request)) return sendError(res, 409, "This request uses the legacy workflow");
+    const marketingCheckpoint = request.checkpoints?.find((checkpoint) => checkpoint.key === "marketing");
+    if (!marketingCheckpoint?.link && !request.promotionalAssets?.length) return sendError(res, 409, "Save a OneDrive marketing link before completing marketing");
     const updated = await canonicalTransition(req, req.params.id, request, "SCHEDULED", {
       marketingCompletedBy: req.session.userId,
       marketingCompletedAt: new Date(),
@@ -603,6 +623,7 @@ router.post("/:id/publish", requirePermission("events.publication.manage"), asyn
     let event = request.publishedEventId;
     if (!event) {
       event = await req.models.Events.create({
+        eventRequestId: request._id,
         eName: request.title || request.eventName,
         eOrganizers: request.requestingGroup,
         eStartDate: request.eventDate || request.proposedStartDate,
@@ -783,6 +804,7 @@ router.post("/:id/approve", requirePermission("events.leadership.approve"), asyn
     }
 
     const event = await req.models.Events.create({
+      eventRequestId: eventRequest._id,
       eName: eventRequest.eventName,
       eOrganizers: eventRequest.requestingGroup,
       eStartDate: eventRequest.proposedStartDate,
@@ -940,7 +962,7 @@ router.patch("/:id/review-tracking", requirePermission("events.review.manage"), 
   }
 });
 
-router.patch("/:id/booking", requirePermission("events.room.manage"), async (req, res) => {
+router.patch("/:id/booking", requireAnyPermission("events.room.manage", "events.finance.manage"), async (req, res) => {
   if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
   const { location, startDate, endDate, notes } = req.body ?? {};
   if (location !== undefined && (typeof location !== "string" || !location.trim())) {
@@ -958,6 +980,9 @@ router.patch("/:id/booking", requirePermission("events.room.manage"), async (req
     const request = await findRequest(req, req.params.id);
     if (!request) return sendError(res, 404, "Event request not found");
     if (["denied", "cancelled", "completed"].includes(request.status)) return sendError(res, 409, "Event request is closed");
+    if (canonicalRequest(request) && request.status !== "FINANCE_REVIEW") {
+      return sendError(res, 409, "Record the meeting decision before booking a room");
+    }
     const booking = {
       ...(request.booking || {}),
       ...(location !== undefined && { location: location.trim() }),
@@ -983,6 +1008,47 @@ router.patch("/:id/booking", requirePermission("events.room.manage"), async (req
     );
     if (!updated) return sendError(res, 409, "Event request changed; retry the update");
     return sendSuccess(res, { eventRequest: updated });
+  } catch (error) {
+    console.error(error);
+    return sendError(res, 500);
+  }
+});
+
+router.post("/:id/purchases", requirePurchaseAccess, async (req, res) => {
+  if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
+  const { description, vendor = "", amountCents, purchasedAt, receiptUrl = "" } = req.body ?? {};
+  if (typeof description !== "string" || !description.trim()) return sendError(res, 400, "description is required");
+  if (!cents(amountCents)) return sendError(res, 400, "amountCents must be a non-negative integer");
+  if (typeof vendor !== "string" || typeof receiptUrl !== "string") return sendError(res, 400, "vendor and receiptUrl must be strings");
+  if (vendor.length > 200 || receiptUrl.length > 1000) return sendError(res, 400, "vendor or receiptUrl is too long");
+  const purchaseDate = purchasedAt === undefined ? new Date() : new Date(purchasedAt);
+  if (Number.isNaN(purchaseDate.getTime())) return sendError(res, 400, "purchasedAt must be a valid date");
+
+  try {
+    const request = await findRequest(req, req.params.id);
+    if (!request) return sendError(res, 404, "Event request not found");
+    if (request.status !== "SCHEDULED") return sendError(res, 409, "Purchases can be logged after the event is scheduled");
+    const permissions = await getEffectivePermissions(req);
+    const isPurchaseManager = permissions.includes("events.purchases.complete");
+    if (!isPurchaseManager && String(request.requesterId?._id || request.requesterId) !== String(req.session.userId)) {
+      return sendError(res, 403, "Only the event organizer can log purchases");
+    }
+    const purchase = {
+      description: description.trim(),
+      vendor: vendor.trim(),
+      amountCents,
+      purchasedAt: purchaseDate,
+      receiptUrl: receiptUrl.trim(),
+      enteredBy: req.session.userId,
+      enteredAt: new Date(),
+    };
+    const updated = await req.models.EventRequests.findOneAndUpdate(
+      { _id: req.params.id, status: request.status },
+      { $push: { purchases: purchase } },
+      { new: true, runValidators: true },
+    );
+    if (!updated) return sendError(res, 409, "Event request changed; retry the purchase entry");
+    return sendSuccess(res, { eventRequest: updated, purchase: updated.purchases?.at(-1) || purchase });
   } catch (error) {
     console.error(error);
     return sendError(res, 500);
@@ -1077,34 +1143,6 @@ router.get("/:id/reviews", requirePermission("events.review.manage"), async (req
   try {
     const reviews = await req.models.EventReviews.find({ eventRequestId: req.params.id }).lean();
     return sendSuccess(res, { reviews });
-  } catch (error) {
-    console.error(error);
-    return sendError(res, 500);
-  }
-});
-
-router.post("/:id/complete", requirePermission("events.operations.manage"), async (req, res) => {
-  if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
-  try {
-    const request = await findRequest(req, req.params.id);
-    if (!request) return sendError(res, 404, "Event request not found");
-    if (request.status !== "approved") return sendError(res, 409, "Only approved events can be completed");
-    const reviews = await req.models.EventReviews.find({
-      eventRequestId: req.params.id,
-    }).lean();
-    const roles = new Set(reviews.map((review) => review.reviewerRole));
-    if (!roles.has("organizer") || !roles.has("member")) {
-      return sendError(res, 409, "Organizer and member reviews are required");
-    }
-    const incomplete = (request.checkpoints || []).some((checkpoint) => checkpoint.status !== "completed");
-    if (incomplete) return sendError(res, 409, "All event checkpoints must be completed");
-    const updated = await transitionRequest(req, req.params.id, ["approved"], {
-      status: "completed",
-      completedAt: new Date(),
-      completedBy: req.session.userId,
-    });
-    if (!updated) return sendError(res, 409, "Event request changed; retry the update");
-    return sendSuccess(res, { eventRequest: updated });
   } catch (error) {
     console.error(error);
     return sendError(res, 500);

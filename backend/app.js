@@ -118,6 +118,26 @@ app.get('/admin/event-requests', function(req, res) {
   })
 })
 
+app.get('/admin/events', function(req, res) {
+  res.sendFile(path.join(__dirname, '../frontend/build/index.html'), function(err) {
+    if (err) {
+      res.status(500).send(err)
+    }
+  })
+})
+
+app.get('/admin/event-requests/review/*', function(req, res) {
+  res.sendFile(path.join(__dirname, '../frontend/build/index.html'), function(err) {
+    if (err) res.status(500).send(err)
+  })
+})
+
+app.get('/admin/events/review/*', function(req, res) {
+  res.sendFile(path.join(__dirname, '../frontend/build/index.html'), function(err) {
+    if (err) res.status(500).send(err)
+  })
+})
+
 app.get('/admin', function(req, res) {
   res.sendFile(path.join(__dirname, '../frontend/build/index.html'), function(err) {
     if (err) res.status(500).send(err)

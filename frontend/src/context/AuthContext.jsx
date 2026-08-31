@@ -47,9 +47,11 @@ export const AuthProvider = ({ children }) => {
       if (accounts.length > 0) {
         try {
           const user = await ensureBackendAuthentication();
-          setUser(user);
-          setLoginState(true);
-          resolve();
+          if (user) {
+            setUser(user);
+            setLoginState(true);
+          }
+          resolve(user);
         } catch (error) {
           setAuthError(error);
           setLoginState(false);
@@ -69,8 +71,7 @@ export const AuthProvider = ({ children }) => {
 
   const signIn = async () => {
     try {
-      await instance.loginRedirect();
-      console.log("Acquire token silently...")
+      await instance.loginRedirect(loginRequest);
     } catch (error) {
       if (error.errorCode === "invalid_grant" || error.errorCode === "consent_required") {
         console.log("error")

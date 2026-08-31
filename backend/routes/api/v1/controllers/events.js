@@ -10,7 +10,7 @@ import express from "express";
 import mongoose from "mongoose";
 import { sendError } from "../helpers/sendError.js";
 import { sendSuccess } from "../helpers/sendSuccess.js";
-import { requireAuth } from "../utils/auth.js";
+import { requireAuth, requirePermission } from "../utils/auth.js";
 
 var router = express.Router();
 //-------------------------------Event Endpoints----------------------------------------------
@@ -86,6 +86,30 @@ router.get("/", async function (req, res) {
     }
   } catch (error) {
     console.log(error);
+    return sendError(res, 500);
+  }
+});
+
+router.get("/admin/:eId", requirePermission("events.requests.view"), async function (req, res) {
+  try {
+    if (!mongoose.isValidObjectId(req.params.eId)) return sendError(res, 400, "Bad request...");
+    const eventQuery = req.models.Events.findById(req.params.eId);
+    const event = eventQuery.lean ? await eventQuery.lean() : await eventQuery;
+    if (!event) return sendError(res, 404, "Event not found");
+
+    let eventRequest = null;
+    if (req.models.EventRequests?.findOne) {
+      const requestQuery = req.models.EventRequests.findOne({
+        $or: [
+          { publishedEventId: event._id },
+          { _id: event.eventRequestId },
+        ],
+      });
+      eventRequest = requestQuery.lean ? await requestQuery.lean() : await requestQuery;
+    }
+    return sendSuccess(res, { event, eventRequest });
+  } catch (error) {
+    console.error(error);
     return sendError(res, 500);
   }
 });
@@ -360,4 +384,3 @@ router.get("/:pId", async function (req, res) {
 });
 
 export default router;
-

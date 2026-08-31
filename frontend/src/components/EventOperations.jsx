@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 
 const API_PATH = "/api/v1/event-requests";
-const adminPreviewEnabled = import.meta.env.DEV && import.meta.env.VITE_ADMIN_PREVIEW === "true";
 const CHECKPOINTS = [
     ["proposal", "Proposal"],
     ["meeting", "Meeting"],
@@ -10,19 +9,8 @@ const CHECKPOINTS = [
     ["finance", "Finance"],
     ["marketing", "Marketing"],
     ["purchases", "Purchases"],
-    ["completion", "Completion"],
     ["review", "Review"],
 ];
-const CHECKPOINT_PERMISSIONS = {
-    proposal: "events.leadership.approve",
-    finance: "events.finance.manage",
-    room: "events.room.manage",
-    marketing: "events.marketing.manage",
-    purchases: "events.purchases.complete",
-    meeting: "events.operations.manage",
-    completion: "events.operations.manage",
-    review: "events.review.manage",
-};
 const CANONICAL_STATES = new Set(["DRAFT", "PVP_REVIEW", "AGENDA", "FINANCE_REVIEW", "MARKETING_QUEUED", "SCHEDULED", "AWAITING_REVIEW", "REVIEWED", "REJECTED", "ARCHIVED"]);
 const emptyForm = {
     title: "",
@@ -67,8 +55,16 @@ function formatDate(value) {
     return new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 }
 
-function dateTimeValue(value) {
-    return value ? new Date(value).toISOString().slice(0, 16) : "";
+function timeValue(value) {
+    return value ? new Date(value).toISOString().slice(11, 16) : "";
+}
+
+function dateValue(value) {
+    return value ? new Date(value).toISOString().slice(0, 10) : "";
+}
+
+function eventDateValue(request) {
+    return request.eventDate || new Date(request.proposedStartDate).toISOString().slice(0, 10);
 }
 
 function dollarsToCents(value) {
@@ -79,10 +75,6 @@ function dollarsToCents(value) {
 
 function centsToDollars(value) {
     return value === undefined || value === null ? "" : (value / 100).toFixed(2);
-}
-
-function permissionForCheckpoint(key) {
-    return CHECKPOINT_PERMISSIONS[key] || "events.operations.manage";
 }
 
 function StatusBadge({ status }) {
@@ -153,31 +145,29 @@ function EventRequestForm({ onCreated, onCancel, activeCycle }) {
     );
 }
 
-function EventDetail({ request, onUpdate, onDelete, can, adminPreview }) {
+function EventDetail({ request, onUpdate, can, onPurchaseComplete }) {
     const [budget, setBudget] = useState({});
     const [booking, setBooking] = useState({});
-    const [review, setReview] = useState({});
+    const [meetingDecision, setMeetingDecision] = useState("");
+    const [marketingLink, setMarketingLink] = useState("");
+    const [purchase, setPurchase] = useState({ description: "", vendor: "", amount: "", purchasedAt: new Date().toISOString().slice(0, 10), receiptUrl: "" });
 
     useEffect(() => {
         setBudget({
-            allocated: centsToDollars(request.finance?.allocatedCents),
+            allocated: centsToDollars(request.finance?.allocatedCents ?? (request.status === "FINANCE_REVIEW" ? request.fundingRequestedCents : undefined)),
             actual: centsToDollars(request.finance?.actualSpendCents),
             notes: request.finance?.notes || "",
         });
         setBooking({
             location: request.booking?.location || "",
-            startDate: dateTimeValue(request.booking?.startDate),
-            endDate: dateTimeValue(request.booking?.endDate),
+            bookingDate: dateValue(request.booking?.startDate) || eventDateValue(request),
+            startTime: timeValue(request.booking?.startDate),
+            endTime: timeValue(request.booking?.endDate),
             notes: request.booking?.notes || "",
         });
-        setReview({
-            reviewLink: request.reviewLink || "",
-            received: Boolean(request.reviewReceivedAt),
-            pros: "",
-            cons: "",
-            actualAttendance: "",
-            repeatRecommendation: "with_changes",
-        });
+        setMeetingDecision(request.agendaOutcome?.note || "");
+        setMarketingLink(request.checkpoints?.find((checkpoint) => checkpoint.key === "marketing")?.link || request.promotionalAssets?.[0] || "");
+        setPurchase({ description: "", vendor: "", amount: "", purchasedAt: new Date().toISOString().slice(0, 10), receiptUrl: "" });
     }, [request]);
 
     const mutate = async (path, body) => {
@@ -219,31 +209,88 @@ function EventDetail({ request, onUpdate, onDelete, can, adminPreview }) {
         }
     };
 
-    const askForReason = (action, label) => {
-        const reason = window.prompt(label);
-        if (reason?.trim()) reviewAction(action, reason.trim());
-    };
-
-    const deleteTestData = async () => {
-        const confirmation = window.prompt("This permanently deletes the test request and related preview records. Type DELETE TEST REQUEST to continue.");
-        if (confirmation !== "DELETE TEST REQUEST") return;
+    const saveMarketingLink = async (event) => {
+        event.preventDefault();
+        if (!marketingLink.trim()) {
+            toast.error("Paste a OneDrive link first.");
+            return;
+        }
         try {
-            const data = await apiRequest(`/${request._id}/test-data`, {
-                method: "DELETE",
-                body: JSON.stringify({ confirmation }),
+            const link = new URL(marketingLink.trim());
+            if (link.protocol !== "https:") throw new Error("Use a secure OneDrive link.");
+        } catch (error) {
+            toast.error(error.message || "Enter a valid OneDrive link.");
+            return;
+        }
+        try {
+            const linkResponse = await apiRequest(`/${request._id}/checklist/marketing`, {
+                method: "PATCH",
+                body: JSON.stringify({ status: "in_progress", link: marketingLink.trim() }),
             });
-            onDelete(request._id, data.cycle);
-            toast.success("Test request deleted.");
+            onUpdate(linkResponse.eventRequest);
+            const completionResponse = await apiRequest(`/${request._id}/marketing-complete`, { method: "POST" });
+            onUpdate(completionResponse.eventRequest);
+            toast.success("Marketing approved. Request moved to Purchases.");
         } catch (error) {
             toast.error(error.message);
         }
     };
 
+    /*
+     * The PR team owns the design folder in OneDrive. Store the review link on
+     * the marketing checkpoint so the source remains easy to update and audit.
+     */
+    const marketingLinkSaved = marketingLink.trim();
+    const purchasesComplete = request.checkpoints?.some((checkpoint) => checkpoint.key === "purchases" && checkpoint.status === "completed");
+
+    const savePurchase = async (event) => {
+        event.preventDefault();
+        const amountCents = dollarsToCents(purchase.amount);
+        if (!purchase.description.trim() || amountCents === null || amountCents === undefined) {
+            toast.error("Enter a purchase description and valid amount.");
+            return;
+        }
+        try {
+            const data = await apiRequest(`/${request._id}/purchases`, {
+                method: "POST",
+                body: JSON.stringify({ ...purchase, description: purchase.description.trim(), amountCents, purchasedAt: purchase.purchasedAt }),
+            });
+            onUpdate(data.eventRequest);
+            setPurchase({ description: "", vendor: "", amount: "", purchasedAt: new Date().toISOString().slice(0, 10), receiptUrl: "" });
+            toast.success("Purchase added to the event log.");
+        } catch (error) {
+            toast.error(error.message);
+        }
+    };
+
+    const completePurchases = async () => {
+        if (purchasesComplete) {
+            onPurchaseComplete?.(request._id);
+            return;
+        }
+        try {
+            const data = await apiRequest(`/${request._id}/checklist/purchases`, {
+                method: "PATCH",
+                body: JSON.stringify({ status: "completed" }),
+            });
+            onUpdate(data.eventRequest);
+            toast.success("Purchases complete. Opening post-event review.");
+            onPurchaseComplete?.(request._id);
+        } catch (error) {
+            toast.error(error.message);
+        }
+    };
+
+    const askForReason = (action, label) => {
+        const reason = window.prompt(label);
+        if (reason?.trim()) reviewAction(action, reason.trim());
+    };
+
     const saveBudget = (event) => {
         event.preventDefault();
         const allocatedCents = dollarsToCents(budget.allocated);
-        const actualSpendCents = dollarsToCents(budget.actual);
-        if (allocatedCents === null || actualSpendCents === null) {
+        const actualSpendCents = CANONICAL_STATES.has(request.status) ? undefined : dollarsToCents(budget.actual);
+        if (allocatedCents === null || (!CANONICAL_STATES.has(request.status) && actualSpendCents === null)) {
             toast.error("Budget amounts must be valid dollar values.");
             return;
         }
@@ -260,25 +307,19 @@ function EventDetail({ request, onUpdate, onDelete, can, adminPreview }) {
 
     const saveBooking = (event) => {
         event.preventDefault();
+        const bookingDate = booking.bookingDate || eventDateValue(request);
         mutate("/booking", {
             ...(booking.location && { location: booking.location }),
-            ...(booking.startDate && { startDate: booking.startDate }),
-            ...(booking.endDate && { endDate: booking.endDate }),
+            ...(booking.startTime && { startDate: `${bookingDate}T${booking.startTime}:00` }),
+            ...(booking.endTime && { endDate: `${bookingDate}T${booking.endTime}:00` }),
             notes: booking.notes,
         });
     };
 
-    const submitReview = (event) => {
-        event.preventDefault();
-        postAction("/reviews", {
-            pros: review.pros,
-            cons: review.cons,
-            actualAttendance: Number(review.actualAttendance),
-            repeatRecommendation: review.repeatRecommendation,
-        });
-    };
-
     const roomBookingComplete = request.checkpoints?.some((checkpoint) => checkpoint.key === "room" && checkpoint.status === "completed");
+    const canRecordMeeting = can("events.meeting.manage") || can("events.operations.manage");
+    const canBookRoom = (can("events.room.manage") || (request.status === "FINANCE_REVIEW" && can("events.finance.manage")))
+        && (!CANONICAL_STATES.has(request.status) || request.status === "FINANCE_REVIEW");
 
     return (
         <aside className="event-ops-detail editorial-card" aria-label={`${request.eventName} details`}>
@@ -303,76 +344,69 @@ function EventDetail({ request, onUpdate, onDelete, can, adminPreview }) {
                 <button className="event-ops-danger" onClick={() => { const comment = window.prompt("Why is this request rejected?"); if (comment?.trim()) postAction("/reject", { comment: comment.trim() }); }}>Reject request</button>
             </div>}
 
-            {request.status === "AGENDA" && can("events.meeting.manage") && <div className="event-ops-actions">
-                {!roomBookingComplete && <p className="event-ops-budget-hint">Complete room booking before proceeding to finance.</p>}
-                <button className="cta-secondary" disabled={!roomBookingComplete} onClick={() => { const note = window.prompt("What did the board decide?"); if (note?.trim()) postAction("/agenda-outcome", { outcome: "proceed", note: note.trim() }); }}>Record proceed</button>
+            {request.status === "AGENDA" && canRecordMeeting && <div className="event-ops-actions">
+                <p className="event-ops-budget-hint">Record the meeting decision before booking a room.</p>
+                <label className="form-label event-ops-full-width">Meeting decision<textarea className="form-input" rows="3" value={meetingDecision} onChange={(event) => setMeetingDecision(event.target.value)} placeholder="Summarize the board's decision" /></label>
+                <button className="cta-secondary" disabled={!meetingDecision.trim()} onClick={() => postAction("/agenda-outcome", { outcome: "proceed", note: meetingDecision.trim() })}>Record proceed</button>
                 <button className="cta-primary" onClick={() => { const note = window.prompt("Why is this item tabled?"); if (note?.trim()) postAction("/agenda-outcome", { outcome: "table", note: note.trim() }); }}>Table item</button>
                 <button className="event-ops-danger" onClick={() => { const note = window.prompt("Why is this item declined?"); if (note?.trim()) postAction("/agenda-outcome", { outcome: "decline", note: note.trim() }); }}>Decline item</button>
             </div>}
 
-            {request.status === "MARKETING_QUEUED" && can("events.marketing.manage") && <div className="event-ops-actions"><button className="cta-secondary" onClick={() => postAction("/marketing-complete")}>Mark marketing complete</button></div>}
+            {request.status === "MARKETING_QUEUED" && can("events.marketing.manage") && <div className="event-ops-actions"><button className="cta-secondary" onClick={() => postAction("/marketing-complete")} disabled={!marketingLinkSaved}>Complete marketing & move to Purchases</button></div>}
             {request.status === "SCHEDULED" && can("events.publication.manage") && !request.publishedEventId && <div className="event-ops-actions"><button className="cta-secondary" onClick={() => postAction("/publish")}>Publish event</button></div>}
 
-            {adminPreview && <section className="event-ops-detail-section event-ops-preview-cleanup">
-                <h4>Development cleanup</h4>
-                <p>This local preview action also removes related notifications, reviews, audit entries, and ledger records.</p>
-                <button type="button" className="event-ops-danger" onClick={deleteTestData}>Delete preview request</button>
-            </section>}
-
-            <section className="event-ops-detail-section">
-                <h4>Checkpoint progress</h4>
-                <div className="event-ops-checkpoint-list">
-                    {CHECKPOINTS.map(([key, label]) => {
-                        const checkpoint = request.checkpoints?.find((item) => item.key === key) || { status: "pending" };
-                        return <label key={key} className="event-ops-checkpoint-edit">{label}
-                            <select value={checkpoint.status} disabled={!can(permissionForCheckpoint(key))} onChange={(event) => mutate(`/checklist/${key}`, { status: event.target.value })}>
-                                <option value="pending">Pending</option>
-                                <option value="in_progress">In progress</option>
-                                <option value="completed">Completed</option>
-                            </select>
-                        </label>;
-                    })}
+            <div className="event-ops-detail-grid">
+            {canBookRoom && <form className="event-ops-detail-section" onSubmit={saveBooking}>
+                <h4>Room booking</h4>
+                <label className="form-label">Location<input className="form-input" value={booking.location || ""} onChange={(event) => setBooking({ ...booking, location: event.target.value })} /></label>
+                <label className="form-label">Booking date<input className="form-input" type="date" value={booking.bookingDate || ""} onChange={(event) => setBooking({ ...booking, bookingDate: event.target.value })} /></label>
+                <div className="event-ops-inline-fields">
+                    <label className="form-label">Start time<input className="form-input" type="time" value={booking.startTime || ""} onChange={(event) => setBooking({ ...booking, startTime: event.target.value })} /></label>
+                    <label className="form-label">End time<input className="form-input" type="time" value={booking.endTime || ""} onChange={(event) => setBooking({ ...booking, endTime: event.target.value })} /></label>
                 </div>
-            </section>
+                <label className="form-label">Booking notes<textarea className="form-input" rows="2" value={booking.notes || ""} onChange={(event) => setBooking({ ...booking, notes: event.target.value })} /></label>
+                <button className="standard-button" type="submit">Save booking</button>
+            </form>}
+
+            {request.status === "MARKETING_QUEUED" && can("events.marketing.manage") && <form className="event-ops-detail-section event-ops-marketing-review" onSubmit={saveMarketingLink}>
+                <h4>Marketing designs</h4>
+                <p className="event-ops-budget-hint">Paste the OneDrive folder or file link containing the final designs for PR review.</p>
+                <label className="form-label">OneDrive marketing link<input className="form-input" type="url" value={marketingLink} onChange={(event) => setMarketingLink(event.target.value)} placeholder="https://1drv.ms/..." required /></label>
+                {marketingLinkSaved && <p><a href={marketingLinkSaved} target="_blank" rel="noreferrer">Open marketing designs in OneDrive</a></p>}
+                <button className="standard-button" type="submit">Save link & move to Purchases</button>
+            </form>}
+
+            {request.status === "SCHEDULED" && (can("events.purchases.complete") || can("events.requests.edit")) && <form className="event-ops-detail-section event-ops-purchases" onSubmit={savePurchase}>
+                <h4>Event purchases</h4>
+                <p className="event-ops-budget-hint">Log each purchase made for this event. The total updates from the itemized entries.</p>
+                {request.purchases?.length > 0 && <div className="event-ops-purchase-list">
+                    {request.purchases.map((item) => <div className="event-ops-purchase-row" key={item._id || `${item.description}-${item.purchasedAt}`}><div><strong>{item.description}</strong><span>{item.vendor || "Vendor not listed"} · {formatDate(item.purchasedAt)}</span></div><strong>${(item.amountCents / 100).toFixed(2)}</strong></div>)}
+                    <div className="event-ops-purchase-total"><span>Total purchases</span><strong>${(request.purchases.reduce((total, item) => total + item.amountCents, 0) / 100).toFixed(2)}</strong></div>
+                </div>}
+                <div className="event-ops-inline-fields">
+                    <label className="form-label">Description<input className="form-input" value={purchase.description} onChange={(event) => setPurchase({ ...purchase, description: event.target.value })} required /></label>
+                    <label className="form-label">Amount ($)<input className="form-input" inputMode="decimal" value={purchase.amount} onChange={(event) => setPurchase({ ...purchase, amount: event.target.value })} required /></label>
+                </div>
+                <div className="event-ops-inline-fields">
+                    <label className="form-label">Vendor<input className="form-input" value={purchase.vendor} onChange={(event) => setPurchase({ ...purchase, vendor: event.target.value })} /></label>
+                    <label className="form-label">Purchase date<input className="form-input" type="date" value={purchase.purchasedAt} onChange={(event) => setPurchase({ ...purchase, purchasedAt: event.target.value })} required /></label>
+                </div>
+                <label className="form-label">Receipt link (optional)<input className="form-input" type="url" value={purchase.receiptUrl} onChange={(event) => setPurchase({ ...purchase, receiptUrl: event.target.value })} placeholder="https://..." /></label>
+                <button className="standard-button" type="submit">Add purchase</button>
+                <button className="cta-secondary" type="button" disabled={!purchasesComplete && !request.purchases?.length} onClick={completePurchases}>Proceed to post-event review</button>
+            </form>}
 
             {can("events.finance.manage") && (request.status === "FINANCE_REVIEW" || !CANONICAL_STATES.has(request.status)) && <form className="event-ops-detail-section" onSubmit={saveBudget}>
                 <h4>Finance</h4>
+                {request.status === "FINANCE_REVIEW" && <p className="event-ops-budget-hint">Initial request: ${centsToDollars(request.fundingRequestedCents) || "0.00"}. Adjust only if needed.</p>}
                 <div className="event-ops-inline-fields">
                     <label className="form-label">{request.status === "FINANCE_REVIEW" ? "Approved amount ($)" : "Allocated ($)"}<input className="form-input" inputMode="decimal" value={budget.allocated || ""} onChange={(event) => setBudget({ ...budget, allocated: event.target.value })} /></label>
                     {request.status !== "FINANCE_REVIEW" && <label className="form-label">Actual spend ($)<input className="form-input" inputMode="decimal" value={budget.actual || ""} onChange={(event) => setBudget({ ...budget, actual: event.target.value })} /></label>}
                 </div>
                 <label className="form-label">Finance notes<textarea className="form-input" rows="2" value={budget.notes || ""} onChange={(event) => setBudget({ ...budget, notes: event.target.value })} /></label>
                 {request.status === "FINANCE_REVIEW" && <label className="form-label">Decision<select className="form-input" value={budget.decision || "approve"} onChange={(event) => setBudget({ ...budget, decision: event.target.value })}><option value="approve">Approve as requested</option><option value="approve_partial">Approve different amount</option><option value="deny">Deny funding</option></select></label>}
-                <button className="standard-button" type="submit">{request.status === "FINANCE_REVIEW" ? "Record funding decision" : "Save finance"}</button>
-            </form>}
-
-            {can("events.room.manage") && <form className="event-ops-detail-section" onSubmit={saveBooking}>
-                <h4>Room booking</h4>
-                <label className="form-label">Location<input className="form-input" value={booking.location || ""} onChange={(event) => setBooking({ ...booking, location: event.target.value })} /></label>
-                <div className="event-ops-inline-fields">
-                    <label className="form-label">Start<input className="form-input" type="datetime-local" value={booking.startDate || ""} onChange={(event) => setBooking({ ...booking, startDate: event.target.value })} /></label>
-                    <label className="form-label">End<input className="form-input" type="datetime-local" value={booking.endDate || ""} onChange={(event) => setBooking({ ...booking, endDate: event.target.value })} /></label>
-                </div>
-                <label className="form-label">Booking notes<textarea className="form-input" rows="2" value={booking.notes || ""} onChange={(event) => setBooking({ ...booking, notes: event.target.value })} /></label>
-                <button className="standard-button" type="submit">Save booking</button>
-            </form>}
-
-            {can("events.review.manage") && <section className="event-ops-detail-section">
-                <h4>Post-event review</h4>
-                <label className="form-label">OneDrive / Microsoft Forms link<input className="form-input" value={review.reviewLink || ""} onChange={(event) => setReview({ ...review, reviewLink: event.target.value })} /></label>
-                <label className="event-ops-checkbox"><input type="checkbox" checked={review.received || false} onChange={(event) => setReview({ ...review, received: event.target.checked })} /> Review received</label>
-                <button type="button" className="standard-button" onClick={() => mutate("/review-tracking", review)}>Save review tracking</button>
-            </section>}
-
-            {request.status === "AWAITING_REVIEW" && can("events.review.manage") && <form className="event-ops-detail-section" onSubmit={submitReview}>
-                <h4>Post-event review</h4>
-                <p>Estimated attendance: {request.estimatedAttendance ?? "—"}</p>
-                <label className="form-label">Pros<textarea className="form-input" rows="3" value={review.pros || ""} onChange={(event) => setReview({ ...review, pros: event.target.value })} required /></label>
-                <label className="form-label">Cons<textarea className="form-input" rows="3" value={review.cons || ""} onChange={(event) => setReview({ ...review, cons: event.target.value })} required /></label>
-                <label className="form-label">Actual attendance<input className="form-input" type="number" min="0" value={review.actualAttendance || ""} onChange={(event) => setReview({ ...review, actualAttendance: event.target.value })} required /></label>
-                {review.actualAttendance !== "" && <p className="event-ops-budget-hint">Attendance variance: {Number(review.actualAttendance) - Number(request.estimatedAttendance || 0)}</p>}
-                <label className="form-label">Repeat recommendation<select className="form-input" value={review.repeatRecommendation} onChange={(event) => setReview({ ...review, repeatRecommendation: event.target.value })}><option value="yes">Yes</option><option value="no">No</option><option value="with_changes">With changes</option></select></label>
-                <button className="standard-button" type="submit">Submit post-event review</button>
+                {request.status === "FINANCE_REVIEW" && !roomBookingComplete && <p className="event-ops-budget-hint">Complete room booking before recording the funding decision.</p>}
+                <button className="standard-button" type="submit" disabled={request.status === "FINANCE_REVIEW" && !roomBookingComplete}>{request.status === "FINANCE_REVIEW" ? "Record funding decision" : "Save finance"}</button>
             </form>}
 
             {request.auditEntries?.length > 0 && <section className="event-ops-detail-section" aria-labelledby="event-audit-heading">
@@ -381,11 +415,12 @@ function EventDetail({ request, onUpdate, onDelete, can, adminPreview }) {
                     {request.auditEntries.map((entry) => <li key={entry._id || `${entry.action}-${entry.createdAt}`}><strong>{String(entry.action).replace(/_/g, " ")}</strong><span>{formatDate(entry.createdAt)}</span>{entry.comment && <p>{entry.comment}</p>}</li>)}
                 </ol>
             </section>}
+            </div>
         </aside>
     );
 }
 
-function EventOperations({ isAdmin = false, can: canPermission, activeCycle, adminPreview = adminPreviewEnabled }) {
+function EventOperations({ isAdmin = false, can: canPermission, activeCycle, onPurchaseComplete }) {
     const can = canPermission || (() => isAdmin);
     const canView = can("events.requests.view");
     const canCreate = can("events.requests.create");
@@ -439,12 +474,6 @@ function EventOperations({ isAdmin = false, can: canPermission, activeCycle, adm
     };
 
     const updateRequest = (updated) => setRequests((current) => current.map((request) => request._id === updated._id ? updated : request));
-    const deleteRequest = (requestId, cycle) => {
-        setRequests((current) => current.filter((request) => request._id !== requestId));
-        setLedger((current) => current.filter((entry) => String(entry.eventRequestId?._id || entry.eventRequestId) !== requestId));
-        setSelectedId(null);
-        if (cycle) setCycleBudget((current) => current ? { ...current, ...cycle } : current);
-    };
     const addRequest = (created) => {
         setRequests((current) => current.some((request) => request._id === created._id)
             ? current.map((request) => request._id === created._id ? created : request)
@@ -495,7 +524,7 @@ function EventOperations({ isAdmin = false, can: canPermission, activeCycle, adm
                     </table>
                     {!filteredRequests.length && <p className="event-ops-empty">No event requests match these filters.</p>}
                 </div>
-                {selected && <EventDetail request={selected} onUpdate={updateRequest} onDelete={deleteRequest} can={can} adminPreview={adminPreview} />}
+                {selected && <EventDetail request={selected} onUpdate={updateRequest} can={can} onPurchaseComplete={onPurchaseComplete} />}
             </div>
         </section>
     );

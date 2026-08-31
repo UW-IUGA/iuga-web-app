@@ -1,7 +1,7 @@
 // src/hooks/useAuth.js
 import { useMsal } from '@azure/msal-react';
 import { loginRequest } from '../authConfig';
-import { InteractionRequiredAuthError, EventType } from '@azure/msal-browser';
+import { InteractionRequiredAuthError } from '@azure/msal-browser';
 
 const useAuth = () => {
   const { instance, accounts } = useMsal();
@@ -20,18 +20,18 @@ const useAuth = () => {
         if (error instanceof InteractionRequiredAuthError) {
           console.error('Interaction required to acquire token:', error);
           try {
-            const tokenResponse = await instance.acquireTokenRedirect({
+            await instance.acquireTokenRedirect({
               ...loginRequest,
               account: accounts[0],
               prompt: 'consent',
             });
-            const accessToken = tokenResponse.accessToken;
-            return await sendTokenToBackend(accessToken);
+            return null;
           } catch (popupError) {
             console.error('Error during acquireTokenPopup:', popupError);
             throw popupError;
           }
         }
+        throw error;
       }
     }
   };

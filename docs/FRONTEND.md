@@ -56,7 +56,7 @@ frontend/src/
 │   ├── GetInvolved.jsx   ← Team, committee, and idea-engagement page
 │   ├── Elections.jsx     ← Candidate profiles for current election
 │   ├── ElectionsFAQ.jsx  ← FAQ accordion about elections
-│   ├── AdminEventRequests.jsx ← Admin event request workspace
+│   ├── AdminEvents.jsx         ← Published events and event-request workspace
 │   ├── AdminCharter.jsx        ← Charter and guideline reference
 │   ├── AdminJournal.jsx        ← Advocacy journal
 │   └── AdminContacts.jsx       ← Private contact directory
@@ -107,7 +107,7 @@ Defined in `src/App.jsx`:
 | `/elections` | `ElectionPage` | Static data from `assets/data/CandidateData.js` |
 | `/electionfaq` | `ElectionsFAQPage` | Static data from `assets/data/ElectionFAQData.js` |
 | `/get-involved` | `GetInvolvedPage` | Static data from `frontend/src/assets/data/teams/2026.js` (2026 roster, no API) |
-| `/admin/event-requests` | `AdminEventRequests` | Authenticated admin API |
+| `/admin/events` | `AdminEvents` | Published events with event-request workflow |
 | `/admin/charter` | `AdminCharter` | `GET/PATCH /api/v1/charter` |
 | `/admin/journal` | `AdminJournal` | `GET/POST/PATCH /api/v1/journal` |
 | `/admin/contacts` | `AdminContacts` | `GET/POST/PATCH /api/v1/contacts` |
@@ -138,7 +138,7 @@ In production, the frontend fetches from same-origin API routes:
 
 The public `VITE_API_URL` Docker build argument configures the MSAL redirect URI at build time.
 
-The admin event request form submits the canonical workflow fields (title, date, time, location, purpose, estimated attendance, and funding request in cents). Event detail actions are permission-driven: leadership advances/returns/rejects, the board records an agenda outcome, Finance records funding, PR completes marketing, and PR publication is explicit.
+The admin event request form submits the canonical workflow fields (title, date, time, location, purpose, estimated attendance, and funding request in cents). Event detail actions are permission-driven: leadership advances/returns/rejects, the board records the meeting outcome, room booking follows the meeting, Finance records funding after booking, PR saves and reviews a OneDrive marketing design link before completing marketing, the event organizer logs itemized purchases after scheduling, and publication is explicit.
 
 ---
 

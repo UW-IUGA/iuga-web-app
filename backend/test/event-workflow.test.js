@@ -40,8 +40,9 @@ function makeWorkflowModels({ permissions = [], initialStatus = "PVP_REVIEW", ev
     location: "HUB 145",
     estimatedAttendance: 40,
     fundingRequestedCents: 25000,
+    promotionalAssets: ["/uploads/event-marketing/test/design.png"],
     reviewComments: [],
-    checkpoints: ["proposal", "meeting", "room", "finance", "marketing", "purchases", "completion", "review"].map((key) => ({ key, status: "pending" })),
+    checkpoints: ["proposal", "meeting", "room", "finance", "marketing", "purchases", "review"].map((key) => ({ key, status: "pending" })),
   };
   let committed = 10000;
   const models = {
@@ -60,7 +61,7 @@ function makeWorkflowModels({ permissions = [], initialStatus = "PVP_REVIEW", ev
       },
     },
     EventRequests: {
-      async create(fields) { request = { _id: requestId, ...fields }; return request; },
+      async create(fields) { request = { _id: requestId, ...fields, promotionalAssets: fields.promotionalAssets?.length ? fields.promotionalAssets : request.promotionalAssets }; return request; },
       findById() { return chain(request); },
       findOneAndUpdate(filter, update) {
         if (filter.status && request.status !== filter.status) return null;
@@ -143,12 +144,18 @@ describe("canonical event workflow", () => {
     assert.equal(fixture.audits.at(-1).action, "pvp_advance");
   });
 
-  it("requires an agenda note and routes proceed to finance", async () => {
+  it("records the meeting before room booking and blocks finance until booking", async () => {
     const missingNote = await api.request("POST", `/api/v1/event-requests/${requestId}/agenda-outcome`, { outcome: "proceed" });
     assert.equal(missingNote.status, 400);
 
-    const missingRoom = await api.request("POST", `/api/v1/event-requests/${requestId}/agenda-outcome`, { outcome: "proceed", note: "The board approved the concept." });
-    assert.equal(missingRoom.status, 409);
+    const meeting = await api.request("POST", `/api/v1/event-requests/${requestId}/agenda-outcome`, { outcome: "proceed", note: "The board approved the concept." });
+    assert.equal(meeting.status, 200);
+    assert.equal(meeting.body.eventRequest.status, "FINANCE_REVIEW");
+    assert.equal(checkpointStatus(meeting.body.eventRequest, "meeting"), "completed");
+    assert.equal(checkpointStatus(meeting.body.eventRequest, "room"), "pending");
+
+    const missingRoomFinance = await api.request("POST", `/api/v1/event-requests/${requestId}/finance`, { decision: "approve_partial", approvedAmountCents: 20000, note: "Reduced catering scope." });
+    assert.equal(missingRoomFinance.status, 409);
 
     const booking = await api.request("PATCH", `/api/v1/event-requests/${requestId}/booking`, {
       location: "HUB 145",
@@ -157,12 +164,8 @@ describe("canonical event workflow", () => {
     });
     assert.equal(booking.status, 200);
     assert.equal(checkpointStatus(booking.body.eventRequest, "room"), "completed");
-
-    const result = await api.request("POST", `/api/v1/event-requests/${requestId}/agenda-outcome`, { outcome: "proceed", note: "The board approved the concept." });
-    assert.equal(result.status, 200);
-    assert.equal(result.body.eventRequest.status, "FINANCE_REVIEW");
-    assert.equal(checkpointStatus(result.body.eventRequest, "meeting"), "completed");
-    assert.equal(checkpointStatus(result.body.eventRequest, "finance"), "in_progress");
+    assert.equal(checkpointStatus(booking.body.eventRequest, "room"), "completed");
+    assert.equal(checkpointStatus(booking.body.eventRequest, "finance"), "in_progress");
   });
 
   it("commits partial funding against the academic-year budget", async () => {
@@ -182,6 +185,10 @@ describe("canonical event workflow", () => {
     assert.equal(marketing.body.eventRequest.status, "SCHEDULED");
     assert.equal(checkpointStatus(marketing.body.eventRequest, "marketing"), "completed");
     assert.equal(checkpointStatus(marketing.body.eventRequest, "room"), "completed");
+
+    const purchases = await api.request("PATCH", `/api/v1/event-requests/${requestId}/checklist/purchases`, { status: "completed" });
+    assert.equal(purchases.status, 200);
+    assert.equal(checkpointStatus(purchases.body.eventRequest, "purchases"), "completed");
 
     const publication = await api.request("POST", `/api/v1/event-requests/${requestId}/publish`);
     assert.equal(publication.status, 200);

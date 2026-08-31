@@ -12,7 +12,7 @@ function AdminNavigation() {
             </div>
             <nav aria-label="Admin navigation" className="adminNavigation__links">
                 {can("dashboard.read") && <NavLink to="/admin">Dashboard</NavLink>}
-                {can("events.requests.view") && <NavLink to="/admin/event-requests">Event requests</NavLink>}
+                {can("events.requests.view") && <NavLink to="/admin/events">Events</NavLink>}
                 {can("charter.read") && <NavLink to="/admin/charter">Charter</NavLink>}
                 {can("journal.read") && <NavLink to="/admin/journal">Journal</NavLink>}
                 {can("contacts.read") && <NavLink to="/admin/contacts">Contacts</NavLink>}

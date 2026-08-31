@@ -195,6 +195,11 @@
     .adminMemoryLayout {
         grid-template-columns: 1fr;
     }
+
+    .adminEventsSectionHeader {
+        align-items: flex-start;
+        flex-direction: column;
+    }
 }
 
 .adminPageHeader {
@@ -207,6 +212,79 @@
 
     p {
         max-width: 38rem;
+    }
+}
+
+.adminEventsSectionHeader {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.adminPublishedEventsGrid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    margin-top: 20px;
+}
+
+.adminPublishedEventCard {
+    border: 0;
+    color: inherit;
+    cursor: pointer;
+    text-align: left;
+
+    &:hover,
+    &:focus-visible {
+        box-shadow: 0 8px 24px rgba($color-uw-purple, 0.16);
+        outline: 2px solid $color-uw-purple;
+        outline-offset: 2px;
+    }
+
+    h3 {
+        margin: 0.5rem 0;
+    }
+}
+
+.adminPublishedEventCard__action {
+    color: $color-uw-purple;
+    display: block;
+    font-weight: 700;
+    margin-top: 1rem;
+}
+
+.adminEventRecord {
+    margin: 24px 0;
+    padding: 24px;
+}
+
+.adminEventRecordGrid {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 24px;
+
+    strong {
+        color: $color-uw-purple;
+    }
+
+    p {
+        margin: 6px 0 0;
+    }
+}
+
+.adminEventRecordGrid__wide {
+    grid-column: 1 / -1;
+}
+
+@include media("screen", "<phone") {
+    .adminEventRecordGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .adminEventRecordGrid__wide {
+        grid-column: auto;
     }
 }
 

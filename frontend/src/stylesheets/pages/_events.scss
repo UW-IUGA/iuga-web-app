@@ -276,7 +276,7 @@
     align-items: start;
     display: grid;
     gap: 24px;
-    grid-template-columns: minmax(0, 1fr) minmax(300px, 0.44fr);
+    grid-template-columns: minmax(0, 1fr);
 }
 
 .event-ops-layout-full .event-ops-table-wrapper {
@@ -467,22 +467,34 @@
     gap: 10px;
 }
 
+.event-ops-actions .event-ops-full-width {
+    flex-basis: 100%;
+}
+
 .event-ops-form-actions {
     justify-content: flex-end;
 }
 
 .event-ops-detail {
-    position: sticky;
-    top: 16px;
+    width: 100%;
+    padding: 28px;
 
     h3 {
         color: $color-uw-purple;
         margin: 0;
+        font-size: clamp(1.35rem, 2vw, 1.8rem);
     }
 
     p {
-        line-height: 1.5;
+        line-height: 1.6;
     }
+}
+
+.event-ops-detail-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    margin-top: 24px;
 }
 
 .event-ops-detail-meta {
@@ -491,25 +503,36 @@
 }
 
 .event-ops-detail-section {
+    min-width: 0;
     border-top: 1px solid rgba($color-uw-purple, 0.12);
-    margin-top: 20px;
-    padding-top: 18px;
+    border: 1px solid rgba($color-uw-purple, 0.12);
+    border-radius: $radius-card;
+    margin-top: 0;
+    padding: 18px;
+    background: rgba($color-light-gray, 0.42);
 
     h4 {
         color: $color-uw-purple;
-        margin: 0 0 14px;
+        font-size: 1.05rem;
+        line-height: 1.3;
+        margin: 0 0 16px;
     }
 
     .form-input {
+        font-size: 0.95rem;
+        line-height: 1.45;
         margin-bottom: 12px;
+        min-height: 44px;
+        padding: 10px 12px;
     }
-}
 
-.event-ops-preview-cleanup {
-    background: rgba($color-primary, 0.04);
-    border: 1px solid rgba($color-primary, 0.12);
-    border-radius: $radius;
-    padding: 18px;
+    textarea.form-input {
+        min-height: 76px;
+    }
+
+    .standard-button {
+        margin-top: 4px;
+    }
 }
 
 .event-ops-budget-hint {
@@ -540,30 +563,51 @@
     }
 }
 
-.event-ops-checkpoint-list {
-    display: grid;
-    gap: 8px;
-}
-
-.event-ops-checkpoint-edit {
-    align-items: center;
-    color: $dark-gray;
-    display: flex;
-    font-size: 0.85rem;
-    justify-content: space-between;
-    gap: 12px;
-
-    select {
-        border: 1px solid rgba($color-uw-purple, 0.2);
-        border-radius: $radius;
-        padding: 6px;
-    }
-}
-
 .event-ops-inline-fields {
     display: grid;
     gap: 12px;
     grid-template-columns: 1fr 1fr;
+
+    > * {
+        min-width: 0;
+    }
+
+    .form-input {
+        box-sizing: border-box;
+        min-width: 0;
+        width: 100%;
+    }
+}
+
+.event-ops-purchase-list {
+    border-top: 1px solid rgba($color-uw-purple, 0.14);
+    margin: 16px 0;
+    padding-top: 4px;
+}
+
+.event-ops-purchase-row,
+.event-ops-purchase-total {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    padding: 10px 0;
+}
+
+.event-ops-purchase-row {
+    border-bottom: 1px solid rgba($color-uw-purple, 0.08);
+
+    span {
+        color: $dark-gray;
+        display: block;
+        font-size: 0.78rem;
+        margin-top: 3px;
+    }
+}
+
+.event-ops-purchase-total {
+    color: $color-uw-purple;
+    font-size: 1rem;
 }
 
 .event-ops-checkbox {
@@ -611,8 +655,11 @@
     }
 
     .event-ops-detail {
-        position: static;
         width: 100%;
+    }
+
+    .event-ops-detail-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .event-ops-table-wrapper {
@@ -681,5 +728,9 @@
     .event-ops-form,
     .event-ops-detail {
         padding: 18px;
+    }
+
+    .event-ops-detail-grid {
+        grid-template-columns: 1fr;
     }
 }

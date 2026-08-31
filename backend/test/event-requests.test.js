@@ -26,7 +26,6 @@ const submittedRequest = {
     "room",
     "marketing",
     "purchases",
-    "completion",
     "review",
   ].map((key) => ({ key, status: "pending" })),
 };
@@ -147,7 +146,7 @@ describe("event request API", () => {
     assert.equal(result.body.eventRequest.requesterId, organizerId);
     assert.equal(result.body.eventRequest.organizerId, organizerId);
     assert.equal(result.body.eventRequest.status, "submitted");
-    assert.equal(result.body.eventRequest.checkpoints.length, 8);
+    assert.equal(result.body.eventRequest.checkpoints.length, 7);
     assert.equal(result.body.eventRequest.slideTemplate.name, "Workshop");
   });
 
@@ -265,6 +264,20 @@ describe("event request API", () => {
       { models: makeModels({ permissions: ["events.finance.manage"] }) },
     );
     assert.equal(result.status, 400);
+  });
+
+  it("allows the Finance Director to complete room booking", async () => {
+    const result = await api.request(
+      "PATCH",
+      `/api/v1/event-requests/${requestId}/booking`,
+      { location: "HUB 145", startDate: "2026-09-03T17:00:00Z", endDate: "2026-09-03T20:00:00Z" },
+      {
+        models: makeModels({ request: { ...submittedRequest, status: "FINANCE_REVIEW" }, permissions: ["events.finance.manage"] }),
+      },
+    );
+    assert.equal(result.status, 200);
+    assert.equal(result.body.eventRequest.booking.location, "HUB 145");
+    assert.equal(result.body.eventRequest.checkpoints.find((checkpoint) => checkpoint.key === "room").status, "completed");
   });
 
   it("requires distinct organizer and member reviews", async () => {

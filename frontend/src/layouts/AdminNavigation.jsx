@@ -17,7 +17,6 @@ function AdminNavigation() {
                 {can("charter.read") && <NavLink to="/admin/charter">Charter</NavLink>}
                 {can("journal.read") && <NavLink to="/admin/journal">Journal</NavLink>}
                 {can("contacts.read") && <NavLink to="/admin/contacts">Contacts</NavLink>}
-                {can("exports.manage") && <a href="/api/v1/exports/event-requests.csv">Export requests</a>}
             </nav>
             <Link to="/" className="adminNavigation__exit">Back to student site</Link>
         </header>

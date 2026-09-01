@@ -13,7 +13,7 @@ function AdminNavigation() {
             <nav aria-label="Admin navigation" className="adminNavigation__links">
                 {can("dashboard.read") && <NavLink to="/admin" end>Dashboard</NavLink>}
                 {can("events.requests.view") && <NavLink to="/admin/pipeline">Pipeline</NavLink>}
-                {can("events.requests.view") && <NavLink to="/admin/calendar">Calendar</NavLink>}
+                {can("events.requests.view") && <NavLink to="/admin/repository">Repository</NavLink>}
                 {can("charter.read") && <NavLink to="/admin/charter">Charter</NavLink>}
                 {can("journal.read") && <NavLink to="/admin/journal">Journal</NavLink>}
                 {can("contacts.read") && <NavLink to="/admin/contacts">Contacts</NavLink>}

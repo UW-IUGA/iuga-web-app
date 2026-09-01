@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import AdminCalendar from "./AdminCalendar";
+import AdminRepository from "./AdminRepository";
 
 vi.mock("../components/AdminRoute", () => ({ default: ({ children }) => children }));
 vi.mock("../context/AuthContext", () => ({ useAuthContext: () => ({ signIn: vi.fn() }) }));
@@ -12,7 +12,7 @@ const adminRecord = {
     eventRequest: { eventName: "Spring Formal", requestingGroup: "Social Committee", fundingRequestedCents: 50000, finance: { allocatedCents: 45000, notes: "Approved with a trim." }, purchases: [] },
 };
 
-describe("AdminCalendar", () => {
+describe("AdminRepository", () => {
     afterEach(() => vi.restoreAllMocks());
 
     test("lists published events and opens the full record on click", async () => {
@@ -22,7 +22,7 @@ describe("AdminCalendar", () => {
             throw new Error(`Unexpected request: ${url}`);
         });
 
-        render(<AdminCalendar />);
+        render(<AdminRepository />);
 
         fireEvent.click(await screen.findByRole("button", { name: /spring formal/i }));
 
@@ -42,7 +42,7 @@ describe("AdminCalendar", () => {
             throw new Error(`Unexpected request: ${url}`);
         });
 
-        render(<AdminCalendar />);
+        render(<AdminRepository />);
         fireEvent.click(await screen.findByRole("button", { name: /spring formal/i }));
 
         expect(await screen.findByRole("button", { name: "Sign in again" })).toBeInTheDocument();

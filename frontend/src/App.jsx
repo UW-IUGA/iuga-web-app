@@ -1,6 +1,6 @@
 import HomePage from "./pages/Home";
 import EventsPage from "./pages/Events";
-import AdminCalendar from "./pages/AdminCalendar";
+import AdminRepository from "./pages/AdminRepository";
 import AdminRequest from "./pages/AdminRequest";
 import AdminPipeline from "./pages/AdminPipeline";
 import AdminCharter from "./pages/AdminCharter";
@@ -84,7 +84,7 @@ function App() {
                     <Route path="/admin" element={<AdminDashboard />} />
                     <Route path="/admin/pipeline" element={<AdminPipeline />} />
                     <Route path="/admin/pipeline/:id" element={<AdminRequest />} />
-                    <Route path="/admin/calendar" element={<AdminCalendar />} />
+                    <Route path="/admin/repository" element={<AdminRepository />} />
                     <Route path="/admin/events" element={<Navigate to="/admin/pipeline" replace />} />
                     <Route path="/admin/event-requests" element={<Navigate to="/admin/pipeline" replace />} />
                     <Route path="/admin/events/review/:id" element={<RedirectToRequest />} />

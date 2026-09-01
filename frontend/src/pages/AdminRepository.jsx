@@ -8,7 +8,7 @@ function eventDateLabel(event) {
     return new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short" }).format(new Date(event.eStartDate));
 }
 
-function AdminCalendar() {
+function AdminRepository() {
     const { signIn } = useAuthContext();
     const [events, setEvents] = useState([]);
     const [record, setRecord] = useState(null);
@@ -48,7 +48,7 @@ function AdminCalendar() {
             <main className="baseContainer adminPage">
                 <header className="adminPageHeader">
                     <span className="event-ops-kicker">Exec board workspace</span>
-                    <h1>Calendar</h1>
+                    <h1>Repository</h1>
                     <p>Browse published events and open the full record for any past or upcoming event.</p>
                 </header>
                 {error && <div className="event-ops-error" role="alert"><span>{error}</span>{sessionExpired && <button className="standard-button" type="button" onClick={signIn}>Sign in again</button>}</div>}
@@ -77,4 +77,4 @@ function AdminCalendar() {
     );
 }
 
-export default AdminCalendar;
+export default AdminRepository;

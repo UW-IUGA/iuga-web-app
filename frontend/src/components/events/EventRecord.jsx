@@ -14,7 +14,7 @@ function money(cents) {
 
 /*
  * Read-only view of a request's full state. Rendered inside the pipeline detail
- * page and from the admin calendar when an officer opens a published event.
+ * page and from the admin repository when an officer opens a published event.
  * `record` is the { event, eventRequest } shape returned by
  * GET /api/v1/events/admin/:eId.
  */

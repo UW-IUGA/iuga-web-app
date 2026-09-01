@@ -1,9 +1,31 @@
+// The board wants the whole viewport, not the 1200px reading column that
+// baseContainer imposes on the other admin pages.
+.adminPipelinePage.baseContainer {
+    width: 100%;
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+@include media(">=tablet") {
+    .adminPipelinePage.baseContainer {
+        width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+        padding-inline: 2rem;
+    }
+}
+
 .adminPipelineHeader {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
     gap: 1rem;
     max-width: none;
+
+    p {
+        max-width: 60ch;
+    }
 }
 
 .adminPipelineFilters {

@@ -142,7 +142,7 @@ function EventDetail({ request, onUpdate, can, onPurchaseComplete, showHeading =
                 body: JSON.stringify({ status: "completed" }),
             });
             onUpdate(data.eventRequest);
-            toast.success("Purchases complete. Opening post-event review.");
+            toast.success("Purchases posted. The review step is now open.");
             onPurchaseComplete?.(request._id);
         } catch (error) {
             toast.error(error.message);
@@ -263,7 +263,7 @@ function EventDetail({ request, onUpdate, can, onPurchaseComplete, showHeading =
                 </div>
                 <label className="form-label">Receipt link (optional)<input className="form-input" type="url" value={purchase.receiptUrl} onChange={(event) => setPurchase({ ...purchase, receiptUrl: event.target.value })} placeholder="https://..." /></label>
                 <button className="standard-button" type="submit">Add purchase</button>
-                <button className="cta-secondary" type="button" disabled={!purchasesComplete && !request.purchases?.length} onClick={completePurchases}>Proceed to post-event review</button>
+                <button className="cta-secondary" type="button" disabled={!purchasesComplete && !request.purchases?.length} onClick={completePurchases}>Post purchases</button>
             </form>}
 
             {can("events.finance.manage") && (request.status === "FINANCE_REVIEW" || !CANONICAL_STATES.has(request.status)) && <form className="event-ops-detail-section" onSubmit={saveBudget}>

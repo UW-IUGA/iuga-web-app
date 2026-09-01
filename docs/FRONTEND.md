@@ -156,7 +156,7 @@ In production, the frontend fetches from same-origin API routes:
 
 The public `VITE_API_URL` Docker build argument configures the MSAL redirect URI at build time.
 
-The admin event request form submits the canonical workflow fields (title, date, time, location, purpose, estimated attendance, and funding request in cents). Event detail actions are permission-driven: leadership advances/returns/rejects, the board records the meeting outcome, room booking follows the meeting, Finance records funding after booking, PR saves and reviews a OneDrive marketing design link before completing marketing, the event organizer logs itemized purchases after scheduling, and publication is explicit.
+The admin event request form submits the canonical workflow fields (title, date, time, location, purpose, estimated attendance, and funding request in cents). Event detail actions are permission-driven: leadership advances/returns/rejects, the board records the meeting outcome, room booking follows the meeting, Finance records funding after booking, PR saves and reviews a OneDrive marketing design link before completing marketing, the PR director publishes the scheduled event to the public calendar (surfaced as a "Ready to publish" dashboard queue), and only then can the event organizer log itemized purchases.
 
 ---
 

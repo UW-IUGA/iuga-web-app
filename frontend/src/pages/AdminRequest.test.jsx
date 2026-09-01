@@ -60,13 +60,25 @@ describe("AdminRequest", () => {
 
     test("hides the post-event review before the review step even after the event date", async () => {
         useAuthContext.mockReturnValue({ can: () => true });
-        vi.spyOn(global, "fetch").mockResolvedValue({ ok: true, json: async () => ({ status: "success", eventRequest: makeRequest({ status: "SCHEDULED", eventDate: "2020-01-01", proposedStartDate: "2020-01-01T00:00:00.000Z" }) }) });
+        vi.spyOn(global, "fetch").mockResolvedValue({ ok: true, json: async () => ({ status: "success", eventRequest: makeRequest({ status: "SCHEDULED", publishedEventId: "event-9", eventDate: "2020-01-01", proposedStartDate: "2020-01-01T00:00:00.000Z" }) }) });
 
         renderPage();
 
         await screen.findByRole("heading", { name: "Autumn Workshop", level: 1 });
         expect(screen.queryByRole("heading", { name: "Post-event review" })).not.toBeInTheDocument();
         expect(screen.getByRole("heading", { name: "Event purchases" })).toBeInTheDocument();
+    });
+
+    test("shows Publish, not purchases, while a scheduled event is unpublished", async () => {
+        useAuthContext.mockReturnValue({ can: () => true });
+        vi.spyOn(global, "fetch").mockResolvedValue({ ok: true, json: async () => ({ status: "success", eventRequest: makeRequest({ status: "SCHEDULED", eventDate: "2020-01-01", proposedStartDate: "2020-01-01T00:00:00.000Z" }) }) });
+
+        renderPage();
+
+        await screen.findByRole("heading", { name: "Autumn Workshop", level: 1 });
+        expect(screen.getByRole("heading", { name: "Publish" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Publish event" })).toBeInTheDocument();
+        expect(screen.queryByRole("heading", { name: "Event purchases" })).not.toBeInTheDocument();
     });
 
     test("gates officer forms behind permissions", async () => {

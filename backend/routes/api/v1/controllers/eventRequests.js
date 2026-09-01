@@ -856,6 +856,9 @@ router.patch("/:id/checklist/:step", requireCheckpointPermission, async (req, re
     if (["denied", "cancelled", "completed"].includes(request.status)) {
       return sendError(res, 409, "Event request is closed");
     }
+    if (req.params.step === "purchases" && !request.publishedEventId) {
+      return sendError(res, 409, "Publish the event before completing purchases");
+    }
     const checkpoints = (request.checkpoints || []).map((checkpoint) => ({ ...checkpoint }));
     const index = checkpoints.findIndex((checkpoint) => checkpoint.key === req.params.step);
     const checkpoint = index === -1 ? { key: req.params.step } : checkpoints[index];
@@ -1031,6 +1034,7 @@ router.post("/:id/purchases", requirePurchaseAccess, async (req, res) => {
     const request = await findRequest(req, req.params.id);
     if (!request) return sendError(res, 404, "Event request not found");
     if (request.status !== "SCHEDULED") return sendError(res, 409, "Purchases can be logged after the event is scheduled");
+    if (!request.publishedEventId) return sendError(res, 409, "Publish the event before logging purchases");
     const permissions = await getEffectivePermissions(req);
     const isPurchaseManager = permissions.includes("events.purchases.complete");
     if (!isPurchaseManager && String(request.requesterId?._id || request.requesterId) !== String(req.session.userId)) {

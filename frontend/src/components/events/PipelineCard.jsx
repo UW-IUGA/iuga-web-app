@@ -100,8 +100,13 @@ function PipelineCard({ request, can, onUpdated }) {
                 <button className="cta-secondary" type="button" disabled={busy || !link.trim()} onClick={saveMarketing}>Save &amp; advance</button>
             </div>;
         }
-        if (state === "SCHEDULED" && can("events.publication.manage") && !request.publishedEventId) {
-            return <button className="cta-secondary" type="button" disabled={busy} onClick={() => act("/publish")}>Publish event</button>;
+        if (state === "SCHEDULED" && !request.publishedEventId) {
+            return can("events.publication.manage")
+                ? <button className="cta-secondary" type="button" disabled={busy} onClick={() => act("/publish")}>Publish event</button>
+                : <p className="pipelineCard__hint">Waiting on the PR director to publish.</p>;
+        }
+        if (state === "SCHEDULED" && request.publishedEventId) {
+            return <Link className="cta-secondary" to={`/admin/pipeline/${request._id}`}>Log purchases →</Link>;
         }
         if (state === "AWAITING_REVIEW") {
             return <Link className="cta-secondary" to={`/admin/pipeline/${request._id}`}>Open review →</Link>;

@@ -22,6 +22,20 @@ describe("RequestStepper", () => {
         expect(screen.getByText("Marketing").closest("li")).toHaveAttribute("aria-current", "step");
     });
 
+    test("adds a Publish step that stays active while a scheduled event is unpublished", () => {
+        render(<RequestStepper request={{ status: "SCHEDULED", publishedEventId: null, checkpoints: checkpoints(["proposal", "meeting", "room", "finance", "marketing"]) }} />);
+
+        expect(screen.getByText("Publish").closest("li")).toHaveAttribute("aria-current", "step");
+        expect(screen.getByText("Marketing").closest("li").className).toContain("--done");
+    });
+
+    test("marks Publish done and advances to Purchases once published", () => {
+        render(<RequestStepper request={{ status: "SCHEDULED", publishedEventId: "event-1", checkpoints: checkpoints(["proposal", "meeting", "room", "finance", "marketing"]) }} />);
+
+        expect(screen.getByText("Publish").closest("li").className).toContain("--done");
+        expect(screen.getByText("Purchases").closest("li")).toHaveAttribute("aria-current", "step");
+    });
+
     test("shows a terminal step for rejected requests", () => {
         render(<RequestStepper request={{ status: "REJECTED", checkpoints: checkpoints(["proposal"]) }} />);
 

@@ -179,20 +179,23 @@ describe("canonical event workflow", () => {
     assert.equal(fixture.getCommitted(), 30000);
   });
 
-  it("requires PR completion before publication", async () => {
+  it("publishes before purchases, then completes the purchase log", async () => {
     const marketing = await api.request("POST", `/api/v1/event-requests/${requestId}/marketing-complete`);
     assert.equal(marketing.status, 200);
     assert.equal(marketing.body.eventRequest.status, "SCHEDULED");
     assert.equal(checkpointStatus(marketing.body.eventRequest, "marketing"), "completed");
     assert.equal(checkpointStatus(marketing.body.eventRequest, "room"), "completed");
 
-    const purchases = await api.request("PATCH", `/api/v1/event-requests/${requestId}/checklist/purchases`, { status: "completed" });
-    assert.equal(purchases.status, 200);
-    assert.equal(checkpointStatus(purchases.body.eventRequest, "purchases"), "completed");
+    const early = await api.request("PATCH", `/api/v1/event-requests/${requestId}/checklist/purchases`, { status: "completed" });
+    assert.equal(early.status, 409);
 
     const publication = await api.request("POST", `/api/v1/event-requests/${requestId}/publish`);
     assert.equal(publication.status, 200);
     assert.equal(publication.body.event._id, eventId);
+
+    const purchases = await api.request("PATCH", `/api/v1/event-requests/${requestId}/checklist/purchases`, { status: "completed" });
+    assert.equal(purchases.status, 200);
+    assert.equal(checkpointStatus(purchases.body.eventRequest, "purchases"), "completed");
   });
 
   it("rejects an illegal transition and records a completed review", async () => {

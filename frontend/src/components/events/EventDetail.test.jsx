@@ -43,4 +43,15 @@ describe("EventDetail", () => {
         expect(screen.queryByRole("button", { name: "Advance to agenda" })).not.toBeInTheDocument();
         expect(screen.queryByRole("heading", { name: "Finance" })).not.toBeInTheDocument();
     });
+
+    test("shows Publish and withholds purchases until a scheduled event is published", () => {
+        const scheduled = { ...baseRequest, status: "SCHEDULED" };
+        const { rerender } = render(<EventDetail request={scheduled} onUpdate={vi.fn()} can={allow} />);
+        expect(screen.getByRole("heading", { name: "Publish" })).toBeInTheDocument();
+        expect(screen.queryByRole("heading", { name: "Event purchases" })).not.toBeInTheDocument();
+
+        rerender(<EventDetail request={{ ...scheduled, publishedEventId: "event-9" }} onUpdate={vi.fn()} can={allow} />);
+        expect(screen.queryByRole("heading", { name: "Publish" })).not.toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Event purchases" })).toBeInTheDocument();
+    });
 });

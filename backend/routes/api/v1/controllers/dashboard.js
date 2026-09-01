@@ -7,11 +7,12 @@ import { getActiveCycle, getEffectivePermissions } from "../utils/permissions.js
 
 const router = express.Router();
 const QUEUES = [
-  ["events.leadership.approve", "PVP_REVIEW", "P/VP review"],
-  ["events.meeting.manage", "AGENDA", "Exec board agenda"],
-  ["events.finance.manage", "FINANCE_REVIEW", "Finance review"],
-  ["events.marketing.manage", "MARKETING_QUEUED", "PR queue"],
-  ["events.review.manage", "AWAITING_REVIEW", "Post-event review"],
+  { permission: "events.leadership.approve", status: "PVP_REVIEW", label: "P/VP review" },
+  { permission: "events.meeting.manage", status: "AGENDA", label: "Exec board agenda" },
+  { permission: "events.finance.manage", status: "FINANCE_REVIEW", label: "Finance review" },
+  { permission: "events.marketing.manage", status: "MARKETING_QUEUED", label: "PR queue" },
+  { permission: "events.publication.manage", status: "SCHEDULED", label: "Ready to publish", key: "READY_TO_PUBLISH", filter: { publishedEventId: null } },
+  { permission: "events.review.manage", status: "AWAITING_REVIEW", label: "Post-event review" },
 ];
 const STALLED_DAYS = Number(process.env.ADMIN_STALLED_DAYS || 7);
 const RESPONSIBILITY_BY_STATE = Object.freeze({
@@ -25,11 +26,12 @@ const RESPONSIBILITY_BY_STATE = Object.freeze({
 });
 
 function addNextResponsibleRole(request) {
-  const responsibility = RESPONSIBILITY_BY_STATE[canonicalState(request.status)];
-  return {
-    ...request,
-    nextResponsibleRole: responsibility?.role || null,
-  };
+  const state = canonicalState(request.status);
+  let role = RESPONSIBILITY_BY_STATE[state]?.role || null;
+  // A scheduled-but-unpublished event is the PR director's to publish, not the
+  // requester's (whose purchases work only starts once it is live).
+  if (state === "SCHEDULED" && !request.publishedEventId) role = "Director of PR";
+  return { ...request, nextResponsibleRole: role };
 }
 
 function canSeeStalledRequest(request, permissions, userId) {
@@ -58,10 +60,10 @@ router.get("/", requirePermission("dashboard.read"), async (req, res) => {
   try {
     const permissions = await getEffectivePermissions(req);
     const queues = [];
-    for (const [permission, status, label] of QUEUES) {
-      if (!permissions.includes(permission)) continue;
-      const requests = await req.models.EventRequests.find({ status }).sort({ eventDate: 1, proposedStartDate: 1 }).lean();
-      queues.push({ key: status, label, requests: requests.map(addNextResponsibleRole) });
+    for (const queue of QUEUES) {
+      if (!permissions.includes(queue.permission)) continue;
+      const requests = await req.models.EventRequests.find({ status: queue.status, ...queue.filter }).sort({ eventDate: 1, proposedStartDate: 1 }).lean();
+      queues.push({ key: queue.key || queue.status, label: queue.label, requests: requests.map(addNextResponsibleRole) });
     }
     const ownRequests = (await req.models.EventRequests.find({ requesterId: req.session.userId }).sort({ updatedAt: -1 }).lean()).map(addNextResponsibleRole);
     const stalledBefore = new Date(Date.now() - STALLED_DAYS * 24 * 60 * 60 * 1000);

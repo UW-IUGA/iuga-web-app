@@ -39,6 +39,20 @@ function models() {
   };
 }
 
+function publishModels() {
+  const scheduled = { _id: requestId, title: "Gala", eventName: "Gala", status: "SCHEDULED", requesterId: userId, updatedAt: new Date(), publishedEventId: null };
+  return {
+    Cycles: { findOne() { return { async lean() { return { _id: cycleId, status: "active" }; } }; } },
+    RoleAssignments: { find() { return { async populate() { return [{ cycleId, roleId: { isActive: true, permissions: ["dashboard.read", "events.publication.manage"] } }]; } }; } },
+    EventRequests: {
+      find(query = {}) {
+        const readyToPublish = query.status === "SCHEDULED" && Object.prototype.hasOwnProperty.call(query, "publishedEventId");
+        return chain(readyToPublish ? [scheduled] : []);
+      },
+    },
+  };
+}
+
 function archivalModels() {
   const request = { _id: requestId, cycleId, status: "REVIEWED" };
   return {
@@ -78,6 +92,16 @@ describe("admin operations APIs", () => {
     assert.equal(result.body.ownRequests[0].nextResponsibleRole, "Director of Finance");
     assert.equal(result.body.stalled[0].nextResponsibleRole, "Director of Finance");
     assert.equal(result.body.activeCycle.cycleName, "2026–2027");
+  });
+
+  it("surfaces a ready-to-publish queue for the PR director", async () => {
+    const api = await makeTestApi({ router: dashboardRouter, mountPath: "/api/v1/dashboard", models: publishModels(), session });
+    const result = await api.request("GET", "/api/v1/dashboard");
+    assert.equal(result.status, 200);
+    assert.deepEqual(result.body.queues.map((queue) => queue.key), ["READY_TO_PUBLISH"]);
+    assert.equal(result.body.queues[0].label, "Ready to publish");
+    assert.equal(result.body.queues[0].requests[0].nextResponsibleRole, "Director of PR");
+    await api.close();
   });
 
   it("scopes notification reads and stores preferences", async () => {

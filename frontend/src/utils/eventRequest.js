@@ -10,18 +10,21 @@ export const CHECKPOINTS = [
     ["review", "Review"],
 ];
 
-// Display steps for the request stepper. Room booking is folded into Finance:
-// the Finance step covers both the room and finance checkpoints.
+// Display steps for the request stepper. Room booking is folded into Finance
+// (its own room + finance checkpoints); Publish is a distinct step tracked by
+// whether the public event record exists, not by a checkpoint.
 export const STEPPER_STEPS = [
     { key: "proposal", label: "Proposal", checkpoints: ["proposal"] },
     { key: "meeting", label: "Meeting", checkpoints: ["meeting"] },
     { key: "finance", label: "Finance", checkpoints: ["room", "finance"] },
     { key: "marketing", label: "Marketing", checkpoints: ["marketing"] },
+    { key: "publish", label: "Publish", checkpoints: [], requiresPublish: true },
     { key: "purchases", label: "Purchases", checkpoints: ["purchases"] },
     { key: "review", label: "Review", checkpoints: ["review"] },
 ];
 
 export function stepComplete(request, step) {
+    if (step.requiresPublish && !request.publishedEventId) return false;
     return step.checkpoints.every((key) => request.checkpoints?.find((checkpoint) => checkpoint.key === key)?.status === "completed");
 }
 
@@ -48,7 +51,7 @@ export const PIPELINE_COLUMNS = [
     ["AGENDA", "Meeting"],
     ["FINANCE_REVIEW", "Finance"],
     ["MARKETING_QUEUED", "Marketing"],
-    ["SCHEDULED", "Purchases"],
+    ["SCHEDULED", "Publish & purchases"],
     ["AWAITING_REVIEW", "Review"],
 ];
 

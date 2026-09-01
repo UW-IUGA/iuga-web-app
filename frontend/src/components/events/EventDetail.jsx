@@ -223,9 +223,14 @@ function EventDetail({ request, onUpdate, can, onPurchaseComplete, showHeading =
             </div>}
 
             {request.status === "MARKETING_QUEUED" && can("events.marketing.manage") && <div className="event-ops-actions"><button className="cta-secondary" onClick={() => postAction("/marketing-complete")} disabled={!marketingLinkSaved}>Complete marketing & move to Purchases</button></div>}
-            {request.status === "SCHEDULED" && can("events.publication.manage") && !request.publishedEventId && <div className="event-ops-actions"><button className="cta-secondary" onClick={() => postAction("/publish")}>Publish event</button></div>}
 
             <div className="event-ops-detail-grid">
+            {request.status === "SCHEDULED" && !request.publishedEventId && <section className="event-ops-detail-section">
+                <h4>Publish</h4>
+                <p className="event-ops-budget-hint">Marketing is complete. {can("events.publication.manage") ? "Publish the event to the public calendar; purchases open once it is live." : "The PR director publishes the event before purchases can be logged."}</p>
+                {can("events.publication.manage") && <button className="cta-secondary" type="button" onClick={() => postAction("/publish")}>Publish event</button>}
+            </section>}
+
             {canBookRoom && <form className="event-ops-detail-section" onSubmit={saveBooking}>
                 <h4>Room booking</h4>
                 <label className="form-label">Location<input className="form-input" value={booking.location || ""} onChange={(event) => setBooking({ ...booking, location: event.target.value })} /></label>
@@ -246,7 +251,7 @@ function EventDetail({ request, onUpdate, can, onPurchaseComplete, showHeading =
                 <button className="standard-button" type="submit">Save link & move to Purchases</button>
             </form>}
 
-            {request.status === "SCHEDULED" && (can("events.purchases.complete") || can("events.requests.edit")) && <form className="event-ops-detail-section event-ops-purchases" onSubmit={savePurchase}>
+            {request.status === "SCHEDULED" && request.publishedEventId && (can("events.purchases.complete") || can("events.requests.edit")) && <form className="event-ops-detail-section event-ops-purchases" onSubmit={savePurchase}>
                 <h4>Event purchases</h4>
                 <p className="event-ops-budget-hint">Log each purchase made for this event. The total updates from the itemized entries.</p>
                 {request.purchases?.length > 0 && <div className="event-ops-purchase-list">

@@ -217,6 +217,29 @@ describe("canonical event workflow", () => {
   });
 });
 
+describe("post-event review with a populated requester", () => {
+  let api;
+  const fixture = makeWorkflowModels({ permissions: ["events.requests.view", "events.review.manage"], initialStatus: "SCHEDULED", eventDate: "2020-01-01T00:00:00Z" });
+
+  before(async () => {
+    fixture.getRequest().requesterId = { _id: userId, uDisplayName: "Org Anizer" };
+    api = await makeTestApi({ router: eventRequestsRouter, mountPath: "/api/v1/event-requests", models: fixture.models, session: { isAuthenticated: true, userId } });
+  });
+
+  after(async () => api.close());
+
+  it("accepts the review when requesterId is populated to an object", async () => {
+    const result = await api.request("POST", `/api/v1/event-requests/${requestId}/reviews`, {
+      pros: "Strong turnout",
+      cons: "Ran long",
+      actualAttendance: 50,
+      repeatRecommendation: "yes",
+    });
+    assert.equal(result.status, 201);
+    assert.equal(result.body.eventRequest.status, "REVIEWED");
+  });
+});
+
 describe("canonical event workflow with legacy checkpoint data", () => {
   let api;
   const fixture = makeWorkflowModels({ permissions: ["events.requests.view", "events.meeting.manage"], initialStatus: "AGENDA" });

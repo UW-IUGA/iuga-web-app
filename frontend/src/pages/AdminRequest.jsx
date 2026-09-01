@@ -8,7 +8,7 @@ import EventRecord from "../components/events/EventRecord";
 import DecisionHistory from "../components/events/DecisionHistory";
 import ReviewForm from "../components/events/stage/ReviewForm";
 import { useAuthContext } from "../context/AuthContext";
-import { apiRequest, canonicalState, formatDate } from "../utils/eventRequest";
+import { apiRequest, canonicalState, DONE_STATES, formatDate, STEPPER_STEPS, stepComplete } from "../utils/eventRequest";
 
 function AdminRequest() {
     const { id } = useParams();
@@ -29,9 +29,12 @@ function AdminRequest() {
 
     const applyUpdate = (updated) => setRequest((current) => ({ ...updated, auditEntries: updated.auditEntries || current?.auditEntries }));
 
-    // The post-event review belongs only to the Review step; every earlier stage
-    // renders its own forms through EventDetail.
-    const inReview = request && canonicalState(request.status) === "AWAITING_REVIEW";
+    // The request never persists in AWAITING_REVIEW (POST /reviews walks it
+    // straight to REVIEWED), so drive the Review step off the stepper: it is
+    // active once every earlier step — through the purchase log — is done.
+    const activeStep = request && (STEPPER_STEPS.find((step) => !stepComplete(request, step))?.key || "done");
+    const terminal = request && DONE_STATES.has(canonicalState(request.status));
+    const inReview = activeStep === "review" || (request && canonicalState(request.status) === "AWAITING_REVIEW");
 
     return (
         <AdminRoute requiredPermission="events.requests.view">
@@ -50,11 +53,10 @@ function AdminRequest() {
 
                     <RequestStepper request={request} />
 
-                    {inReview
-                        ? (can("events.review.manage") && <section className="adminRequestReview editorial-card">
-                            <ReviewForm request={request} onSubmitted={(updated) => (updated ? applyUpdate(updated) : load())} />
-                        </section>)
-                        : <EventDetail request={request} onUpdate={applyUpdate} can={can} onPurchaseComplete={load} showHeading={false} showHistory={false} />}
+                    {inReview && can("events.review.manage") && <section className="adminRequestReview editorial-card">
+                        <ReviewForm request={request} onSubmitted={(updated) => (updated ? applyUpdate(updated) : load())} />
+                    </section>}
+                    {!inReview && !terminal && <EventDetail request={request} onUpdate={applyUpdate} can={can} onPurchaseComplete={load} showHeading={false} showHistory={false} />}
 
                     <details className="adminRequestPanel">
                         <summary>Event record</summary>

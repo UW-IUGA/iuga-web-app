@@ -268,7 +268,7 @@ function EventDetail({ request, onUpdate, can, onPurchaseComplete, showHeading =
                 </div>
                 <label className="form-label">Receipt link (optional)<input className="form-input" type="url" value={purchase.receiptUrl} onChange={(event) => setPurchase({ ...purchase, receiptUrl: event.target.value })} placeholder="https://..." /></label>
                 <button className="standard-button" type="submit">Add purchase</button>
-                <button className="cta-secondary" type="button" disabled={!purchasesComplete && !request.purchases?.length} onClick={completePurchases}>Post purchases</button>
+                <button className="cta-secondary" type="button" disabled={purchasesComplete} onClick={completePurchases}>{request.purchases?.length ? "Post purchases" : "No purchases to log — continue"}</button>
             </form>}
 
             {can("events.finance.manage") && (request.status === "FINANCE_REVIEW" || !CANONICAL_STATES.has(request.status)) && <form className="event-ops-detail-section" onSubmit={saveBudget}>

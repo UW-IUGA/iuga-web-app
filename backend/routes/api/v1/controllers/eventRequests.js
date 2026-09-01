@@ -1082,7 +1082,7 @@ router.post("/:id/reviews", requirePermission("events.review.manage"), async (re
     const request = await findRequest(req, req.params.id);
     if (!request) return sendError(res, 404, "Event request not found");
     if (canonicalRequest(request)) {
-      if (String(request.requesterId) !== String(req.session.userId)) return sendError(res, 403, "Only the requester can submit this review");
+      if (String(request.requesterId?._id || request.requesterId) !== String(req.session.userId)) return sendError(res, 403, "Only the requester can submit this review");
       if (request.status === "SCHEDULED" && new Date(request.eventDate || request.proposedStartDate) <= new Date()) {
         const awaiting = await canonicalTransition(req, req.params.id, request, "AWAITING_REVIEW", {}, { action: "review_due" });
         if (!awaiting) return sendError(res, 409, "Event request changed; retry the update");

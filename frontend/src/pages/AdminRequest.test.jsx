@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, describe, expect, test, vi } from "vitest";
@@ -8,8 +8,9 @@ import { useAuthContext } from "../context/AuthContext";
 vi.mock("../components/AdminRoute", () => ({ default: ({ children }) => children }));
 vi.mock("../context/AuthContext", () => ({ useAuthContext: vi.fn() }));
 
-const checkpoints = ["proposal", "meeting", "room", "finance", "marketing", "purchases", "review"];
-const makeRequest = (overrides = {}) => ({
+const ALL_CHECKPOINTS = ["proposal", "meeting", "room", "finance", "marketing", "purchases", "review"];
+
+const makeRequest = ({ done = ["proposal", "meeting", "room"], ...overrides } = {}) => ({
     _id: "request-1",
     eventName: "Autumn Workshop",
     requestingGroup: "Tech Committee",
@@ -18,10 +19,14 @@ const makeRequest = (overrides = {}) => ({
     eventDate: "2026-10-15",
     status: "FINANCE_REVIEW",
     fundingRequestedCents: 12550,
-    checkpoints: checkpoints.map((key) => ({ key, status: key === "proposal" || key === "meeting" || key === "room" ? "completed" : "pending" })),
+    checkpoints: ALL_CHECKPOINTS.map((key) => ({ key, status: done.includes(key) ? "completed" : "pending" })),
     auditEntries: [{ _id: "audit-1", action: "advance", createdAt: "2026-09-01T00:00:00.000Z", comment: "Looks ready." }],
     ...overrides,
 });
+
+const past = { eventDate: "2020-01-01", proposedStartDate: "2020-01-01T00:00:00.000Z" };
+
+const mockRequest = (eventRequest) => vi.spyOn(global, "fetch").mockResolvedValue({ ok: true, json: async () => ({ status: "success", eventRequest }) });
 
 const renderPage = () => render(
     <MemoryRouter initialEntries={["/admin/pipeline/request-1"]}>
@@ -36,7 +41,7 @@ describe("AdminRequest", () => {
 
     test("shows the stepper, current-stage form, and collapsible panels", async () => {
         useAuthContext.mockReturnValue({ can: () => true });
-        vi.spyOn(global, "fetch").mockResolvedValue({ ok: true, json: async () => ({ status: "success", eventRequest: makeRequest() }) });
+        mockRequest(makeRequest());
 
         renderPage();
 
@@ -48,30 +53,9 @@ describe("AdminRequest", () => {
         expect(screen.getByText("Decision history")).toBeInTheDocument();
     });
 
-    test("shows the post-event review only on the review step", async () => {
-        useAuthContext.mockReturnValue({ can: (permission) => permission === "events.requests.view" || permission === "events.review.manage" });
-        vi.spyOn(global, "fetch").mockResolvedValue({ ok: true, json: async () => ({ status: "success", eventRequest: makeRequest({ status: "AWAITING_REVIEW", eventDate: "2020-01-01", proposedStartDate: "2020-01-01T00:00:00.000Z" }) }) });
-
-        renderPage();
-
-        expect(await screen.findByRole("heading", { name: "Post-event review" })).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: "Submit post-event review" })).toBeInTheDocument();
-    });
-
-    test("hides the post-event review before the review step even after the event date", async () => {
-        useAuthContext.mockReturnValue({ can: () => true });
-        vi.spyOn(global, "fetch").mockResolvedValue({ ok: true, json: async () => ({ status: "success", eventRequest: makeRequest({ status: "SCHEDULED", publishedEventId: "event-9", eventDate: "2020-01-01", proposedStartDate: "2020-01-01T00:00:00.000Z" }) }) });
-
-        renderPage();
-
-        await screen.findByRole("heading", { name: "Autumn Workshop", level: 1 });
-        expect(screen.queryByRole("heading", { name: "Post-event review" })).not.toBeInTheDocument();
-        expect(screen.getByRole("heading", { name: "Event purchases" })).toBeInTheDocument();
-    });
-
     test("shows Publish, not purchases, while a scheduled event is unpublished", async () => {
         useAuthContext.mockReturnValue({ can: () => true });
-        vi.spyOn(global, "fetch").mockResolvedValue({ ok: true, json: async () => ({ status: "success", eventRequest: makeRequest({ status: "SCHEDULED", eventDate: "2020-01-01", proposedStartDate: "2020-01-01T00:00:00.000Z" }) }) });
+        mockRequest(makeRequest({ status: "SCHEDULED", done: ["proposal", "meeting", "room", "finance", "marketing"], ...past }));
 
         renderPage();
 
@@ -81,9 +65,53 @@ describe("AdminRequest", () => {
         expect(screen.queryByRole("heading", { name: "Event purchases" })).not.toBeInTheDocument();
     });
 
+    test("shows purchases after publishing, before the purchase log is posted", async () => {
+        useAuthContext.mockReturnValue({ can: () => true });
+        mockRequest(makeRequest({ status: "SCHEDULED", publishedEventId: "event-9", done: ["proposal", "meeting", "room", "finance", "marketing"], ...past }));
+
+        renderPage();
+
+        await screen.findByRole("heading", { name: "Autumn Workshop", level: 1 });
+        expect(screen.getByRole("heading", { name: "Event purchases" })).toBeInTheDocument();
+        expect(screen.queryByRole("heading", { name: "Post-event review" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("heading", { name: "Publish" })).not.toBeInTheDocument();
+    });
+
+    test("shows the post-event review once every earlier step is done and the event has passed", async () => {
+        useAuthContext.mockReturnValue({ can: (permission) => permission === "events.requests.view" || permission === "events.review.manage" });
+        mockRequest(makeRequest({
+            status: "SCHEDULED",
+            publishedEventId: "event-9",
+            done: ["proposal", "meeting", "room", "finance", "marketing", "purchases"],
+            ...past,
+        }));
+
+        renderPage();
+
+        expect(await screen.findByRole("heading", { name: "Post-event review" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Submit post-event review" })).toBeInTheDocument();
+        expect(screen.queryByRole("heading", { name: "Event purchases" })).not.toBeInTheDocument();
+    });
+
+    test("does not show the review before the purchase log is posted, even after the event", async () => {
+        useAuthContext.mockReturnValue({ can: () => true });
+        mockRequest(makeRequest({
+            status: "SCHEDULED",
+            publishedEventId: "event-9",
+            done: ["proposal", "meeting", "room", "finance", "marketing"],
+            ...past,
+        }));
+
+        renderPage();
+
+        await screen.findByRole("heading", { name: "Autumn Workshop", level: 1 });
+        expect(screen.queryByRole("heading", { name: "Post-event review" })).not.toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Event purchases" })).toBeInTheDocument();
+    });
+
     test("gates officer forms behind permissions", async () => {
         useAuthContext.mockReturnValue({ can: (permission) => permission === "events.requests.view" });
-        vi.spyOn(global, "fetch").mockResolvedValue({ ok: true, json: async () => ({ status: "success", eventRequest: makeRequest() }) });
+        mockRequest(makeRequest());
 
         renderPage();
 

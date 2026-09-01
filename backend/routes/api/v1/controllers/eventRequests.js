@@ -44,11 +44,14 @@ const WORKFLOW_CHECKPOINTS_BY_STATUS = Object.freeze({
 });
 
 function syncWorkflowCheckpoints(checkpoints, status, actorId) {
+  // Drop checkpoint keys that predate the current schema enum (e.g. the removed
+  // "completion" step); persisting them fails findOneAndUpdate validation.
+  const known = (checkpoints || []).filter((checkpoint) => CHECKPOINT_KEYS.includes(checkpoint.key));
   const statuses = WORKFLOW_CHECKPOINTS_BY_STATUS[status];
-  if (!statuses) return checkpoints;
+  if (!statuses) return known;
 
   const now = new Date();
-  const nextCheckpoints = (checkpoints || []).map((checkpoint) => ({ ...checkpoint }));
+  const nextCheckpoints = known.map((checkpoint) => ({ ...checkpoint }));
   for (const [key, checkpointStatus] of Object.entries(statuses)) {
     setCheckpointStatus(nextCheckpoints, key, checkpointStatus, actorId, now);
   }

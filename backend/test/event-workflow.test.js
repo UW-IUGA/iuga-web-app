@@ -213,3 +213,28 @@ describe("canonical event workflow", () => {
     assert.equal(fixture.audits.at(-1).action, "review_submitted");
   });
 });
+
+describe("canonical event workflow with legacy checkpoint data", () => {
+  let api;
+  const fixture = makeWorkflowModels({ permissions: ["events.requests.view", "events.meeting.manage"], initialStatus: "AGENDA" });
+
+  before(async () => {
+    fixture.getRequest().checkpoints.push({ key: "completion", status: "pending" });
+    api = await makeTestApi({
+      router: eventRequestsRouter,
+      mountPath: "/api/v1/event-requests",
+      models: fixture.models,
+      session: { isAuthenticated: true, userId },
+    });
+  });
+
+  after(async () => api.close());
+
+  it("drops checkpoint keys removed from the schema when advancing", async () => {
+    const result = await api.request("POST", `/api/v1/event-requests/${requestId}/agenda-outcome`, { outcome: "proceed", note: "Proceed with the plan." });
+
+    assert.equal(result.status, 200);
+    assert.equal(result.body.eventRequest.status, "FINANCE_REVIEW");
+    assert.ok(!result.body.eventRequest.checkpoints.some((checkpoint) => checkpoint.key === "completion"));
+  });
+});

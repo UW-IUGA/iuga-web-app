@@ -10,6 +10,21 @@ export const CHECKPOINTS = [
     ["review", "Review"],
 ];
 
+// Display steps for the request stepper. Room booking is folded into Finance:
+// the Finance step covers both the room and finance checkpoints.
+export const STEPPER_STEPS = [
+    { key: "proposal", label: "Proposal", checkpoints: ["proposal"] },
+    { key: "meeting", label: "Meeting", checkpoints: ["meeting"] },
+    { key: "finance", label: "Finance", checkpoints: ["room", "finance"] },
+    { key: "marketing", label: "Marketing", checkpoints: ["marketing"] },
+    { key: "purchases", label: "Purchases", checkpoints: ["purchases"] },
+    { key: "review", label: "Review", checkpoints: ["review"] },
+];
+
+export function stepComplete(request, step) {
+    return step.checkpoints.every((key) => request.checkpoints?.find((checkpoint) => checkpoint.key === key)?.status === "completed");
+}
+
 export const CANONICAL_STATES = new Set(["DRAFT", "PVP_REVIEW", "AGENDA", "FINANCE_REVIEW", "MARKETING_QUEUED", "SCHEDULED", "AWAITING_REVIEW", "REVIEWED", "REJECTED", "ARCHIVED"]);
 
 const LEGACY_STATE_MAP = {

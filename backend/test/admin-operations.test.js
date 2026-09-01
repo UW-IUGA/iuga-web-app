@@ -53,6 +53,24 @@ function publishModels() {
   };
 }
 
+function reviewModels() {
+  const ready = {
+    _id: requestId, title: "Retreat", eventName: "Retreat", status: "SCHEDULED", requesterId: userId, updatedAt: new Date(),
+    publishedEventId: "evt-1", proposedStartDate: new Date("2020-01-01T00:00:00Z"),
+    checkpoints: [{ key: "purchases", status: "completed" }],
+  };
+  return {
+    Cycles: { findOne() { return { async lean() { return { _id: cycleId, status: "active" }; } }; } },
+    RoleAssignments: { find() { return { async populate() { return [{ cycleId, roleId: { isActive: true, permissions: ["dashboard.read", "events.review.manage"] } }]; } }; } },
+    EventRequests: {
+      find(query = {}) {
+        const isReviewQueue = query.status === "SCHEDULED" && query.checkpoints && query.proposedStartDate;
+        return chain(isReviewQueue ? [ready] : []);
+      },
+    },
+  };
+}
+
 function archivalModels() {
   const request = { _id: requestId, cycleId, status: "REVIEWED" };
   return {
@@ -101,6 +119,16 @@ describe("admin operations APIs", () => {
     assert.deepEqual(result.body.queues.map((queue) => queue.key), ["READY_TO_PUBLISH"]);
     assert.equal(result.body.queues[0].label, "Ready to publish");
     assert.equal(result.body.queues[0].requests[0].nextResponsibleRole, "Director of PR");
+    await api.close();
+  });
+
+  it("surfaces a post-event review queue for scheduled events whose date has passed", async () => {
+    const api = await makeTestApi({ router: dashboardRouter, mountPath: "/api/v1/dashboard", models: reviewModels(), session });
+    const result = await api.request("GET", "/api/v1/dashboard");
+    assert.equal(result.status, 200);
+    assert.deepEqual(result.body.queues.map((queue) => queue.key), ["POST_EVENT_REVIEW"]);
+    assert.equal(result.body.queues[0].label, "Post-event review");
+    assert.equal(result.body.queues[0].requests[0].eventName, "Retreat");
     await api.close();
   });
 

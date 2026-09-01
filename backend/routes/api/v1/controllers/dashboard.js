@@ -12,7 +12,19 @@ const QUEUES = [
   { permission: "events.finance.manage", status: "FINANCE_REVIEW", label: "Finance review" },
   { permission: "events.marketing.manage", status: "MARKETING_QUEUED", label: "PR queue" },
   { permission: "events.publication.manage", status: "SCHEDULED", label: "Ready to publish", key: "READY_TO_PUBLISH", filter: { publishedEventId: null } },
-  { permission: "events.review.manage", status: "AWAITING_REVIEW", label: "Post-event review" },
+  // A request never persists in AWAITING_REVIEW (POST /reviews walks it straight
+  // to REVIEWED), so "ready for review" is a scheduled request whose purchase
+  // log is posted and whose event date has passed.
+  {
+    permission: "events.review.manage",
+    status: "SCHEDULED",
+    label: "Post-event review",
+    key: "POST_EVENT_REVIEW",
+    filter: () => ({
+      checkpoints: { $elemMatch: { key: "purchases", status: "completed" } },
+      proposedStartDate: { $lte: new Date() },
+    }),
+  },
 ];
 const STALLED_DAYS = Number(process.env.ADMIN_STALLED_DAYS || 7);
 const RESPONSIBILITY_BY_STATE = Object.freeze({
@@ -62,7 +74,8 @@ router.get("/", requirePermission("dashboard.read"), async (req, res) => {
     const queues = [];
     for (const queue of QUEUES) {
       if (!permissions.includes(queue.permission)) continue;
-      const requests = await req.models.EventRequests.find({ status: queue.status, ...queue.filter }).sort({ eventDate: 1, proposedStartDate: 1 }).lean();
+      const filter = typeof queue.filter === "function" ? queue.filter() : queue.filter;
+      const requests = await req.models.EventRequests.find({ status: queue.status, ...filter }).sort({ eventDate: 1, proposedStartDate: 1 }).lean();
       queues.push({ key: queue.key || queue.status, label: queue.label, requests: requests.map(addNextResponsibleRole) });
     }
     const ownRequests = (await req.models.EventRequests.find({ requesterId: req.session.userId }).sort({ updatedAt: -1 }).lean()).map(addNextResponsibleRole);

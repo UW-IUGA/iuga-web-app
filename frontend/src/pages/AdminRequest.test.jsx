@@ -48,7 +48,7 @@ describe("AdminRequest", () => {
         expect(screen.getByText("Decision history")).toBeInTheDocument();
     });
 
-    test("renders the post-event review once the event date has passed", async () => {
+    test("shows the post-event review only on the review step", async () => {
         useAuthContext.mockReturnValue({ can: (permission) => permission === "events.requests.view" || permission === "events.review.manage" });
         vi.spyOn(global, "fetch").mockResolvedValue({ ok: true, json: async () => ({ status: "success", eventRequest: makeRequest({ status: "AWAITING_REVIEW", eventDate: "2020-01-01", proposedStartDate: "2020-01-01T00:00:00.000Z" }) }) });
 
@@ -56,6 +56,17 @@ describe("AdminRequest", () => {
 
         expect(await screen.findByRole("heading", { name: "Post-event review" })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "Submit post-event review" })).toBeInTheDocument();
+    });
+
+    test("hides the post-event review before the review step even after the event date", async () => {
+        useAuthContext.mockReturnValue({ can: () => true });
+        vi.spyOn(global, "fetch").mockResolvedValue({ ok: true, json: async () => ({ status: "success", eventRequest: makeRequest({ status: "SCHEDULED", eventDate: "2020-01-01", proposedStartDate: "2020-01-01T00:00:00.000Z" }) }) });
+
+        renderPage();
+
+        await screen.findByRole("heading", { name: "Autumn Workshop", level: 1 });
+        expect(screen.queryByRole("heading", { name: "Post-event review" })).not.toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Event purchases" })).toBeInTheDocument();
     });
 
     test("gates officer forms behind permissions", async () => {

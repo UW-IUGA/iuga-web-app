@@ -8,7 +8,7 @@ import EventRecord from "../components/events/EventRecord";
 import DecisionHistory from "../components/events/DecisionHistory";
 import ReviewForm from "../components/events/stage/ReviewForm";
 import { useAuthContext } from "../context/AuthContext";
-import { apiRequest, formatDate } from "../utils/eventRequest";
+import { apiRequest, canonicalState, formatDate } from "../utils/eventRequest";
 
 function AdminRequest() {
     const { id } = useParams();
@@ -29,9 +29,9 @@ function AdminRequest() {
 
     const applyUpdate = (updated) => setRequest((current) => ({ ...updated, auditEntries: updated.auditEntries || current?.auditEntries }));
 
-    const eventDate = request && new Date(request.eventDate || request.proposedStartDate);
-    const reviewOpen = eventDate && eventDate <= new Date();
-    const showReview = request && reviewOpen && can("events.review.manage") && request.status !== "REVIEWED" && request.status !== "ARCHIVED";
+    // The post-event review belongs only to the Review step; every earlier stage
+    // renders its own forms through EventDetail.
+    const inReview = request && canonicalState(request.status) === "AWAITING_REVIEW";
 
     return (
         <AdminRoute requiredPermission="events.requests.view">
@@ -50,11 +50,11 @@ function AdminRequest() {
 
                     <RequestStepper request={request} />
 
-                    <EventDetail request={request} onUpdate={applyUpdate} can={can} onPurchaseComplete={load} showHeading={false} showHistory={false} />
-
-                    {showReview && <section className="adminRequestReview editorial-card">
-                        <ReviewForm request={request} onSubmitted={(updated) => (updated ? applyUpdate(updated) : load())} />
-                    </section>}
+                    {inReview
+                        ? (can("events.review.manage") && <section className="adminRequestReview editorial-card">
+                            <ReviewForm request={request} onSubmitted={(updated) => (updated ? applyUpdate(updated) : load())} />
+                        </section>)
+                        : <EventDetail request={request} onUpdate={applyUpdate} can={can} onPurchaseComplete={load} showHeading={false} showHistory={false} />}
 
                     <details className="adminRequestPanel">
                         <summary>Event record</summary>

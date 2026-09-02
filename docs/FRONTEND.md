@@ -56,11 +56,11 @@ frontend/src/
 └── stylesheets/
     ├── main.scss          ← Central import file (7-1 architecture)
     ├── abstracts/         ← Variables, mixins, functions, media queries
+    ├── vendors/           ← Vendored third-party styles (include-media, toastify)
     ├── base/              ← Reset, typography, colors, misc
-    ├── components/        ← Component-specific styles
     ├── layout/            ← Container, split responsive navigation, footer, form
-    ├── pages/             ← Page-specific styles (e.g., _getInvolved.scss for page and member-card styles)
-    └── addons/            ← Third-party overrides (toastify)
+    ├── components/        ← Component-specific styles
+    └── pages/             ← Page-specific styles (e.g., _getInvolved.scss for page and member-card styles)
 ```
 
 ### Shared navigation
@@ -148,7 +148,9 @@ The backend creates **server-side sessions** (express-session), so the frontend 
 
 - **SCSS** with [7-1 architecture](https://sass-guidelin.es/#architecture)
 - Compiled via `sass` (devDependency)
-- Main entry: `src/stylesheets/main.scss` — imports all partials
+- Main entry: `src/stylesheets/main.scss` — imports only; no CSS rules
+- Import order in `main.scss` follows the 7-1 convention: abstracts → vendors → base → layout → components → pages
+- All design tokens (colors, fonts, spacing, radii, breakpoints) live in `abstracts/_variables.scss` and follow the `$[token-type]-*` naming convention
 - Fonts: **NotoSans** (body) and **PlayfairDisplay** (headings), served from `public/font/`
 - Responsive breakpoints: mobile below `768px`, tablet/desktop at `768px` and above,
   with the sm-desktop breakpoint at `1024px`

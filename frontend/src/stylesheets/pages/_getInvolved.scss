@@ -1,4 +1,3 @@
-
 .getInvolved {
     @extend %pageFrame;
     padding: 48px 0 64px;
@@ -31,6 +30,7 @@
 }
 
 @include media("screen", "<tablet") {
+
     .getInvolved__summaryText,
     .getInvolved__header {
         text-align: center;
@@ -74,7 +74,7 @@
         width: 100%;
         aspect-ratio: 1 / 1;
         border-radius: $radius-card-media;
-        background-color: $gray;
+        background-color: $color-gray;
         overflow: hidden;
 
         img {
@@ -93,7 +93,7 @@
         justify-content: center;
         width: 100%;
         height: 100%;
-        color: $dark-gray;
+        color: $color-dark-gray;
 
         svg {
             font-size: 48px;
@@ -116,7 +116,7 @@
         p {
             margin: 0;
             font-size: 0.9rem;
-            color: $dark-gray;
+            color: $color-dark-gray;
         }
     }
 
@@ -124,11 +124,11 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: $grid-gap / 2;
+        gap: calc($grid-gap / 2);
         margin-top: 12px;
 
         a {
-            color: $dark-gray;
+            color: $color-dark-gray;
         }
 
         svg {
@@ -167,7 +167,7 @@
         margin: 0 0 10px;
         font-weight: 600;
         font-size: 0.9rem;
-        color: $dark-gray;
+        color: $color-dark-gray;
     }
 
     &__badge {
@@ -177,7 +177,7 @@
         border: 0;
         border-radius: 0;
         background-color: transparent;
-        color: $dark-gray;
+        color: $color-dark-gray;
         font-size: 0.72rem;
         font-weight: 700;
         letter-spacing: 0.12em;
@@ -188,7 +188,7 @@
     &__description {
         margin: 0 0 16px;
         line-height: 1.55;
-        color: $dark-gray;
+        color: $color-dark-gray;
     }
 
     .pill-button {

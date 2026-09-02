@@ -76,10 +76,10 @@ nav a,
 }
 
 .nav-items-wrapper a.active {
-    background-color: $gray;
+    background-color: $color-gray;
 }
 
-.nav-container > div {
+.nav-container>div {
     display: flex;
     gap: 18px;
     justify-content: center;

@@ -54,7 +54,7 @@
         cursor: pointer;
 
         &:hover {
-            background-color: #F1E8FF;
+            background-color: $color-lavender;
         }
 
         &:focus-visible {
@@ -92,7 +92,7 @@
         margin: 12px 0 0;
         text-align: center;
         font-size: 0.9rem;
-        color: $dark-gray;
+        color: $color-dark-gray;
     }
 }
 

@@ -14,6 +14,7 @@
     z-index: 1;
 }
 
+// !important 
 @include media(">=tablet") {
     .baseContainer {
         box-sizing: border-box;
@@ -34,11 +35,6 @@
     .baseContainer {
         box-sizing: border-box;
         width: 100vw;
-    }
-}
-
-@include media("screen", "<tablet") {
-    .baseContainer {
         padding-inline: $padding-content;
     }
 }

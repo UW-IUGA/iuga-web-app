@@ -67,11 +67,9 @@ button:before {
 
 .secondary-button {
     color: $color-primary;
-    background-color: #F1E8FF;
+    background-color: $color-lavender;
     border: 2px solid $color-primary;
 }
-
-$cta-lavender: #F1E8FF;
 
 %pill-surface {
     display: inline-flex;
@@ -124,7 +122,7 @@ $cta-lavender: #F1E8FF;
     @include focus-ring;
 
     &:hover {
-        background-color: $cta-lavender;
+        background-color: $color-lavender;
     }
 
     &:hover::before,
@@ -177,7 +175,7 @@ $cta-lavender: #F1E8FF;
 }
 
 .cta-primary:hover {
-    background-color: $cta-lavender;
+    background-color: $color-lavender;
 }
 
 .cta-primary:active,
@@ -186,7 +184,7 @@ $cta-lavender: #F1E8FF;
 }
 
 .cta-secondary {
-    background-color: $cta-lavender;
+    background-color: $color-lavender;
     color: $color-primary;
 }
 

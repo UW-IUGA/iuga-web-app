@@ -1,4 +1,42 @@
-$gradient: linear-gradient(226deg, rgba(248,166,255,0.59) 0%, rgba(255,201,63,1) 50%, rgba(207,223,245,1) 100%);
+$sans-serif: 'NotoSans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+$serif: 'PlayfairDisplay', Georgia, 'Times New Roman', Times, serif;
+
+// Brand colors; the primary UI accent and supporting tones.
+$color-primary: #704AAC;
+$color-uw-purple: #32006e;
+$color-lavender: #F1E8FF;
+
+// Category palettes: primary action, secondary surface, and light background.
+$color-social-primary: #C133E1;
+$color-social-secondary: #FAE5FF;
+$color-social-light: #fdf3ff;
+$color-career-primary: #4E5FEB;
+$color-career-secondary: #CFDFF5;
+$color-career-light: #dfe7f3;
+$color-academic-primary: #ca8f3d;
+$color-academic-secondary: #FEEFCD;
+$color-academic-light: #fbf5e7;
+
+// Shared type colors; keep these separate for quick theme experiments.
+$color-career: #356eff;
+$color-academic: #ca8f3d;
+$color-social: #bd55d8;
+
+// Darker variants so white capsule labels clear WCAG AA.
+$color-academic-capsule: #8a5a1f;
+$color-social-capsule: #8d1fa8;
+
+// Neutral grays.
+$color-light-gray: #fafafa;
+$color-gray: #F9F9F9;
+$color-dark-gray: #595959;
+
+// Calendar selected-state accents per category.
+$color-academic-calendar-selected: #f7c052;
+$color-career-calendar-selected: #356EFF;
+$color-social-calendar-selected: #d843e5;
+
+$gradient: linear-gradient(226deg, rgba(248, 166, 255, 0.59) 0%, rgba(255, 201, 63, 1) 50%, rgba(207, 223, 245, 1) 100%);
 
 $radius: 8px;
 $radius-pill: 999px;
@@ -21,7 +59,8 @@ $desktop-sidebar-gap: 28px;
 $grid-gap: 24px;
 $section-divider-gap: 32px;
 
-$breakpoints: (phone: 460px, 
-               tablet: 768px, 
-               sm-desktop: 1024px,
-               desktop: 1300px) !default;
+$breakpoints: (
+    phone: 460px,
+    tablet: 768px,
+    sm-desktop: 1024px,
+    desktop: 1300px) !default;

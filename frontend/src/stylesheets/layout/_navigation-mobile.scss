@@ -31,7 +31,7 @@
             min-height: 88px;
             padding: 12px 24px;
             width: 100%;
-            border-bottom: 1px solid $gray;
+            border-bottom: 1px solid $color-gray;
 
             .nav-logo-mobile {
                 position: absolute;
@@ -59,10 +59,10 @@
             padding: 12px 24px;
             gap: 12px;
 
-            & > span:last-of-type {
+            &>span:last-of-type {
                 display: block;
                 width: 100%;
-                border-bottom: 1px solid $gray;
+                border-bottom: 1px solid $color-gray;
             }
         }
     }
@@ -129,6 +129,6 @@
     }
 
     .nav-hide-items {
-        display: none!important;
+        display: none !important;
     }
 }

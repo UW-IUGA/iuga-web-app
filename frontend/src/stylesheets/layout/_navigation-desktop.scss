@@ -241,10 +241,6 @@
 
 // Desktop-only pill states keep the tablet/mobile menu structure untouched.
 @include media(">=sm-desktop") {
-    // Navigation is imported before buttons, so this local value mirrors the
-    // lavender CTA token without changing the shared token load order.
-    $nav-lavender: #F1E8FF;
-
     .nav-items-wrapper a,
     .nav-auth-button {
         border-radius: $radius-pill;
@@ -254,7 +250,7 @@
         @include focus-ring;
 
         &:hover {
-            background-color: $nav-lavender;
+            background-color: $color-lavender;
         }
     }
 

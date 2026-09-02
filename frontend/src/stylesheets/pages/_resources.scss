@@ -1,191 +1,225 @@
 .resourcesPage {
-  @extend %pageFrame;
-  max-width: 1120px;
-  margin-bottom: 96px;
+    @extend %pageFrame;
+    max-width: 1120px;
+    margin-bottom: 96px;
 }
 
 .resourcesHero {
-  padding: 72px 0 44px;
-  text-align: center;
+    padding: 72px 0 44px;
+    text-align: center;
 }
 
 .resourcesHeroCopy {
-  max-width: 760px;
-  margin: 0 auto;
-
-  h1 {
-    margin: 8px 0 18px;
-    color: black;
-    font-size: clamp(3rem, 6vw, 4.6rem);
-    line-height: 1;
-    text-transform: uppercase;
-  }
-
-  > p:last-child {
-    max-width: 680px;
+    max-width: 760px;
     margin: 0 auto;
-    color: $dark-gray;
-    font-size: 1.05rem;
-    line-height: 1.65;
-  }
+
+    h1 {
+        margin: 8px 0 18px;
+        color: black;
+        font-size: clamp(3rem, 6vw, 4.6rem);
+        line-height: 1;
+        text-transform: uppercase;
+    }
+
+    >p:last-child {
+        max-width: 680px;
+        margin: 0 auto;
+        color: $color-dark-gray;
+        font-size: 1.05rem;
+        line-height: 1.65;
+    }
 }
 
 .resourcesKicker,
 .resourceCardCategory {
-  @extend %pageKicker;
+    @extend %pageKicker;
 }
 
 .resourcesDirectory {
-  padding-top: 10px;
+    padding-top: 10px;
 }
 
 .resourcesControls {
-  display: grid;
-  grid-template-columns: minmax(250px, 350px) 1fr;
-  gap: $grid-gap;
-  align-items: end;
-  padding: 24px;
+    display: grid;
+    grid-template-columns: minmax(250px, 350px) 1fr;
+    gap: $grid-gap;
+    align-items: end;
+    padding: 24px;
 }
 
 .resourcesSearch {
-  display: grid;
-  gap: 8px;
-  color: $color-uw-purple;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+    display: grid;
+    gap: 8px;
+    color: $color-uw-purple;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 
-  input {
-    width: 100%;
-    padding: 11px 14px;
-    border: 1px solid rgba($color-uw-purple, 0.25);
-    border-radius: $radius-pill;
-    color: black;
-    font: 0.95rem $sans-serif;
+    input {
+        width: 100%;
+        padding: 11px 14px;
+        border: 1px solid rgba($color-uw-purple, 0.25);
+        border-radius: $radius-pill;
+        color: black;
+        font: 0.95rem $sans-serif;
 
-    &:focus {
-      outline: 2px solid $color-primary;
-      outline-offset: 2px;
+        &:focus {
+            outline: 2px solid $color-primary;
+            outline-offset: 2px;
+        }
     }
-  }
 }
 
 .resourceFilters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .resourceResultCount {
-  margin: 24px 0 34px;
-  color: $dark-gray;
-  font-size: 0.9rem;
-  text-align: right;
+    margin: 24px 0 34px;
+    color: $color-dark-gray;
+    font-size: 0.9rem;
+    text-align: right;
 }
 
 .resourceCategory {
-  margin-bottom: 18px;
-  border-bottom: 2px solid black;
+    margin-bottom: 18px;
+    border-bottom: 2px solid black;
 }
 
 .resourceCategoryHeader {
-  h2 {
-    margin: 0;
-  }
+    h2 {
+        margin: 0;
+    }
 }
 
 .resourcesPage .resourceCategoryHeader::after {
-  content: none;
+    content: none;
 }
 
 .resourceCategoryToggle {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 18px 0;
-  color: black;
-  font: 700 clamp(1.35rem, 2.5vw, 2rem) / 1.15 $serif;
-  text-align: left;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 18px 0;
+    color: black;
+    font: 700 clamp(1.35rem, 2.5vw, 2rem) / 1.15 $serif;
+    text-align: left;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
 
-  &:hover > span:first-child { color: $color-primary; }
+    &:hover>span:first-child {
+        color: $color-primary;
+    }
 
-  &:focus-visible {
-    outline: 2px solid $color-primary;
-    outline-offset: 4px;
-  }
+    &:focus-visible {
+        outline: 2px solid $color-primary;
+        outline-offset: 4px;
+    }
 
-  &[aria-expanded="true"] .resourceCategoryChevron {
-    transform: rotate(180deg);
-  }
+    &[aria-expanded="true"] .resourceCategoryChevron {
+        transform: rotate(180deg);
+    }
 }
 
 .resourceCategoryMeta {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 12px;
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 12px;
 }
 
 .resourceCategoryCount {
-  color: $dark-gray;
-  font: 700 0.78rem / 1 $sans-serif;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+    color: $color-dark-gray;
+    font: 700 0.78rem / 1 $sans-serif;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
 }
 
 .resourceCategoryChevron {
-  display: grid;
-  width: 28px;
-  height: 28px;
-  place-items: center;
-  color: $color-primary;
-  border: 1px solid rgba($color-uw-purple, 0.2);
-  border-radius: 50%;
-  transition: transform 180ms ease;
+    display: grid;
+    width: 28px;
+    height: 28px;
+    place-items: center;
+    color: $color-primary;
+    border: 1px solid rgba($color-uw-purple, 0.2);
+    border-radius: 50%;
+    transition: transform 180ms ease;
 
-  &::before {
-    width: 8px;
-    height: 8px;
-    margin-top: -4px;
-    content: "";
-    border-right: 2px solid currentColor;
-    border-bottom: 2px solid currentColor;
-    transform: rotate(45deg);
-  }
+    &::before {
+        width: 8px;
+        height: 8px;
+        margin-top: -4px;
+        content: "";
+        border-right: 2px solid currentColor;
+        border-bottom: 2px solid currentColor;
+        transform: rotate(45deg);
+    }
 }
 
 .resourceGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: $grid-gap;
-  padding: 2px 0 28px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: $grid-gap;
+    padding: 2px 0 28px;
 }
 
 .resourcesEmptyState {
-  display: grid;
-  justify-items: center;
-  gap: 12px;
-  padding: 56px 24px;
-  text-align: center;
+    display: grid;
+    justify-items: center;
+    gap: 12px;
+    padding: 56px 24px;
+    text-align: center;
 
-  h2,
-  p { margin: 0; }
-  h2 { color: black; }
-  p { color: $dark-gray; }
+    h2,
+    p {
+        margin: 0;
+    }
+
+    h2 {
+        color: black;
+    }
+
+    p {
+        color: $color-dark-gray;
+    }
 }
 
 @include media("screen", "<tablet") {
-  .resourcesPage { width: 100%; margin-bottom: 64px; }
-  .resourcesHero { padding: 48px 0 32px; }
-  .resourcesControls { grid-template-columns: 1fr; padding: 18px; }
-  .resourceResultCount { text-align: left; }
-  .resourceGrid { grid-template-columns: 1fr; }
-  .resourceCategoryToggle { gap: 12px; font-size: 1.35rem; }
-  .resourceCategoryMeta { gap: 8px; font-size: 0.7rem; }
+    .resourcesPage {
+        width: 100%;
+        margin-bottom: 64px;
+    }
+
+    .resourcesHero {
+        padding: 48px 0 32px;
+    }
+
+    .resourcesControls {
+        grid-template-columns: 1fr;
+        padding: 18px;
+    }
+
+    .resourceResultCount {
+        text-align: left;
+    }
+
+    .resourceGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .resourceCategoryToggle {
+        gap: 12px;
+        font-size: 1.35rem;
+    }
+
+    .resourceCategoryMeta {
+        gap: 8px;
+        font-size: 0.7rem;
+    }
 }

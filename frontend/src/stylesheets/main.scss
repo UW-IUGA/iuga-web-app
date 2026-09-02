@@ -1,65 +1,39 @@
 @import 'abstracts/variables';
 @import 'abstracts/mixins';
-@import 'dist/include-media';
+
+@import 'vendors/include-media';
+@import 'vendors/toastify';
 
 @import 'base/reset';
 @import 'base/typography';
 @import 'base/colors';
 @import 'base/misc';
 
-@import 'abstracts/functions';
-
 @import 'layout/container';
 @import 'layout/navigation';
 @import 'layout/footer';
 @import 'layout/form';
 
-@import 'components/calendar';
-@import 'components/weeklyCalendar';
 @import 'components/buttons';
-@import 'components/eventCard';
-@import 'components/imageCarousel';
-@import 'components/tag';
-@import 'components/resourceCard';
-@import 'components/gradientLine';
+@import 'components/calendar';
+@import 'components/construction';
 @import 'components/dropdown';
+@import 'components/electionfaqCard';
+@import 'components/eventCard';
+@import 'components/gradientLine';
+@import 'components/imageCarousel';
+@import 'components/resourceCard';
 @import 'components/rolePage';
 @import 'components/sidebar';
-@import 'components/electionfaqCard';
+@import 'components/tag';
+@import 'components/weeklyCalendar';
 
-@import 'pages/home';
-@import 'pages/events';
-@import 'pages/resources';
-@import 'pages/studentVoice';
-@import 'pages/shop';
 @import 'pages/about';
-@import 'pages/getInvolved';
-@import 'pages/_elections';
+@import 'pages/elections';
 @import 'pages/electionsfaq';
-
-@import 'addons/toastify';
-
-.constructionContainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    width: 90vw;
-    margin: 0 auto;
-
-    h1 {
-        margin: 0;
-        font-size: 24px;
-    }
-
-    p {
-        text-align: center;
-        font-size: 16px;
-    }
-
-    img {
-        margin-top: 24px;
-        width: 160px;
-    }
-}
+@import 'pages/events';
+@import 'pages/getInvolved';
+@import 'pages/home';
+@import 'pages/resources';
+@import 'pages/shop';
+@import 'pages/studentVoice';

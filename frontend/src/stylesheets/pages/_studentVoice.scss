@@ -16,10 +16,10 @@
         text-transform: uppercase;
     }
 
-    > p:last-child {
+    >p:last-child {
         max-width: 680px;
         margin: 0;
-        color: $dark-gray;
+        color: $color-dark-gray;
         font-size: 1.05rem;
         line-height: 1.65;
     }
@@ -38,10 +38,12 @@
     padding-bottom: 12px;
     border-bottom: 2px solid black;
 
-    h2 { margin: 0; }
+    h2 {
+        margin: 0;
+    }
 
     span {
-        color: $dark-gray;
+        color: $color-dark-gray;
         font-size: 0.85rem;
     }
 }
@@ -66,13 +68,15 @@
         line-height: 1.2;
     }
 
-    > p {
+    >p {
         margin: 0 0 22px;
-        color: $dark-gray;
+        color: $color-dark-gray;
         line-height: 1.55;
     }
 
-    .pill-button { margin-top: auto; }
+    .pill-button {
+        margin-top: auto;
+    }
 }
 
 .studentVoiceCard__meta {
@@ -81,14 +85,14 @@
     gap: 8px;
 
     span {
-        color: $dark-gray;
+        color: $color-dark-gray;
         font-size: 0.72rem;
         font-weight: 700;
         letter-spacing: 0.1em;
         text-transform: uppercase;
     }
 
-    span + span::before {
+    span+span::before {
         margin-right: 8px;
         content: "•";
     }
@@ -99,14 +103,36 @@
     padding: 36px;
 
     h2,
-    p { margin: 0; }
-    h2 { color: black; }
-    p { margin-top: 10px; color: $dark-gray; line-height: 1.55; }
+    p {
+        margin: 0;
+    }
+
+    h2 {
+        color: black;
+    }
+
+    p {
+        margin-top: 10px;
+        color: $color-dark-gray;
+        line-height: 1.55;
+    }
 }
 
 @include media("screen", "<tablet") {
-    .studentVoice { margin-bottom: 64px; }
-    .studentVoice__hero { padding: 48px 0 32px; }
-    .studentVoice__grid { grid-template-columns: 1fr; }
-    .studentVoiceCard { min-height: 0; padding: 20px; }
+    .studentVoice {
+        margin-bottom: 64px;
+    }
+
+    .studentVoice__hero {
+        padding: 48px 0 32px;
+    }
+
+    .studentVoice__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .studentVoiceCard {
+        min-height: 0;
+        padding: 20px;
+    }
 }

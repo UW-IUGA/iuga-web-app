@@ -16,6 +16,7 @@
 }
 
 .weeklyCalendarHeading {
+
     h2,
     p {
         margin: 0;
@@ -30,7 +31,7 @@
     p {
         max-width: 460px;
         margin-top: 8px;
-        color: $dark-gray;
+        color: $color-dark-gray;
     }
 }
 
@@ -83,7 +84,7 @@
     text-align: center;
 
     span {
-        color: $dark-gray;
+        color: $color-dark-gray;
         font-size: 0.66rem;
         font-weight: 700;
         letter-spacing: 0.14em;
@@ -124,7 +125,7 @@
     gap: 3px;
     border-right: 1px solid rgba($color-uw-purple, 0.1);
     background: rgba($color-primary, 0.05);
-    color: $dark-gray;
+    color: $color-dark-gray;
     text-align: center;
 
     &:last-child {
@@ -221,7 +222,7 @@
 }
 
 .weeklyEventTime {
-    color: $dark-gray;
+    color: $color-dark-gray;
     font-size: 0.7rem;
     font-weight: 700;
 }
@@ -232,7 +233,7 @@
     gap: 5px;
     max-width: 100%;
     overflow: hidden;
-    color: $dark-gray;
+    color: $color-dark-gray;
     font-size: 0.7rem;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -280,7 +281,7 @@
     place-items: center;
     align-content: center;
     gap: 8px;
-    color: rgba($dark-gray, 0.55);
+    color: rgba($color-dark-gray, 0.55);
     font-size: 0.72rem;
 
     svg {
@@ -289,6 +290,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+
     .weeklyCalendarNav,
     .weeklyEvent {
         transition: none;
@@ -326,7 +328,7 @@
         flex-direction: column;
         gap: 4px;
         padding-top: 4px;
-        color: $dark-gray;
+        color: $color-dark-gray;
 
         span {
             font-size: 0.7rem;

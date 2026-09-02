@@ -14,9 +14,9 @@
         font-size: 3rem;
     }
 
-    > p:not(.about__kicker) {
+    >p:not(.about__kicker) {
         margin: 0;
-        color: $dark-gray;
+        color: $color-dark-gray;
         font-size: 1.05rem;
         line-height: 1.65;
     }
@@ -27,7 +27,9 @@
     padding-bottom: 16px;
     border-bottom: 1px solid rgba($color-uw-purple, 0.12);
 
-    h2 { margin: 0; }
+    h2 {
+        margin: 0;
+    }
 }
 
 .about__kicker {
@@ -49,9 +51,13 @@
 }
 
 @include media(">=tablet", "<sm-desktop") {
-    .about__teamGrid { grid-template-columns: repeat(2, 1fr); }
+    .about__teamGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 @include media(">=sm-desktop") {
-    .about__teamGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .about__teamGrid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
 }

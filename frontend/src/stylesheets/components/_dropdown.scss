@@ -1,54 +1,55 @@
 .dropdown-container {
-  position: relative;
-  display: inline-block;
+    position: relative;
+    display: inline-block;
 }
 
 .dropdown-trigger {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 10px;
-  background-color: #ffffff;
-  color: black;
-  cursor: pointer;
-  user-select: none;
-  border: 1px solid #445568;
-  border-radius: $radius;;
-  padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px;
+    background-color: #ffffff;
+    color: black;
+    cursor: pointer;
+    user-select: none;
+    border: 1px solid #445568;
+    border-radius: $radius;
+    ;
+    padding: 10px 20px;
 
-  & > span {
-    margin-top: 2px;
-  }
+    &>span {
+        margin-top: 2px;
+    }
 
-  &:hover {
-    background-color: $gray;
-  }
+    &:hover {
+        background-color: $color-gray;
+    }
 }
 
 .dropdown-content {
-  position: absolute;
-  top: 110%;
-  left: 0;
-  display: block;
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  width: 100%;
-  text-align: center;
+    position: absolute;
+    top: 110%;
+    left: 0;
+    display: block;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    width: 100%;
+    text-align: center;
 
-.dropdown-item {
-  padding: 10px;
-  cursor: pointer;
+    .dropdown-item {
+        padding: 10px;
+        cursor: pointer;
 
-  &:hover {
-    background-color: #f1f1f1;
-  }
-}
+        &:hover {
+            background-color: #f1f1f1;
+        }
+    }
 }
 
 .dropdown-icon-rotate {
-  transform: rotate(180deg);
+    transform: rotate(180deg);
 }

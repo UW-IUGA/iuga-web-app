@@ -5,6 +5,17 @@
 > **Reference:** [Deployment Guide](DEPLOYMENT.md), [Maintainers Guide](MAINTAINERS.md).
 
 ---
+## Local development sign-in
+
+If clicking sign-in shows a backend/Docker reminder, start the Docker-based MongoDB environment used for local development, then run:
+
+```bash
+npm run dev
+```
+
+Development checks `http://localhost:7777/readyz` before redirecting to UW NetID. This prevents a missing local MongoDB/backend from leaving the developer on a blank or incomplete authentication flow. Production does not run this local Docker check.
+
+---
 
 ## 1. Pipeline Failures
 

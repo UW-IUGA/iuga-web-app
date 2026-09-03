@@ -1,4 +1,3 @@
-# Quickstart Guide
 
 Get the **Informatics Undergraduate Association (IUGA)** website running on your machine for development.
 
@@ -22,26 +21,31 @@ cd iuga-web-app
 
 # If you already cloned without --recurse-submodules:
 git submodule update --init --recursive
-```
+
+# Install root, backend, and frontend dependencies
+npm run setup
 
 ---
 
 ## Running the App
 
+Run the following commands from the repository root unless otherwise noted.
+
 ### Full stack (one command)
 
+Run this from the repository root:
+
 ```bash
-npm run dev
+npm start
+# npm run dev is an equivalent command
 ```
 
-This builds the frontend and starts the Express backend at **http://localhost:7777**.
+This starts the Vite frontend with hot reload at **http://localhost:3000** and the Express backend at **http://localhost:7777** concurrently.
 
 ### Frontend only (hot reload)
-
 ```bash
-cd frontend
-npm install
-npm start
+npm run frontend
+or cd frontend (from the root dir) && npm start
 ```
 
 Starts the Vite dev server on **http://localhost:3000** with hot reload. The frontend uses **mock data** — no backend or database needed.
@@ -49,15 +53,11 @@ Starts the Vite dev server on **http://localhost:3000** with hot reload. The fro
 ### Backend only
 
 ```bash
-cd backend
-npm install
-npm start                    # uses env/.env.dev
+npm run backend-dev
+or cd backend (from the root dir) && npm start
 ```
 
-The backend requires:
-1. A built frontend at `../frontend/build/` (run `VITE_API_URL=http://localhost:7777 npm run build` in `frontend/`)
-2. An environment file loaded by the selected backend script
-3. A MongoDB connection (Atlas for development)
+The backend runs on **http://localhost:7777** and requires an environment file plus a MongoDB connection.
 
 ---
 

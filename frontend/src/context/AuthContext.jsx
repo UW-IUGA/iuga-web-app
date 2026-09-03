@@ -2,8 +2,21 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useMsal } from '@azure/msal-react';
 import { loginRequest } from '../authConfig';
 import useAuth from '../hooks/useAuth';
+import { isProduction, apiBaseUrl } from '../runtime';
+import AlertDialog from '../components/AlertDialog';
 
+const LOCAL_BACKEND_MESSAGE = 'Local sign-in requires the Docker development environment. Start Docker and run npm run dev, then try again. Read docs/TROUBLESHOOTING.md#local-development-sign-in for help.';
 const AuthContext = createContext();
+const ensureDevelopmentBackend = async () => {
+  if (isProduction) return;
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/readyz`);
+    if (!response.ok) throw new Error('Backend readiness check failed');
+  } catch {
+    throw new Error(LOCAL_BACKEND_MESSAGE);
+  }
+};
 
 export const AuthProvider = ({ children }) => {
   const { instance, accounts } = useMsal();
@@ -40,6 +53,7 @@ export const AuthProvider = ({ children }) => {
 
   const signIn = async () => {
     try {
+      await ensureDevelopmentBackend();
       await instance.loginRedirect();
       console.log("Acquire token silently...")
     } catch (error) {
@@ -79,9 +93,17 @@ export const AuthProvider = ({ children }) => {
   };
 
   const isAdmin = user?.uType === "Admin";
-
   return (
     <AuthContext.Provider value={{ user, isAuthenticated, isAdmin, authLoading, authError, signIn, signOut }}>
+      {authError ? (
+        <AlertDialog
+          eyebrow="Local environment"
+          title="Local sign-in unavailable"
+          message={authError.message}
+          confirmLabel="I understand"
+          onConfirm={() => setAuthError(null)}
+        />
+      ) : null}
       {children}
     </AuthContext.Provider>
   );

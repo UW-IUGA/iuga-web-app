@@ -1,0 +1,74 @@
+/*
+ * Purpose: Style the reusable blocking acknowledgment dialog.
+ * Authentication/Authorization Requirements: None; callers decide when it is shown.
+ * Expected Response: A responsive dialog with a blurred page scrim.
+ */
+.alert-dialog-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: grid;
+    place-items: center;
+    padding: $padding-content;
+    background: rgba(34, 38, 44, 0.56);
+    backdrop-filter: blur(8px) saturate(0.72);
+    -webkit-backdrop-filter: blur(8px) saturate(0.72);
+}
+
+.alert-dialog {
+    width: min(100%, 520px);
+    padding: 40px;
+    border: 1px solid rgba($color-uw-purple, 0.16);
+    border-radius: $radius-card;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba($color-lavender, 0.96));
+    box-shadow: 0 24px 70px rgba($color-uw-purple, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    color: $color-uw-purple;
+
+    .alert-dialog-eyebrow {
+        color: $color-primary;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        line-height: 1.4;
+        text-transform: uppercase;
+    }
+
+    h2 {
+        margin: 10px 0 12px;
+        font-family: $serif;
+        font-size: clamp(1.75rem, 4vw, 2.5rem);
+        line-height: 1.05;
+    }
+
+    p {
+        margin: 0 0 28px;
+        color: $color-dark-gray;
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+
+    .alert-dialog-confirm {
+        min-width: 150px;
+        background: $color-primary;
+        border-color: $color-primary;
+        color: white;
+        @include focus-ring;
+
+        &::before {
+            background: $color-primary;
+        }
+    }
+}
+
+@include media("<tablet") {
+    .alert-dialog {
+        padding: 28px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .alert-dialog-overlay,
+    .alert-dialog {
+        transition: none;
+    }
+}

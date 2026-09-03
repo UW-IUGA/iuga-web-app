@@ -12,13 +12,15 @@
 ## Quick Start
 
 ```bash
-# Install everything and run in dev mode
-npm run dev
+# Run these commands from the repository root.
+# Install dependencies once
+npm run setup
+
+# Start frontend and backend concurrently
+npm start
+# npm run dev is an equivalent command
 ```
-
-This runs: `cd frontend; npm install && npm run build -- --mode development && cd ../backend; npm install && npm start`.
-
-The app is served at **http://localhost:7777**.
+`npm start` and `npm run dev` are equivalent. Both start the Vite frontend with hot reload at **http://localhost:3000** and the Express backend at **http://localhost:7777** concurrently. Neither command reinstalls dependencies; run `npm run setup` once first.
 
 ---
 
@@ -26,10 +28,10 @@ The app is served at **http://localhost:7777**.
 
 | Command | What it does |
 |---|---|
-| `npm run frontend` | Install dependencies and start Vite dev server on `:3000` |
-| `npm run backend`  | Install and start Express on `:7777` (uses production build of frontend) |
+| `npm run frontend` | Start Vite dev server only on `:3000` |
+| `npm run backend`  | Start Express on `:7777` (dev env) |
 | `npm run backend-debug` | Start backend with debug logging |
-| `npm run debug`    | Full rebuild + backend with debug logging |
+| `npm run debug`    | Legacy frontend build + backend debug mode |
 
 ### Frontend-only development
 
@@ -101,12 +103,13 @@ When the frontend runs on Vite at `http://localhost:3000`, the browser sends tha
 
 | Script | Action |
 |---|---|
-| `npm run dev` | Build frontend → start backend (dev env) |
+| `npm start` | Start Vite frontend and Express backend concurrently |
+| `npm run dev` | Same as `npm start` |
 | `npm run debug` | Build frontend → start backend (debug env) |
 | `npm run frontend` | Start Vite dev server only |
-| `npm run backend` | Install + start backend (dev env) |
+| `npm run backend` | Start backend (dev env) |
 | `npm run backend-dev` | Same as above |
-| `npm run backend-debug` | Install + start backend (debug env) |
+| `npm run backend-debug` | Start backend (debug env) |
 
 ---
 

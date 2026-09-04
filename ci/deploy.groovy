@@ -14,9 +14,11 @@ Expected Response Information:
 */
 
 
-// Build an immutable, build-numbered image tag.
+// Build an immutable, build-numbered image tag with BuildKit. The Jenkins
+// agent image provides the buildx plugin, and --load makes the result available
+// to the Docker Engine for the later push/pull/deploy steps.
 void buildImage(Map cfg) {
-    sh "docker build . -t \"${cfg.image}:${env.BUILD_NUMBER}\" --build-arg DEPLOY_ENV=${cfg.deployEnv} --build-arg VITE_API_URL=${cfg.apiUrl}"
+    sh "docker buildx build --load . -t \"${cfg.image}:${env.BUILD_NUMBER}\" --build-arg DEPLOY_ENV=${cfg.deployEnv} --build-arg VITE_API_URL=${cfg.apiUrl}"
 }
 
 // Push the build-numbered image to the registry.

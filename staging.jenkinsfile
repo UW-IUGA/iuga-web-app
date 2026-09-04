@@ -53,7 +53,7 @@ pipeline {
             steps {
                 setBuildStatus('github_classic','iuga/jenkins/cicd/staging','pending','Checking out repository...')
                 checkout scm
-                sh 'git submodule update --init --recursive'
+                sh 'git submodule update --init backend/schemas'
                 // load needs a workspace; the file is only present after checkout
                 script { deploy = load 'ci/deploy.groovy' }
             }

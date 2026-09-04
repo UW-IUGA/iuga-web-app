@@ -20,7 +20,7 @@ git clone --recurse-submodules https://github.com/UW-IUGA/iuga-web-app
 cd iuga-web-app
 
 # If you already cloned without --recurse-submodules:
-git submodule update --init --recursive
+git submodule update --init backend/schemas
 
 # Install root, backend, and frontend dependencies
 npm run setup

@@ -71,13 +71,11 @@ export const AuthProvider = ({ children }) => {
   const signIn = async () => {
     try {
       await ensureDevelopmentBackend();
-      await instance.loginRedirect();
-      console.log("Acquire token silently...")
+      await instance.loginPopup(loginRequest);
     } catch (error) {
       if (error.errorCode === "invalid_grant" || error.errorCode === "consent_required") {
-        console.log("error")
         try {
-          await instance.loginRedirect({
+          await instance.loginPopup({
             ...loginRequest,
             prompt: "consent"
           });
@@ -87,7 +85,7 @@ export const AuthProvider = ({ children }) => {
         }
       } else {
         setUser({});
-        setLoginState(false)
+        setLoginState(false);
         setAuthError(error);
       }
     }

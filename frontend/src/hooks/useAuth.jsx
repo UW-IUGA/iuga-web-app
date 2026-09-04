@@ -1,8 +1,12 @@
-// src/hooks/useAuth.js
+/*
+ * Purpose: Custom React hook for acquiring MSAL access tokens and synchronizing backend sessions.
+ * Authentication/Authorization Requirements: Used internally by AuthProvider.
+ * Expected Request: ensureBackendAuthentication() invoked when MSAL accounts are available.
+ * Expected Response: Authenticated user profile returned from /api/v1/user/login.
+ */
 import { useMsal } from '@azure/msal-react';
 import { loginRequest } from '../authConfig';
-import { InteractionRequiredAuthError, EventType } from '@azure/msal-browser';
-
+import { InteractionRequiredAuthError } from '@azure/msal-browser';
 const useAuth = () => {
   const { instance, accounts } = useMsal();
 
@@ -20,7 +24,7 @@ const useAuth = () => {
         if (error instanceof InteractionRequiredAuthError) {
           console.error('Interaction required to acquire token:', error);
           try {
-            const tokenResponse = await instance.acquireTokenRedirect({
+            const tokenResponse = await instance.acquireTokenPopup({
               ...loginRequest,
               account: accounts[0],
               prompt: 'consent',

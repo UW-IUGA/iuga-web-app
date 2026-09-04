@@ -15,6 +15,7 @@ import {
 import { httpErrorHandler, sendSpaError } from "./httpErrorHandler.js";
 import { ALLOWED_ORIGINS, REQUEST_BODY_LIMIT } from "./httpBoundaryConfig.js";
 import { createCsrfProtection } from "./routes/api/v1/utils/csrf.js";
+import { createSpaRouter } from "./spaRoutes.js";
 
 import { fileURLToPath } from "url";
 import { dirname } from "path";
@@ -36,7 +37,6 @@ const apiRateLimiter = createRateLimiter({
   limit: 100,
   windowMs: 15 * 60_000,
 });
-
 
 // Readiness probe for the pipeline health gate. The listener only starts
 // after the DB connects, so 200 implies the database is reachable.
@@ -146,106 +146,18 @@ app.use((req, res, next) => {
 });
 
 /*
-Purpose: Serve the compiled SPA shell for the root route.
+Purpose: Serve the compiled SPA shell for every registered client-side route.
 Authentication/Authorization Requirements: None
 
 Expected Response Information:
-- Return index.html so React Router can render the application.
+- Return index.html so React Router can render the requested application page.
 - Return a safe server error if index.html cannot be read.
 */
-app.get("/", function (req, res) {
-  res.sendFile(
-    path.join(__dirname, "../frontend/build/index.html"),
-    function (err) {
-      if (err) sendSpaError(res, err);
-    },
-  );
-});
-
-/*
-Purpose: Serve the compiled SPA shell for direct navigation to /events.
-Authentication/Authorization Requirements: None
-
-Expected Response Information:
-- Return index.html so React Router can render the events page.
-- Return a safe server error if index.html cannot be read.
-*/
-app.get("/events", function (req, res) {
-  res.sendFile(
-    path.join(__dirname, "../frontend/build/index.html"),
-    function (err) {
-      if (err) sendSpaError(res, err);
-    },
-  );
-});
-
-/*
-Purpose: Serve the compiled SPA shell for direct navigation to /resources.
-Authentication/Authorization Requirements: None
-
-Expected Response Information:
-- Return index.html so React Router can render the resources page.
-- Return a safe server error if index.html cannot be read.
-*/
-app.get("/resources", function (req, res) {
-  res.sendFile(
-    path.join(__dirname, "../frontend/build/index.html"),
-    function (err) {
-      if (err) sendSpaError(res, err);
-    },
-  );
-});
-
-/*
-Purpose: Serve the compiled SPA shell for direct navigation to /electionfaq.
-Authentication/Authorization Requirements: None
-
-Expected Response Information:
-- Return index.html so React Router can render the election FAQ page.
-- Return a safe server error if index.html cannot be read.
-*/
-app.get("/electionfaq", function (req, res) {
-  res.sendFile(
-    path.join(__dirname, "../frontend/build/index.html"),
-    function (err) {
-      if (err) sendSpaError(res, err);
-    },
-  );
-});
-
-/*
-Purpose: Serve the compiled SPA shell for direct navigation to /contact.
-Authentication/Authorization Requirements: None
-
-Expected Response Information:
-- Return index.html so React Router can render the contact page.
-- Return a safe server error if index.html cannot be read.
-*/
-app.get("/contact", function (req, res) {
-  res.sendFile(
-    path.join(__dirname, "../frontend/build/index.html"),
-    function (err) {
-      if (err) sendSpaError(res, err);
-    },
-  );
-});
-
-/*
-Purpose: Serve the compiled SPA shell for direct navigation to /get-involved.
-Authentication/Authorization Requirements: None
-
-Expected Response Information:
-- Return index.html so React Router can render the get-involved page.
-- Return a safe server error if index.html cannot be read.
-*/
-app.get("/get-involved", function (req, res) {
-  res.sendFile(
-    path.join(__dirname, "../frontend/build/index.html"),
-    function (err) {
-      if (err) sendSpaError(res, err);
-    },
-  );
-});
+app.use(
+  createSpaRouter({
+    indexPath: path.join(__dirname, "../frontend/build/index.html"),
+  }),
+);
 
 /*
 Purpose: Serve uploaded public assets from the backend upload directory.

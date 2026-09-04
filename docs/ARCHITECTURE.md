@@ -9,6 +9,7 @@ iuga-web-app/
 ├── frontend/          → React SPA (Vite)
 ├── backend/           → Express.js API server
 ├── backend/schemas/   → Git submodule: UW-IUGA/iuga-web-schemas (Mongoose schemas)
+├── context/           → Git submodule (private): UW-IUGA/iUGA-Agent-Docs (Internal architecture plans)
 ├── Dockerfile         → Multi-stage build for production deployment
 ├── dev.jenkinsfile    → Jenkins pipeline (dev environment)
 ├── staging.jenkinsfile
@@ -83,6 +84,7 @@ Connection depends on `DEPLOY_ENV`:
 
 The **schemas** live in a separate GitHub repository (`UW-IUGA/iuga-web-schemas`) mounted as a submodule at `backend/schemas/`. The main repo imports `eventsSchema`, `participantsSchema`, and `usersSchema` from `./schemas/schemas.js`.
 
+Internal **architecture plans and agent documentation** live in a private organization repository (`UW-IUGA/iUGA-Agent-Docs`) mounted as an optional submodule at `context/`. It is maintained for developers and officers to track feature specifications and roadmaps without leaking planning scratchpads to the public repository.
 ---
 
 ## Request Flow (Production)

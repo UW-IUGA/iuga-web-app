@@ -164,16 +164,25 @@ When the frontend runs on Vite at `http://localhost:3000`, the browser sends tha
 2. Mount it in `backend/routes/api/v1/apiv1.js` with `router.use()`
 3. If a new collection is needed, add a schema in the `iuga-web-schemas` submodule and register the model in `backend/models.js`
 
-### Work with the schema submodule
+### Work with submodules
 
+#### 1. Mongoose Schemas (`backend/schemas`) — Required
 ```bash
-# After cloning this repo
+# Initialize schemas after cloning
 git submodule update --init backend/schemas
 
-# After updating schemas in the remote
-git submodule update --remote
+# Pull updated schemas from the remote
+git submodule update --remote backend/schemas
+```
 
-# The submodule is pinned to a commit in the main repo
+#### 2. Agent Documentation & Plans (`context`) — Optional (Private)
+For authorized officers and developers with access to `UW-IUGA/iUGA-Agent-Docs`:
+```bash
+# Initialize or pull the internal planning repository
+git submodule update --init context
+
+# Pull the latest architecture plans from main
+git submodule update --remote context
 ```
 
 ---

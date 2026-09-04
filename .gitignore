@@ -47,5 +47,4 @@ docker-compose.override.yml
 
 # === Local agent state ===
 .om*/
-/context/
 AGENTS.md

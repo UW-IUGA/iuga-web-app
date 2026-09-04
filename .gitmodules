@@ -1,3 +1,7 @@
 [submodule "backend/schemas"]
 	path = backend/schemas
 	url = https://github.com/UW-IUGA/iuga-web-schemas
+[submodule "context"]
+	path = context
+	url = https://github.com/UW-IUGA/iUGA-Agent-Docs.git
+	branch = main

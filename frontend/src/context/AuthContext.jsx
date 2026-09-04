@@ -1,4 +1,10 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+/*
+ * Purpose: Global authentication state provider coordinating MSAL, backend sessions, and role checks.
+ * Authentication/Authorization Requirements: Handles sign-in, session synchronization, and local sign-out.
+ * Expected Request: React subtree consumers via useAuthContext() hook invoking signIn(), signOut(), or reading state.
+ * Expected Response: AuthContext value exposing user, isAuthenticated, isAdmin, authLoading, authError, signIn, and signOut.
+ */
+import React, { createContext, useState, useEffect, useContext, useRef } from 'react';
 import { useMsal } from '@azure/msal-react';
 import { loginRequest } from '../authConfig';
 import useAuth from '../hooks/useAuth';
@@ -25,24 +31,35 @@ export const AuthProvider = ({ children }) => {
   const [authError, setAuthError] = useState(null);
   const [isAuthenticated, setLoginState] = useState(false);
   const [user, setUser] = useState({});
+  const authGeneration = useRef(0);
 
   const authenticate = () => {
     return new Promise(async (resolve, reject) => {
+      const currentGen = ++authGeneration.current;
       if (accounts.length > 0) {
         try {
           const user = await ensureBackendAuthentication();
+          if (currentGen !== authGeneration.current) return;
           setUser(user);
           setLoginState(true);
           resolve();
         } catch (error) {
+          if (currentGen !== authGeneration.current) return;
           setAuthError(error);
           setLoginState(false);
           reject(error);
         } finally {
-          setAuthLoading(false);
+          if (currentGen === authGeneration.current) {
+            setAuthLoading(false);
+          }
         }
       } else {
-        setAuthLoading(false);
+        if (currentGen === authGeneration.current) {
+          setUser({});
+          setLoginState(false);
+          setAuthLoading(false);
+        }
+        resolve();
       }
     });
   };
@@ -76,19 +93,39 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  /*
+   * Purpose: Terminate the application session locally and purge MSAL cached credentials
+   *          without redirecting the student away to Microsoft's global account picker.
+   * Authentication/Authorization Requirements: None; callable by authenticated or unauthenticated users.
+   */
   const signOut = async () => {
+    // Invalidate any in-flight authenticate calls so they cannot resurrect signed-in state
+    authGeneration.current++;
     try {
-      await fetch('/api/v1/user/logout', {
+      const response = await fetch('/api/v1/user/logout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
       });
+      if (!response.ok) {
+        console.error(`Backend logout returned status ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Backend logout session destruction encountered an error:', error);
+    } finally {
       setUser({});
       setLoginState(false);
-      await instance.logoutRedirect();
-    } catch (error) {
-      setAuthError(error);
+      try {
+        const account = accounts && accounts.length > 0 ? accounts[0] : undefined;
+        await instance.logoutRedirect({
+          account,
+          onRedirectNavigate: () => false,
+        });
+      } catch (msalError) {
+        console.error('Local MSAL cache clearance failed:', msalError);
+        setAuthError(msalError);
+      }
     }
   };
 

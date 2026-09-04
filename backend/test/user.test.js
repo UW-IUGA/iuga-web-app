@@ -315,4 +315,29 @@ describe("POST /user/logout", () => {
       await api.close();
     }
   });
+
+  test("destroys session and returns success status", async () => {
+    let destroyed = false;
+    const api = await makeTestApi({
+      router: usersRouter,
+      mountPath: "/api/v1/user",
+      models: {},
+      session: {
+        isAuthenticated: true,
+        destroy(callback) {
+          destroyed = true;
+          callback(null);
+        },
+      },
+    });
+
+    try {
+      const result = await api.request("POST", "/api/v1/user/logout");
+      assert.equal(result.status, 200);
+      assert.deepEqual(result.body, { status: "success" });
+      assert.equal(destroyed, true);
+    } finally {
+      await api.close();
+    }
+  });
 });

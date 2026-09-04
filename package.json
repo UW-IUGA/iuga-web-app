@@ -14,7 +14,7 @@
     "backend": "cd backend && npm start",
     "backend-dev": "cd backend && npm start",
     "backend-debug": "cd backend && npm run debug",
-    "setup": "npm ci && npm ci --prefix backend && npm ci --prefix frontend && git submodule update --init --recursive"
+    "setup": "npm ci && npm ci --prefix backend && npm ci --prefix frontend && git submodule update --init backend/schemas"
   },
   "devDependencies": {
     "concurrently": "^9.2.4"

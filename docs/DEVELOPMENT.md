@@ -168,7 +168,7 @@ When the frontend runs on Vite at `http://localhost:3000`, the browser sends tha
 
 ```bash
 # After cloning this repo
-git submodule update --init --recursive
+git submodule update --init backend/schemas
 
 # After updating schemas in the remote
 git submodule update --remote

@@ -7,7 +7,7 @@ Purpose: CI/CD pipeline for the dev environment (dev.iuga.info). Builds, pushes,
 Authentication/Authorization Requirements: N/A (Jenkins job, triggered by GitHub push webhook)
 
 Expected Request Information:
-- SCM: checks out the `dev` branch with its submodules
+- SCM: checks out the `dev` branch and initializes the `backend/schemas` submodule
 - Credentials used (Configure Jenkins > Credentials): dockerhub (image push),
   DB_URI, SESSION_SECRET (runtime env vars)
 - cfg (Map): per-environment values passed to the shared deploy helpers
@@ -55,7 +55,6 @@ pipeline {
                     $class: 'GitSCM',
                     branches: [[name: '*/dev']],
                     doGenerateSubmoduleConfigurations: false,
-                    extensions: [[$class: 'SubmoduleOption', recursiveSubmodules: true, trackingSubmodules: false]],
                     submoduleCfg: [],
                     userRemoteConfigs: [[
                         credentialsId: 'github_classic',
@@ -68,7 +67,7 @@ pipeline {
         }
         stage('Initialize Submodules') {
             steps {
-                sh 'git submodule update --init --recursive'
+                sh 'git submodule update --init backend/schemas'
             }
         }
         stage('Build') {

@@ -33,6 +33,7 @@ See [Quickstart Guide](docs/QUICKSTART.md) for full setup instructions.
 ├── backend/           # Express.js API (MongoDB, express-session)
 │   ├── env/           # Environment files (gitignored except .env.example)
 │   └── schemas/       # Git submodule — shared Mongoose schemas
+├── context/           # Git submodule (private) — internal architecture plans
 ├── docs/              # Project documentation (start here)
 ├── Dockerfile         # Multi-stage production build
 ├── dev.jenkinsfile    # CI/CD pipeline — development

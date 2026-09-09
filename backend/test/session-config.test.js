@@ -6,19 +6,20 @@ import { createSessionOptions } from "../sessionConfig.js";
 
 const appPath = fileURLToPath(new URL("../app.js", import.meta.url));
 
-test("startup fails before database connection when SESSION_SECRET is missing", () => {
+test("startup fails before database connection when the development session secret is missing", () => {
   const result = spawnSync(process.execPath, [appPath], {
     encoding: "utf8",
     env: {
       ...process.env,
-      SESSION_SECRET: "",
+      DEPLOY_ENV: "development",
+      SESSION_SECRET_DEV: "",
       DB_URI: "mongodb://127.0.0.1:1/unreachable",
     },
   });
 
   const output = `${result.stdout}\n${result.stderr}`;
   assert.notEqual(result.status, 0);
-  assert.match(output, /FATAL: SESSION_SECRET not set/);
+  assert.match(output, /FATAL: SESSION_SECRET_DEV not set/);
   assert.doesNotMatch(output, /\[startup\] connecting to mongodb/);
 });
 

@@ -23,9 +23,17 @@ import { dirname } from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const sessionSecret = process.env.SESSION_SECRET?.trim();
+// Session signing secret is per deployment environment so one env source can
+// hold all three. DEPLOY_ENV is injected in every container (deploy.groovy).
+const secretKeyByEnv = {
+  development: "SESSION_SECRET_DEV",
+  staging: "SESSION_SECRET_STAGING",
+  production: "SESSION_SECRET_PROD",
+};
+const secretKey = secretKeyByEnv[process.env.DEPLOY_ENV] ?? "SESSION_SECRET";
+const sessionSecret = process.env[secretKey]?.trim();
 if (!sessionSecret) {
-  console.error("FATAL: SESSION_SECRET not set");
+  console.error(`FATAL: ${secretKey} not set`);
   process.exit(1);
 }
 

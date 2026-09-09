@@ -17,6 +17,7 @@
 | `bin/www.cjs` | HTTP server bootstrap — imports `app.js`, listens on `PORT` (default 7777) |
 | `app.js` | Express application setup — middleware stack, static serving, API mount |
 | `models.js` | MongoDB connection + Mongoose model registration |
+| `scripts/report-identity-migration.js` | Report-only identity migration CLI; requires an absolute `--output` path outside the repository and optionally accepts `--directory <json>` |
 
 ---
 
@@ -29,6 +30,8 @@ backend/
 ├── httpBoundaryConfig.js    ← Shared body-size and browser-origin policy
 ├── httpErrorHandler.js      ← Safe JSON responses for parser/server errors
 ├── models.js                ← Database connection + model registration
+├── scripts/
+│   └── report-identity-migration.js ← Read-only identity migration report CLI
 ├── schemas/                 ← Git submodule → UW-IUGA/iuga-web-schemas
 ├── routes/
 │   └── api/v1/
@@ -48,6 +51,29 @@ backend/
 ├── env/                    ← Ignored runtime environment files
 └── package.json            ← ES module ("type": "module")
 ```
+
+## Identity migration report
+
+Run from `backend/` with a configured `DB_URI`:
+
+```bash
+node scripts/report-identity-migration.js --output /absolute/path/migration-report.json
+node scripts/report-identity-migration.js --directory /absolute/path/directory.json --output /absolute/path/migration-report.json
+```
+
+The command reads only `_id`, `uEmail`, and the undeclared `identity` field
+through a dedicated raw MongoDB connection with automatic collection and index
+creation disabled. It never updates MongoDB, has no apply mode, refuses
+repository paths and existing output files, and writes a private JSON report
+with mode `0600`.
+
+Directory input must be a JSON array. Rows are authoritative only when they
+include an explicit `userId` and complete `issuer`/`tenantId`/`objectId`
+values. Email-only and malformed rows retain their source index and normalized
+identity evidence for review. `reviewHolds` counts distinct affected local or
+unknown user IDs plus evidence rows that cannot be associated with a user; it
+is not a directory-row count. Review holds are not migration instructions and
+must be resolved by an identity owner.
 
 ---
 

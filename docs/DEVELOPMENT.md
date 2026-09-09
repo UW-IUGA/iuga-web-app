@@ -86,6 +86,27 @@ Required variables (see `backend/.env.example`):
 | `SESSION_SECRET_DEV` | Strong random string for session signing (development build reads this by `DEPLOY_ENV`) |
 | `DB_URI` | Full MongoDB connection string, e.g. `mongodb://<user>:<pass>@mongo:27017/iuga` (local dev: `mongodb://127.0.0.1:27017/iuga`) |
 
+Stripe checkout configuration is evaluated separately from general application
+readiness. Supplying these values does not enable checkout: the evaluator also
+requires explicit infrastructure and policy approvals, and live mode requires a
+separate live-payments approval.
+
+`GET /readyz` continues to return `200` for a healthy application/database and
+reports checkout separately as `checkoutEnabled`. Until infrastructure and
+policy evidence is wired, that capability is always `false`.
+
+| Variable | Checkout readiness constraint |
+|---|---|
+| `STRIPE_MODE` | Exactly `test` or `live`; the secret-key prefix must match |
+| `STRIPE_SECRET_KEY` | Present and mode-matched; never returned in diagnostics |
+| `STRIPE_WEBHOOK_SECRET` | Present; never returned in diagnostics |
+| `STRIPE_API_VERSION` | Pinned Stripe date and release codename |
+| `STRIPE_BASE_URL` | Absolute credential-free HTTPS application origin |
+| `STRIPE_CATALOG_VERSION` | Non-empty approved catalog revision |
+| `STRIPE_PAYMENT_METHODS` | Exactly `card` |
+| `STRIPE_CURRENCY` | Exactly `usd` |
+| `STRIPE_MINIMUM_TOTAL_MINOR` | Positive integer minor-unit purchase floor |
+
 Frontend environment files are local and should not be committed:
 
 | File | Variable | Value |

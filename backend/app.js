@@ -16,6 +16,7 @@ import { httpErrorHandler, sendSpaError } from "./httpErrorHandler.js";
 import { ALLOWED_ORIGINS, REQUEST_BODY_LIMIT } from "./httpBoundaryConfig.js";
 import { createCsrfProtection } from "./routes/api/v1/utils/csrf.js";
 import { createSpaRouter } from "./spaRoutes.js";
+import { evaluateCheckoutReadiness } from "./checkoutReadiness.js";
 
 import { fileURLToPath } from "url";
 import { dirname } from "path";
@@ -33,14 +34,20 @@ await connectToDatabase();
 const app = express();
 configureTrustedProxy(app);
 
+// No infrastructure or policy evidence is wired yet, so this remains false.
+const checkoutReadiness = evaluateCheckoutReadiness({ env: process.env });
+
 const apiRateLimiter = createRateLimiter({
   limit: 100,
   windowMs: 15 * 60_000,
 });
 
-// Readiness probe for the pipeline health gate. The listener only starts
-// after the DB connects, so 200 implies the database is reachable.
-app.get("/readyz", (req, res) => res.json({ status: "ok" }));
+// General readiness remains tied to the running API and database. Checkout is
+// reported as a separate fail-closed capability and never changes the HTTP status.
+app.get("/readyz", (req, res) => res.json({
+  status: "ok",
+  checkoutEnabled: checkoutReadiness.checkoutEnabled,
+}));
 
 const allowedOrigins = ALLOWED_ORIGINS;
 

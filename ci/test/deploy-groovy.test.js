@@ -36,6 +36,7 @@ function extractShell() {
         '${cfg.deployEnv}': 'development',
         '${cfg.uploadsDir}': '/tmp/iuga-test-uploads',
         '${netFlag}': '',
+        '${secretEnv}': 'SESSION_SECRET_DEV',
         '${newImage}': 'iuga/test-app:123',
         '${lastGoodImage}': 'iuga/test-app:last-good',
     }
@@ -69,7 +70,7 @@ function runDeploy(stubScript) {
         STUB_LOG: logFile,
         COUNTER_FILE: path.join(dir, 'count'),
         DB_URI: 'mongodb://test-db',
-        SESSION_SECRET: 'test-secret',
+        SESSION_SECRET_DEV: 'test-secret',
     }
     let status = 0
     try {
@@ -95,6 +96,9 @@ test('healthy candidate is promoted to the live port; last-good untouched', () =
     assert.equal(candidateRun.length, 2)
     assert.ok(candidateRun[0].includes('--name iuga-test-candidate') && candidateRun[0].includes('127.0.0.1:16667:7777'))
     assert.ok(candidateRun[1].includes('--name iuga-test') && candidateRun[1].includes('127.0.0.1:16666:7777'))
+    // The app receives the deployment-specific secret under its suffixed name
+    // (bash expands the "$SESSION_SECRET_DEV" reference before docker runs).
+    assert.ok(candidateRun.every((c) => c.includes('-e SESSION_SECRET_DEV=test-secret')))
     // Health checks run inside the container against the app's own port.
     const probes = runCalls(calls, 'fetch("http://127.0.0.1:7777/readyz")')
     assert.equal(probes.length, 2)

@@ -34,6 +34,9 @@ void healthGatedDeploy(Map cfg) {
     def newImage = "${cfg.image}:${env.BUILD_NUMBER}"
     def lastGoodImage = "${cfg.image}:last-good"
     def netFlag = cfg.network ? "--network iuga-server-config_default" : ""
+    // Forward the deployment-specific secret under its own runtime name so the
+    // app can select it by DEPLOY_ENV (backend/app.js).
+    def secretEnv = cfg.deployEnv == 'development' ? 'SESSION_SECRET_DEV' : cfg.deployEnv == 'staging' ? 'SESSION_SECRET_STAGING' : 'SESSION_SECRET_PROD'
     sh """
     CANDIDATE="${cfg.container}-candidate"
     CONTAINER="${cfg.container}"
@@ -49,7 +52,7 @@ void healthGatedDeploy(Map cfg) {
       docker run -d --name "\$1" -p "127.0.0.1:\$2:7777" \\
         -e DEPLOY_ENV=${cfg.deployEnv} \\
         -e DB_URI="\$DB_URI" \\
-        -e SESSION_SECRET="\$SESSION_SECRET" \\
+        -e ${secretEnv}="\$${secretEnv}" \\
         -v ${cfg.uploadsDir}:/app/backend/public/uploads \\
         ${netFlag}\\
         "\$3"

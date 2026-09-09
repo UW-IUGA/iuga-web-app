@@ -83,7 +83,7 @@ Required variables (see `backend/.env.example`):
 |---|---|
 | `PORT` | Server port (default 7777) |
 | `DEPLOY_ENV` | `development`, `staging`, or `production` |
-| `SESSION_SECRET` | Strong random string for session signing |
+| `SESSION_SECRET_DEV` | Strong random string for session signing (development build reads this by `DEPLOY_ENV`) |
 | `DB_URI` | Full MongoDB connection string, e.g. `mongodb://<user>:<pass>@mongo:27017/iuga` (local dev: `mongodb://127.0.0.1:27017/iuga`) |
 
 Frontend environment files are local and should not be committed:

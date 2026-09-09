@@ -9,7 +9,7 @@ Authentication/Authorization Requirements: N/A (Jenkins job, triggered by GitHub
 Expected Request Information:
 - SCM: checks out the `main` branch and initializes the `backend/schemas` submodule
 - Credentials used (Configure Jenkins > Credentials): dockerhub (image push),
-  DB_URI, SESSION_SECRET (runtime env vars)
+  DB_URI, SESSION_SECRET_PROD (runtime env var)
 - cfg (Map): per-environment values passed to the shared deploy helpers
 
 Expected Response Information:
@@ -90,7 +90,7 @@ pipeline {
                 setBuildStatus("github_classic", "iuga/jenkins/cicd/prod", "pending", "Deploying application...");
                 withCredentials([
                     string(credentialsId: 'DB_URI', variable: 'DB_URI'),
-                    string(credentialsId: 'SESSION_SECRET_PROD', variable: 'SESSION_SECRET'),
+                    string(credentialsId: 'SESSION_SECRET_PROD', variable: 'SESSION_SECRET_PROD'),
                 ]) {
                     script { deploy.healthGatedDeploy(cfg) }
                 }

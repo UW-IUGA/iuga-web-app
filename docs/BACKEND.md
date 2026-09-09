@@ -207,7 +207,7 @@ Attach them in the route chain, e.g. `router.post("/", requireAuth, handler)` or
 
 The application applies these checks before API handlers:
 
-- `SESSION_SECRET` must be supplied at startup; there is no source-controlled fallback.
+- The session signing secret is supplied at startup from the deployment-matching variable (`SESSION_SECRET_DEV`, `SESSION_SECRET_STAGING`, or `SESSION_SECRET_PROD`, chosen by `DEPLOY_ENV`); there is no source-controlled fallback.
 - Session cookies are `httpOnly`, use `SameSite=Lax`, and are `secure` in staging and production.
 - Authenticated `POST`, `PUT`, `PATCH`, and `DELETE` requests must include an allowed browser `Origin`. Login is exempt because it uses a Microsoft Bearer token instead of a session cookie.
 - CORS allows only `http://localhost:3000`, `http://localhost:5173`, and the documented IUGA domains. Backend ports such as `7777` are not browser origins.

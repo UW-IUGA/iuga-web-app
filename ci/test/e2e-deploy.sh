@@ -21,7 +21,7 @@
 #   - Uses only loopback host ports: 16766 (live), 16767 (candidate),
 #     5011 (registry). Never touches live ports 6666/6667/7777/8888.
 #   - Every resource is prefixed iuga-e2e-* and removed on exit via trap.
-#   - Test-only DB_URI/SESSION_SECRET; never touches real databases.
+#   - Test-only DB_URI/SESSION_SECRET_DEV; never touches real databases.
 #
 # Requirements
 #   - A running Docker daemon (e.g. Docker Desktop)
@@ -143,7 +143,7 @@ bash -n /tmp/iuga-e2e-deploy.sh  # the extracted script must parse
 echo
 echo "=== running the real deploy sequence ==="
 DB_URI="mongodb://iuga-e2e-mongo:27017/iuga_e2e" \
-SESSION_SECRET="e2e-secret" \
+SESSION_SECRET_DEV="e2e-secret" \
     bash /tmp/iuga-e2e-deploy.sh
 
 # --- Verification -----------------------------------------------------------

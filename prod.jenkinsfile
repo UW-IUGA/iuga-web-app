@@ -9,7 +9,8 @@ Authentication/Authorization Requirements: N/A (Jenkins job, triggered by GitHub
 Expected Request Information:
 - SCM: checks out the `main` branch and initializes the `backend/schemas` submodule
 - Credentials used (Configure Jenkins > Credentials): dockerhub (image push),
-  DB_URI, SESSION_SECRET_PROD (runtime env var)
+  VITE_ENTRA_API_SCOPE (frontend build), DB_URI, SESSION_SECRET_PROD, and the five
+  ENTRA_* runtime credentials
 - cfg (Map): per-environment values passed to the shared deploy helpers
 
 Expected Response Information:
@@ -74,7 +75,9 @@ pipeline {
         stage('Build') {
             steps {
                 setBuildStatus("github_classic", "iuga/jenkins/cicd/prod", "pending", "Building application...");
-                script { deploy.buildImage(cfg) }
+                withCredentials([string(credentialsId: 'VITE_ENTRA_API_SCOPE', variable: 'VITE_ENTRA_API_SCOPE')]) {
+                    script { deploy.buildImage(cfg) }
+                }
             }
         }
         stage('Push to Registry') {
@@ -91,6 +94,11 @@ pipeline {
                 withCredentials([
                     string(credentialsId: 'DB_URI', variable: 'DB_URI'),
                     string(credentialsId: 'SESSION_SECRET_PROD', variable: 'SESSION_SECRET_PROD'),
+                    string(credentialsId: 'ENTRA_TENANT_ID', variable: 'ENTRA_TENANT_ID'),
+                    string(credentialsId: 'ENTRA_API_AUDIENCE', variable: 'ENTRA_API_AUDIENCE'),
+                    string(credentialsId: 'ENTRA_REQUIRED_SCOPE', variable: 'ENTRA_REQUIRED_SCOPE'),
+                    string(credentialsId: 'ENTRA_REQUIRED_ROLE', variable: 'ENTRA_REQUIRED_ROLE'),
+                    string(credentialsId: 'ENTRA_AUTHORIZED_CLIENT_ID', variable: 'ENTRA_AUTHORIZED_CLIENT_ID'),
                 ]) {
                     script { deploy.healthGatedDeploy(cfg) }
                 }

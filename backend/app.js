@@ -17,6 +17,7 @@ import { ALLOWED_ORIGINS, REQUEST_BODY_LIMIT } from "./httpBoundaryConfig.js";
 import { createCsrfProtection } from "./routes/api/v1/utils/csrf.js";
 import { createSpaRouter } from "./spaRoutes.js";
 import { evaluateCheckoutReadiness } from "./checkoutReadiness.js";
+import { isEntraIdentityEnabled } from "./routes/api/v1/utils/entraAccessToken.js";
 
 import { fileURLToPath } from "url";
 import { dirname } from "path";
@@ -42,7 +43,7 @@ await connectToDatabase();
 const app = express();
 configureTrustedProxy(app);
 
-// No infrastructure or policy evidence is wired yet, so this remains false.
+const identityEnabled = isEntraIdentityEnabled();
 const checkoutReadiness = evaluateCheckoutReadiness({ env: process.env });
 
 const apiRateLimiter = createRateLimiter({
@@ -50,11 +51,12 @@ const apiRateLimiter = createRateLimiter({
   windowMs: 15 * 60_000,
 });
 
-// General readiness remains tied to the running API and database. Checkout is
-// reported as a separate fail-closed capability and never changes the HTTP status.
+// General readiness remains tied to the running API and database. Capabilities
+// are reported separately and never change the HTTP status.
 app.get("/readyz", (req, res) => res.json({
   status: "ok",
   checkoutEnabled: checkoutReadiness.checkoutEnabled,
+  identityEnabled,
 }));
 
 const allowedOrigins = ALLOWED_ORIGINS;

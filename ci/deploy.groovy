@@ -6,11 +6,13 @@ Purpose: DRY the Docker build + push + health-gated deploy shared by the per-env
          (e.g. the earlier bug where staging mounted the prod uploads directory).
 Authentication/Authorization Requirements: N/A (pipeline helper, runs on the Jenkins agent)
 
-Expected Request Information (<r> indicates a required field):
+- Expected Request Information (<r> indicates a required field):
 - cfg (Map, required): image, deployEnv, apiUrl, container, tempPort, realPort, uploadsDir, network
-
-Expected Response Information:
-- return N/A (side effects: images built/pushed; candidate health-checked; live swap or rollback)
+- Jenkins environment (required): VITE_ENTRA_API_SCOPE for builds; DB_URI, the deployment
+  session secret, and ENTRA_TENANT_ID, ENTRA_API_AUDIENCE, ENTRA_REQUIRED_SCOPE,
+  ENTRA_REQUIRED_ROLE, ENTRA_AUTHORIZED_CLIENT_ID for runtime containers
+- Expected Response Information:
+  return N/A (side effects: images built/pushed; candidate health-checked; live swap or rollback)
 */
 
 
@@ -18,7 +20,7 @@ Expected Response Information:
 // agent image provides the buildx plugin, and --load makes the result available
 // to the Docker Engine for the later push/pull/deploy steps.
 void buildImage(Map cfg) {
-    sh "docker buildx build --load . -t \"${cfg.image}:${env.BUILD_NUMBER}\" --build-arg DEPLOY_ENV=${cfg.deployEnv} --build-arg VITE_API_URL=${cfg.apiUrl}"
+    sh "docker buildx build --load . -t \"${cfg.image}:${env.BUILD_NUMBER}\" --build-arg DEPLOY_ENV=${cfg.deployEnv} --build-arg VITE_API_URL=${cfg.apiUrl} --build-arg VITE_ENTRA_API_SCOPE=\"\$VITE_ENTRA_API_SCOPE\""
 }
 
 // Push the build-numbered image to the registry.
@@ -42,9 +44,10 @@ void healthGatedDeploy(Map cfg) {
     CONTAINER="${cfg.container}"
     DEPLOY_START=\$(date +%s)
 
-    # Exit 0 when the app inside the container answers /readyz on its own port.
+    # Exit 0 only when the app answers /readyz with a successful response whose
+    # JSON body explicitly reports identityEnabled: true.
     health_check() {
-      docker exec "\$1" node -e 'fetch("http://127.0.0.1:7777/readyz").then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))'
+      docker exec "\$1" node -e 'fetch("http://127.0.0.1:7777/readyz").then(async r => { if (!r.ok) process.exit(1); const body = await r.json().catch(() => null); process.exit(body?.identityEnabled === true ? 0 : 1) }).catch(() => process.exit(1))'
     }
 
     # Start an app container on a loopback-only host port.
@@ -53,6 +56,11 @@ void healthGatedDeploy(Map cfg) {
         -e DEPLOY_ENV=${cfg.deployEnv} \\
         -e DB_URI="\$DB_URI" \\
         -e ${secretEnv}="\$${secretEnv}" \\
+        -e ENTRA_TENANT_ID="\$ENTRA_TENANT_ID" \\
+        -e ENTRA_API_AUDIENCE="\$ENTRA_API_AUDIENCE" \\
+        -e ENTRA_REQUIRED_SCOPE="\$ENTRA_REQUIRED_SCOPE" \\
+        -e ENTRA_REQUIRED_ROLE="\$ENTRA_REQUIRED_ROLE" \\
+        -e ENTRA_AUTHORIZED_CLIENT_ID="\$ENTRA_AUTHORIZED_CLIENT_ID" \\
         -v ${cfg.uploadsDir}:/app/backend/public/uploads \\
         ${netFlag}\\
         "\$3"

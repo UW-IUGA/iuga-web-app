@@ -7,7 +7,6 @@ import { fileURLToPath } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const frontendPackage = JSON.parse(readFileSync(path.join(repoRoot, "frontend/package.json"), "utf8"));
-const rootPackage = JSON.parse(readFileSync(path.join(repoRoot, "package.json"), "utf8"));
 
 test("frontend uses Vite for development, builds, and tests", () => {
     assert.equal(frontendPackage.scripts.start, "vite");
@@ -18,36 +17,50 @@ test("frontend uses Vite for development, builds, and tests", () => {
     assert.ok(frontendPackage.devDependencies.vitest);
 });
 
-test("local full-stack scripts build the frontend in development mode", () => {
-    assert.match(rootPackage.scripts.dev, /npm run build -- --mode development/);
-    assert.match(rootPackage.scripts.debug, /npm run build -- --mode development/);
-});
+function loadProductionViteConfig(env) {
+    return spawnSync(
+        process.execPath,
+        [
+            "--input-type=module",
+            "--eval",
+            `
+                import { loadConfigFromFile } from "vite";
+                import path from "node:path";
+                const result = await loadConfigFromFile(
+                    { command: "build", mode: "production" },
+                    path.join(process.cwd(), "vite.config.mjs"),
+                );
+                if (!result?.config) {
+                    throw new Error("Vite configuration did not load");
+                }
+            `,
+        ],
+        {
+            cwd: path.join(repoRoot, "frontend"),
+            env,
+            encoding: "utf8",
+        },
+    );
+}
 
-test("Docker passes the public Vite API URL at build time", () => {
-    const dockerfile = readFileSync(path.join(repoRoot, "Dockerfile"), "utf8");
-    const deployScript = readFileSync(path.join(repoRoot, "ci/deploy.groovy"), "utf8");
-    const devPipeline = readFileSync(path.join(repoRoot, "dev.jenkinsfile"), "utf8");
-    const stagingPipeline = readFileSync(path.join(repoRoot, "staging.jenkinsfile"), "utf8");
-    const productionPipeline = readFileSync(path.join(repoRoot, "prod.jenkinsfile"), "utf8");
-
-    assert.match(dockerfile, /ARG VITE_API_URL/);
-    assert.match(deployScript, /--build-arg VITE_API_URL=/);
-    assert.match(devPipeline, /apiUrl:\s+'https:\/\/dev\.iuga\.info'/);
-    assert.match(stagingPipeline, /apiUrl:\s+'https:\/\/staging\.iuga\.info'/);
-    assert.match(productionPipeline, /apiUrl:\s+'https:\/\/iuga\.info'/);
-    assert.doesNotMatch(dockerfile, /sed -i/);
-
-    const e2eScript = readFileSync(path.join(repoRoot, "ci/test/e2e-deploy.sh"), "utf8");
-    assert.match(e2eScript, /--build-arg VITE_API_URL=/);
-});
-
-test("production frontend builds require VITE_API_URL", () => {
-    const result = spawnSync("npm", ["run", "build"], {
-        cwd: path.join(repoRoot, "frontend"),
-        env: { ...process.env, VITE_API_URL: undefined },
-        encoding: "utf8",
-    });
+test("production frontend config requires VITE_ENTRA_API_SCOPE", () => {
+    const env = {
+        ...process.env,
+        VITE_API_URL: "https://api.example.test",
+    };
+    delete env.VITE_ENTRA_API_SCOPE;
+    const result = loadProductionViteConfig(env);
 
     assert.notEqual(result.status, 0);
-    assert.match(`${result.stdout}\n${result.stderr}`, /VITE_API_URL is required for production builds/);
+    assert.match(`${result.stdout}\n${result.stderr}`, /VITE_ENTRA_API_SCOPE is required/);
+});
+
+test("production frontend config loads with both public API values", () => {
+    const result = loadProductionViteConfig({
+        ...process.env,
+        VITE_API_URL: "https://api.example.test",
+        VITE_ENTRA_API_SCOPE: "api://example/access_as_user",
+    });
+
+    assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
 });

@@ -11,6 +11,10 @@ import { sendError } from "../helpers/sendError.js";
 import { sendSuccess } from "../helpers/sendSuccess.js";
 import { requireAuth } from "../utils/auth.js";
 import { createRateLimiter } from "../utils/rateLimit.js";
+import {
+  EntraTokenError,
+  verifyEntraAccessToken,
+} from "../utils/entraAccessToken.js";
 
 var router = express.Router();
 function validUserId(value) {
@@ -24,11 +28,8 @@ const loginRateLimiter = createRateLimiter({
   limit: 10,
   windowMs: 60_000,
 });
-const GRAPH_PROFILE_URL = "https://graph.microsoft.com/v1.0/me";
-const GRAPH_REQUEST_TIMEOUT_MS = 5000;
 const INVALID_AUTHORIZATION_MESSAGE = "Invalid access token";
-const GRAPH_UNAVAILABLE_MESSAGE = "Authentication provider unavailable";
-const INCOMPLETE_PROFILE_MESSAGE = "Authentication provider returned incomplete identity";
+const AUTHENTICATION_UNAVAILABLE_MESSAGE = "Authentication provider unavailable";
 
 function readBearerToken(header) {
   if (typeof header !== "string") return null;
@@ -36,32 +37,12 @@ function readBearerToken(header) {
   return match?.[1] ?? null;
 }
 
-function isNonEmptyString(value) {
-  return typeof value === "string" && value.trim().length > 0;
+function sameId(left, right) {
+  return left != null && right != null && String(left) === String(right);
 }
 
-function readGraphProfile(userData) {
-  const email = isNonEmptyString(userData?.mail)
-    ? userData.mail.trim()
-    : isNonEmptyString(userData?.userPrincipalName)
-      ? userData.userPrincipalName.trim()
-      : null;
-
-  if (
-    !email ||
-    !isNonEmptyString(userData?.displayName) ||
-    !isNonEmptyString(userData?.givenName) ||
-    !isNonEmptyString(userData?.surname)
-  ) {
-    return null;
-  }
-
-  return {
-    email,
-    displayName: userData.displayName.trim(),
-    firstName: userData.givenName.trim(),
-    lastName: userData.surname.trim(),
-  };
+function isDuplicateKey(error) {
+  return error?.code === 11000;
 }
 
 async function rotateSession(req) {
@@ -71,12 +52,62 @@ async function rotateSession(req) {
   });
 }
 
+async function persistUser(Users, profile) {
+  let user = await Users.findOne({ entraObjectId: profile.oid });
+  if (!user) {
+    const emailOwner = await Users.findOne({ uEmail: profile.email });
+    if (emailOwner) {
+      throw new EntraTokenError("identity_conflict", "This email is linked to another account");
+    }
+    try {
+      user = await new Users({
+        entraObjectId: profile.oid,
+        uFirstName: profile.firstName,
+        uLastName: profile.lastName,
+        uDisplayName: profile.displayName,
+        uEmail: profile.email,
+      }).save();
+    } catch (error) {
+      if (!isDuplicateKey(error)) throw error;
+      user = await Users.findOne({ entraObjectId: profile.oid });
+      if (!user) {
+        const emailOwner = await Users.findOne({ uEmail: profile.email });
+        if (emailOwner) {
+          throw new EntraTokenError("identity_conflict", "This email is linked to another account");
+        }
+        throw error;
+      }
+    }
+  }
+
+  const emailOwner = await Users.findOne({ uEmail: profile.email });
+  if (emailOwner && !sameId(emailOwner._id, user._id)) {
+    throw new EntraTokenError("identity_conflict", "This email is linked to another account");
+  }
+
+  const updates = {
+    entraObjectId: profile.oid,
+    uEmail: profile.email,
+    uFirstName: profile.firstName,
+    uLastName: profile.lastName,
+    uDisplayName: profile.displayName,
+  };
+  let changed = false;
+  for (const [field, value] of Object.entries(updates)) {
+    if (user[field] !== value) {
+      user[field] = value;
+      changed = true;
+    }
+  }
+  return changed ? user.save() : user;
+}
+
+
 /*
     @endpoint: /login
-    @method: GET
-    @description: Given the Microsoft Access Token in the Authorization header,
-                  get information about the user using Graph API. Save information
-                  about the user if already exists. Create user session.
+    @method: POST
+    @description: Verify the Entra access token, converge the local user
+                  record, and create a rotated authenticated session.
 */
 router.post("/login", loginRateLimiter, async function (req, res) {
   const accessToken = readBearerToken(req.headers.authorization);
@@ -84,37 +115,32 @@ router.post("/login", loginRateLimiter, async function (req, res) {
     return sendError(res, 401, INVALID_AUTHORIZATION_MESSAGE);
   }
 
-  let response;
+  let profile;
   try {
-    response = await fetch(GRAPH_PROFILE_URL, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      signal: AbortSignal.timeout(GRAPH_REQUEST_TIMEOUT_MS),
-    });
+    profile = await verifyEntraAccessToken(accessToken);
   } catch (error) {
-    console.error("Graph login request failed:", error?.name ?? "unknown error");
-    return sendError(res, 502, GRAPH_UNAVAILABLE_MESSAGE);
-  }
-
-  if (!response.ok) {
-    if (response.status === 401) {
-      return sendError(res, 401, INVALID_AUTHORIZATION_MESSAGE);
+    if (error instanceof EntraTokenError && error.code === "unavailable") {
+      return sendError(res, 502, AUTHENTICATION_UNAVAILABLE_MESSAGE);
     }
-    return sendError(res, 502, GRAPH_UNAVAILABLE_MESSAGE);
+    if (error instanceof EntraTokenError && error.code === "configuration") {
+      console.error("Entra authentication configuration is incomplete");
+      return sendError(res, 503, AUTHENTICATION_UNAVAILABLE_MESSAGE);
+    }
+    return sendError(res, 401, INVALID_AUTHORIZATION_MESSAGE);
   }
 
-  let userData;
+  let user;
   try {
-    userData = await response.json();
+    user = await persistUser(req.models.Users, profile);
   } catch (error) {
-    console.error("Graph login response was not valid JSON:", error?.message);
-    return sendError(res, 502, GRAPH_UNAVAILABLE_MESSAGE);
-  }
-
-  const profile = readGraphProfile(userData);
-  if (!profile) {
-    return sendError(res, 502, INCOMPLETE_PROFILE_MESSAGE);
+    if (error instanceof EntraTokenError && error.code === "identity_conflict") {
+      return sendError(res, 409, error.message);
+    }
+    if (isDuplicateKey(error)) {
+      return sendError(res, 409, "Unable to associate this identity");
+    }
+    console.error("Login persistence failed:", error?.message);
+    return sendError(res, 500);
   }
 
   try {
@@ -124,44 +150,15 @@ router.post("/login", loginRateLimiter, async function (req, res) {
     return sendError(res, 500);
   }
 
-  try {
-    let user = await req.models.Users.findOne({ uEmail: profile.email });
-    if (!user) {
-      user = await new req.models.Users({
-        uFirstName: profile.firstName,
-        uLastName: profile.lastName,
-        uDisplayName: profile.displayName,
-        uEmail: profile.email,
-      }).save();
-    } else {
-      const updates = {
-        uFirstName: profile.firstName,
-        uLastName: profile.lastName,
-        uDisplayName: profile.displayName,
-      };
-      let changed = false;
-      for (const [field, value] of Object.entries(updates)) {
-        if (user[field] !== value) {
-          user[field] = value;
-          changed = true;
-        }
-      }
-      if (changed) user = await user.save();
-    }
-
-    req.session.isAuthenticated = true;
-    req.session.displayName = profile.displayName;
-    req.session.email = profile.email;
-    req.session.firstName = profile.firstName;
-    req.session.lastName = profile.lastName;
-    req.session.userId = user._id;
-    req.session.memberType = user.uType;
-    req.session.isAdmin = user.uType === "Admin";
-    return res.status(200).json(user);
-  } catch (error) {
-    console.error("Login persistence failed:", error?.message);
-    return sendError(res, 500);
-  }
+  req.session.isAuthenticated = true;
+  req.session.displayName = user.uDisplayName;
+  req.session.email = user.uEmail;
+  req.session.firstName = user.uFirstName;
+  req.session.lastName = user.uLastName;
+  req.session.userId = user._id;
+  req.session.memberType = user.uType;
+  req.session.isAdmin = user.uType === "Admin";
+  return res.status(200).json(user);
 });
 
 /*

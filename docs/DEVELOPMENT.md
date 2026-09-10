@@ -140,11 +140,88 @@ When the frontend runs on Vite at `http://localhost:3000`, the browser sends tha
 - Mongoose models registered in `models.js`, schemas imported from the submodule.
 - Error responses use shape: `{ status: "error", message: "..." }`
 
-### Git
+## Git Conventions
 
-- **Submodule**: `backend/schemas` — after cloning, run `git submodule init && git submodule update`
-- Branches: feature branches from `main`, PRs into `main`
-- Jenkins pipelines build and deploy from specific branches
+Branches, commits, and pull requests all start with the same **type prefix** — `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, `ci`, or `build`. The prefix answers one question (*what kind of change is this?*) in the same vocabulary everywhere, so `fix/` always means "broken before, working after" and `chore/` always means "no behavior change expected". Reviewers know what to expect before reading the code, and `git log` stays scannable. If you can pick a row in the tables below, you picked correctly.
+
+### Branch names
+
+Format: `<type>/<short-description>` — lowercase, words separated by hyphens, describing the single concern the branch delivers. Real examples from this repository: `fix/session-secret-per-env`, `feat/events-metadata`, `chore/mongoose-9`, `docs/stylesheets-architecture`.
+
+| Prefix | Use it when | Example |
+|---|---|---|
+| `feat/` | You add or change something a user can see or do. | `feat/events-filter` |
+| `fix/` | Something is broken and your branch makes it work again. | `fix/spa-route-reloads` |
+| `chore/` | Maintenance with no behavior change: dependencies, config, scripts. | `chore/mongoose-9` |
+| `docs/` | Only documentation. | `docs/stylesheets-architecture` |
+| `refactor/` | The code changes shape; the behavior does not. | `refactor/role-permission` |
+| `test/` | Only tests. | `test/event-routes` |
+| `ci/` | Pipeline and automation files (`.jenkinsfile`, workflow files). | `ci/buildkit-builds` |
+| `build/` | Build system and runtime (Dockerfile, npm scripts, Node version). | `build/root-dev-runner` |
+
+### Choosing the prefix
+
+Start with one question: **did anything behave differently afterward?** Yes means `feat/` (new capability) or `fix/` (broken behavior restored). No means pick the prefix for what you touched.
+
+| You did this | Use | Why |
+|---|---|---|
+| Fixed the events page showing past events | `fix/` | Behavior was wrong, now it is right |
+| Added a category filter to the events page | `feat/` | New capability |
+| Upgraded Express to a newer version | `chore/` | Maintenance; no behavior you changed |
+| Fixed a typo in this guide | `docs/` | Documentation-only, even though it is a "fix" |
+| Renamed confusing helpers, output unchanged | `refactor/` | Same behavior, cleaner code |
+| Added missing tests for the webhook route | `test/` | Tests-only |
+| Switched the Jenkinsfile to BuildKit | `ci/` | Pipeline files |
+| Changed the Dockerfile or root npm scripts | `build/` | Build system and runtime |
+| Fixed a bug and added the test proving it | `fix/` | One concern; the test belongs to the fix |
+
+Still torn between two prefixes? That usually means two concerns — split them into two branches and two pull requests. (`perf/` and `style/` show up occasionally for performance-only and formatting-only changes; they work the same way.)
+
+### Commit messages
+
+Commits use the same eight words, in the standard Conventional Commits format: `<type>(<scope>): <imperative summary>`.
+
+- **scope** names the area you touched: `events`, `auth`, `shop`, `deps`, `ci`, etc.
+- The summary is lowercase, imperative ("add", "fix", "remove"), and has no trailing period; keep the whole subject within ~72 characters where practical.
+
+Real examples from `git log`:
+
+```text
+fix(session): resolve signing secret by deployment environment
+feat(events): publish leader and past-photo metadata
+docs(stylesheets): document adopted 7-1 folder structure
+chore(deps): harden production dependency graph
+test(events): cover event route behavior
+refactor(auth): name role permission middleware explicitly
+```
+
+One commit = one logical change. If a message needs "and", it is usually two commits.
+
+### Day-to-day workflow
+
+One branch = one concern = one worktree = one pull request. A worktree per branch keeps the main checkout on `dev` and lets other work continue untouched.
+
+1. Start from the latest `dev` and create a worktree:
+
+    ```bash
+    git fetch origin
+    git worktree add -b fix/events-pagination ../fix-events-pagination origin/dev
+    ```
+
+    The worktree directory is the branch name with `/` replaced by `-`.
+
+2. Make the change and commit it: `git commit -m "fix(events): show only upcoming events"`.
+
+3. Push the branch and open the pull request against `dev` — never push directly to `dev` or `main`. Stacked work (a branch built on another unmerged branch) targets the parent branch until it merges.
+
+4. After the PR merges, clean up the branch and its worktree. Squash merges make Git think the branch was never merged, so delete it with `-D` (only once the PR is merged):
+
+    ```bash
+    git worktree remove ../fix-events-pagination
+    git branch -D fix/events-pagination
+    ```
+
+Merged pull requests appear in `git log` with the PR number appended, e.g. `(#150)`. Where a branch lands matters: merging into `dev` deploys dev.iuga.info, and `main` is production (iuga.info) — nothing reaches production except through the pull request flow.
 
 ---
 

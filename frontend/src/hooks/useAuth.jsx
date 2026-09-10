@@ -5,17 +5,25 @@
  * Expected Response: Authenticated user profile returned from /api/v1/user/login.
  */
 import { useMsal } from '@azure/msal-react';
-import { loginRequest } from '../authConfig';
+import { backendLoginRequest } from '../authConfig';
 import { InteractionRequiredAuthError } from '@azure/msal-browser';
 const useAuth = () => {
   const { instance, accounts } = useMsal();
 
   const ensureBackendAuthentication = async () => {
     if (accounts.length > 0) {
+      const backendScope = backendLoginRequest?.scopes?.[0]?.trim();
+      if (!backendScope) {
+        throw new Error(
+          'Backend authentication is not configured: VITE_ENTRA_API_SCOPE is required.'
+        );
+      }
+
       try {
         console.log("Acquire token silently...")
         const tokenResponse = await instance.acquireTokenSilent({
-          ...loginRequest,
+          ...backendLoginRequest,
+          scopes: [backendScope],
           account: accounts[0],
         });
         const accessToken = tokenResponse.accessToken;
@@ -25,7 +33,8 @@ const useAuth = () => {
           console.error('Interaction required to acquire token:', error);
           try {
             const tokenResponse = await instance.acquireTokenPopup({
-              ...loginRequest,
+              ...backendLoginRequest,
+              scopes: [backendScope],
               account: accounts[0],
               prompt: 'consent',
             });
@@ -36,6 +45,7 @@ const useAuth = () => {
             throw popupError;
           }
         }
+        throw error;
       }
     }
   };
@@ -48,10 +58,8 @@ const sendTokenToBackend = async (accessToken) => {
     const response = await fetch('/api/v1/user/login', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': `Bearer ${accessToken}`,
       },
-      body: JSON.stringify({ token: accessToken }),
     });
 
     if (!response.ok) {

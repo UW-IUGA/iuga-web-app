@@ -23,3 +23,7 @@ export const msalConfig = {
 export const loginRequest = {   
     scopes: ["User.Read"]
 };
+
+export const backendLoginRequest = {
+    scopes: [import.meta.env.VITE_ENTRA_API_SCOPE],
+};

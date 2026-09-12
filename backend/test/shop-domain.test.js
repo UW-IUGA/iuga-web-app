@@ -234,6 +234,24 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
 
       assert.equal(updated.paymentState, "paid");
       assert.deepEqual(updated.paidAt, paidAt);
+      // The order document keeps provider facts in its settlement snapshot.
+      assert.equal(updated.settlementSnapshot.providerPaymentId, "pi_12345");
+      assert.equal(updated.providerPaymentId, undefined);
+    });
+
+    it("keeps a previously recorded provider payment id", () => {
+      const order = {
+        orderId: "ord_101",
+        paymentState: "paid",
+        totalMinor: 4500,
+        paidAt: new Date("2026-10-02T12:00:00.000Z"),
+        settlementSnapshot: { providerPaymentId: "pi_original", receiptEmail: "buyer@uw.edu" },
+      };
+
+      const updated = applyPaymentEvent(order, { type: "payment_confirmed" });
+
+      assert.equal(updated.settlementSnapshot.providerPaymentId, "pi_original");
+      assert.equal(updated.settlementSnapshot.receiptEmail, "buyer@uw.edu");
     });
 
     it("is idempotent when receiving duplicate payment confirmation", () => {

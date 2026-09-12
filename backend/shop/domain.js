@@ -202,11 +202,17 @@ export function applyPaymentEvent(order, event = {}) {
   }
 
   if (event.type === "payment_confirmed" || event.status === "paid") {
+    const settlement = asRecord(current.settlementSnapshot);
     return {
       ...current,
       paymentState: "paid",
       paidAt: event.paidAt ? parseDate(event.paidAt) : new Date(),
-      providerPaymentId: event.providerPaymentId || current.providerPaymentId,
+      // Why: the order document keeps provider facts in its settlement snapshot. A top-level
+      // providerPaymentId would be silently dropped the moment the order is saved.
+      settlementSnapshot: {
+        ...settlement,
+        providerPaymentId: event.providerPaymentId ?? settlement.providerPaymentId ?? null,
+      },
     };
   }
 

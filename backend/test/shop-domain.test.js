@@ -273,7 +273,7 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
     it("handles pickup fulfillment lifecycle from pending to picked_up", () => {
       let order = {
         orderId: "ord_101",
-        fulfillmentMode: "pickup",
+        fulfillmentMethod: "pickup",
         fulfillmentState: "pending",
       };
 
@@ -287,10 +287,10 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
       assert.equal(order.fulfillmentState, "picked_up");
     });
 
-    it("handles shipping fulfillment lifecycle from pending to delivered", () => {
+    it("follows the shipping steps for an order stored as shipping", () => {
       let order = {
         orderId: "ord_102",
-        fulfillmentMode: "shipping",
+        fulfillmentMethod: "shipping",
         fulfillmentState: "pending",
       };
 
@@ -307,10 +307,23 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
       assert.equal(order.fulfillmentState, "delivered");
     });
 
+    it("refuses a shipping step on an order the buyer collects", () => {
+      const order = {
+        orderId: "ord_105",
+        fulfillmentMethod: "pickup",
+        fulfillmentState: "preparing",
+      };
+
+      assert.throws(
+        () => applyFulfillmentAction(order, { action: "ship" }),
+        /illegal fulfillment transition/i,
+      );
+    });
+
     it("supports hold and unhold transitions without losing previous progress", () => {
       let order = {
         orderId: "ord_103",
-        fulfillmentMode: "pickup",
+        fulfillmentMethod: "pickup",
         fulfillmentState: "preparing",
         holdReason: null,
       };
@@ -330,7 +343,7 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
     it("rejects illegal transitions", () => {
       const order = {
         orderId: "ord_104",
-        fulfillmentMode: "pickup",
+        fulfillmentMethod: "pickup",
         fulfillmentState: "picked_up",
       };
 

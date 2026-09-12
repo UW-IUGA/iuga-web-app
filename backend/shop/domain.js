@@ -244,9 +244,11 @@ const VALID_SHIPPING_TRANSITIONS = Object.freeze({
  */
 export function applyFulfillmentAction(order, action = {}) {
   const current = asRecord(order);
-  const mode = current.fulfillmentMode || "pickup";
+  // The order document stores this as fulfillmentMethod; anything that is not "shipping" means
+  // the buyer collects in person, which is the document's own default.
+  const fulfillmentMethod = current.fulfillmentMethod || "pickup";
   const state = current.fulfillmentState || "pending";
-  const transitions = mode === "shipping" ? VALID_SHIPPING_TRANSITIONS : VALID_PICKUP_TRANSITIONS;
+  const transitions = fulfillmentMethod === "shipping" ? VALID_SHIPPING_TRANSITIONS : VALID_PICKUP_TRANSITIONS;
 
   let nextFulfillmentState = state;
   let holdReason = current.holdReason ?? null;

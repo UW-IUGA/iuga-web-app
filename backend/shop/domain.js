@@ -251,8 +251,14 @@ export function applyFulfillmentAction(order, action = {}) {
   const transitions = fulfillmentMethod === "shipping" ? VALID_SHIPPING_TRANSITIONS : VALID_PICKUP_TRANSITIONS;
 
   let nextFulfillmentState = state;
-  let holdReason = current.holdReason ?? null;
-  let stateBeforeHold = current.previousFulfillmentState ?? state;
+  // The order document keeps the hold as one object: why it was placed, when, and where the order
+  // returns to when the hold is lifted.
+  let fulfillmentHold = {
+    reason: null,
+    placedAt: null,
+    returnToState: null,
+    ...asRecord(current.fulfillmentHold),
+  };
 
   switch (action.action) {
     case "prepare":
@@ -275,15 +281,18 @@ export function applyFulfillmentAction(order, action = {}) {
       break;
     case "hold":
       nextFulfillmentState = "on_hold";
-      stateBeforeHold = state;
-      holdReason = action.reason || "unspecified";
+      fulfillmentHold = {
+        reason: action.reason || "unspecified",
+        placedAt: new Date(),
+        returnToState: state,
+      };
       break;
     case "release_hold":
       if (state !== "on_hold") {
         throw new Error("Cannot release hold on an order not on hold");
       }
-      nextFulfillmentState = stateBeforeHold || "pending";
-      holdReason = null;
+      nextFulfillmentState = fulfillmentHold.returnToState || "pending";
+      fulfillmentHold = { reason: null, placedAt: null, returnToState: null };
       break;
     default:
       throw new Error(`Unknown fulfillment action: ${action.action}`);
@@ -299,9 +308,8 @@ export function applyFulfillmentAction(order, action = {}) {
   return {
     ...current,
     fulfillmentState: nextFulfillmentState,
-    holdReason,
-    previousFulfillmentState: stateBeforeHold,
-    trackingNumber: action.trackingNumber || current.trackingNumber,
+    fulfillmentHold,
+    trackingNumber: action.trackingNumber ?? current.trackingNumber ?? null,
   };
 }
 

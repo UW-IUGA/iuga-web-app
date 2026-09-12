@@ -302,6 +302,7 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
         trackingNumber: "1Z999",
       });
       assert.equal(order.fulfillmentState, "shipped");
+      assert.equal(order.trackingNumber, "1Z999");
 
       order = applyFulfillmentAction(order, { action: "deliver" });
       assert.equal(order.fulfillmentState, "delivered");
@@ -320,12 +321,12 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
       );
     });
 
-    it("supports hold and unhold transitions without losing previous progress", () => {
+    it("puts an order on hold and returns it to where it was", () => {
       let order = {
         orderId: "ord_103",
         fulfillmentMethod: "pickup",
         fulfillmentState: "preparing",
-        holdReason: null,
+        fulfillmentHold: { reason: null, placedAt: null, returnToState: null },
       };
 
       order = applyFulfillmentAction(order, {
@@ -333,11 +334,14 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
         reason: "address_verification_needed",
       });
       assert.equal(order.fulfillmentState, "on_hold");
-      assert.equal(order.holdReason, "address_verification_needed");
+      assert.equal(order.fulfillmentHold.reason, "address_verification_needed");
+      assert.equal(order.fulfillmentHold.returnToState, "preparing");
+      assert.ok(order.fulfillmentHold.placedAt instanceof Date);
 
       order = applyFulfillmentAction(order, { action: "release_hold" });
       assert.equal(order.fulfillmentState, "preparing");
-      assert.equal(order.holdReason, null);
+      assert.equal(order.fulfillmentHold.reason, null);
+      assert.equal(order.fulfillmentHold.returnToState, null);
     });
 
     it("rejects illegal transitions", () => {

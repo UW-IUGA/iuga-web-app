@@ -149,6 +149,17 @@ describe("Shop Mongoose Schemas and Models", () => {
   });
 
   describe("Order schema and owner cursor index", () => {
+    it("stores the fulfilment details the order rules produce", () => {
+      for (const path of [
+        "fulfillmentHold.reason",
+        "fulfillmentHold.placedAt",
+        "fulfillmentHold.returnToState",
+        "trackingNumber",
+      ]) {
+        assert.ok(orderSchema.paths[path], `Missing order path ${path}`);
+      }
+    });
+
     it("enforces unique orderReference", () => {
       assert.equal(orderSchema.paths.orderReference.options.unique, true);
     });

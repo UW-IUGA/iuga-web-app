@@ -152,6 +152,18 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
       },
     ]);
 
+    it("prices in US dollars even when a sale-window row carries a stray currency", () => {
+      const quote = snapshotQuote({
+        cart: [{ skuKey: "info-hoodie-purple-l", quantity: 1 }],
+        catalog,
+        drop: { ...activeDrop, currency: "eur" },
+        now: new Date("2026-10-02T10:00:00.000Z"),
+      });
+
+      assert.equal(quote.currency, "usd");
+      assert.equal(quote.totalMinor, 4500);
+    });
+
     it("freezes an immutable quote with exact safe integer cents totals", () => {
       const cart = [
         { skuKey: "info-hoodie-purple-l", quantity: 2 },

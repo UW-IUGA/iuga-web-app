@@ -128,7 +128,10 @@ export function snapshotQuote({ cart, catalog, drop, now = new Date() }) {
 
   const quotedAt = parseDate(now);
   const dropRecord = asRecord(drop);
-  const currency = typeof dropRecord.currency === "string" ? dropRecord.currency.toLowerCase() : "usd";
+  // Why: the shop sells in US dollars. A sale-window row has no currency field of its own, and a
+  // stray value in one must never change what a buyer is charged — the readiness check refuses to
+  // switch checkout on for any currency other than USD.
+  const currency = "usd";
 
   // Why: money is counted in whole cents. Dollars as decimals would quietly lose a cent per line
   //      and the buyer would be charged a total that does not match the prices we displayed.

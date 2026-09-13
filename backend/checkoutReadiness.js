@@ -1,15 +1,9 @@
 /*
-Purpose: The fail-closed answer to "may we sell anything at all?" It checks the Stripe
-         configuration, the infrastructure payments depend on, and the approvals the club must
-         give — and it never contacts Stripe to do it.
+ * @behavior Answer whether checkout may run, from configuration, infrastructure, and policy
+ *           alone — without contacting Stripe. Anything missing leaves checkout switched off,
+ *           and the reasons name what is missing without revealing its value.
+ */
 
-Called by: the shop endpoint on every request, and the readiness probe at boot.
-
-Must not: guess. Anything missing, malformed, or unapproved leaves checkout switched off, and the
-          reasons it reports name what is missing without revealing its value.
-*/
-
-// Configuration the deployment must supply before any payment can be taken.
 const REQUIRED_CONFIGURATION = Object.freeze([
   "STRIPE_SECRET_KEY",
   "STRIPE_WEBHOOK_SECRET",
@@ -18,16 +12,13 @@ const REQUIRED_CONFIGURATION = Object.freeze([
   "STRIPE_CATALOG_VERSION",
 ]);
 
-// Switched on only when the environment can support payments we can trust.
 const REQUIRED_INFRASTRUCTURE_FLAGS = Object.freeze([
   "databaseTransactions",
   "sessionStore",
   "worker",
 ]);
 
-// Sign-offs the club must give before selling. The named ones are self-explanatory; gateA and
-// gateB were never recorded anywhere, so they keep their placeholder names until somebody who
-// knows what they stand for renames them. Do not invent meanings for them.
+// gateA and gateB were never recorded anywhere. Keep their names; do not invent meanings.
 const REQUIRED_BUSINESS_APPROVALS = Object.freeze([
   "identity",
   "csrf",
@@ -115,12 +106,10 @@ function addReason(reasons, reason) {
 }
 
 /*
- * Purpose:   Decide, without contacting Stripe, whether checkout may run at all — and say
- *            exactly what is missing when it may not.
- * @param     input — the deployment's configuration (env), its infrastructure flags, and the
- *            club's approvals
- * @returns   whether checkout is enabled, the mode it would run in, why it is disabled, and
- *            diagnostics safe to show (keys and secrets are redacted)
+ * @behavior Answer whether checkout may run, and name every missing piece when it may not.
+ * @param input — the deployment's configuration, infrastructure flags, and club approvals
+ * @returns whether checkout is enabled, the mode it would run in, the reasons it is disabled,
+ *          and diagnostics safe to show (keys and secrets are redacted)
  */
 export function evaluateCheckoutReadiness(input = {}) {
   const source = asRecord(input);
@@ -171,8 +160,6 @@ export function evaluateCheckoutReadiness(input = {}) {
     minimumTotalMinor: readMinimumTotalMinor(env.STRIPE_MINIMUM_TOTAL_MINOR) ?? "[invalid]",
   };
 
-  // One name for one fact: checkout is enabled exactly when nothing is missing. The probe and the
-  // shop endpoint both read this field.
   return {
     checkoutEnabled: reasons.length === 0,
     mode,

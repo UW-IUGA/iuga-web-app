@@ -1,8 +1,8 @@
 /*
-Purpose: Prove the two promises this flow makes to the shop and to the buyer: a purchase is
-         written down before any money moves, and one press of Pay — however many times it is
-         retried — can only ever produce one attempt and one Stripe payment link.
-*/
+ * @behavior Prove the two promises this flow makes: a purchase is written down before any money
+ *           moves, and one press of Pay — however often retried — produces one attempt and one
+ *           Stripe payment link.
+ */
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
@@ -22,7 +22,6 @@ const RETRY_KEY_A = "550e8400-e29b-41d4-a716-446655440000";
 const RETRY_KEY_B = "550e8400-e29b-41d4-a716-446655440001";
 const ONE_HOODIE = [{ skuKey: "hoodie", quantity: 1 }];
 
-// One sale window ("drop"): the same shop can run several, each with its own price list.
 const activeSalesWindow = {
   dropKey: "fall-2026",
   catalogVersion: 7,
@@ -32,8 +31,6 @@ const activeSalesWindow = {
   closesAt: new Date("2026-12-01T00:00:00.000Z"),
 };
 
-// skuKey is what the shop page sells ("the hoodie, purple, size M"); fulfillmentSku is the
-// pile of stock we actually count — several sellable variants can come out of the same pile.
 const catalogRows = [
   {
     skuKey: "hoodie",
@@ -67,7 +64,7 @@ const catalogRows = [
   },
 ];
 
-// Real catalog rows arrive as Mongoose documents, so the fixture can take that shape too.
+// Catalog rows arrive as Mongoose documents, so the fixture takes that shape too.
 const PersistedCatalogEntry = mongoose.model("CheckoutCoordinatorCatalogEntry", catalogEntrySchema);
 
 function makeModels({ available = 10, attempts = [], orders = [], hydrateCatalog = false } = {}) {
@@ -195,7 +192,6 @@ function makeHarness(options = {}) {
   };
 }
 
-// A buyer's attempt that already exists and was never answered by Stripe.
 function pendingAttemptFixture({ id = "attempt-seeded", reference = "ORD-SEEDED" } = {}) {
   return {
     _id: id,
@@ -264,7 +260,6 @@ describe("createCheckout: one attempt, one payment link", () => {
     assert.equal(result.attemptKey, RETRY_KEY_A);
     assert.equal(result.orderReference, order.orderReference);
 
-    // One attempt, one order, one held hoodie — the hold exists because the order does.
     assert.equal(harness.models._state.attempts.length, 1);
     assert.equal(harness.models._state.orders.length, 1);
     assert.equal(harness.models._state.reservations.length, 1);
@@ -277,7 +272,6 @@ describe("createCheckout: one attempt, one payment link", () => {
     assert.equal(attempt.frozenStripeRequest.successUrl, "https://shop.test/shop/checkout/success");
     assert.equal(attempt.frozenStripeRequest.clientReferenceId, order._id);
 
-    // The order carries the prices the buyer saw, in whole cents.
     assert.equal(order.totalMinor, 6500);
     assert.equal(order.currency, "usd");
     assert.equal(order.paymentState, "pending");
@@ -313,7 +307,6 @@ describe("createCheckout: one attempt, one payment link", () => {
       assert.equal(harness.providerCalls.length, 0);
     }
 
-    // Nothing left on the shelf: the hold fails, so no order and no attempt may survive.
     const soldOut = makeHarness({ available: 0 });
     const result = await soldOut.checkout({ items: ONE_HOODIE });
     assert.equal(result.status, "unavailable");
@@ -321,7 +314,7 @@ describe("createCheckout: one attempt, one payment link", () => {
     assert.equal(soldOut.models._state.attempts.length, 0);
     assert.equal(soldOut.providerCalls.length, 0);
 
-    // A preorder item is sold before we own it, so nothing is held for it.
+    // A preorder is sold before we own it, so nothing is held for it.
     const preorder = makeHarness({ available: 0 });
     const preorderResult = await preorder.checkout({ items: [{ skuKey: "sticker", quantity: 3 }] });
     assert.equal(preorderResult.status, "ready");
@@ -500,7 +493,7 @@ describe("createCheckout: one attempt, one payment link", () => {
       { $set: { status: "ready", sessionId: "cs_winner", paymentIntentId: "pi_winner" } },
     );
 
-    // This request cannot tell whether Stripe created a link, but the winner already stored one.
+    // The request cannot tell whether Stripe made a link, but the winner already stored one.
     const failed = await harness.checkout();
     assert.equal(failed.status, "reconciliation_required");
     assert.equal(models._state.attempts[0].status, "ready");

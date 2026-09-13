@@ -1,9 +1,9 @@
 /*
-Purpose: Pin the promise this endpoint makes to the browser: only a signed-in buyer can call it,
-         it decides everything about money itself, and every answer is exactly the shape the
-         client was told to expect — with no internal detail, retry key, or Stripe identifier
-         leaking into a response.
-*/
+ * @behavior Pin what this endpoint promises the browser: only a signed-in buyer can call it, it
+ *           decides everything about money itself, and every answer is exactly the shape the
+ *           client was told to expect — with no internal detail, retry key, or Stripe
+ *           identifier leaking into a response.
+ */
 
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
@@ -75,7 +75,6 @@ describe("POST /api/v1/shop/checkout-sessions", () => {
 
   test("refuses an unknown body field, a missing cart, a duplicate variant, and a bad quantity", async () => {
     const invalidBodies = [
-      // A client trying to decide identity, money, or status itself is refused, not ignored.
       { items: ITEMS, owner: OWNER, amount: 100, price: "price_browser", url: "https://evil.example", status: "ready" },
       {},
       { items: [{ skuKey: "info-hoodie", quantity: 1 }, { skuKey: "info-hoodie", quantity: 2 }] },
@@ -121,7 +120,7 @@ describe("POST /api/v1/shop/checkout-sessions", () => {
       assert.deepEqual(calls[0].items, ITEMS);
       assert.equal(calls[0].checkoutEnabled, false);
       assert.equal(typeof calls[0].getProvider, "function");
-      // Why: none of the internal names the checkout flow works with may reach the browser.
+      // No internal name, price, or error detail may reach the browser.
       assert.doesNotMatch(JSON.stringify(result.body), /cs_test_provider|price_\w+|user-123|frozen|internal/i);
       assert.equal(calls[0].price, undefined);
       assert.equal(calls[0].url, undefined);
@@ -180,7 +179,7 @@ describe("POST /api/v1/shop/checkout-sessions", () => {
         status: "reconciliation_required",
         attemptKey: NORMALIZED_KEY,
         orderReference: "ORD-123",
-        // Even if the flow hands one over, this state must never publish a link.
+        // Reconciliation must never publish a link, even if the flow hands one over.
         checkoutUrl: "https://checkout.stripe.test/should-not-leak",
       }, calls),
     });

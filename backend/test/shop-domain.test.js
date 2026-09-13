@@ -1,8 +1,8 @@
 /*
-Purpose: Pin the shop's rules: what a cart may contain, when a sale window is open, how prices
-         are locked in, and how an order may move through payment, fulfilment, refund, and
-         dispute. These run without a database, because these rules do not need one.
-*/
+ * @behavior Pin the shop's rules: what a cart may contain, when a sale window is open, how
+ *           prices are locked in, and how an order moves through payment, fulfilment, refund,
+ *           and dispute. No database, because these rules do not need one.
+ */
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
@@ -246,7 +246,7 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
 
       assert.equal(updated.paymentState, "paid");
       assert.deepEqual(updated.paidAt, paidAt);
-      // The order document keeps provider facts in its settlement snapshot.
+      // Provider facts live in the settlement snapshot, never top level.
       assert.equal(updated.settlementSnapshot.providerPaymentId, "pi_12345");
       assert.equal(updated.providerPaymentId, undefined);
     });
@@ -281,7 +281,7 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
       });
 
       assert.equal(updated.paymentState, "paid");
-      assert.deepEqual(updated.paidAt, paidAt); // Retains original paidAt
+      assert.deepEqual(updated.paidAt, paidAt); // Replaying a paid event keeps the original paidAt
     });
 
     it("refuses to regress a paid order back to pending", () => {
@@ -399,7 +399,6 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
         paymentState: "paid",
       };
 
-      // 1. Reserve partial refund of 3000 cents
       order = applyRefundEvent(order, {
         action: "reserve",
         amountMinor: 3000,
@@ -407,9 +406,8 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
       assert.equal(order.pendingRefundMinor, 3000);
       assert.equal(order.refundedMinor, 0);
       assert.equal(order.refundState, "none");
-      assert.equal(order.paymentState, "paid"); // Preserves payment truth
+      assert.equal(order.paymentState, "paid"); // Refunding never changes payment state
 
-      // 2. Settle the 3000 cents refund
       order = applyRefundEvent(order, {
         action: "settle",
         amountMinor: 3000,
@@ -419,7 +417,6 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
       assert.equal(order.refundState, "partial");
       assert.equal(order.paymentState, "paid");
 
-      // 3. Reserve and settle remaining 7000 cents
       order = applyRefundEvent(order, {
         action: "reserve",
         amountMinor: 7000,
@@ -469,7 +466,7 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
         paymentState: "paid",
       };
 
-      // Only 500 cents remaining available, requesting 1000 must throw
+      // 5000 collected, 3000 + 1500 already reserved, so only 500 remains and this must throw.
       assert.throws(
         () => applyRefundEvent(order, { action: "reserve", amountMinor: 1000 }),
         /refund budget exceeded/i,
@@ -490,7 +487,6 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
         },
       };
 
-      // Open dispute
       const dueBy = new Date("2026-11-01T00:00:00.000Z");
       order = applyDisputeEvent(order, {
         action: "open",
@@ -500,9 +496,8 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
       assert.equal(order.dispute.state, "open");
       assert.equal(order.dispute.reason, "fraudulent");
       assert.deepEqual(order.dispute.evidenceDueBy, dueBy);
-      assert.equal(order.paymentState, "paid"); // Does not rewrite paymentState
+      assert.equal(order.paymentState, "paid"); // A dispute never rewrites payment state
 
-      // Resolve dispute
       order = applyDisputeEvent(order, { action: "resolve", outcome: "won" });
       assert.equal(order.dispute.state, "won");
     });

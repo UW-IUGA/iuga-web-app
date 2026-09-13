@@ -1,14 +1,9 @@
 /*
-Purpose: The whole checkout flow for one buyer. It records the attempt (order, stock holds,
-         agreed prices), asks Stripe for a payment link, and keeps the answer — so that
-         pressing Pay twice, retrying after a timeout, or reloading the page always lands on
-         the same attempt and never on a second charge.
-
-Called by: POST /api/v1/shop/checkout-sessions, through the shop controller.
-
-Must not: contact Stripe before the attempt is written down, trust a browser-supplied price,
-          quantity, or identity, or retry an attempt whose outcome we cannot explain.
-*/
+ * @behavior Run the whole checkout flow for one buyer: record the attempt, its stock holds,
+ *           and its agreed prices, then ask Stripe for a payment link. Pressing Pay twice,
+ *           retrying after a timeout, or reloading always lands on the same attempt and never
+ *           on a second charge.
+ */
 
 import { randomUUID } from "node:crypto";
 
@@ -16,20 +11,20 @@ import mongoose from "mongoose";
 import { normalizeCart, snapshotQuote } from "../shop/domain.js";
 import { holdInventory } from "../shop/reservations.js";
 
-// Why: a buyer may take a while to finish paying, but an abandoned attempt must not hold stock
-// — or hold a price — for the rest of the sale window.
+// A buyer may take a while to finish paying, but an abandoned attempt must not hold stock — or
+// hold a price — for the rest of the sale window.
 const ATTEMPT_WINDOW_MS = 60 * 60 * 1000;
 
-// Why: 23 hours, not 24. Stripe retires a payment link after 24 hours, so anything older may
-// already be dead there and a human has to check before we try again.
+// 23 hours, not 24: Stripe retires a payment link after 24 hours, so anything older may already
+// be dead there and a human has to check before we try again.
 const MAX_RETRY_AGE_MS = 23 * 60 * 60 * 1000;
 
 const UUID_V4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 /*
-Purpose: The one error a caller may turn into a 400. It carries a generic message only, so no
-         internal rule, record, or configuration detail reaches the buyer.
-*/
+ * @behavior Turn a validation failure into a 400 that carries a generic message only, so no
+ *           internal rule, record, or configuration detail reaches the buyer.
+ */
 export class CheckoutValidationError extends Error {
   constructor(message = "Invalid checkout request") {
     super(message);
@@ -37,7 +32,7 @@ export class CheckoutValidationError extends Error {
   }
 }
 
-// Who owns the purchase: the signed-in session user, narrowed to a real, non-empty user id.
+// The buyer is whoever the session says they are, narrowed to a real, non-empty user id.
 function validateOwner(owner) {
   if (!owner || owner.type !== "user" || typeof owner.userId !== "string" || !owner.userId.trim()) {
     throw new CheckoutValidationError("Invalid checkout owner");
@@ -46,9 +41,11 @@ function validateOwner(owner) {
 }
 
 /*
-Purpose: Require the shop's own https address, taken from configuration, so the "come back here
-         after paying" links we store can never point at somebody else's site.
-*/
+ * @behavior Require the shop's own https address, so the return links we store can never point
+ *           at somebody else's site.
+ * @exceptions CheckoutValidationError when the base URL is missing, non-https, or has parts
+ *             beyond the origin
+ */
 function validateBaseUrl(baseUrl) {
   if (typeof baseUrl !== "string" || !baseUrl.trim()) {
     throw new CheckoutValidationError("Invalid checkout base URL");
@@ -73,18 +70,13 @@ async function readOrderReference(models, attempt) {
   return order?.orderReference ?? null;
 }
 
-/*
-Purpose: "Here is the link to pay." This is the only result that carries a payment link, and it
-         carries one only because the caller just confirmed the link still works.
-*/
+// The ready answer: the only result carrying a link, and only because the caller just confirmed
+// that link still works.
 function readyResult(attemptKey, orderReference, checkoutUrl, isNew) {
   return { status: "ready", isNew, attemptKey, orderReference, checkoutUrl };
 }
 
-/*
-Purpose: "The attempt exists, ask again shortly." It never carries a payment link, so an
-         unfinished attempt can never be handed to a buyer as if it were ready to pay.
-*/
+// An attempt exists but has no usable link yet, so the buyer is asked to try again shortly.
 function stillProcessingResult(attempt, orderReference) {
   return {
     status: "pending",
@@ -93,11 +85,7 @@ function stillProcessingResult(attempt, orderReference) {
   };
 }
 
-/*
-Purpose: "A human must look at Stripe before we touch this order." Used whenever we cannot say
-         whether a payment link exists — a timeout, an unclear answer, or an attempt left alone
-         for too long. Retrying automatically could create a second charge.
-*/
+// We cannot say whether Stripe made a link, so a human checks before anything retries.
 function needsManualCheckResult(attempt, orderReference) {
   return {
     status: "reconciliation_required",
@@ -106,16 +94,12 @@ function needsManualCheckResult(attempt, orderReference) {
   };
 }
 
-/*
-Purpose: The single "we cannot sell right now" answer. It deliberately does not say why: the
-         cause can be an unconfigured shop, a closed sale window, a missing price, or no stock,
-         and none of that belongs in a buyer's response.
-*/
+// The single refusal, which deliberately does not say why: the cause is never the buyer's to see.
 function unavailable() {
   return { status: "unavailable" };
 }
 
-// The buyer reused their retry key with a different cart: that is a different purchase.
+// The retry key came back with a different cart: that is a different purchase.
 function conflictResult() {
   return { status: "conflict" };
 }
@@ -125,18 +109,13 @@ function terminalResult(attempt, orderReference) {
   return { status: attempt.status, attemptKey: attempt.attemptKey, orderReference };
 }
 
-/*
-Purpose: Run work in one database transaction, so a half-written attempt is impossible.
-         Injected in tests, where there is no database.
-*/
+// Run work in one database transaction, so a half-written attempt is impossible. Tests replace
+// this seam, because they have no database.
 function runInTransaction(work) {
   return mongoose.connection.transaction(work);
 }
 
-/*
-Purpose: Reach Stripe with the credentials this deployment is configured with. Callers may
-         inject their own (tests, and the shop controller, always do).
-*/
+// Reach Stripe with this deployment's credentials. Tests and the shop controller inject their own.
 async function defaultProvider() {
   const { createStripeProviderClient } = await import("./stripeProviderClient.js");
   return createStripeProviderClient({
@@ -152,7 +131,7 @@ function makeId(createId, prefix) {
   return randomUUID().replaceAll("-", "").slice(0, 24);
 }
 
-// The clock arrives as a seam so tests can pin "now" and prove the sale-window rules.
+// The clock is a seam so tests can pin "now" and prove the sale-window rules.
 function coerceNowToDate(clock) {
   const value = typeof clock === "function" ? clock() : clock;
   const date = value instanceof Date ? new Date(value.getTime()) : new Date(value);
@@ -160,22 +139,16 @@ function coerceNowToDate(clock) {
   return date;
 }
 
-/*
-Purpose: Order lines keep one short description of the variant, while the catalog keeps the
-         variant as separate size / colour / style fields, so that description is flattened
-         into the single value the order stores.
-*/
+// Order lines keep one short description of the variant, while the catalog keeps size, colour,
+// and style separately — so the description is flattened into the value the order stores.
 function variantAsStoredString(value) {
   if (value === null || value === undefined) return null;
   if (typeof value === "string") return value;
   try { return JSON.stringify(value); } catch { return String(value); }
 }
 
-/*
-Purpose: Give the pricing step (snapshotQuote) the handful of fields it reads, as plain data.
-Why: catalog rows arrive as Mongoose documents, whose fields are not plain properties. Spreading
-     such a row yields an empty-looking one, which would make every purchase look unpriced.
-*/
+// Give the pricing step (snapshotQuote) the few fields it reads, as plain data: catalog rows
+// arrive as Mongoose documents, and spreading one yields an empty-looking row.
 function quoteCatalogRow(entry) {
   return {
     skuKey: entry.skuKey,
@@ -186,11 +159,8 @@ function quoteCatalogRow(entry) {
   };
 }
 
-/*
-Purpose: Can we still send this buyer back to the payment link Stripe gave us?
-Why: Stripe reports the expiry in epoch seconds while the stored attempt may hold either shape,
-     and a link that is no longer open must never be handed out again.
-*/
+// Can we still send this buyer back to the link Stripe gave us? Stripe reports the expiry in
+// epoch seconds while the stored attempt may hold either shape, and a closed link is never reused.
 function isReusableStripeSession(session, now) {
   const expiresAt = typeof session?.expiresAt === "number"
     ? session.expiresAt * 1000
@@ -198,11 +168,8 @@ function isReusableStripeSession(session, now) {
   return session?.status === "open" && session.url && Number.isFinite(expiresAt) && expiresAt > now.getTime();
 }
 
-/*
-Purpose: Attach the payment link to the attempt, but only while the attempt is still waiting.
-Why: two requests can race (a double press, a retry). The first to arrive wins; whoever loses
-     keeps the winner's answer instead of overwriting a usable payment link.
-*/
+// Attach the link only while the attempt is still pending: two requests can race (a double
+// press, a retry), and the first to arrive wins over overwriting a usable link.
 async function attachReadySession(models, attemptFilter, session) {
   return models.CheckoutAttempt.findOneAndUpdate(
     { ...attemptFilter, status: "pending" },
@@ -211,12 +178,17 @@ async function attachReadySession(models, attemptFilter, session) {
 }
 
 /*
- * @behavior Replays an existing attempt for this buyer and retry key, or creates one, prices
- *           it, dispatches it to Stripe, and attaches the payment link — resolving it from
- *           durable state instead of creating a second charge whenever the outcome is unclear.
- * @param args models, owner, UUIDv4 attemptKey, cart items, readiness, provider and clock seams.
- * @returns ready (with a payment link), pending, conflict, terminal, or unavailable.
- * @exceptions CheckoutValidationError for a malformed owner, retry key, base URL, cart, or clock.
+ * @behavior Replay this buyer's attempt for the retry key, or create one: price the cart, take
+ *           stock, record the attempt, then ask Stripe for a payment link. Whenever the outcome
+ *           is unclear it answers from durable state instead of risking a second charge.
+ * @param models — the storage collections checkout reads and writes
+ * @param owner — the signed-in buyer, taken from the session only
+ * @param attemptKey — the browser's Idempotency-Key, lower-cased
+ * @param items — the cart exactly as the browser sent it
+ * @param checkoutEnabled — readiness override; false refuses a new attempt
+ * @param getProvider, now, transaction, createId — seams tests replace
+ * @returns ready (with a link), pending, conflict, a terminal status, or unavailable
+ * @exceptions CheckoutValidationError for an unusable owner, retry key, base URL, cart, or clock
  */
 export async function createCheckout({
   models,
@@ -231,8 +203,7 @@ export async function createCheckout({
   createId,
 } = {}) {
   const normalizedOwner = validateOwner(owner);
-  // The retry key is the buyer's own Idempotency-Key header, lower-cased so the same press of
-  // Pay always compares equal; it selects this buyer's attempt and nothing else.
+  // The buyer's own Idempotency-Key, lower-cased so the same press of Pay always compares equal.
   const normalizedAttemptKey = typeof attemptKey === "string" ? attemptKey.toLowerCase() : attemptKey;
   if (typeof normalizedAttemptKey !== "string" || !UUID_V4.test(normalizedAttemptKey)) {
     throw new CheckoutValidationError("Invalid checkout attempt key");
@@ -248,8 +219,7 @@ export async function createCheckout({
     throw new CheckoutValidationError("Checkout storage is unavailable");
   }
 
-  // Everything below is scoped to this buyer, so one buyer's retry key can never reach another
-  // buyer's attempt, order, or payment link.
+  // Scoped to this buyer, so one buyer's retry key can never reach another buyer's attempt.
   const attemptFilter = {
     "owner.type": normalizedOwner.type,
     "owner.userId": normalizedOwner.userId,
@@ -257,8 +227,8 @@ export async function createCheckout({
   };
   const cartFingerprint = JSON.stringify(cart);
 
-  // Look for this buyer's earlier attempt before doing any new work. A retry, a refresh, or a
-  // double press must find its own attempt even when checkout has since been switched off.
+  // Look for this buyer's earlier attempt first. A retry, refresh, or double press must find its
+  // own attempt even when checkout has since been switched off.
   const existing = await models.CheckoutAttempt.findOne(attemptFilter);
   if (existing) {
     if (existing.cartFingerprint !== cartFingerprint) return conflictResult();
@@ -285,8 +255,8 @@ export async function createCheckout({
     if (!checkoutEnabled) return stillProcessingResult(existing, orderReference);
     if (!existing.frozenStripeRequest) return stillProcessingResult(existing, orderReference);
 
-    // The earlier request never reached Stripe (it died after writing the attempt). Safe to send
-    // the same request again, with the same key, before either cutoff above is reached.
+    // The earlier request died after writing the attempt, before reaching Stripe. Sending the
+    // same request again with the same key is safe before either cutoff above is reached.
     try {
       const provider = await getProvider();
       const session = await provider.createCheckoutSession({
@@ -335,8 +305,8 @@ export async function createCheckout({
 
   let quote;
   try {
-    // snapshotQuote turns the cart plus the catalog into the prices, quantities, and total the
-    // buyer is agreeing to. Stored below, so a later price change cannot rewrite this order.
+    // The prices, quantities, and total the buyer is agreeing to, stored below so a later price
+    // change cannot rewrite this order.
     quote = snapshotQuote({ cart, catalog: catalogRows.map(quoteCatalogRow), drop: activeSalesWindow, now: checkoutNow });
   } catch {
     return unavailable();
@@ -345,8 +315,8 @@ export async function createCheckout({
   const attemptId = makeId(createId, "checkout-attempt");
   const orderId = makeId(createId, "order");
   const orderReference = `ORD-${orderId}`;
-  // The key Stripe sees. It is derived from our attempt id, never from the browser, so two
-  // buyers who happen to send the same retry key can never share one Stripe payment.
+  // The key Stripe sees, derived from our attempt id and never from the browser, so two buyers
+  // who send the same retry key can never share one Stripe payment.
   const providerIdempotencyKey = `iuga:checkout:${attemptId}`;
   const expiresAt = new Date(checkoutNow.getTime() + ATTEMPT_WINDOW_MS);
   const frozenStripeRequest = {
@@ -392,13 +362,11 @@ export async function createCheckout({
   };
 
   try {
-    // Why: the stock hold, the order, and the attempt are written together. If any one of them
-    // fails, none is kept — otherwise stock would be held for an order that does not exist, or an
-    // order would exist with no stock behind it.
+    // The stock hold, the order, and the attempt are written together. If any one fails, none is
+    // kept — never stock held for a missing order, nor an order with no stock behind it.
     await transaction(async (session) => {
-      // Why: the hold lasts exactly as long as the payment link. A shorter hold could give the
-      // stock away while the buyer can still pay for it; a longer one would sit on stock for an
-      // attempt that is already dead.
+      // The hold lasts exactly as long as the payment link: shorter could give the stock away
+      // while the buyer can still pay, longer would sit on stock for a dead attempt.
       await holdInventory({
         models,
         orderId,
@@ -412,8 +380,8 @@ export async function createCheckout({
       await models.CheckoutAttempt.create(attemptDocument, { session });
     });
   } catch (error) {
-    // A duplicate-key failure means another request is already writing this buyer's attempt.
-    // Answer from that attempt rather than starting a second order.
+    // A duplicate-key failure means another request is already writing this buyer's attempt;
+    // answer from that attempt instead of starting a second order.
     if (error?.code === 11000) {
       const raced = await models.CheckoutAttempt.findOne(attemptFilter);
       if (raced) {
@@ -426,7 +394,7 @@ export async function createCheckout({
   }
 
   // Only now do we involve money: the attempt is written down, so a failure here is recoverable
-  // by looking the attempt up again instead of by charging anyone twice.
+  // by looking the attempt up again rather than by charging anyone twice.
   try {
     const provider = await getProvider();
     const session = await provider.createCheckoutSession({ frozenStripeRequest, idempotencyKey: providerIdempotencyKey });

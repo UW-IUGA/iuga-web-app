@@ -156,8 +156,8 @@ describe("Shop Mongoose Schemas and Models", () => {
 
   describe("Order schema and owner cursor index", () => {
     it("keeps the order rules to fields the order document defines", () => {
-      // A rule that returns a field the document does not store loses that value silently the
-      // moment the order is saved — exactly how the fulfilment and payment rules once drifted.
+      // A rule that returns a field the document does not store loses that value silently when
+      // the order is saved — how the fulfilment and payment rules once drifted.
       const defined = new Set(Object.keys(orderSchema.paths).map((path) => path.split(".")[0]));
       const samples = [
         applyPaymentEvent({ paymentState: "pending", totalMinor: 4500 }, { type: "payment_confirmed", providerPaymentId: "pi_1" }),

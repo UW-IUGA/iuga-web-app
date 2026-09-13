@@ -1,8 +1,8 @@
 /*
-Purpose: Pin the stock promises: the last hoodie cannot be sold twice, a half-finished order
-         gives its stock back, and stock only returns to the shelf once the payment link can no
-         longer be paid.
-*/
+ * @behavior Pin the stock promises: the last hoodie cannot be sold twice, a half-finished order
+ *           gives its stock back, and stock only returns to the shelf once the payment link can
+ *           no longer be paid.
+ */
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
@@ -172,7 +172,7 @@ describe("Shop Inventory Reservations and Fencing", () => {
       );
 
       const counter = models.InventoryCounter._getCounters()[0];
-      assert.equal(counter.available, 1); // Unchanged, never underflowed
+      assert.equal(counter.available, 1); // A failed reservation never touches the counter
       assert.equal(counter.reserved, 0);
     });
 
@@ -184,7 +184,7 @@ describe("Shop Inventory Reservations and Fencing", () => {
 
       const items = [
         { skuKey: "info-hoodie-purple-m", quantity: 2 },
-        { skuKey: "info-tote-bag-natural", quantity: 1 }, // Will fail
+        { skuKey: "info-tote-bag-natural", quantity: 1 },
       ];
 
       await assert.rejects(
@@ -199,7 +199,6 @@ describe("Shop Inventory Reservations and Fencing", () => {
         InsufficientInventoryError,
       );
 
-      // Hoodie stock must be rolled back
       const hoodie = models.InventoryCounter._getCounters().find((c) => c.fulfillmentSku === "HOODIE-PURPLE-M");
       assert.equal(hoodie.available, 5);
       assert.equal(hoodie.reserved, 0);
@@ -228,7 +227,7 @@ describe("Shop Inventory Reservations and Fencing", () => {
       );
 
       const hoodie = models.InventoryCounter._getCounters().find((c) => c.fulfillmentSku === "HOODIE-PURPLE-M");
-      assert.equal(hoodie.available, 5); // Counter compensated!
+      assert.equal(hoodie.available, 5); // A failed reservation never touches the counter
       assert.equal(hoodie.reserved, 0);
     });
   });
@@ -258,7 +257,8 @@ describe("Shop Inventory Reservations and Fencing", () => {
 
     it("refuses to consume reservation if counter conditional update fails", async () => {
       const models = makeFakeModels(
-        [{ fulfillmentSku: "HOODIE-PURPLE-M", available: 8, reserved: 0, consumed: 2, version: 2 }], // reserved is 0, not 2!
+        // reserved is below the hold quantity, so the fence must fail
+        [{ fulfillmentSku: "HOODIE-PURPLE-M", available: 8, reserved: 0, consumed: 2, version: 2 }],
         [{ orderId: "ord_lost_fence", skuKey: "info-hoodie-purple-m", fulfillmentSku: "HOODIE-PURPLE-M", quantity: 2, state: "reserved" }],
       );
 
@@ -273,7 +273,7 @@ describe("Shop Inventory Reservations and Fencing", () => {
       );
 
       const res = models.InventoryReservation._getReservations()[0];
-      assert.equal(res.state, "reserved"); // Not marked consumed
+      assert.equal(res.state, "reserved");
     });
   });
 
@@ -289,14 +289,14 @@ describe("Shop Inventory Reservations and Fencing", () => {
           await releaseInventory({
             models,
             orderId: "ord_open",
-            sessionCannotBePaidVerified: false, // Session might still be payable!
+            sessionCannotBePaidVerified: false,
           });
         },
         /can no longer be paid/i,
       );
 
       const counter = models.InventoryCounter._getCounters()[0];
-      assert.equal(counter.reserved, 2); // Held safely
+      assert.equal(counter.reserved, 2);
     });
 
     it("puts stock back on the shelf once the payment link is verified dead", async () => {
@@ -323,7 +323,8 @@ describe("Shop Inventory Reservations and Fencing", () => {
 
     it("refuses to release reservation if counter conditional update fails", async () => {
       const models = makeFakeModels(
-        [{ fulfillmentSku: "HOODIE-PURPLE-M", available: 8, reserved: 0, consumed: 2, version: 2 }], // reserved is 0, not 2!
+        // reserved is below the hold quantity, so the fence must fail
+        [{ fulfillmentSku: "HOODIE-PURPLE-M", available: 8, reserved: 0, consumed: 2, version: 2 }],
         [{ orderId: "ord_lost_fence_rel", skuKey: "info-hoodie-purple-m", fulfillmentSku: "HOODIE-PURPLE-M", quantity: 2, state: "reserved" }],
       );
 
@@ -339,7 +340,7 @@ describe("Shop Inventory Reservations and Fencing", () => {
       );
 
       const res = models.InventoryReservation._getReservations()[0];
-      assert.equal(res.state, "reserved"); // Not marked released
+      assert.equal(res.state, "reserved");
     });
   });
 });

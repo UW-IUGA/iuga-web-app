@@ -84,6 +84,16 @@ Express also serves:
 | `DELETE` | `/withdraw/:eId/:pId` | Yes | Withdraw only the caller's participant from the matching event. Admins may withdraw any participant. |
 | `GET` | `/:pId` | Yes | Return protected participant details only to the participant owner or an admin. |
 
+### Shop (`/api/v1/shop`)
+
+Selling relies on the shop vocabulary and flow described in [SHOP.md](./SHOP.md). Checkout is
+**fail-closed**: until a deployment passes every readiness check, this endpoint answers `503` and
+`GET /readyz` reports `checkoutEnabled: false`.
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `POST` | `/checkout-sessions` | Yes | Price the buyer's cart from the catalog and return a Stripe payment link for it. Requires a UUIDv4 `Idempotency-Key` header and a body of exactly `{ items: [{ skuKey, quantity }] }`; the buyer, prices, and totals come from the server. Returns `201` (new attempt, link), `200` (same attempt again, or a finished attempt with no link), `202` (still in progress, or a human must check Stripe), `400`, `401`, `409` (same retry key, different cart), `503`. |
+
 ### User (`/api/v1/user`)
 
 | Method | Path | Auth | Description |
@@ -250,6 +260,16 @@ Mongoose models are registered at startup:
 | `RoleAssignments` | `roleAssignmentsSchema` | `roleassignments` |
 | `EventRequests` | `eventRequestsSchema` | `eventrequests` |
 | `EventReviews` | `eventReviewsSchema` | `eventreviews` |
+| `CatalogEntry` | `catalogEntrySchema` | `catalogentries` |
+| `ShopDrop` | `shopDropSchema` | `shopdrops` |
+| `InventoryCounter` | `inventoryCounterSchema` | `inventorycounters` |
+| `InventoryReservation` | `inventoryReservationSchema` | `inventoryreservations` |
+| `CheckoutAttempt` | `checkoutAttemptSchema` | `checkoutattempts` |
+| `Order` | `orderSchema` | `orders` |
+| `RefundOperation` | `refundOperationSchema` | `refundoperations` |
+| `Dispute` | `disputeSchema` | `disputes` |
+| `StripeInboxEvent` | `stripeInboxEventSchema` | `stripeinboxevents` |
+| `OrderActivity` | `orderActivitySchema` | `orderactivities` |
 
 The schemas live in a **separate GitHub repository** (`UW-IUGA/iuga-web-schemas`) mounted as a submodule at `backend/schemas/`. If the submodule is not initialized, the backend will fail to start.
 
@@ -314,6 +334,7 @@ ETags are disabled with `app.disable('etag')`, so responses do not use condition
 - [Commenting Guide](COMMENTING.md) — House style for code comments
 - [Development Guide](DEVELOPMENT.md) — Setup, scripts, code conventions
 - [Frontend Documentation](FRONTEND.md) — React app structure, routing, auth flow
+- [Shop and Checkout](SHOP.md) — Shop vocabulary, the checkout flow, and its rules
 - [Deployment Guide](DEPLOYMENT.md) — Environments, CI/CD, Docker
 - [Maintainers Guide](MAINTAINERS.md) — Monitoring and maintenance
 - [Troubleshooting Guide](TROUBLESHOOTING.md) — Common failures and diagnosis

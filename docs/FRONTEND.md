@@ -89,6 +89,7 @@ Defined in `src/App.jsx`:
 | `/events` | `EventsPage` | Mock data or `GET /api/v1/events` |
 | `/resources` | `ResourcesPage` | Static data from `assets/data/ResourcesData.js` |
 | `/elections` | `ElectionPage` | Static data from `assets/data/CandidateData.js` |
+| `/shop` | `ShopPage` | Static data from `assets/data/ShopData.js` (no prices or cart yet — see [SHOP.md](./SHOP.md)) |
 | `/electionfaq` | `ElectionsFAQPage` | Static data from `assets/data/ElectionFAQData.js` |
 | `/get-involved` | `GetInvolvedPage` | Static data from `frontend/src/assets/data/teams/2026.js` (2026 roster, no API) |
 

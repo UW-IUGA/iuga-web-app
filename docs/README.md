@@ -13,6 +13,7 @@ This directory contains the full documentation set for the **Informatics Undergr
 | [Development](DEVELOPMENT.md) | Developers | Setup, scripts, environment configuration, code conventions, common tasks, testing |
 | [Frontend](FRONTEND.md) | Frontend devs | Tech stack, directory layout, routing, data flow, authentication, styling, dependencies |
 | [Backend](BACKEND.md) | Backend devs | Entry points, directory layout, SPA routes, API routes, authentication, database, middleware stack, dependencies |
+| [Shop](SHOP.md) | Backend devs, maintainers | Shop vocabulary, the checkout flow step by step, the rules it enforces, where the code lives, known gaps |
 | [Deployment](DEPLOYMENT.md) | Maintainers | Pipeline overview, Jenkinsfile comparison, credentials, Docker build, runtime architecture, verification, rollback |
 | [Maintainers](MAINTAINERS.md) | Maintainers | Monitoring checks, maintenance procedures, observation points, credential rotation |
 | [Troubleshooting](TROUBLESHOOTING.md) | Developers & maintainers | Pipeline failures, runtime failures, 502 Bad Gateway, stale content, diagnosis sequences |

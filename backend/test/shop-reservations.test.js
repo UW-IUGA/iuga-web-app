@@ -1,3 +1,9 @@
+/*
+Purpose: Pin the stock promises: the last hoodie cannot be sold twice, a half-finished order
+         gives its stock back, and stock only returns to the shelf once the payment link can no
+         longer be paid.
+*/
+
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -272,7 +278,7 @@ describe("Shop Inventory Reservations and Fencing", () => {
   });
 
   describe("releaseInventory", () => {
-    it("refuses to release stock without verified proof of non-payable session", async () => {
+    it("keeps stock held until we can verify the payment link is dead", async () => {
       const models = makeFakeModels(
         [{ fulfillmentSku: "HOODIE-PURPLE-M", available: 8, reserved: 2, consumed: 0, version: 2 }],
         [{ orderId: "ord_open", skuKey: "info-hoodie-purple-m", fulfillmentSku: "HOODIE-PURPLE-M", quantity: 2, state: "reserved" }],
@@ -283,17 +289,17 @@ describe("Shop Inventory Reservations and Fencing", () => {
           await releaseInventory({
             models,
             orderId: "ord_open",
-            proofOfNonPayable: false, // Session might still be payable!
+            sessionCannotBePaidVerified: false, // Session might still be payable!
           });
         },
-        /proof of non-payable/i,
+        /can no longer be paid/i,
       );
 
       const counter = models.InventoryCounter._getCounters()[0];
       assert.equal(counter.reserved, 2); // Held safely
     });
 
-    it("releases reserved stock back to available when proof of non-payable is provided", async () => {
+    it("puts stock back on the shelf once the payment link is verified dead", async () => {
       const models = makeFakeModels(
         [{ fulfillmentSku: "HOODIE-PURPLE-M", available: 8, reserved: 2, consumed: 0, version: 2 }],
         [{ orderId: "ord_expired", skuKey: "info-hoodie-purple-m", fulfillmentSku: "HOODIE-PURPLE-M", quantity: 2, state: "reserved" }],
@@ -302,8 +308,7 @@ describe("Shop Inventory Reservations and Fencing", () => {
       const result = await releaseInventory({
         models,
         orderId: "ord_expired",
-        proofOfNonPayable: true,
-        reason: "checkout_session_expired",
+        sessionCannotBePaidVerified: true,
       });
 
       assert.equal(result.releasedCount, 1);
@@ -327,7 +332,7 @@ describe("Shop Inventory Reservations and Fencing", () => {
           await releaseInventory({
             models,
             orderId: "ord_lost_fence_rel",
-            proofOfNonPayable: true,
+            sessionCannotBePaidVerified: true,
           });
         },
         /counter fence lost/i,

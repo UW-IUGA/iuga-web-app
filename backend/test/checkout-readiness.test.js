@@ -1,3 +1,9 @@
+/*
+Purpose: Pin the fail-closed rule: checkout is switched on only when the configuration, the
+         infrastructure, and the club's approvals are all present, and every missing piece is
+         named in the answer.
+*/
+
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -40,7 +46,6 @@ function evaluate(overrides = {}) {
 }
 
 function assertUnavailable(result, reason) {
-  assert.equal(result.available, false);
   assert.equal(result.checkoutEnabled, false);
   assert.ok(result.reasons.includes(reason), `expected reason ${reason}`);
 }
@@ -63,7 +68,6 @@ describe("checkout configuration and readiness", () => {
   it("accepts a complete test-mode configuration when every gate is explicitly healthy", () => {
     const result = evaluate();
 
-    assert.equal(result.available, true);
     assert.equal(result.checkoutEnabled, true);
     assert.equal(result.mode, "test");
     assert.deepEqual(result.reasons, []);

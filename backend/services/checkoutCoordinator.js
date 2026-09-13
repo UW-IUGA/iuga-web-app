@@ -396,7 +396,18 @@ export async function createCheckout({
     // fails, none is kept — otherwise stock would be held for an order that does not exist, or an
     // order would exist with no stock behind it.
     await transaction(async (session) => {
-      await holdInventory({ models, orderId, items: cart, catalog: catalogRows, now: checkoutNow, session });
+      // Why: the hold lasts exactly as long as the payment link. A shorter hold could give the
+      // stock away while the buyer can still pay for it; a longer one would sit on stock for an
+      // attempt that is already dead.
+      await holdInventory({
+        models,
+        orderId,
+        items: cart,
+        catalog: catalogRows,
+        now: checkoutNow,
+        ttlMs: ATTEMPT_WINDOW_MS,
+        session,
+      });
       await models.Order.create(orderDocument, { session });
       await models.CheckoutAttempt.create(attemptDocument, { session });
     });

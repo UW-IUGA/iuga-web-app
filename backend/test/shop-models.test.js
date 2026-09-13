@@ -15,6 +15,12 @@ import {
   orderActivitySchema,
 } from "../schemas/schemas.js";
 import { models } from "../models.js";
+import {
+  applyDisputeEvent,
+  applyFulfillmentAction,
+  applyPaymentEvent,
+  applyRefundEvent,
+} from "../shop/domain.js";
 
 describe("Shop Mongoose Schemas and Models", () => {
   describe("Schema exports and model registry", () => {
@@ -149,6 +155,36 @@ describe("Shop Mongoose Schemas and Models", () => {
   });
 
   describe("Order schema and owner cursor index", () => {
+    it("keeps the order rules to fields the order document defines", () => {
+      // A rule that returns a field the document does not store loses that value silently the
+      // moment the order is saved — exactly how the fulfilment and payment rules once drifted.
+      const defined = new Set(Object.keys(orderSchema.paths).map((path) => path.split(".")[0]));
+      const samples = [
+        applyPaymentEvent({ paymentState: "pending", totalMinor: 4500 }, { type: "payment_confirmed", providerPaymentId: "pi_1" }),
+        applyFulfillmentAction({ fulfillmentMethod: "pickup", fulfillmentState: "preparing" }, { action: "hold", reason: "address_verification_needed" }),
+        applyFulfillmentAction({ fulfillmentMethod: "shipping", fulfillmentState: "preparing" }, { action: "ship", trackingNumber: "1Z999" }),
+        applyRefundEvent({ totalMinor: 4500, refundedMinor: 0, pendingRefundMinor: 0 }, { action: "reserve", amountMinor: 500 }),
+        applyDisputeEvent({ dispute: { state: "none" } }, { action: "open", reason: "fraudulent" }),
+      ];
+
+      for (const sample of samples) {
+        for (const key of Object.keys(sample)) {
+          assert.ok(defined.has(key), `order rule returned a field the order document cannot store: ${key}`);
+        }
+      }
+    });
+
+    it("stores the fulfilment details the order rules produce", () => {
+      for (const path of [
+        "fulfillmentHold.reason",
+        "fulfillmentHold.placedAt",
+        "fulfillmentHold.returnToState",
+        "trackingNumber",
+      ]) {
+        assert.ok(orderSchema.paths[path], `Missing order path ${path}`);
+      }
+    });
+
     it("enforces unique orderReference", () => {
       assert.equal(orderSchema.paths.orderReference.options.unique, true);
     });

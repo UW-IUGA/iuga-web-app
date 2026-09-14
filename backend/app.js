@@ -6,7 +6,7 @@ import cors from "cors";
 import path from "path";
 
 import { models, connectToDatabase } from "./models.js";
-import { createSessionOptions } from "./sessionConfig.js";
+import { createSessionOptions, readSessionSecret } from "./sessionConfig.js";
 import apiv1Router from "./routes/api/v1/apiv1.js";
 import {
   configureTrustedProxy,
@@ -24,17 +24,9 @@ import { dirname } from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Session signing secret is per deployment environment so one env source can
-// hold all three. DEPLOY_ENV is injected in every container (deploy.groovy).
-const secretKeyByEnv = {
-  development: "SESSION_SECRET_DEV",
-  staging: "SESSION_SECRET_STAGING",
-  production: "SESSION_SECRET_PROD",
-};
-const secretKey = secretKeyByEnv[process.env.DEPLOY_ENV] ?? "SESSION_SECRET";
-const sessionSecret = process.env[secretKey]?.trim();
+const { envName: secretEnvName, value: sessionSecret } = readSessionSecret(process.env);
 if (!sessionSecret) {
-  console.error(`FATAL: ${secretKey} not set`);
+  console.error(`FATAL: ${secretEnvName} not set`);
   process.exit(1);
 }
 

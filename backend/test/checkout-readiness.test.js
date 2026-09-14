@@ -1,8 +1,8 @@
 /*
-Purpose: Pin the fail-closed rule: checkout is switched on only when the configuration, the
-         infrastructure, and the club's approvals are all present, and every missing piece is
-         named in the answer.
-*/
+ * @behavior Pin the fail-closed rule: checkout is switched on only when the configuration, the
+ *           infrastructure, and the club's approvals are all present, and every missing piece
+ *           is named in the answer.
+ */
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";

@@ -1,9 +1,8 @@
 /*
-Purpose: Prove the Stripe boundary can be trusted with a real purchase: it sends exactly the
-         fields we decided, reuses our retry key so a retry cannot become a second charge,
-         and every failure — bad key, dead network, Stripe rejection — comes back as one
-         generic error that leaks neither our API key nor Stripe's response body.
-*/
+ * @behavior Prove the Stripe boundary sends exactly the fields we decided, reuses our retry key
+ *           so a retry cannot become a second charge, and turns every failure into one generic
+ *           error that leaks neither our API key nor Stripe's response body.
+ */
 
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
@@ -19,7 +18,6 @@ const SESSION_RESPONSE = {
   payment_intent: "pi_test_123",
 };
 
-// A stand-in for the fetch response Stripe would give us.
 function response({ status = 200, json, text } = {}) {
   return {
     ok: status >= 200 && status < 300,
@@ -108,8 +106,7 @@ describe("createStripeProviderClient", () => {
     assert.equal(fields.get("metadata[order]"), "order_opaque_123");
     assert.equal(fields.get("payment_intent_data[metadata][attempt]"), "attempt_123");
     assert.equal(fields.get("payment_intent_data[metadata][order]"), "order_opaque_123");
-    // Why: these stay absent so the buyer cannot change a quantity or apply a discount we did
-    //      not price, and no Stripe customer record is created for a one-off purchase.
+    // No promotion codes, quantity edits, or customer records: the buyer cannot change our price.
     assert.equal(fields.get("customer_creation"), null);
     assert.equal(fields.get("allow_promotion_codes"), null);
     assert.equal(fields.get("adjustable_quantity[enabled]"), null);

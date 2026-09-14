@@ -1,28 +1,29 @@
 /*
-Purpose: The shop's HTTP entry point. It answers one question for the browser — "what is the
-         payment link for this cart, if there is one?" — and refuses anything the browser
-         should not be deciding (who the buyer is, what things cost, how many are left).
-
-Authentication/Authorization Requirements: A signed-in UW session. State-changing requests must
-    also come from a trusted shop origin and are rate limited; both are enforced globally in
-    app.js before this router runs.
-
-Expected Request Information:
-- header `Idempotency-Key` — a UUIDv4 the browser repeats when it retries the same purchase.
-- body `{ "items": [ { "skuKey": <catalog variant>, "quantity": <whole number, 1 or more> } ] }`
-- nothing else: no buyer, no prices, no totals.
-
-Expected Response Information:
-- 201 { attemptKey, orderReference, status: "ready", checkoutUrl }   a new attempt, ready to pay
-- 200 { attemptKey, orderReference, status: "ready", checkoutUrl }   the same attempt, asked again
-- 200 { attemptKey, orderReference, status: "expired" | "failed" }   finished, no link to give
-- 202 { attemptKey, orderReference, status: "pending" }              recorded, ask again shortly
-- 202 { attemptKey, orderReference, status: "reconciliation_required" } a human must check Stripe
-- 400 the request was not usable
-- 401 nobody is signed in
-- 409 the same retry key arrived with a different cart
-- 503 checkout is switched off, misconfigured, or unavailable for now
-*/
+ * @behavior The shop's HTTP entry point. It answers one question for the browser — "what is
+ *           the payment link for this cart, if there is one?" — and refuses anything the
+ *           browser should not be deciding (who the buyer is, what things cost, how many are
+ *           left).
+ *
+ * Authentication/Authorization Requirements: A signed-in UW session. State-changing requests
+ * must also come from a trusted shop origin and are rate limited; both are enforced globally
+ * in app.js before this router runs.
+ *
+ * Expected Request Information:
+ * - header `Idempotency-Key` — a UUIDv4 the browser repeats when it retries the same purchase
+ * - body `{ "items": [ { "skuKey": <catalog variant>, "quantity": <whole number, 1 or more> } ] }`
+ * - nothing else: no buyer, no prices, no totals
+ *
+ * Expected Response Information:
+ * - 201 { attemptKey, orderReference, status: "ready", checkoutUrl }   a new attempt, ready to pay
+ * - 200 { attemptKey, orderReference, status: "ready", checkoutUrl }   the same attempt, asked again
+ * - 200 { attemptKey, orderReference, status: "expired" | "failed" }   finished, no link to give
+ * - 202 { attemptKey, orderReference, status: "pending" }              recorded, ask again shortly
+ * - 202 { attemptKey, orderReference, status: "reconciliation_required" } a human must check Stripe
+ * - 400 the request was not usable
+ * - 401 nobody is signed in
+ * - 409 the same retry key arrived with a different cart
+ * - 503 checkout is switched off, misconfigured, or unavailable for now
+ */
 
 import express from "express";
 import { requireAuth } from "../utils/auth.js";
@@ -42,11 +43,13 @@ function isPlainObject(value) {
 }
 
 /*
-Purpose: Read the buyer's request, or reject it with a message that reveals nothing.
-Why: the body must be exactly { items }. Anything else — a buyer, a price, a total — is refused
-     rather than ignored, because the server owns identity and money, and a silently ignored
-     field is how a client ends up believing it decided the price.
-*/
+ * @behavior Read the buyer's request, or reject it with a message that reveals nothing. The body
+ *           must be exactly { items }, because the server owns identity and money.
+ * @param body — the raw request body
+ * @param idempotencyKeyHeader — the browser's Idempotency-Key header
+ * @returns the lower-cased retry key and the normalized cart
+ * @exceptions CheckoutValidationError when the key or the body is not exactly what we accept
+ */
 function readCheckoutRequest(body, idempotencyKeyHeader) {
   if (typeof idempotencyKeyHeader !== "string" || !UUID_V4.test(idempotencyKeyHeader)) {
     throw new CheckoutValidationError(INVALID_REQUEST_MESSAGE);
@@ -76,22 +79,19 @@ function stripeProviderFromEnvironment() {
   });
 }
 
-/*
-Purpose: Decide whether checkout may run at all, right now.
-Why: production passes nothing here, so the fail-closed readiness gate is asked on every request
-     and cannot be sidestepped by a running process. Tests pass a boolean to choose an answer.
-*/
+// Ask the fail-closed readiness gate on every request, so a running process cannot sidestep it.
+// Tests pass a boolean to choose an answer.
 function resolveCheckoutEnabled(override) {
   if (typeof override === "boolean") return override;
   return evaluateCheckoutReadiness({ env: process.env }).checkoutEnabled;
 }
 
 /*
- * Purpose: Build the shop's router. Injectable so tests can drive the endpoint without a
- *          database or Stripe.
- * @param options.checkout — the checkout flow to delegate to; defaults to the real one.
- * @param options.checkoutEnabled — a boolean readiness override for tests.
- * @returns an Express router mounted at /api/v1/shop.
+ * @behavior Build the shop's router. Injectable so tests can drive the endpoint without a
+ *           database or Stripe.
+ * @param options.checkout — the checkout flow to delegate to; defaults to the real one
+ * @param options.checkoutEnabled — a boolean readiness override for tests
+ * @returns an Express router mounted at /api/v1/shop
  */
 export function createShopRouter({ checkout = createCheckout, checkoutEnabled } = {}) {
   const router = express.Router();
@@ -134,7 +134,6 @@ export function createShopRouter({ checkout = createCheckout, checkoutEnabled } 
         };
         return res.status(result.isNew === false ? 200 : 201).json(body);
       }
-      // The attempt is over. Answer 200 so a client stops asking, and hand back no link.
       if (result?.status === "expired" || result?.status === "failed") {
         return res.status(200).json({
           attemptKey: result.attemptKey,
@@ -142,7 +141,6 @@ export function createShopRouter({ checkout = createCheckout, checkoutEnabled } 
           status: result.status,
         });
       }
-      // Still in progress, or waiting for a human: no link either way.
       if (result?.status === "pending" || result?.status === "reconciliation_required") {
         return res.status(202).json({
           attemptKey: result.attemptKey,

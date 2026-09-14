@@ -9,28 +9,41 @@ This document describes the conventions used across the repository.
 ## Where comments are expected
 
 **File headers.** Every source file starts with a short block comment
-explaining the file's purpose. For files that expose an API surface — routes,
+explaining what the file does. For files that expose an API surface — routes,
 pipelines, shared helpers — the header also states who is allowed to call it
 and what it expects and returns.
 
 ```js
 /*
-Purpose: Gate routes by session state so protected endpoints are only
-         reachable by the right kind of user.
-
-Authentication/Authorization Requirements: N/A (helper module, not a route)
-
-Expected Request Information:
-- req.session.isAuthenticated (set at /user/login)
-
-Expected Response Information:
-- 401 { status: "error", message: "Not authenticated" }
-- 403 { status: "error", message: "Not authorized" }
-*/
+ * @behavior Gate routes by session state so protected endpoints are only reachable by the
+ *           right kind of user.
+ *
+ * Expected Request Information:
+ * - req.session.isAuthenticated (set at /user/login)
+ *
+ * Expected Response Information:
+ * - 401 { status: "error", message: "Not authenticated" }
+ * - 403 { status: "error", message: "Not authorized" }
+ */
 ```
 
 **Definitions.** Every route and every non-trivial function gets a short block
-above it describing what it does and any access requirements:
+above it. Use the `@behavior` / `@param` / `@returns` / `@exceptions` tags;
+`@behavior` states observable behavior concisely, and any tag the code already
+makes obvious is omitted. A trivial helper whose name says what it does needs
+no block at all.
+
+```js
+/*
+ * @behavior Build the express-session options for the current deployment environment.
+ * @param sessionSecret — the operator-provided signing secret
+ * @param deployEnv — the configured deployment environment
+ * @returns explicit session persistence and cookie settings
+ */
+export function createSessionOptions(sessionSecret, deployEnv) { ... }
+```
+
+A route may instead use the endpoint form:
 
 ```js
 /*
@@ -41,15 +54,7 @@ above it describing what it does and any access requirements:
 router.post("/login", async function (req, res) { ... });
 ```
 
-```js
-/*
-Purpose: Save a new feedback form to the database.
-Authentication/Authorization Requirements: Logged in.
-*/
-router.post("/", async (req, res) => { ... });
-```
-
-Either format is fine; stay consistent within a file.
+For API surfaces, either form is fine; stay consistent within a file.
 
 **Inline.** For lines whose purpose isn't obvious from reading them:
 

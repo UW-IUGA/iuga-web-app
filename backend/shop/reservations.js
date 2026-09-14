@@ -1,13 +1,8 @@
 /*
-Purpose: How much stock is held, sold, and put back for each physical pile we count. Without
-         this, two students could buy the last hoodie in the same moment and both be charged.
-
-Called by: checkoutCoordinator (takes stock for a new checkout attempt); the payment and expiry
-           work will call the other two.
-
-Must not: move a stock counter without a matching reservation record, put stock back for an
-          order that could still be paid, or let a counter go negative.
-*/
+ * @behavior Track how much stock is held, sold, and put back for each pile we count, so two
+ *           students cannot buy the last hoodie in the same moment and both be charged. Counters
+ *           never move without a matching reservation record, and never go negative.
+ */
 
 export class InsufficientInventoryError extends Error {
   constructor({ skuKey, fulfillmentSku, requestedQuantity, availableQuantity }) {
@@ -20,11 +15,8 @@ export class InsufficientInventoryError extends Error {
   }
 }
 
-/*
-Purpose: Put stock back after an attempt fails halfway through a multi-item order.
-Why: without this, every pile we already took stock from stays taken, and the shop quietly sells
-     less than it owns.
-*/
+// Put stock back after an attempt fails halfway through a multi-item order. Without this, every
+// pile already taken from stays taken and the shop quietly sells less than it owns.
 async function restoreStockCounters({ models, takenCounters, session }) {
   for (const taken of takenCounters) {
     await models.InventoryCounter.findOneAndUpdate(
@@ -42,18 +34,18 @@ async function restoreStockCounters({ models, takenCounters, session }) {
 }
 
 /*
- * Purpose:   Take the ordered quantity off the shelf for each variant in a cart and write a
- *            time-limited reservation for it, so the order can be paid without overselling.
- * @param     models — the database models, or fakes in tests
- * @param     orderId — the order these holds belong to
- * @param     items — the normalized cart: [{ skuKey, quantity }]
- * @param     catalog — the price-list rows, which say which pile each variant comes from
- * @param     now — when the holds start
- * @param     ttlMs — how long a hold is meant to last before it is released
- * @param     session — the database transaction the caller is already inside, if any
- * @returns   the reservation records that were written
+ * @behavior Take the ordered quantity off the shelf for each variant in a cart and write a
+ *           time-limited reservation for it, so the order can be paid without overselling.
+ * @param models — the database models, or fakes in tests
+ * @param orderId — the order these holds belong to
+ * @param items — the normalized cart: [{ skuKey, quantity }]
+ * @param catalog — the price-list rows, which say which pile each variant comes from
+ * @param now — when the holds start
+ * @param ttlMs — how long a hold lasts before it is released
+ * @param session — the database transaction the caller is already inside, if any
+ * @returns the reservation records that were written
  * @exceptions throws InsufficientInventoryError when a variant does not have enough stock; any
- *            stock already taken in this attempt is put back first
+ *             stock already taken in this attempt is put back first
  */
 export async function holdInventory({
   models,
@@ -83,7 +75,7 @@ export async function holdInventory({
       throw new Error(`Catalog entry not found for SKU ${item.skuKey}`);
     }
 
-    // Why: a preorder is sold before we own it, so there is no pile to take stock from.
+    // A preorder is sold before we own it, so there is no pile to take stock from.
     if (entry.inventoryPolicy === "preorder") {
       continue;
     }
@@ -109,7 +101,7 @@ export async function holdInventory({
     );
 
     if (!updatedCounter) {
-      // Why: this order failed halfway, so every pile we already took stock from is given back.
+      // This order failed halfway, so every pile already taken from is given back.
       await restoreStockCounters({ models, takenCounters: countersAlreadyDecremented, session });
 
       throw new InsufficientInventoryError({
@@ -137,8 +129,7 @@ export async function holdInventory({
     try {
       await models.InventoryReservation.create(reservationsToCreate, { session });
     } catch (err) {
-      // Why: the holds succeeded but the reservation records did not, so the piles go back to
-      //      exactly how they were before this attempt.
+      // The holds succeeded but the records did not, so the piles go back to how they were.
       await restoreStockCounters({ models, takenCounters: countersAlreadyDecremented, session });
       throw err;
     }
@@ -148,15 +139,15 @@ export async function holdInventory({
 }
 
 /*
- * Purpose:   Make a paid order's holds permanent: the stock it reserved is now sold rather than
- *            held. Runs only after payment is confirmed.
- * @param     models — the database models, or fakes in tests
- * @param     orderId — the order whose holds become sales
- * @param     session — the database transaction the caller is already inside, if any
- * @param     now — when the change happened
- * @returns   how many reservations were marked consumed
- * @exceptions throws when a pile no longer holds what we reserved — that means two workers
- *            disagreed, so a human must look rather than us guessing
+ * @behavior Make a paid order's holds permanent: the stock it reserved is now sold rather than
+ *           held. Runs only after payment is confirmed.
+ * @param models — the database models, or fakes in tests
+ * @param orderId — the order whose holds become sales
+ * @param session — the database transaction the caller is already inside, if any
+ * @param now — when the change happened
+ * @returns how many reservations were marked consumed
+ * @exceptions throws when a pile no longer holds what we reserved — two workers disagreed, so
+ *             a human must look rather than us guessing
  */
 export async function consumeInventory({
   models,
@@ -212,18 +203,18 @@ export async function consumeInventory({
 }
 
 /*
- * Purpose:   Put held stock back on the shelf when — and only when — the payment link can no
- *            longer be paid: expired, cancelled, or otherwise dead.
- * @param     models — the database models, or fakes in tests
- * @param     orderId — the order giving its holds back
- * @param     sessionCannotBePaidVerified — proof from Stripe, or from our own expiry, that this
- *            attempt can no longer be paid. Stock must not go back without it: a buyer who pays
- *            after we released their hold would be charged for a hoodie we already gave away.
- * @param     session — the database transaction the caller is already inside, if any
- * @param     now — when the release happened
- * @returns   how many reservations were released
- * @exceptions throws when that proof is not explicitly true, or when a pile no longer holds what
- *            we reserved
+ * @behavior Put held stock back on the shelf when — and only when — the payment link can no
+ *           longer be paid: expired, cancelled, or otherwise dead.
+ * @param models — the database models, or fakes in tests
+ * @param orderId — the order giving its holds back
+ * @param sessionCannotBePaidVerified — proof from Stripe, or from our own expiry, that this
+ *        attempt can no longer be paid. Stock must not go back without it: a buyer who pays
+ *        after we released their hold would be charged for a hoodie we already gave away.
+ * @param session — the database transaction the caller is already inside, if any
+ * @param now — when the release happened
+ * @returns how many reservations were released
+ * @exceptions throws when that proof is not explicitly true, or when a pile no longer holds
+ *             what we reserved
  */
 export async function releaseInventory({
   models,

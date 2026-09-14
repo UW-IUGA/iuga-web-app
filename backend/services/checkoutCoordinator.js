@@ -13,7 +13,7 @@ Must not: contact Stripe before the attempt is written down, trust a browser-sup
 import { randomUUID } from "node:crypto";
 
 import mongoose from "mongoose";
-import { normalizeCart, freezeQuote } from "../shop/domain.js";
+import { normalizeCart, snapshotQuote } from "../shop/domain.js";
 import { holdInventory } from "../shop/reservations.js";
 
 // Why: a buyer may take a while to finish paying, but an abandoned attempt must not hold stock
@@ -172,7 +172,7 @@ function variantAsStoredString(value) {
 }
 
 /*
-Purpose: Give the pricing step (freezeQuote) the handful of fields it reads, as plain data.
+Purpose: Give the pricing step (snapshotQuote) the handful of fields it reads, as plain data.
 Why: catalog rows arrive as Mongoose documents, whose fields are not plain properties. Spreading
      such a row yields an empty-looking one, which would make every purchase look unpriced.
 */
@@ -335,9 +335,9 @@ export async function createCheckout({
 
   let quote;
   try {
-    // freezeQuote turns the cart plus the catalog into the prices, quantities, and total the
+    // snapshotQuote turns the cart plus the catalog into the prices, quantities, and total the
     // buyer is agreeing to. Stored below, so a later price change cannot rewrite this order.
-    quote = freezeQuote({ cart, catalog: catalogRows.map(quoteCatalogRow), drop: activeSalesWindow, now: checkoutNow });
+    quote = snapshotQuote({ cart, catalog: catalogRows.map(quoteCatalogRow), drop: activeSalesWindow, now: checkoutNow });
   } catch {
     return unavailable();
   }

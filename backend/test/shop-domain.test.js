@@ -1,14 +1,20 @@
+/*
+Purpose: Pin the shop's rules: what a cart may contain, when a sale window is open, how prices
+         are locked in, and how an order may move through payment, fulfilment, refund, and
+         dispute. These run without a database, because these rules do not need one.
+*/
+
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
   normalizeCart,
-  isDropActive,
-  freezeQuote,
-  reducePayment,
-  reduceFulfillment,
-  reduceRefund,
-  reduceDispute,
+  isSalesWindowOpen,
+  snapshotQuote,
+  applyPaymentEvent,
+  applyFulfillmentAction,
+  applyRefundEvent,
+  applyDisputeEvent,
 } from "../shop/domain.js";
 
 describe("Shop Domain - Pure Contracts and Reducers", () => {
@@ -77,7 +83,7 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
     });
   });
 
-  describe("isDropActive", () => {
+  describe("isSalesWindowOpen", () => {
     const drop = Object.freeze({
       dropKey: "drop-fall-2026",
       opensAt: new Date("2026-10-01T00:00:00.000Z"),
@@ -87,22 +93,22 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
 
     it("returns true when current time is strictly within window and drop is enabled", () => {
       const within = new Date("2026-10-05T12:00:00.000Z");
-      assert.equal(isDropActive(drop, within), true);
+      assert.equal(isSalesWindowOpen(drop, within), true);
     });
 
     it("returns true at exact opensAt boundary, false at exact closesAt boundary", () => {
-      assert.equal(isDropActive(drop, drop.opensAt), true);
-      assert.equal(isDropActive(drop, drop.closesAt), false);
+      assert.equal(isSalesWindowOpen(drop, drop.opensAt), true);
+      assert.equal(isSalesWindowOpen(drop, drop.closesAt), false);
     });
 
     it("returns false before opensAt or after closesAt", () => {
-      assert.equal(isDropActive(drop, new Date("2026-09-30T23:59:59.999Z")), false);
-      assert.equal(isDropActive(drop, new Date("2026-10-15T00:00:00.001Z")), false);
+      assert.equal(isSalesWindowOpen(drop, new Date("2026-09-30T23:59:59.999Z")), false);
+      assert.equal(isSalesWindowOpen(drop, new Date("2026-10-15T00:00:00.001Z")), false);
     });
 
     it("returns false when drop is disabled regardless of dates", () => {
       const disabledDrop = { ...drop, isEnabled: false };
-      assert.equal(isDropActive(disabledDrop, new Date("2026-10-05T12:00:00.000Z")), false);
+      assert.equal(isSalesWindowOpen(disabledDrop, new Date("2026-10-05T12:00:00.000Z")), false);
     });
 
     it("parses ISO strings correctly into UTC timestamps", () => {
@@ -112,11 +118,11 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
         closesAt: "2026-10-15T00:00:00.000Z",
         isEnabled: true,
       };
-      assert.equal(isDropActive(stringDrop, new Date("2026-10-05T12:00:00.000Z")), true);
+      assert.equal(isSalesWindowOpen(stringDrop, new Date("2026-10-05T12:00:00.000Z")), true);
     });
   });
 
-  describe("freezeQuote", () => {
+  describe("snapshotQuote", () => {
     const activeDrop = Object.freeze({
       dropKey: "drop-fall-2026",
       catalogVersion: "v1-2026-10",
@@ -153,7 +159,7 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
       ];
       const now = new Date("2026-10-02T10:00:00.000Z");
 
-      const quote = freezeQuote({ cart, catalog, drop: activeDrop, now });
+      const quote = snapshotQuote({ cart, catalog, drop: activeDrop, now });
 
       assert.equal(quote.dropKey, "drop-fall-2026");
       assert.equal(quote.catalogVersion, "v1-2026-10");
@@ -178,7 +184,7 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
       const closedTime = new Date("2026-11-01T00:00:00.000Z");
 
       assert.throws(
-        () => freezeQuote({ cart, catalog, drop: activeDrop, now: closedTime }),
+        () => snapshotQuote({ cart, catalog, drop: activeDrop, now: closedTime }),
         /inactive drop/i,
       );
     });
@@ -188,7 +194,7 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
       const now = new Date("2026-10-02T10:00:00.000Z");
 
       assert.throws(
-        () => freezeQuote({ cart, catalog, drop: activeDrop, now }),
+        () => snapshotQuote({ cart, catalog, drop: activeDrop, now }),
         /catalog/i,
       );
     });
@@ -204,13 +210,13 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
       const now = new Date("2026-10-02T10:00:00.000Z");
 
       assert.throws(
-        () => freezeQuote({ cart, catalog: unavailableCatalog, drop: activeDrop, now }),
+        () => snapshotQuote({ cart, catalog: unavailableCatalog, drop: activeDrop, now }),
         /unavailable/i,
       );
     });
   });
 
-  describe("reducePayment", () => {
+  describe("applyPaymentEvent", () => {
     it("transitions pending to paid upon verified provider payment event", () => {
       const order = {
         orderId: "ord_101",
@@ -220,7 +226,7 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
       };
 
       const paidAt = new Date("2026-10-02T12:00:00.000Z");
-      const updated = reducePayment(order, {
+      const updated = applyPaymentEvent(order, {
         type: "payment_confirmed",
         paidAt,
         providerPaymentId: "pi_12345",
@@ -239,7 +245,7 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
         paidAt,
       };
 
-      const updated = reducePayment(paidOrder, {
+      const updated = applyPaymentEvent(paidOrder, {
         type: "payment_confirmed",
         paidAt: new Date("2026-10-02T12:05:00.000Z"),
       });
@@ -257,13 +263,13 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
       };
 
       assert.throws(
-        () => reducePayment(paidOrder, { type: "reset_to_pending" }),
+        () => applyPaymentEvent(paidOrder, { type: "reset_to_pending" }),
         /cannot regress paid state/i,
       );
     });
   });
 
-  describe("reduceFulfillment", () => {
+  describe("applyFulfillmentAction", () => {
     it("handles pickup fulfillment lifecycle from pending to picked_up", () => {
       let order = {
         orderId: "ord_101",
@@ -271,13 +277,13 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
         fulfillmentState: "pending",
       };
 
-      order = reduceFulfillment(order, { action: "prepare" });
+      order = applyFulfillmentAction(order, { action: "prepare" });
       assert.equal(order.fulfillmentState, "preparing");
 
-      order = reduceFulfillment(order, { action: "mark_ready" });
+      order = applyFulfillmentAction(order, { action: "mark_ready" });
       assert.equal(order.fulfillmentState, "ready_for_pickup");
 
-      order = reduceFulfillment(order, { action: "complete_pickup" });
+      order = applyFulfillmentAction(order, { action: "complete_pickup" });
       assert.equal(order.fulfillmentState, "picked_up");
     });
 
@@ -288,16 +294,16 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
         fulfillmentState: "pending",
       };
 
-      order = reduceFulfillment(order, { action: "prepare" });
+      order = applyFulfillmentAction(order, { action: "prepare" });
       assert.equal(order.fulfillmentState, "preparing");
 
-      order = reduceFulfillment(order, {
+      order = applyFulfillmentAction(order, {
         action: "ship",
         trackingNumber: "1Z999",
       });
       assert.equal(order.fulfillmentState, "shipped");
 
-      order = reduceFulfillment(order, { action: "deliver" });
+      order = applyFulfillmentAction(order, { action: "deliver" });
       assert.equal(order.fulfillmentState, "delivered");
     });
 
@@ -309,14 +315,14 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
         holdReason: null,
       };
 
-      order = reduceFulfillment(order, {
+      order = applyFulfillmentAction(order, {
         action: "hold",
         reason: "address_verification_needed",
       });
       assert.equal(order.fulfillmentState, "on_hold");
       assert.equal(order.holdReason, "address_verification_needed");
 
-      order = reduceFulfillment(order, { action: "release_hold" });
+      order = applyFulfillmentAction(order, { action: "release_hold" });
       assert.equal(order.fulfillmentState, "preparing");
       assert.equal(order.holdReason, null);
     });
@@ -329,13 +335,13 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
       };
 
       assert.throws(
-        () => reduceFulfillment(order, { action: "prepare" }),
+        () => applyFulfillmentAction(order, { action: "prepare" }),
         /illegal fulfillment transition/i,
       );
     });
   });
 
-  describe("reduceRefund", () => {
+  describe("applyRefundEvent", () => {
     it("reserves and settles refunds within the collected payment budget", () => {
       let order = {
         orderId: "ord_201",
@@ -347,7 +353,7 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
       };
 
       // 1. Reserve partial refund of 3000 cents
-      order = reduceRefund(order, {
+      order = applyRefundEvent(order, {
         action: "reserve",
         amountMinor: 3000,
       });
@@ -357,7 +363,7 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
       assert.equal(order.paymentState, "paid"); // Preserves payment truth
 
       // 2. Settle the 3000 cents refund
-      order = reduceRefund(order, {
+      order = applyRefundEvent(order, {
         action: "settle",
         amountMinor: 3000,
       });
@@ -367,11 +373,11 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
       assert.equal(order.paymentState, "paid");
 
       // 3. Reserve and settle remaining 7000 cents
-      order = reduceRefund(order, {
+      order = applyRefundEvent(order, {
         action: "reserve",
         amountMinor: 7000,
       });
-      order = reduceRefund(order, {
+      order = applyRefundEvent(order, {
         action: "settle",
         amountMinor: 7000,
       });
@@ -391,13 +397,13 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
         paymentState: "paid",
       };
 
-      order = reduceRefund(order, {
+      order = applyRefundEvent(order, {
         action: "reserve",
         amountMinor: 2000,
       });
       assert.equal(order.pendingRefundMinor, 2000);
 
-      order = reduceRefund(order, {
+      order = applyRefundEvent(order, {
         action: "fail",
         amountMinor: 2000,
       });
@@ -418,13 +424,13 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
 
       // Only 500 cents remaining available, requesting 1000 must throw
       assert.throws(
-        () => reduceRefund(order, { action: "reserve", amountMinor: 1000 }),
+        () => applyRefundEvent(order, { action: "reserve", amountMinor: 1000 }),
         /refund budget exceeded/i,
       );
     });
   });
 
-  describe("reduceDispute", () => {
+  describe("applyDisputeEvent", () => {
     it("tracks dispute lifecycle from none to open to won or lost", () => {
       let order = {
         orderId: "ord_301",
@@ -439,7 +445,7 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
 
       // Open dispute
       const dueBy = new Date("2026-11-01T00:00:00.000Z");
-      order = reduceDispute(order, {
+      order = applyDisputeEvent(order, {
         action: "open",
         reason: "fraudulent",
         evidenceDueBy: dueBy,
@@ -450,7 +456,7 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
       assert.equal(order.paymentState, "paid"); // Does not rewrite paymentState
 
       // Resolve dispute
-      order = reduceDispute(order, { action: "resolve", outcome: "won" });
+      order = applyDisputeEvent(order, { action: "resolve", outcome: "won" });
       assert.equal(order.dispute.state, "won");
     });
 
@@ -461,7 +467,7 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
       };
 
       assert.throws(
-        () => reduceDispute(order, { action: "resolve", outcome: "won" }),
+        () => applyDisputeEvent(order, { action: "resolve", outcome: "won" }),
         /dispute not open/i,
       );
     });

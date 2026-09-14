@@ -1,7 +1,13 @@
-/**
- * Inventory reservation and fencing repository for the IUGA Stripe merchandise store.
- * Manages atomic holds, consumptions, and verified non-payable releases against InventoryCounter.
- */
+/*
+Purpose: How much stock is held, sold, and put back for each physical pile we count. Without
+         this, two students could buy the last hoodie in the same moment and both be charged.
+
+Called by: checkoutCoordinator (takes stock for a new checkout attempt); the payment and expiry
+           work will call the other two.
+
+Must not: move a stock counter without a matching reservation record, put stock back for an
+          order that could still be paid, or let a counter go negative.
+*/
 
 export class InsufficientInventoryError extends Error {
   constructor({ skuKey, fulfillmentSku, requestedQuantity, availableQuantity }) {
@@ -15,16 +21,39 @@ export class InsufficientInventoryError extends Error {
 }
 
 /*
- * @behavior  Holds inventory for finite catalog items in a cart, rolling back on failure.
- * @param     models — Mongoose model registry or injected mock models
- * @param     orderId — internal order identifier
- * @param     items — normalized cart items [{ skuKey, quantity }]
- * @param     catalog — list of catalog entries
- * @param     now — current timestamp for reservation
- * @param     ttlMs — reservation lifetime in milliseconds
- * @param     session — optional Mongoose client session for multi-document transaction
- * @returns   array of created InventoryReservation records
- * @exceptions throws InsufficientInventoryError if any item lacks available stock
+Purpose: Put stock back after an attempt fails halfway through a multi-item order.
+Why: without this, every pile we already took stock from stays taken, and the shop quietly sells
+     less than it owns.
+*/
+async function restoreStockCounters({ models, takenCounters, session }) {
+  for (const taken of takenCounters) {
+    await models.InventoryCounter.findOneAndUpdate(
+      { fulfillmentSku: taken.fulfillmentSku },
+      {
+        $inc: {
+          available: taken.quantity,
+          reserved: -taken.quantity,
+          version: 1,
+        },
+      },
+      { session },
+    );
+  }
+}
+
+/*
+ * Purpose:   Take the ordered quantity off the shelf for each variant in a cart and write a
+ *            time-limited reservation for it, so the order can be paid without overselling.
+ * @param     models — the database models, or fakes in tests
+ * @param     orderId — the order these holds belong to
+ * @param     items — the normalized cart: [{ skuKey, quantity }]
+ * @param     catalog — the price-list rows, which say which pile each variant comes from
+ * @param     now — when the holds start
+ * @param     ttlMs — how long a hold is meant to last before it is released
+ * @param     session — the database transaction the caller is already inside, if any
+ * @returns   the reservation records that were written
+ * @exceptions throws InsufficientInventoryError when a variant does not have enough stock; any
+ *            stock already taken in this attempt is put back first
  */
 export async function holdInventory({
   models,
@@ -43,7 +72,7 @@ export async function holdInventory({
   }
 
   const catalogMap = new Map((catalog || []).map((entry) => [entry.skuKey, entry]));
-  const successfulHolds = [];
+  const countersAlreadyDecremented = [];
   const reservationsToCreate = [];
 
   const expiresAt = new Date(now.getTime() + ttlMs);
@@ -54,7 +83,7 @@ export async function holdInventory({
       throw new Error(`Catalog entry not found for SKU ${item.skuKey}`);
     }
 
-    // Preorder items do not reserve finite inventory
+    // Why: a preorder is sold before we own it, so there is no pile to take stock from.
     if (entry.inventoryPolicy === "preorder") {
       continue;
     }
@@ -62,7 +91,8 @@ export async function holdInventory({
     const fulfillmentSku = entry.fulfillmentSku || item.skuKey;
     const quantity = item.quantity;
 
-    // Atomically decrement available stock and increment reserved stock
+    // The fence: only take stock while the pile still holds this much, so two buyers can never
+    // take the same last hoodie, and the counter can never go negative.
     const updatedCounter = await models.InventoryCounter.findOneAndUpdate(
       {
         fulfillmentSku,
@@ -79,20 +109,8 @@ export async function holdInventory({
     );
 
     if (!updatedCounter) {
-      // Roll back previously successful holds in this batch
-      for (const hold of successfulHolds) {
-        await models.InventoryCounter.findOneAndUpdate(
-          { fulfillmentSku: hold.fulfillmentSku },
-          {
-            $inc: {
-              available: hold.quantity,
-              reserved: -hold.quantity,
-              version: 1,
-            },
-          },
-          { session },
-        );
-      }
+      // Why: this order failed halfway, so every pile we already took stock from is given back.
+      await restoreStockCounters({ models, takenCounters: countersAlreadyDecremented, session });
 
       throw new InsufficientInventoryError({
         skuKey: item.skuKey,
@@ -102,7 +120,7 @@ export async function holdInventory({
       });
     }
 
-    successfulHolds.push({ fulfillmentSku, quantity });
+    countersAlreadyDecremented.push({ fulfillmentSku, quantity });
     reservationsToCreate.push({
       orderId,
       skuKey: item.skuKey,
@@ -119,20 +137,9 @@ export async function holdInventory({
     try {
       await models.InventoryReservation.create(reservationsToCreate, { session });
     } catch (err) {
-      // Compensate all previously held counters if reservation document persistence fails
-      for (const hold of successfulHolds) {
-        await models.InventoryCounter.findOneAndUpdate(
-          { fulfillmentSku: hold.fulfillmentSku },
-          {
-            $inc: {
-              available: hold.quantity,
-              reserved: -hold.quantity,
-              version: 1,
-            },
-          },
-          { session },
-        );
-      }
+      // Why: the holds succeeded but the reservation records did not, so the piles go back to
+      //      exactly how they were before this attempt.
+      await restoreStockCounters({ models, takenCounters: countersAlreadyDecremented, session });
       throw err;
     }
   }
@@ -141,13 +148,15 @@ export async function holdInventory({
 }
 
 /*
- * @behavior  Consumes reserved inventory upon verified payment confirmation.
- * @param     models — Mongoose model registry or injected mock models
- * @param     orderId — internal order identifier
- * @param     session — optional Mongoose client session
- * @param     now — current timestamp
- * @returns   object with consumedCount
- * @exceptions throws on database error or if counter fence is lost
+ * Purpose:   Make a paid order's holds permanent: the stock it reserved is now sold rather than
+ *            held. Runs only after payment is confirmed.
+ * @param     models — the database models, or fakes in tests
+ * @param     orderId — the order whose holds become sales
+ * @param     session — the database transaction the caller is already inside, if any
+ * @param     now — when the change happened
+ * @returns   how many reservations were marked consumed
+ * @exceptions throws when a pile no longer holds what we reserved — that means two workers
+ *            disagreed, so a human must look rather than us guessing
  */
 export async function consumeInventory({
   models,
@@ -203,26 +212,28 @@ export async function consumeInventory({
 }
 
 /*
- * @behavior  Releases reserved inventory back to available stock only when proof of non-payable session is verified.
- * @param     models — Mongoose model registry or injected mock models
- * @param     orderId — internal order identifier
- * @param     proofOfNonPayable — boolean indicating verified non-payable status (expired/canceled)
- * @param     reason — reason for releasing hold
- * @param     session — optional Mongoose client session
- * @param     now — current timestamp
- * @returns   object with releasedCount
- * @exceptions throws if proofOfNonPayable is not explicitly true or if counter fence is lost
+ * Purpose:   Put held stock back on the shelf when — and only when — the payment link can no
+ *            longer be paid: expired, cancelled, or otherwise dead.
+ * @param     models — the database models, or fakes in tests
+ * @param     orderId — the order giving its holds back
+ * @param     sessionCannotBePaidVerified — proof from Stripe, or from our own expiry, that this
+ *            attempt can no longer be paid. Stock must not go back without it: a buyer who pays
+ *            after we released their hold would be charged for a hoodie we already gave away.
+ * @param     session — the database transaction the caller is already inside, if any
+ * @param     now — when the release happened
+ * @returns   how many reservations were released
+ * @exceptions throws when that proof is not explicitly true, or when a pile no longer holds what
+ *            we reserved
  */
 export async function releaseInventory({
   models,
   orderId,
-  proofOfNonPayable,
-  reason = "unspecified",
+  sessionCannotBePaidVerified,
   session = null,
   now = new Date(),
 }) {
-  if (proofOfNonPayable !== true) {
-    throw new Error("Cannot release inventory without verified proof of non-payable session");
+  if (sessionCannotBePaidVerified !== true) {
+    throw new Error("Cannot release inventory until we can verify the payment link can no longer be paid");
   }
 
   const reservations = await models.InventoryReservation.find(

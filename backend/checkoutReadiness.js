@@ -1,3 +1,15 @@
+/*
+Purpose: The fail-closed answer to "may we sell anything at all?" It checks the Stripe
+         configuration, the infrastructure payments depend on, and the approvals the club must
+         give — and it never contacts Stripe to do it.
+
+Called by: the shop endpoint on every request, and the readiness probe at boot.
+
+Must not: guess. Anything missing, malformed, or unapproved leaves checkout switched off, and the
+          reasons it reports name what is missing without revealing its value.
+*/
+
+// Configuration the deployment must supply before any payment can be taken.
 const REQUIRED_CONFIGURATION = Object.freeze([
   "STRIPE_SECRET_KEY",
   "STRIPE_WEBHOOK_SECRET",
@@ -6,13 +18,17 @@ const REQUIRED_CONFIGURATION = Object.freeze([
   "STRIPE_CATALOG_VERSION",
 ]);
 
-const INFRASTRUCTURE_GATES = Object.freeze([
+// Switched on only when the environment can support payments we can trust.
+const REQUIRED_INFRASTRUCTURE_FLAGS = Object.freeze([
   "databaseTransactions",
   "sessionStore",
   "worker",
 ]);
 
-const POLICY_GATES = Object.freeze([
+// Sign-offs the club must give before selling. The named ones are self-explanatory; gateA and
+// gateB were never recorded anywhere, so they keep their placeholder names until somebody who
+// knows what they stand for renames them. Do not invent meanings for them.
+const REQUIRED_BUSINESS_APPROVALS = Object.freeze([
   "identity",
   "csrf",
   "tax",
@@ -33,7 +49,7 @@ function hasValue(value) {
   return text(value).length > 0;
 }
 
-function explicitlyTrue(value) {
+function isEnabledFlag(value) {
   return value === true || (typeof value === "string" && value.trim().toLowerCase() === "true");
 }
 
@@ -43,7 +59,7 @@ function readPaymentMethods(value) {
   return [];
 }
 
-function readPositiveTotal(value) {
+function readMinimumTotalMinor(value) {
   if (typeof value === "number") {
     return Number.isSafeInteger(value) && value > 0 ? value : null;
   }
@@ -98,10 +114,13 @@ function addReason(reasons, reason) {
   if (!reasons.includes(reason)) reasons.push(reason);
 }
 
-/**
- * @behavior Evaluate explicit checkout prerequisites without contacting Stripe.
- * @param input — configuration plus infrastructure and policy evidence gates
- * @returns a fail-closed capability state with redacted diagnostics
+/*
+ * Purpose:   Decide, without contacting Stripe, whether checkout may run at all — and say
+ *            exactly what is missing when it may not.
+ * @param     input — the deployment's configuration (env), its infrastructure flags, and the
+ *            club's approvals
+ * @returns   whether checkout is enabled, the mode it would run in, why it is disabled, and
+ *            diagnostics safe to show (keys and secrets are redacted)
  */
 export function evaluateCheckoutReadiness(input = {}) {
   const source = asRecord(input);
@@ -126,17 +145,17 @@ export function evaluateCheckoutReadiness(input = {}) {
     addReason(reasons, "card_only_required");
   }
   if (text(env.STRIPE_CURRENCY).toLowerCase() !== "usd") addReason(reasons, "usd_required");
-  if (readPositiveTotal(env.STRIPE_MINIMUM_TOTAL_MINOR) === null) {
+  if (readMinimumTotalMinor(env.STRIPE_MINIMUM_TOTAL_MINOR) === null) {
     addReason(reasons, "positive_total_required");
   }
 
-  if (!INFRASTRUCTURE_GATES.every((gate) => explicitlyTrue(infrastructure[gate]))) {
+  if (!REQUIRED_INFRASTRUCTURE_FLAGS.every((gate) => isEnabledFlag(infrastructure[gate]))) {
     addReason(reasons, "infrastructure_unhealthy");
   }
-  if (!POLICY_GATES.every((gate) => explicitlyTrue(policy[gate]))) {
+  if (!REQUIRED_BUSINESS_APPROVALS.every((gate) => isEnabledFlag(policy[gate]))) {
     addReason(reasons, "policy_unapproved");
   }
-  if (mode === "live" && !explicitlyTrue(policy.livePayments)) {
+  if (mode === "live" && !isEnabledFlag(policy.livePayments)) {
     addReason(reasons, "live_mode_disabled");
   }
 
@@ -149,13 +168,13 @@ export function evaluateCheckoutReadiness(input = {}) {
     catalogVersion: text(env.STRIPE_CATALOG_VERSION) || "[missing]",
     paymentMethods,
     currency: text(env.STRIPE_CURRENCY).toLowerCase() || "[missing]",
-    minimumTotalMinor: readPositiveTotal(env.STRIPE_MINIMUM_TOTAL_MINOR) ?? "[invalid]",
+    minimumTotalMinor: readMinimumTotalMinor(env.STRIPE_MINIMUM_TOTAL_MINOR) ?? "[invalid]",
   };
 
-  const available = reasons.length === 0;
+  // One name for one fact: checkout is enabled exactly when nothing is missing. The probe and the
+  // shop endpoint both read this field.
   return {
-    available,
-    checkoutEnabled: available,
+    checkoutEnabled: reasons.length === 0,
     mode,
     reasons,
     diagnostics,

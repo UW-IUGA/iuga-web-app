@@ -1,7 +1,18 @@
-/**
- * Pure domain contracts, validations, quote calculations, and state reducers
- * for the IUGA Stripe merchandise store.
- */
+/*
+Purpose: The shop's rules with no database and no network: what a cart must look like, whether
+         a sale window is open, the prices the buyer is agreeing to, and how an order moves
+         through payment, fulfilment, refund, and dispute.
+
+Called by: checkoutCoordinator (cart rules and pricing); the payment and fulfilment work will
+           call the four apply* functions.
+
+Must not: read the database, call Stripe, or invent a price. Every function here is a pure
+          answer computed from what it is given.
+
+Words used here: a "drop" is one sales window, with its own dates and price list; a "variant"
+          (field name skuKey) is one buyable version of a product — the hoodie, purple, size M;
+          money is always whole cents ("minor units"), never dollars with decimals.
+*/
 
 function asRecord(value) {
   return value !== null && typeof value === "object" ? value : {};
@@ -25,10 +36,13 @@ function parseDate(value) {
 }
 
 /*
- * @behavior  Validates and normalizes cart items, sorting deterministically and rejecting duplicate SKUs.
- * @param     items — raw cart items array from client request
- * @returns   frozen array of normalized { skuKey, quantity } records
- * @exceptions throws on non-array, empty cart, duplicate SKUs, invalid SKU strings, or non-positive integer quantities
+ * Purpose:   Turn whatever the shop page sent into the one cart shape the rest of the shop
+ *            trusts — trimmed variants, whole positive quantities, no repeats — and sort it, so
+ *            the same cart always looks identical to the checkout flow.
+ * @param     items — the cart as the browser sent it
+ * @returns   a frozen, sorted list of { skuKey, quantity }
+ * @exceptions throws when the cart is empty, repeats a variant, or asks for zero, half, or a
+ *            nonsensical quantity
  */
 export function normalizeCart(items) {
   if (!Array.isArray(items) || items.length === 0) {
@@ -67,13 +81,14 @@ export function normalizeCart(items) {
 }
 
 /*
- * @behavior  Evaluates whether a drop is currently active within its UTC time boundaries.
- * @param     drop — shop drop record containing opensAt, closesAt, and isEnabled
- * @param     now — current timestamp to compare against
- * @returns   boolean indicating if drop is open for orders
- * @exceptions throws on malformed date fields
+ * Purpose:   Answer whether a sale window is open right now, so a closed or not-yet-started
+ *            window cannot sell anything.
+ * @param     drop — the sale-window row: its start, its end, and whether it is switched on
+ * @param     now — the moment to judge
+ * @returns   true only when the window is switched on and now falls inside its dates
+ * @exceptions throws when the window's dates are missing or malformed
  */
-export function isDropActive(drop, now = new Date()) {
+export function isSalesWindowOpen(drop, now = new Date()) {
   const record = asRecord(drop);
   if (record.isEnabled !== true) {
     return false;
@@ -87,16 +102,19 @@ export function isDropActive(drop, now = new Date()) {
 }
 
 /*
- * @behavior  Computes and freezes an immutable quote snapshot from normalized cart items and active catalog.
- * @param     cart — normalized cart items
- * @param     catalog — collection of active catalog entries for the drop
- * @param     drop — active shop drop
- * @param     now — reference timestamp for drop validity and quote timestamp
- * @returns   frozen quote snapshot with safe integer minor-unit totals
- * @exceptions throws if drop is inactive, SKU is not found, item is unavailable, or integer overflow occurs
+ * Purpose:   Work out what this cart costs and lock it in: which variant, at what unit price,
+ *            how many, and the total — the prices the buyer is agreeing to when they press Pay.
+ * @param     cart — the normalized cart
+ * @param     catalog — the price list rows for the open sale window
+ * @param     drop — the open sale window
+ * @param     now — the moment the prices are being locked at
+ * @returns   a frozen snapshot: the window, its price-list revision, the currency, the priced
+ *            items, and the total, all in whole cents
+ * @exceptions throws when the window is closed, a variant is missing or unavailable, a unit
+ *            price is not a positive whole number of cents, or a total would overflow
  */
-export function freezeQuote({ cart, catalog, drop, now = new Date() }) {
-  if (!isDropActive(drop, now)) {
+export function snapshotQuote({ cart, catalog, drop, now = new Date() }) {
+  if (!isSalesWindowOpen(drop, now)) {
     throw new Error("Cannot freeze quote for an inactive drop");
   }
 
@@ -112,6 +130,8 @@ export function freezeQuote({ cart, catalog, drop, now = new Date() }) {
   const dropRecord = asRecord(drop);
   const currency = typeof dropRecord.currency === "string" ? dropRecord.currency.toLowerCase() : "usd";
 
+  // Why: money is counted in whole cents. Dollars as decimals would quietly lose a cent per line
+  //      and the buyer would be charged a total that does not match the prices we displayed.
   let totalMinor = 0;
   const quotedItems = [];
 
@@ -162,13 +182,14 @@ export function freezeQuote({ cart, catalog, drop, now = new Date() }) {
 }
 
 /*
- * @behavior  Reduces payment state based on verified payment events, enforcing non-regressing paid status.
- * @param     order — existing order state
- * @param     event — incoming payment event
- * @returns   updated order state
- * @exceptions throws on attempts to regress a paid order back to pending
+ * Purpose:   Apply one verified payment event to an order. Payment is the one state we never
+ *            undo: an order that is paid stays paid, and a "back to pending" event is refused.
+ * @param     order — the order as it is now
+ * @param     event — the confirmed payment event (type, or status "paid")
+ * @returns   the order with paymentState "paid" and when it was paid
+ * @exceptions throws when an event tries to move a paid order back to pending
  */
-export function reducePayment(order, event = {}) {
+export function applyPaymentEvent(order, event = {}) {
   const current = asRecord(order);
   const currentPaymentState = current.paymentState || "pending";
 
@@ -192,6 +213,7 @@ export function reducePayment(order, event = {}) {
   return { ...current };
 }
 
+// Which fulfilment steps are legal for an order the buyer collects in person.
 const VALID_PICKUP_TRANSITIONS = Object.freeze({
   pending: ["preparing", "on_hold", "cancelled"],
   preparing: ["ready_for_pickup", "on_hold", "cancelled"],
@@ -201,6 +223,7 @@ const VALID_PICKUP_TRANSITIONS = Object.freeze({
   cancelled: [],
 });
 
+// Which fulfilment steps are legal for an order we post to the buyer.
 const VALID_SHIPPING_TRANSITIONS = Object.freeze({
   pending: ["preparing", "on_hold", "cancelled"],
   preparing: ["shipped", "on_hold", "cancelled"],
@@ -211,81 +234,86 @@ const VALID_SHIPPING_TRANSITIONS = Object.freeze({
 });
 
 /*
- * @behavior  Transitions fulfillment state for pickup or shipping orders while managing holds.
- * @param     order — existing order state
- * @param     action — fulfillment action command
- * @returns   updated order state
- * @exceptions throws on illegal state transitions
+ * Purpose:   Move an order one step through fulfilment — prepare it, mark it ready, hand it
+ *            over, post it, hold it, or cancel it — refusing steps that are not allowed from
+ *            where the order currently is.
+ * @param     order — the order as it is now
+ * @param     action — the step somebody is asking for, and why (for a hold)
+ * @returns   the order with its new fulfilment state, plus the hold and tracking details
+ * @exceptions throws on a step the order cannot take from its current state
  */
-export function reduceFulfillment(order, action = {}) {
+export function applyFulfillmentAction(order, action = {}) {
   const current = asRecord(order);
   const mode = current.fulfillmentMode || "pickup";
   const state = current.fulfillmentState || "pending";
   const transitions = mode === "shipping" ? VALID_SHIPPING_TRANSITIONS : VALID_PICKUP_TRANSITIONS;
 
-  let targetState = state;
+  let nextFulfillmentState = state;
   let holdReason = current.holdReason ?? null;
-  let previousState = current.previousFulfillmentState ?? state;
+  let stateBeforeHold = current.previousFulfillmentState ?? state;
 
   switch (action.action) {
     case "prepare":
-      targetState = "preparing";
+      nextFulfillmentState = "preparing";
       break;
     case "mark_ready":
-      targetState = "ready_for_pickup";
+      nextFulfillmentState = "ready_for_pickup";
       break;
     case "complete_pickup":
-      targetState = "picked_up";
+      nextFulfillmentState = "picked_up";
       break;
     case "ship":
-      targetState = "shipped";
+      nextFulfillmentState = "shipped";
       break;
     case "deliver":
-      targetState = "delivered";
+      nextFulfillmentState = "delivered";
       break;
     case "cancel":
-      targetState = "cancelled";
+      nextFulfillmentState = "cancelled";
       break;
     case "hold":
-      targetState = "on_hold";
-      previousState = state;
+      nextFulfillmentState = "on_hold";
+      stateBeforeHold = state;
       holdReason = action.reason || "unspecified";
       break;
     case "release_hold":
       if (state !== "on_hold") {
         throw new Error("Cannot release hold on an order not on hold");
       }
-      targetState = previousState || "pending";
+      nextFulfillmentState = stateBeforeHold || "pending";
       holdReason = null;
       break;
     default:
       throw new Error(`Unknown fulfillment action: ${action.action}`);
   }
 
-  if (targetState !== state) {
+  if (nextFulfillmentState !== state) {
     const allowed = transitions[state] || [];
-    if (!allowed.includes(targetState) && action.action !== "release_hold") {
-      throw new Error(`Illegal fulfillment transition from ${state} to ${targetState}`);
+    if (!allowed.includes(nextFulfillmentState) && action.action !== "release_hold") {
+      throw new Error(`Illegal fulfillment transition from ${state} to ${nextFulfillmentState}`);
     }
   }
 
   return {
     ...current,
-    fulfillmentState: targetState,
+    fulfillmentState: nextFulfillmentState,
     holdReason,
-    previousFulfillmentState: previousState,
+    previousFulfillmentState: stateBeforeHold,
     trackingNumber: action.trackingNumber || current.trackingNumber,
   };
 }
 
 /*
- * @behavior  Reduces refund state (reserve, settle, fail) within the collected payment budget.
- * @param     order — existing order state
- * @param     refundEvent — refund action and amount
- * @returns   updated order with updated refund totals and refundState
- * @exceptions throws if refund exceeds collected payment budget
+ * Purpose:   Track money going back to the buyer: reserve it, settle it, or drop a reservation —
+ *            never more than we actually collected.
+ * @param     order — the order as it is now, with its total in cents
+ * @param     refundEvent — reserve / settle / fail, and how many cents
+ * @returns   the order with updated refunded and pending-refund totals, and whether it is now
+ *            partly or fully refunded
+ * @exceptions throws when a refund would exceed what was collected, or the amount is not a
+ *            positive whole number of cents
  */
-export function reduceRefund(order, refundEvent = {}) {
+export function applyRefundEvent(order, refundEvent = {}) {
   const current = asRecord(order);
   const totalMinor = Number.isSafeInteger(current.totalMinor) ? current.totalMinor : 0;
   let refundedMinor = Number.isSafeInteger(current.refundedMinor) ? current.refundedMinor : 0;
@@ -341,13 +369,13 @@ export function reduceRefund(order, refundEvent = {}) {
 }
 
 /*
- * @behavior  Reduces dispute state from none to open, and open to won/lost/closed.
- * @param     order — existing order state
- * @param     disputeEvent — dispute event action and outcome
- * @returns   updated order with updated dispute record
- * @exceptions throws when resolving a dispute that is not open
+ * Purpose:   Record a card dispute on an order: when the buyer's bank opens one, and how it ends.
+ * @param     order — the order as it is now
+ * @param     disputeEvent — the bank's action ("open" or "resolve") and its outcome
+ * @returns   the order with its dispute state (none → open → won / lost / closed)
+ * @exceptions throws when resolving a dispute that was never opened, or on an unknown outcome
  */
-export function reduceDispute(order, disputeEvent = {}) {
+export function applyDisputeEvent(order, disputeEvent = {}) {
   const current = asRecord(order);
   const currentDispute = asRecord(current.dispute);
   const state = currentDispute.state || "none";

@@ -152,6 +152,18 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
       },
     ]);
 
+    it("prices in US dollars even when a sale-window row carries a stray currency", () => {
+      const quote = snapshotQuote({
+        cart: [{ skuKey: "info-hoodie-purple-l", quantity: 1 }],
+        catalog,
+        drop: { ...activeDrop, currency: "eur" },
+        now: new Date("2026-10-02T10:00:00.000Z"),
+      });
+
+      assert.equal(quote.currency, "usd");
+      assert.equal(quote.totalMinor, 4500);
+    });
+
     it("freezes an immutable quote with exact safe integer cents totals", () => {
       const cart = [
         { skuKey: "info-hoodie-purple-l", quantity: 2 },
@@ -234,6 +246,24 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
 
       assert.equal(updated.paymentState, "paid");
       assert.deepEqual(updated.paidAt, paidAt);
+      // The order document keeps provider facts in its settlement snapshot.
+      assert.equal(updated.settlementSnapshot.providerPaymentId, "pi_12345");
+      assert.equal(updated.providerPaymentId, undefined);
+    });
+
+    it("keeps a previously recorded provider payment id", () => {
+      const order = {
+        orderId: "ord_101",
+        paymentState: "paid",
+        totalMinor: 4500,
+        paidAt: new Date("2026-10-02T12:00:00.000Z"),
+        settlementSnapshot: { providerPaymentId: "pi_original", receiptEmail: "buyer@uw.edu" },
+      };
+
+      const updated = applyPaymentEvent(order, { type: "payment_confirmed" });
+
+      assert.equal(updated.settlementSnapshot.providerPaymentId, "pi_original");
+      assert.equal(updated.settlementSnapshot.receiptEmail, "buyer@uw.edu");
     });
 
     it("is idempotent when receiving duplicate payment confirmation", () => {
@@ -273,7 +303,7 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
     it("handles pickup fulfillment lifecycle from pending to picked_up", () => {
       let order = {
         orderId: "ord_101",
-        fulfillmentMode: "pickup",
+        fulfillmentMethod: "pickup",
         fulfillmentState: "pending",
       };
 
@@ -287,10 +317,10 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
       assert.equal(order.fulfillmentState, "picked_up");
     });
 
-    it("handles shipping fulfillment lifecycle from pending to delivered", () => {
+    it("follows the shipping steps for an order stored as shipping", () => {
       let order = {
         orderId: "ord_102",
-        fulfillmentMode: "shipping",
+        fulfillmentMethod: "shipping",
         fulfillmentState: "pending",
       };
 
@@ -302,17 +332,31 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
         trackingNumber: "1Z999",
       });
       assert.equal(order.fulfillmentState, "shipped");
+      assert.equal(order.trackingNumber, "1Z999");
 
       order = applyFulfillmentAction(order, { action: "deliver" });
       assert.equal(order.fulfillmentState, "delivered");
     });
 
-    it("supports hold and unhold transitions without losing previous progress", () => {
+    it("refuses a shipping step on an order the buyer collects", () => {
+      const order = {
+        orderId: "ord_105",
+        fulfillmentMethod: "pickup",
+        fulfillmentState: "preparing",
+      };
+
+      assert.throws(
+        () => applyFulfillmentAction(order, { action: "ship" }),
+        /illegal fulfillment transition/i,
+      );
+    });
+
+    it("puts an order on hold and returns it to where it was", () => {
       let order = {
         orderId: "ord_103",
-        fulfillmentMode: "pickup",
+        fulfillmentMethod: "pickup",
         fulfillmentState: "preparing",
-        holdReason: null,
+        fulfillmentHold: { reason: null, placedAt: null, returnToState: null },
       };
 
       order = applyFulfillmentAction(order, {
@@ -320,17 +364,20 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
         reason: "address_verification_needed",
       });
       assert.equal(order.fulfillmentState, "on_hold");
-      assert.equal(order.holdReason, "address_verification_needed");
+      assert.equal(order.fulfillmentHold.reason, "address_verification_needed");
+      assert.equal(order.fulfillmentHold.returnToState, "preparing");
+      assert.ok(order.fulfillmentHold.placedAt instanceof Date);
 
       order = applyFulfillmentAction(order, { action: "release_hold" });
       assert.equal(order.fulfillmentState, "preparing");
-      assert.equal(order.holdReason, null);
+      assert.equal(order.fulfillmentHold.reason, null);
+      assert.equal(order.fulfillmentHold.returnToState, null);
     });
 
     it("rejects illegal transitions", () => {
       const order = {
         orderId: "ord_104",
-        fulfillmentMode: "pickup",
+        fulfillmentMethod: "pickup",
         fulfillmentState: "picked_up",
       };
 

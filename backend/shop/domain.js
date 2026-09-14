@@ -128,7 +128,10 @@ export function snapshotQuote({ cart, catalog, drop, now = new Date() }) {
 
   const quotedAt = parseDate(now);
   const dropRecord = asRecord(drop);
-  const currency = typeof dropRecord.currency === "string" ? dropRecord.currency.toLowerCase() : "usd";
+  // Why: the shop sells in US dollars. A sale-window row has no currency field of its own, and a
+  // stray value in one must never change what a buyer is charged — the readiness check refuses to
+  // switch checkout on for any currency other than USD.
+  const currency = "usd";
 
   // Why: money is counted in whole cents. Dollars as decimals would quietly lose a cent per line
   //      and the buyer would be charged a total that does not match the prices we displayed.
@@ -202,11 +205,17 @@ export function applyPaymentEvent(order, event = {}) {
   }
 
   if (event.type === "payment_confirmed" || event.status === "paid") {
+    const settlement = asRecord(current.settlementSnapshot);
     return {
       ...current,
       paymentState: "paid",
       paidAt: event.paidAt ? parseDate(event.paidAt) : new Date(),
-      providerPaymentId: event.providerPaymentId || current.providerPaymentId,
+      // Why: the order document keeps provider facts in its settlement snapshot. A top-level
+      // providerPaymentId would be silently dropped the moment the order is saved.
+      settlementSnapshot: {
+        ...settlement,
+        providerPaymentId: event.providerPaymentId ?? settlement.providerPaymentId ?? null,
+      },
     };
   }
 
@@ -244,13 +253,21 @@ const VALID_SHIPPING_TRANSITIONS = Object.freeze({
  */
 export function applyFulfillmentAction(order, action = {}) {
   const current = asRecord(order);
-  const mode = current.fulfillmentMode || "pickup";
+  // The order document stores this as fulfillmentMethod; anything that is not "shipping" means
+  // the buyer collects in person, which is the document's own default.
+  const fulfillmentMethod = current.fulfillmentMethod || "pickup";
   const state = current.fulfillmentState || "pending";
-  const transitions = mode === "shipping" ? VALID_SHIPPING_TRANSITIONS : VALID_PICKUP_TRANSITIONS;
+  const transitions = fulfillmentMethod === "shipping" ? VALID_SHIPPING_TRANSITIONS : VALID_PICKUP_TRANSITIONS;
 
   let nextFulfillmentState = state;
-  let holdReason = current.holdReason ?? null;
-  let stateBeforeHold = current.previousFulfillmentState ?? state;
+  // The order document keeps the hold as one object: why it was placed, when, and where the order
+  // returns to when the hold is lifted.
+  let fulfillmentHold = {
+    reason: null,
+    placedAt: null,
+    returnToState: null,
+    ...asRecord(current.fulfillmentHold),
+  };
 
   switch (action.action) {
     case "prepare":
@@ -273,15 +290,18 @@ export function applyFulfillmentAction(order, action = {}) {
       break;
     case "hold":
       nextFulfillmentState = "on_hold";
-      stateBeforeHold = state;
-      holdReason = action.reason || "unspecified";
+      fulfillmentHold = {
+        reason: action.reason || "unspecified",
+        placedAt: new Date(),
+        returnToState: state,
+      };
       break;
     case "release_hold":
       if (state !== "on_hold") {
         throw new Error("Cannot release hold on an order not on hold");
       }
-      nextFulfillmentState = stateBeforeHold || "pending";
-      holdReason = null;
+      nextFulfillmentState = fulfillmentHold.returnToState || "pending";
+      fulfillmentHold = { reason: null, placedAt: null, returnToState: null };
       break;
     default:
       throw new Error(`Unknown fulfillment action: ${action.action}`);
@@ -297,9 +317,8 @@ export function applyFulfillmentAction(order, action = {}) {
   return {
     ...current,
     fulfillmentState: nextFulfillmentState,
-    holdReason,
-    previousFulfillmentState: stateBeforeHold,
-    trackingNumber: action.trackingNumber || current.trackingNumber,
+    fulfillmentHold,
+    trackingNumber: action.trackingNumber ?? current.trackingNumber ?? null,
   };
 }
 

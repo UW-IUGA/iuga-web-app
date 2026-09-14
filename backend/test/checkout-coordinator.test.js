@@ -221,6 +221,18 @@ function pendingAttemptFixture({ id = "attempt-seeded", reference = "ORD-SEEDED"
 }
 
 describe("createCheckout: one attempt, one payment link", () => {
+  it("holds stock for as long as the payment link lives", async () => {
+    const harness = makeHarness();
+    const result = await harness.checkout();
+    const [attempt] = harness.models._state.attempts;
+    const [reservation] = harness.models._state.reservations;
+
+    assert.equal(result.status, "ready");
+    assert.equal(reservation.state, "reserved");
+    assert.equal(reservation.expiresAt.getTime(), attempt.expiresAt.getTime());
+    assert.equal(reservation.expiresAt.getTime(), NOW.getTime() + 60 * 60 * 1000);
+  });
+
   it("rejects a malformed retry key or cart before reading or writing anything", async () => {
     const cases = [
       { attemptKey: "not-a-uuid" },

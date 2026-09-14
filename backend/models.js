@@ -8,6 +8,16 @@ import {
   roleAssignmentsSchema,
   eventRequestsSchema,
   eventReviewsSchema,
+  catalogEntrySchema,
+  shopDropSchema,
+  inventoryCounterSchema,
+  inventoryReservationSchema,
+  checkoutAttemptSchema,
+  orderSchema,
+  refundOperationSchema,
+  disputeSchema,
+  stripeInboxEventSchema,
+  orderActivitySchema,
 } from "./schemas/schemas.js";
 
 // Preserve the Mongoose 6 unknown-filter behavior during the staged upgrade.
@@ -31,6 +41,16 @@ async function connectToDatabase(){
   models.RoleAssignments = mongoose.model("RoleAssignments", roleAssignmentsSchema);
   models.EventRequests = mongoose.model("EventRequests", eventRequestsSchema);
   models.EventReviews = mongoose.model("EventReviews", eventReviewsSchema);
+  models.CatalogEntry = mongoose.model("CatalogEntry", catalogEntrySchema);
+  models.ShopDrop = mongoose.model("ShopDrop", shopDropSchema);
+  models.InventoryCounter = mongoose.model("InventoryCounter", inventoryCounterSchema);
+  models.InventoryReservation = mongoose.model("InventoryReservation", inventoryReservationSchema);
+  models.CheckoutAttempt = mongoose.model("CheckoutAttempt", checkoutAttemptSchema);
+  models.Order = mongoose.model("Order", orderSchema);
+  models.RefundOperation = mongoose.model("RefundOperation", refundOperationSchema);
+  models.Dispute = mongoose.model("Dispute", disputeSchema);
+  models.StripeInboxEvent = mongoose.model("StripeInboxEvent", stripeInboxEventSchema);
+  models.OrderActivity = mongoose.model("OrderActivity", orderActivitySchema);
 
   console.log(`[startup] mongoose models created after ${Date.now() - connectionStartedAt}ms`);
 }

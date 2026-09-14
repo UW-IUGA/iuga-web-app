@@ -1,7 +1,7 @@
 /*
-Purpose: Prove the durable step of checkout behaves: a cart becomes exactly one priced
-         attempt with its stock held, the buyer's retry key selects that attempt, and nothing
-         is written at all when any check fails.
+Purpose: Prove the two promises this flow makes to the shop and to the buyer: a purchase is
+         written down before any money moves, and one press of Pay — however many times it is
+         retried — can only ever produce one attempt and one Stripe payment link.
 */
 
 import assert from "node:assert/strict";
@@ -16,8 +16,11 @@ import {
 } from "../services/checkoutCoordinator.js";
 
 const NOW = new Date("2026-10-01T12:00:00.000Z");
-const OWNER = { type: "user", userId: "user-a" };
-const RETRY_KEY = "550e8400-e29b-41d4-a716-446655440000";
+const OWNER_A = { type: "user", userId: "user-a" };
+const OWNER_B = { type: "user", userId: "user-b" };
+const RETRY_KEY_A = "550e8400-e29b-41d4-a716-446655440000";
+const RETRY_KEY_B = "550e8400-e29b-41d4-a716-446655440001";
+const ONE_HOODIE = [{ skuKey: "hoodie", quantity: 1 }];
 
 // One sale window ("drop"): the same shop can run several, each with its own price list.
 const activeSalesWindow = {
@@ -145,18 +148,45 @@ function makeModels({ available = 10, attempts = [], orders = [], hydrateCatalog
 
 function makeHarness(options = {}) {
   const models = options.models ?? makeModels(options);
+  const providerCalls = [];
+  const providerRetrievals = [];
+  const provider = options.provider ?? {
+    async createCheckoutSession(request) {
+      providerCalls.push(request);
+      return {
+        id: `cs_test_${providerCalls.length}`,
+        url: `https://checkout.test/${providerCalls.length}`,
+        expiresAt: new Date(NOW.getTime() + 60 * 60 * 1000),
+        paymentIntentId: `pi_test_${providerCalls.length}`,
+        status: "open",
+      };
+    },
+    async retrieveCheckoutSession(request) {
+      providerRetrievals.push(request);
+      return {
+        id: request.sessionId,
+        url: "https://checkout.test/retrieved",
+        expiresAt: new Date(NOW.getTime() + 60 * 60 * 1000),
+        paymentIntentId: "pi_retrieved",
+        status: "open",
+      };
+    },
+  };
   let id = 0;
   return {
     models,
+    providerCalls,
+    providerRetrievals,
     checkout(args) {
       return createCheckout({
         models,
-        owner: OWNER,
-        attemptKey: RETRY_KEY,
-        items: [{ skuKey: "hoodie", quantity: 1 }],
+        owner: OWNER_A,
+        attemptKey: RETRY_KEY_A,
+        items: ONE_HOODIE,
         checkoutEnabled: true,
         baseUrl: "https://shop.test",
         now: () => NOW,
+        getProvider: async () => provider,
         transaction: async (work) => work({ transactionId: "tx_test" }),
         createId: (prefix) => `${prefix}_test_${++id}`,
         ...args,
@@ -165,7 +195,32 @@ function makeHarness(options = {}) {
   };
 }
 
-describe("createCheckout: recording one checkout attempt", () => {
+// A buyer's attempt that already exists and was never answered by Stripe.
+function pendingAttemptFixture({ id = "attempt-seeded", reference = "ORD-SEEDED" } = {}) {
+  return {
+    _id: id,
+    owner: OWNER_A,
+    attemptKey: RETRY_KEY_A,
+    cartFingerprint: '[{"skuKey":"hoodie","quantity":1}]',
+    status: "pending",
+    orderId: `order-${id}`,
+    sessionId: null,
+    providerIdempotencyKey: `iuga:checkout:${id}`,
+    frozenStripeRequest: {
+      lineItems: [{ priceId: "price_hoodie_test", quantity: 1 }],
+      successUrl: "https://shop.test/shop/checkout/success",
+      cancelUrl: "https://shop.test/shop/checkout/cancel",
+      expiresAt: Math.floor(NOW.getTime() / 1000) + 3600,
+      clientReferenceId: `order-${id}`,
+      metadata: { attempt: id, order: `order-${id}` },
+    },
+    expiresAt: new Date(NOW.getTime() + 60 * 60 * 1000),
+    firstSubmissionAt: NOW,
+    orderReference: reference,
+  };
+}
+
+describe("createCheckout: one attempt, one payment link", () => {
   it("rejects a malformed retry key or cart before reading or writing anything", async () => {
     const cases = [
       { attemptKey: "not-a-uuid" },
@@ -181,18 +236,20 @@ describe("createCheckout: recording one checkout attempt", () => {
       await assert.rejects(harness.checkout(invalid), CheckoutValidationError);
       assert.equal(harness.models._state.calls.reads, 0);
       assert.equal(harness.models._state.calls.writes, 0);
+      assert.equal(harness.providerCalls.length, 0);
     }
   });
 
-  it("records the pending order, its stock holds, and the attempt together", async () => {
+  it("returns a payment link for a new purchase and records the attempt behind it", async () => {
     const harness = makeHarness();
     const result = await harness.checkout();
     const [attempt] = harness.models._state.attempts;
     const [order] = harness.models._state.orders;
 
-    assert.equal(result.status, "pending");
-    assert.equal(result.checkoutUrl, undefined);
-    assert.equal(result.attemptKey, RETRY_KEY);
+    assert.equal(result.status, "ready");
+    assert.equal(result.isNew, true);
+    assert.equal(result.checkoutUrl, "https://checkout.test/1");
+    assert.equal(result.attemptKey, RETRY_KEY_A);
     assert.equal(result.orderReference, order.orderReference);
 
     // One attempt, one order, one held hoodie — the hold exists because the order does.
@@ -201,12 +258,11 @@ describe("createCheckout: recording one checkout attempt", () => {
     assert.equal(harness.models._state.reservations.length, 1);
     assert.equal(harness.models._state.counters.get("HOODIE-PURPLE-M").available, 9);
 
-    assert.equal(attempt.status, "pending");
-    assert.equal(attempt.orderId, order._id);
+    assert.equal(attempt.status, "ready");
+    assert.equal(attempt.sessionId, "cs_test_1");
     assert.equal(attempt.expiresAt.getTime(), NOW.getTime() + 60 * 60 * 1000);
     assert.equal(attempt.providerIdempotencyKey, "iuga:checkout:checkout-attempt_test_1");
     assert.equal(attempt.frozenStripeRequest.successUrl, "https://shop.test/shop/checkout/success");
-    assert.equal(attempt.frozenStripeRequest.cancelUrl, "https://shop.test/shop/checkout/cancel");
     assert.equal(attempt.frozenStripeRequest.clientReferenceId, order._id);
 
     // The order carries the prices the buyer saw, in whole cents.
@@ -222,6 +278,7 @@ describe("createCheckout: recording one checkout attempt", () => {
 
     assert.equal(result.status, "unavailable");
     assert.equal(harness.models._state.calls.writes, 0);
+    assert.equal(harness.providerCalls.length, 0);
   });
 
   it("rejects a catalog, price, or stock failure without writing anything", async () => {
@@ -235,25 +292,27 @@ describe("createCheckout: recording one checkout attempt", () => {
       models.CatalogEntry.find = async () => broken;
       const harness = makeHarness({ models });
 
-      const result = await harness.checkout({ items: [{ skuKey: "hoodie", quantity: 1 }] });
+      const result = await harness.checkout({ items: ONE_HOODIE });
 
       assert.equal(result.status, "unavailable");
       assert.equal(models._state.orders.length, 0);
       assert.equal(models._state.attempts.length, 0);
       assert.equal(models._state.reservations.length, 0);
+      assert.equal(harness.providerCalls.length, 0);
     }
 
     // Nothing left on the shelf: the hold fails, so no order and no attempt may survive.
     const soldOut = makeHarness({ available: 0 });
-    const result = await soldOut.checkout({ items: [{ skuKey: "hoodie", quantity: 1 }] });
+    const result = await soldOut.checkout({ items: ONE_HOODIE });
     assert.equal(result.status, "unavailable");
     assert.equal(soldOut.models._state.orders.length, 0);
     assert.equal(soldOut.models._state.attempts.length, 0);
+    assert.equal(soldOut.providerCalls.length, 0);
 
     // A preorder item is sold before we own it, so nothing is held for it.
     const preorder = makeHarness({ available: 0 });
     const preorderResult = await preorder.checkout({ items: [{ skuKey: "sticker", quantity: 3 }] });
-    assert.equal(preorderResult.status, "pending");
+    assert.equal(preorderResult.status, "ready");
     assert.equal(preorder.models._state.reservations.length, 0);
   });
 
@@ -270,9 +329,9 @@ describe("createCheckout: recording one checkout attempt", () => {
     const harness = makeHarness({ hydrateCatalog: true });
     const result = await harness.checkout();
 
-    assert.equal(result.status, "pending");
+    assert.equal(result.status, "ready");
     assert.equal(harness.models._state.orders[0].totalMinor, 6500);
-    assert.equal(harness.models._state.attempts[0].frozenStripeRequest.lineItems[0].priceId, "price_hoodie_test");
+    assert.equal(harness.providerCalls[0].frozenStripeRequest.lineItems[0].priceId, "price_hoodie_test");
   });
 
   it("prices from the active catalog revision, ignoring older rows for the same variant", async () => {
@@ -284,8 +343,8 @@ describe("createCheckout: recording one checkout attempt", () => {
 
     const result = await harness.checkout();
 
-    assert.equal(result.status, "pending");
-    assert.equal(models._state.attempts[0].frozenStripeRequest.lineItems[0].priceId, "price_current");
+    assert.equal(result.status, "ready");
+    assert.equal(harness.providerCalls[0].frozenStripeRequest.lineItems[0].priceId, "price_current");
   });
 
   it("prices from the sale window that is open right now", async () => {
@@ -303,25 +362,231 @@ describe("createCheckout: recording one checkout attempt", () => {
 
     const result = await harness.checkout();
 
-    assert.equal(result.status, "pending");
+    assert.equal(result.status, "ready");
     assert.equal(catalogFilter.dropKey, openNow.dropKey);
     assert.notEqual(catalogFilter.dropKey, later.dropKey);
     assert.equal(models._state.attempts[0].dropKey, "open-now");
   });
 
-  it("answers unavailable when the same retry key is already being written", async () => {
+  it("replays the same attempt when the buyer presses Pay again", async () => {
+    const harness = makeHarness();
+    const first = await harness.checkout({ items: [{ skuKey: "tote", quantity: 1 }, { skuKey: "hoodie", quantity: 2 }] });
+    const second = await harness.checkout({ items: [{ skuKey: "hoodie", quantity: 2 }, { skuKey: "tote", quantity: 1 }] });
+
+    assert.equal(first.status, "ready");
+    assert.equal(first.isNew, true);
+    assert.equal(second.status, "ready");
+    assert.equal(second.isNew, false);
+    assert.equal(second.orderReference, first.orderReference);
+    assert.equal(harness.models._state.orders.length, 1);
+    assert.equal(harness.models._state.attempts.length, 1);
+    assert.equal(harness.models._state.reservations.length, 2);
+    assert.equal(harness.providerCalls.length, 1);
+    assert.equal(harness.providerRetrievals.length, 1);
+    assert.equal(harness.providerRetrievals[0].sessionId, harness.models._state.attempts[0].sessionId);
+    assert.equal(second.checkoutUrl, "https://checkout.test/retrieved");
+  });
+
+  it("treats the same retry key with a different cart as a conflict", async () => {
+    const harness = makeHarness();
+    await harness.checkout();
+    const result = await harness.checkout({ items: [{ skuKey: "tote", quantity: 1 }] });
+
+    assert.equal(result.status, "conflict");
+    assert.equal(harness.models._state.orders.length, 1);
+    assert.equal(harness.models._state.attempts.length, 1);
+    assert.equal(harness.providerCalls.length, 1);
+  });
+
+  it("keeps one buyer's retry key out of another buyer's attempt", async () => {
+    const harness = makeHarness();
+    const first = await harness.checkout({ owner: OWNER_A, attemptKey: RETRY_KEY_B });
+    const second = await harness.checkout({ owner: OWNER_B, attemptKey: RETRY_KEY_B });
+
+    assert.equal(first.status, "ready");
+    assert.equal(second.status, "ready");
+    assert.equal(harness.models._state.orders.length, 2);
+    assert.equal(harness.models._state.attempts.length, 2);
+    assert.notEqual(harness.providerCalls[0].idempotencyKey, harness.providerCalls[1].idempotencyKey);
+  });
+
+  it("replays an existing attempt even when checkout has been switched off", async () => {
+    const harness = makeHarness();
+    const created = await harness.checkout();
+    harness.models._state.attempts[0].status = "pending";
+    const replay = await harness.checkout({ checkoutEnabled: false });
+
+    assert.equal(replay.status, "pending");
+    assert.equal(replay.orderReference, created.orderReference);
+    assert.equal(replay.checkoutUrl, undefined);
+    assert.equal(harness.providerCalls.length, 1);
+    assert.equal(harness.models._state.orders.length, 1);
+
+    const fresh = makeHarness();
+    const unavailable = await fresh.checkout({ checkoutEnabled: false, attemptKey: RETRY_KEY_B });
+    assert.equal(unavailable.status, "unavailable");
+    assert.equal(fresh.models._state.calls.writes, 0);
+    assert.equal(fresh.providerCalls.length, 0);
+  });
+
+  it("replays durable state before checking the shop's own address", async () => {
+    const harness = makeHarness();
+    await harness.checkout();
+    harness.models._state.attempts[0].status = "pending";
+
+    const result = await harness.checkout({ checkoutEnabled: false, baseUrl: undefined });
+
+    assert.equal(result.status, "pending");
+    assert.equal(harness.providerCalls.length, 1);
+  });
+
+  it("asks for a human check when Stripe's answer cannot be explained", async () => {
+    const provider = {
+      async createCheckoutSession() {
+        throw new Error("timeout");
+      },
+    };
+    const harness = makeHarness({ provider });
+    const first = await harness.checkout();
+    const second = await harness.checkout();
+
+    assert.equal(first.status, "reconciliation_required");
+    assert.equal(first.checkoutUrl, undefined);
+    assert.equal(second.status, "reconciliation_required");
+    assert.equal(harness.models._state.attempts[0].status, "reconciliation_required");
+    assert.equal(harness.models._state.orders.length, 1);
+    assert.equal(harness.models._state.reservations.length, 1);
+  });
+
+  it("keeps a payment link that a concurrent duplicate request attached", async () => {
+    const fixture = pendingAttemptFixture();
+    const models = makeModels({
+      attempts: [fixture],
+      orders: [{ _id: fixture.orderId, orderReference: fixture.orderReference }],
+    });
+    let attachWinner = async () => {};
+    const harness = makeHarness({
+      models,
+      provider: {
+        async createCheckoutSession() {
+          await attachWinner();
+          throw new Error("transport failure");
+        },
+        async retrieveCheckoutSession({ sessionId }) {
+          return {
+            id: sessionId,
+            url: "https://checkout.test/winner",
+            expiresAt: new Date(NOW.getTime() + 60 * 60 * 1000),
+            paymentIntentId: "pi_winner",
+            status: "open",
+          };
+        },
+      },
+    });
+    attachWinner = () => models.CheckoutAttempt.findOneAndUpdate(
+      { "owner.userId": OWNER_A.userId, attemptKey: RETRY_KEY_A, status: "pending" },
+      { $set: { status: "ready", sessionId: "cs_winner", paymentIntentId: "pi_winner" } },
+    );
+
+    // This request cannot tell whether Stripe created a link, but the winner already stored one.
+    const failed = await harness.checkout();
+    assert.equal(failed.status, "reconciliation_required");
+    assert.equal(models._state.attempts[0].status, "ready");
+    assert.equal(models._state.attempts[0].sessionId, "cs_winner");
+
+    const replay = await harness.checkout();
+    assert.equal(replay.status, "ready");
+    assert.equal(replay.checkoutUrl, "https://checkout.test/winner");
+  });
+
+  it("re-reads the winner when another request is writing the same attempt", async () => {
     const models = makeModels();
+    const winner = {
+      _id: "attempt-winner",
+      owner: OWNER_A,
+      attemptKey: RETRY_KEY_A,
+      cartFingerprint: JSON.stringify(ONE_HOODIE),
+      orderId: "order-winner",
+      status: "pending",
+    };
+    let lookups = 0;
+    models.CheckoutAttempt.findOne = async () => {
+      lookups += 1;
+      return lookups === 1 ? null : winner;
+    };
     models.CheckoutAttempt.create = async () => {
       throw Object.assign(new Error("duplicate key"), { code: 11000 });
     };
+    models.Order.findById = async () => ({ _id: "order-winner", orderReference: "ORD-WINNER" });
     const harness = makeHarness({ models });
 
     const result = await harness.checkout();
 
-    assert.equal(result.status, "unavailable");
-    assert.equal(result.orderReference, undefined);
-    // The order and the attempt are written in one database transaction, so the database
-    // discards the order when the attempt insert loses the race; this fake has no rollback.
-    assert.equal(models._state.attempts.length, 0);
+    assert.equal(result.status, "pending");
+    assert.equal(result.orderReference, "ORD-WINNER");
+    assert.equal(harness.providerCalls.length, 0);
+  });
+
+  it("stops acting on an attempt that is finished or too old", async () => {
+    for (const status of ["reconciliation_required", "expired", "failed"]) {
+      const harness = makeHarness();
+      await harness.checkout();
+      harness.providerCalls.length = 0;
+      harness.models._state.attempts[0].status = status;
+
+      const result = await harness.checkout();
+
+      assert.equal(result.status, status);
+      assert.equal(result.checkoutUrl, undefined);
+      assert.equal(harness.providerCalls.length, 0);
+    }
+
+    for (const age of [
+      (attempt) => { attempt.expiresAt = new Date(NOW.getTime() - 1); },
+      (attempt) => { attempt.firstSubmissionAt = new Date(NOW.getTime() - 23 * 60 * 60 * 1000 - 1); },
+    ]) {
+      const harness = makeHarness();
+      await harness.checkout();
+      harness.providerCalls.length = 0;
+      harness.models._state.attempts[0].status = "pending";
+      age(harness.models._state.attempts[0]);
+
+      const result = await harness.checkout();
+
+      assert.equal(result.status, "reconciliation_required");
+      assert.equal(harness.providerCalls.length, 0);
+    }
+  });
+
+  it("never hands out a payment link that is closed or already expired", async () => {
+    for (const session of [
+      { id: "cs_complete", url: "https://checkout.test/complete", status: "complete", expiresAt: new Date(NOW.getTime() + 1000) },
+      { id: "cs_expired", url: "https://checkout.test/expired", status: "open", expiresAt: NOW },
+    ]) {
+      const harness = makeHarness({ provider: { createCheckoutSession: async () => session } });
+
+      const result = await harness.checkout();
+
+      assert.notEqual(result.status, "ready");
+      assert.equal(result.checkoutUrl, undefined);
+      assert.notEqual(harness.models._state.attempts[0]?.sessionId, session.id);
+    }
+  });
+
+  it("accepts a Stripe expiry reported in epoch seconds", async () => {
+    const session = {
+      id: "cs_epoch",
+      url: "https://checkout.test/epoch",
+      expiresAt: Math.floor(NOW.getTime() / 1000) + 3600,
+      paymentIntentId: "pi_epoch",
+      status: "open",
+    };
+    const harness = makeHarness({ provider: { createCheckoutSession: async () => session } });
+
+    const result = await harness.checkout();
+
+    assert.equal(result.status, "ready");
+    assert.equal(result.checkoutUrl, session.url);
+    assert.equal(harness.models._state.attempts[0].sessionId, session.id);
   });
 });

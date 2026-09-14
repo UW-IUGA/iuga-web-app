@@ -102,7 +102,11 @@ Internal **architecture plans and agent documentation** live in a private organi
 ```
 
 **SPA routes** (handled by Express sending the same `index.html`):
-`/`, `/events`, `/resources`, `/get-involved`, `/electionfaq`, `/contact`
+`/`, `/events`, `/resources`, `/student-voice`, `/shop`, `/elections`, `/electionfaq`, `/about`,
+`/get-involved`, `/contact`
+
+The list lives in `backend/spaRoutes.js`. `/contact` is served by Express but has no React route
+registered in `frontend/src/App.jsx` yet, so it renders the shell without content.
 
 **API routes** (JSON responses):
 All mounted under `/api/v1` — see [BACKEND.md](./BACKEND.md).

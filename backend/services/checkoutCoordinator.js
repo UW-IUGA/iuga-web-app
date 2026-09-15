@@ -154,7 +154,7 @@ function quoteCatalogRow(entry) {
     skuKey: entry.skuKey,
     title: entry.title,
     variant: entry.variant,
-    unitAmountMinor: entry.unitAmountMinor,
+    unitAmountCents: entry.unitAmountCents,
     isAvailable: entry.isEnabled === true,
   };
 }
@@ -297,7 +297,7 @@ export async function createCheckout({
       const row = catalogRowsBySkuKey.get(item.skuKey);
       if (!row || row.isEnabled !== true || typeof row.priceId !== "string" || !row.priceId.trim()) return unavailable();
       if (row.maxPerOrder !== undefined && (!Number.isSafeInteger(row.maxPerOrder) || row.maxPerOrder <= 0 || item.quantity > row.maxPerOrder)) return unavailable();
-      if (!Number.isSafeInteger(row.unitAmountMinor) || row.unitAmountMinor <= 0) return unavailable();
+      if (!Number.isSafeInteger(row.unitAmountCents) || row.unitAmountCents <= 0) return unavailable();
     }
   } catch {
     return unavailable();
@@ -352,13 +352,13 @@ export async function createCheckout({
     orderReference,
     items: quote.items.map((item) => ({ ...item, variant: variantAsStoredString(item.variant) })),
     currency: quote.currency,
-    totalMinor: quote.totalMinor,
+    totalCents: quote.totalCents,
     quoteSnapshot: quote,
     paymentState: "pending",
     fulfillmentState: "pending",
     refundState: "none",
-    pendingRefundMinor: 0,
-    refundedMinor: 0,
+    pendingRefundCents: 0,
+    refundedCents: 0,
   };
 
   try {

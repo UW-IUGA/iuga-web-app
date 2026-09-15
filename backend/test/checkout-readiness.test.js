@@ -18,7 +18,7 @@ const VALID_ENV = Object.freeze({
   STRIPE_CATALOG_VERSION: "catalog-2026-09",
   STRIPE_PAYMENT_METHODS: ["card"],
   STRIPE_CURRENCY: "usd",
-  STRIPE_MINIMUM_TOTAL_MINOR: 1,
+  STRIPE_MINIMUM_TOTAL_CENTS: 1,
 });
 
 const HEALTHY_INFRASTRUCTURE = Object.freeze({
@@ -122,12 +122,12 @@ describe("checkout configuration and readiness", () => {
       [{ STRIPE_PAYMENT_METHODS: ["link"] }, "card_only_required"],
       [{ STRIPE_PAYMENT_METHODS: "card," }, "card_only_required"],
       [{ STRIPE_CURRENCY: "eur" }, "usd_required"],
-      [{ STRIPE_MINIMUM_TOTAL_MINOR: 0 }, "positive_total_required"],
-      [{ STRIPE_MINIMUM_TOTAL_MINOR: -1 }, "positive_total_required"],
-      [{ STRIPE_MINIMUM_TOTAL_MINOR: 0.5 }, "positive_total_required"],
-      [{ STRIPE_MINIMUM_TOTAL_MINOR: true }, "positive_total_required"],
-      [{ STRIPE_MINIMUM_TOTAL_MINOR: [1] }, "positive_total_required"],
-      [{ STRIPE_MINIMUM_TOTAL_MINOR: "1.0" }, "positive_total_required"],
+      [{ STRIPE_MINIMUM_TOTAL_CENTS: 0 }, "positive_total_required"],
+      [{ STRIPE_MINIMUM_TOTAL_CENTS: -1 }, "positive_total_required"],
+      [{ STRIPE_MINIMUM_TOTAL_CENTS: 0.5 }, "positive_total_required"],
+      [{ STRIPE_MINIMUM_TOTAL_CENTS: true }, "positive_total_required"],
+      [{ STRIPE_MINIMUM_TOTAL_CENTS: [1] }, "positive_total_required"],
+      [{ STRIPE_MINIMUM_TOTAL_CENTS: "1.0" }, "positive_total_required"],
     ];
 
     for (const [env, reason] of cases) {
@@ -135,6 +135,13 @@ describe("checkout configuration and readiness", () => {
 
       assertUnavailable(result, reason);
     }
+  });
+
+  it("accepts a digit-string purchase floor and reports it in cents", () => {
+    const result = evaluate({ env: { STRIPE_MINIMUM_TOTAL_CENTS: "250" } });
+
+    assert.equal(result.checkoutEnabled, true);
+    assert.equal(result.diagnostics.minimumTotalCents, 250);
   });
 
   it("returns redacted diagnostics rather than configuration values", () => {

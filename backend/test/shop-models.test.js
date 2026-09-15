@@ -55,7 +55,7 @@ describe("Shop Mongoose Schemas and Models", () => {
       assert.ok(err.errors.dropKey);
       assert.ok(err.errors.catalogVersion);
       assert.ok(err.errors.title);
-      assert.ok(err.errors.unitAmountMinor);
+      assert.ok(err.errors.unitAmountCents);
 
       const valid = new CatalogEntry({
         skuKey: "info-hoodie-purple-m",
@@ -64,13 +64,13 @@ describe("Shop Mongoose Schemas and Models", () => {
         productKey: "info-hoodie",
         title: "IUGA Info Hoodie",
         fulfillmentSku: "HOODIE-PURPLE-M",
-        unitAmountMinor: 4500,
+        unitAmountCents: 4500,
         inventoryPolicy: "finite",
       });
       assert.equal(valid.validateSync(), undefined);
       assert.equal(valid.currency, "usd");
     });
-    it("rejects non-safe integer or negative unitAmountMinor", () => {
+    it("rejects non-safe integer or negative unitAmountCents", () => {
       const CatalogEntry = mongoose.model("CatalogEntryValidatorTest", catalogEntrySchema);
       const floatEntry = new CatalogEntry({
         skuKey: "hoodie-float",
@@ -79,9 +79,9 @@ describe("Shop Mongoose Schemas and Models", () => {
         productKey: "hoodie",
         title: "Hoodie",
         fulfillmentSku: "H-M",
-        unitAmountMinor: 45.5,
+        unitAmountCents: 45.5,
       });
-      assert.ok(floatEntry.validateSync()?.errors?.unitAmountMinor);
+      assert.ok(floatEntry.validateSync()?.errors?.unitAmountCents);
 
       const negEntry = new CatalogEntry({
         skuKey: "hoodie-neg",
@@ -90,9 +90,9 @@ describe("Shop Mongoose Schemas and Models", () => {
         productKey: "hoodie",
         title: "Hoodie",
         fulfillmentSku: "H-M",
-        unitAmountMinor: -100,
+        unitAmountCents: -100,
       });
-      assert.ok(negEntry.validateSync()?.errors?.unitAmountMinor);
+      assert.ok(negEntry.validateSync()?.errors?.unitAmountCents);
     });
   });
 
@@ -160,10 +160,10 @@ describe("Shop Mongoose Schemas and Models", () => {
       // the order is saved — how the fulfilment and payment rules once drifted.
       const defined = new Set(Object.keys(orderSchema.paths).map((path) => path.split(".")[0]));
       const samples = [
-        applyPaymentEvent({ paymentState: "pending", totalMinor: 4500 }, { type: "payment_confirmed", providerPaymentId: "pi_1" }),
+        applyPaymentEvent({ paymentState: "pending", totalCents: 4500 }, { type: "payment_confirmed", providerPaymentId: "pi_1" }),
         applyFulfillmentAction({ fulfillmentMethod: "pickup", fulfillmentState: "preparing" }, { action: "hold", reason: "address_verification_needed" }),
         applyFulfillmentAction({ fulfillmentMethod: "shipping", fulfillmentState: "preparing" }, { action: "ship", trackingNumber: "1Z999" }),
-        applyRefundEvent({ totalMinor: 4500, refundedMinor: 0, pendingRefundMinor: 0 }, { action: "reserve", amountMinor: 500 }),
+        applyRefundEvent({ totalCents: 4500, refundedCents: 0, pendingRefundCents: 0 }, { action: "reserve", amountCents: 500 }),
         applyDisputeEvent({ dispute: { state: "none" } }, { action: "open", reason: "fraudulent" }),
       ];
 

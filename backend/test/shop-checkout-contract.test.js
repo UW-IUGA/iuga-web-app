@@ -103,7 +103,7 @@ describe("POST /api/v1/shop/checkout-sessions", () => {
       orderReference: "ORD-123",
       checkoutUrl: "https://checkout.stripe.test/session",
       providerSessionId: "cs_test_provider",
-      catalogPriceMinor: 9999,
+      catalogPriceCents: 9999,
       owner: OWNER,
       frozenStripeRequest: { line_items: [{ price: "price_browser" }] },
       internalError: new Error("secret internal error"),

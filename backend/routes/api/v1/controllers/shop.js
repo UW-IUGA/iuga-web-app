@@ -28,12 +28,11 @@
 import express from "express";
 import { requireAuth } from "../utils/auth.js";
 import { sendError } from "../helpers/sendError.js";
-import { normalizeCart } from "../../../../shop/domain.js";
+import { isFinishedAttempt, normalizeAttemptKey, normalizeCart } from "../../../../shop/domain.js";
 import { createCheckout, CheckoutValidationError } from "../../../../services/checkoutCoordinator.js";
 import { createStripeProviderClient } from "../../../../services/stripeProviderClient.js";
 import { evaluateCheckoutReadiness } from "../../../../checkoutReadiness.js";
 
-const UUID_V4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const INVALID_REQUEST_MESSAGE = "Invalid checkout request";
 const CHECKOUT_UNAVAILABLE_MESSAGE = "Checkout is currently unavailable";
 const CHECKOUT_CONFLICT_MESSAGE = "Checkout request conflicts with an existing attempt";
@@ -46,13 +45,16 @@ function isPlainObject(value) {
  * @behavior Read the buyer's request, or reject it with a message that reveals nothing. The body
  *           must be exactly { items }, because the server owns identity and money.
  * @param body — the raw request body
- * @param idempotencyKeyHeader — the browser's Idempotency-Key header
+ * @param attemptKey — the browser's retry key, as the Idempotency-Key header arrived
  * @returns the lower-cased retry key and the normalized cart
  * @exceptions CheckoutValidationError when the key or the body is not exactly what we accept
  */
-function readCheckoutRequest(body, idempotencyKeyHeader) {
-  if (typeof idempotencyKeyHeader !== "string" || !UUID_V4.test(idempotencyKeyHeader)) {
-    throw new CheckoutValidationError(INVALID_REQUEST_MESSAGE);
+function readCheckoutRequest(body, attemptKey) {
+  let normalizedAttemptKey;
+  try {
+    normalizedAttemptKey = normalizeAttemptKey(attemptKey);
+  } catch (error) {
+    throw new CheckoutValidationError(error.message);
   }
   if (!isPlainObject(body) || Object.keys(body).length !== 1 || !Object.hasOwn(body, "items")) {
     throw new CheckoutValidationError(INVALID_REQUEST_MESSAGE);
@@ -66,11 +68,9 @@ function readCheckoutRequest(body, idempotencyKeyHeader) {
       throw new CheckoutValidationError(INVALID_REQUEST_MESSAGE);
     }
   }
-  // The retry key is stored lower-cased, so the same press of Pay always compares equal.
-  return { attemptKey: idempotencyKeyHeader.toLowerCase(), items: normalizeCart(body.items) };
+  return { attemptKey: normalizedAttemptKey, items: normalizeCart(body.items) };
 }
 
-// Reach Stripe with this deployment's credentials; the coordinator owns when to call it.
 function stripeProviderFromEnvironment() {
   return createStripeProviderClient({
     secretKey: process.env.STRIPE_SECRET_KEY,
@@ -134,7 +134,7 @@ export function createShopRouter({ checkout = createCheckout, checkoutEnabled } 
         };
         return res.status(result.isNew === false ? 200 : 201).json(body);
       }
-      if (result?.status === "expired" || result?.status === "failed") {
+      if (isFinishedAttempt(result?.status)) {
         return res.status(200).json({
           attemptKey: result.attemptKey,
           orderReference: result.orderReference,

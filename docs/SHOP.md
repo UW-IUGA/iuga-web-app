@@ -2,7 +2,7 @@
 
 The shop sells IUGA merchandise online. This document explains the words the code uses, what one
 checkout does from start to finish, and which file owns each step. Read it before changing
-anything under `backend/shop/`, `backend/services/checkout-*`, or the shop routes.
+anything under `backend/shop/`, `backend/services/stripeProviderClient.js`, or the shop routes.
 
 ## What exists today
 
@@ -17,14 +17,14 @@ anything under `backend/shop/`, `backend/services/checkout-*`, or the shop route
 
 1. **The shop page asks for a payment link.** `POST /api/v1/shop/checkout-sessions`, with the
    buyer's cart in the body and a retry key in the `Idempotency-Key` header.
-2. **The endpoint decides whether it may sell at all.** `backend/checkoutReadiness.js` answers from
+2. **The endpoint decides whether it may sell at all.** `backend/shop/checkout/readiness.js` answers from
    configuration, infrastructure flags, and the club's approvals. Off, or misconfigured → `503`.
 3. **The buyer's request is read, or refused.** Only the cart and the retry key are accepted;
    anything else (a buyer, a price, a total) is rejected outright
    (`routes/api/v1/controllers/shop.js`).
 4. **An earlier attempt under the same retry key is looked up.** A retry, a refresh, or a double
    press must find its own attempt — even if checkout has since been switched off
-   (`services/checkoutCoordinator.js`).
+   (`shop/checkout/checkout.js`).
 5. **For a new attempt: the sale window is found, the cart is priced, and stock is taken.**
    Prices come from the catalog, never from the browser (`shop/domain.js`, `shop/reservations.js`).
 6. **The attempt is written down before Stripe is contacted**: the pending order, the stock holds,
@@ -80,11 +80,16 @@ anything under `backend/shop/`, `backend/services/checkout-*`, or the shop route
 | File | What it owns |
 |---|---|
 | `backend/routes/api/v1/controllers/shop.js` | The HTTP endpoint, its request rules, and its response contract. |
-| `backend/services/checkoutCoordinator.js` | One checkout attempt from start to finish: retries, pricing, recording, Stripe, attaching the link. |
+| `backend/shop/checkout/checkout.js` | The checkout entry point: validate the buyer, resume or prepare an attempt, persist it, and attach a Stripe link. |
+| `backend/shop/checkout/existingAttempt.js` | Replays an existing attempt or stops it when retrying is no longer safe. |
+| `backend/shop/checkout/preparation.js` | Reads the active catalog, creates the cents quote, and builds the order and attempt records. |
+| `backend/shop/checkout/persistence.js` | Holds inventory and saves the order and attempt in one transaction. |
+| `backend/shop/checkout/paymentSession.js` | Creates or attaches a reusable Stripe Checkout Session. |
+| `backend/shop/checkout/results.js` | Builds the small result shapes returned by the checkout flow. |
+| `backend/shop/checkout/readiness.js` | Whether checkout may run at all. |
 | `backend/services/stripeProviderClient.js` | Every call to Stripe, and the only place our Stripe key is used. |
 | `backend/shop/domain.js` | Cart rules, sale-window rules, the price snapshot, and how an order moves through payment, fulfilment, refund, and dispute. No database, no network. |
 | `backend/shop/reservations.js` | Stock: holding it, selling it, putting it back. |
-| `backend/checkoutReadiness.js` | Whether checkout may run at all. |
 | `backend/schemas/schemas.js` (submodule `iuga-web-schemas`) | The database shape: catalog, sale window, stock counters, reservations, attempts, orders, refunds, disputes. |
 
 Models registered for the shop: `CatalogEntry`, `ShopDrop`, `InventoryCounter`,

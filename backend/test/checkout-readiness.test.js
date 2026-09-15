@@ -7,7 +7,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { evaluateCheckoutReadiness } from "../checkoutReadiness.js";
+import { evaluateCheckoutReadiness } from "../shop/checkout/readiness.js";
 
 const VALID_ENV = Object.freeze({
   STRIPE_MODE: "test",

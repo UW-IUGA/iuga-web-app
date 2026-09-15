@@ -16,7 +16,7 @@ import { httpErrorHandler, sendSpaError } from "./http/errors.js";
 import { ALLOWED_ORIGINS, REQUEST_BODY_LIMIT } from "./http/boundary.js";
 import { createCsrfProtection } from "./routes/api/v1/utils/csrf.js";
 import { createSpaRouter } from "./http/spaRoutes.js";
-import { evaluateCheckoutReadiness } from "./checkoutReadiness.js";
+import { evaluateCheckoutReadiness } from "./shop/checkout/readiness.js";
 
 import { fileURLToPath } from "url";
 import { dirname } from "path";

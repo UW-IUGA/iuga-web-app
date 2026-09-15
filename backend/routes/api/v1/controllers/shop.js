@@ -29,9 +29,9 @@ import express from "express";
 import { requireAuth } from "../utils/auth.js";
 import { sendError } from "../helpers/sendError.js";
 import { normalizeAttemptKey, normalizeCart } from "../../../../shop/domain.js";
-import { createCheckout, CheckoutValidationError } from "../../../../services/checkoutCoordinator.js";
+import { createCheckout, CheckoutValidationError } from "../../../../shop/checkout/checkout.js";
 import { createStripeProviderClient } from "../../../../services/stripeProviderClient.js";
-import { evaluateCheckoutReadiness } from "../../../../checkoutReadiness.js";
+import { evaluateCheckoutReadiness } from "../../../../shop/checkout/readiness.js";
 
 const INVALID_REQUEST_MESSAGE = "Invalid checkout request";
 const CHECKOUT_UNAVAILABLE_MESSAGE = "Checkout is currently unavailable";

@@ -15,6 +15,8 @@ import {
   applyFulfillmentAction,
   applyRefundEvent,
   applyDisputeEvent,
+  isFinishedAttempt,
+  normalizeAttemptKey,
 } from "../shop/domain.js";
 
 describe("Shop Domain - Pure Contracts and Reducers", () => {
@@ -512,6 +514,56 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
         () => applyDisputeEvent(order, { action: "resolve", outcome: "won" }),
         /dispute not open/i,
       );
+    });
+  });
+
+  describe("isFinishedAttempt", () => {
+    it("reports an expired or failed attempt as finished", () => {
+      assert.equal(isFinishedAttempt("expired"), true);
+      assert.equal(isFinishedAttempt("failed"), true);
+    });
+
+    it("reports every status an attempt can still move out of as unfinished", () => {
+      for (const status of [
+        "pending",
+        "dispatching",
+        "ready",
+        "reconciliation_required",
+      ]) {
+        assert.equal(isFinishedAttempt(status), false);
+      }
+    });
+  });
+
+  describe("normalizeAttemptKey", () => {
+    it("lower-cases a valid retry key so a retry compares equal", () => {
+      assert.equal(
+        normalizeAttemptKey("550E8400-E29B-41D4-A716-446655440000"),
+        "550e8400-e29b-41d4-a716-446655440000",
+      );
+    });
+
+    it("keeps an already lower-cased retry key unchanged", () => {
+      assert.equal(
+        normalizeAttemptKey("550e8400-e29b-41d4-a716-446655440000"),
+        "550e8400-e29b-41d4-a716-446655440000",
+      );
+    });
+
+    it("refuses anything that is not a v4 retry key", () => {
+      const invalid = [
+        undefined,
+        null,
+        "",
+        "not-a-uuid",
+        42,
+        // Version nibble 1, so this is a v1 UUID rather than the v4 we require.
+        "550e8400-e29b-11d4-a716-446655440000",
+      ];
+
+      for (const value of invalid) {
+        assert.throws(() => normalizeAttemptKey(value), /retry key/i);
+      }
     });
   });
 });

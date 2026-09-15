@@ -74,6 +74,23 @@ export function normalizeCart(items) {
   return Object.freeze(normalized);
 }
 
+const RETRY_KEY_UUID_V4 =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/*
+ * @behavior Put the browser's retry key into the one form the shop stores, so the same press of
+ *           Pay always compares equal and a key that could not have come from us is refused.
+ * @param rawKey — the Idempotency-Key header as it arrived
+ * @returns the lower-cased retry key
+ * @exceptions throws when the key is not a string or not a v4 UUID
+ */
+export function normalizeAttemptKey(rawKey) {
+  if (typeof rawKey !== "string" || !RETRY_KEY_UUID_V4.test(rawKey)) {
+    throw new Error("Retry key must be a UUIDv4");
+  }
+  return rawKey.toLowerCase();
+}
+
 /*
  * @behavior Answer whether a sale window is open right now, so a closed or not-yet-started
  *           window cannot sell anything.
@@ -418,4 +435,18 @@ export function applyDisputeEvent(order, disputeEvent = {}) {
   }
 
   throw new Error(`Unknown dispute action: ${disputeEvent.action}`);
+}
+
+// A checkout attempt in one of these states is over: no payment link will appear, and no retry
+// brings it back. "expired" is the hold running out; "failed" is the provider giving up.
+const FINISHED_ATTEMPT_STATUSES = Object.freeze(["expired", "failed"]);
+
+/*
+ * @behavior Say whether a checkout attempt has reached a state it cannot leave, so callers stop
+ *           retrying without hardcoding which statuses count as finished.
+ * @param status — a CheckoutAttempt status value
+ * @returns true for a status nothing can move the attempt out of
+ */
+export function isFinishedAttempt(status) {
+  return FINISHED_ATTEMPT_STATUSES.includes(status);
 }

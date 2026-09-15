@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { createSessionOptions, readSessionSecret } from "../sessionConfig.js";
+import { createSessionOptions, readSessionSecret } from "../http/session.js";
 
 const appPath = fileURLToPath(new URL("../app.js", import.meta.url));
 

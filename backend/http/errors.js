@@ -1,4 +1,4 @@
-import { sendError } from "./routes/api/v1/helpers/sendError.js";
+import { sendError } from "../routes/api/v1/helpers/sendError.js";
 
 /*
  * @behavior Convert parser and unexpected Express errors into the API error envelope.

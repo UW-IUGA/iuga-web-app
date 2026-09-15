@@ -26,8 +26,11 @@ backend/
 ├── bin/
 │   └── www.cjs              ← Server entry point (CommonJS)
 ├── app.js                   ← Express app config and middleware order
-├── httpBoundaryConfig.js    ← Shared body-size and browser-origin policy
-├── httpErrorHandler.js      ← Safe JSON responses for parser/server errors
+├── http/
+│   ├── boundary.js          ← Shared body-size and browser-origin policy
+│   ├── errors.js            ← Safe JSON responses for parser/server errors
+│   ├── session.js           ← Session signing secret and cookie policy
+│   └── spaRoutes.js         ← SPA shell routes served from the compiled frontend
 ├── models.js                ← Database connection + model registration
 ├── schemas/                 ← Git submodule → UW-IUGA/iuga-web-schemas
 ├── routes/

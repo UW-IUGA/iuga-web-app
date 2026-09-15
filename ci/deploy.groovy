@@ -35,7 +35,7 @@ void healthGatedDeploy(Map cfg) {
     def lastGoodImage = "${cfg.image}:last-good"
     def netFlag = cfg.network ? "--network iuga-server-config_default" : ""
     // Forward the deployment-specific secret under its own runtime name so the
-    // app can select it by DEPLOY_ENV (backend/sessionConfig.js).
+    // app can select it by DEPLOY_ENV (backend/http/session.js).
     def secretEnv = cfg.deployEnv == 'development' ? 'SESSION_SECRET_DEV' : cfg.deployEnv == 'staging' ? 'SESSION_SECRET_STAGING' : 'SESSION_SECRET_PROD'
     sh """
     CANDIDATE="${cfg.container}-candidate"

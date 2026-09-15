@@ -50,13 +50,13 @@ function readPaymentMethods(value) {
   return [];
 }
 
-function readMinimumTotalMinor(value) {
-  if (typeof value === "number") {
-    return Number.isSafeInteger(value) && value > 0 ? value : null;
-  }
-  if (typeof value !== "string" || !/^\d+$/u.test(value.trim())) return null;
+// The floor arrives as a digit string from env vars, but as a number from tests and callers.
+function readMinimumTotalCents(value) {
+  const amount = typeof value === "string" ? value.trim() : value;
+  const total = typeof amount === "string"
+    ? (/^\d+$/u.test(amount) ? Number(amount) : Number.NaN)
+    : amount;
 
-  const total = Number(value);
   return Number.isSafeInteger(total) && total > 0 ? total : null;
 }
 
@@ -101,10 +101,6 @@ function safeBaseUrl(value) {
   }
 }
 
-function addReason(reasons, reason) {
-  if (!reasons.includes(reason)) reasons.push(reason);
-}
-
 /*
  * @behavior Answer whether checkout may run, and name every missing piece when it may not.
  * @param input — the deployment's configuration, infrastructure flags, and club approvals
@@ -116,36 +112,36 @@ export function evaluateCheckoutReadiness(input = {}) {
   const env = asRecord(source.env);
   const infrastructure = asRecord(source.infrastructure);
   const policy = asRecord(source.policy);
-  const reasons = [];
+  const reasons = new Set();
 
   const mode = text(env.STRIPE_MODE).toLowerCase();
   const missingConfiguration = REQUIRED_CONFIGURATION.some((key) => !hasValue(env[key]));
-  if (missingConfiguration) addReason(reasons, "missing_configuration");
-  if (mode !== "test" && mode !== "live") addReason(reasons, "invalid_mode");
+  if (missingConfiguration) reasons.add("missing_configuration");
+  if (mode !== "test" && mode !== "live") reasons.add("invalid_mode");
 
   if (!credentialsMatchMode(mode, env.STRIPE_SECRET_KEY)) {
-    addReason(reasons, "mode_credentials_mismatch");
+    reasons.add("mode_credentials_mismatch");
   }
-  if (!validPinnedApiVersion(env.STRIPE_API_VERSION)) addReason(reasons, "invalid_api_version");
-  if (!validHttpsBaseUrl(env.STRIPE_BASE_URL)) addReason(reasons, "invalid_base_url");
+  if (!validPinnedApiVersion(env.STRIPE_API_VERSION)) reasons.add("invalid_api_version");
+  if (!validHttpsBaseUrl(env.STRIPE_BASE_URL)) reasons.add("invalid_base_url");
 
   const paymentMethods = readPaymentMethods(env.STRIPE_PAYMENT_METHODS);
   if (paymentMethods.length !== 1 || paymentMethods[0].toLowerCase() !== "card") {
-    addReason(reasons, "card_only_required");
+    reasons.add("card_only_required");
   }
-  if (text(env.STRIPE_CURRENCY).toLowerCase() !== "usd") addReason(reasons, "usd_required");
-  if (readMinimumTotalMinor(env.STRIPE_MINIMUM_TOTAL_MINOR) === null) {
-    addReason(reasons, "positive_total_required");
+  if (text(env.STRIPE_CURRENCY).toLowerCase() !== "usd") reasons.add("usd_required");
+  if (readMinimumTotalCents(env.STRIPE_MINIMUM_TOTAL_CENTS) === null) {
+    reasons.add("positive_total_required");
   }
 
   if (!REQUIRED_INFRASTRUCTURE_FLAGS.every((gate) => isEnabledFlag(infrastructure[gate]))) {
-    addReason(reasons, "infrastructure_unhealthy");
+    reasons.add("infrastructure_unhealthy");
   }
   if (!REQUIRED_BUSINESS_APPROVALS.every((gate) => isEnabledFlag(policy[gate]))) {
-    addReason(reasons, "policy_unapproved");
+    reasons.add("policy_unapproved");
   }
   if (mode === "live" && !isEnabledFlag(policy.livePayments)) {
-    addReason(reasons, "live_mode_disabled");
+    reasons.add("live_mode_disabled");
   }
 
   const diagnostics = {
@@ -157,13 +153,13 @@ export function evaluateCheckoutReadiness(input = {}) {
     catalogVersion: text(env.STRIPE_CATALOG_VERSION) || "[missing]",
     paymentMethods,
     currency: text(env.STRIPE_CURRENCY).toLowerCase() || "[missing]",
-    minimumTotalMinor: readMinimumTotalMinor(env.STRIPE_MINIMUM_TOTAL_MINOR) ?? "[invalid]",
+    minimumTotalCents: readMinimumTotalCents(env.STRIPE_MINIMUM_TOTAL_CENTS) ?? "[invalid]",
   };
 
   return {
-    checkoutEnabled: reasons.length === 0,
+    checkoutEnabled: reasons.size === 0,
     mode,
-    reasons,
+    reasons: [...reasons],
     diagnostics,
   };
 }

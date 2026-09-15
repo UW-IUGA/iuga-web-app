@@ -137,7 +137,7 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
         dropKey: "drop-fall-2026",
         title: "IUGA Info Hoodie",
         variant: "Purple / L",
-        unitAmountMinor: 4500,
+        unitAmountCents: 4500,
         currency: "usd",
         isAvailable: true,
       },
@@ -146,7 +146,7 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
         dropKey: "drop-fall-2026",
         title: "IUGA Canvas Tote Bag",
         variant: "Natural",
-        unitAmountMinor: 1500,
+        unitAmountCents: 1500,
         currency: "usd",
         isAvailable: true,
       },
@@ -161,7 +161,7 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
       });
 
       assert.equal(quote.currency, "usd");
-      assert.equal(quote.totalMinor, 4500);
+      assert.equal(quote.totalCents, 4500);
     });
 
     it("freezes an immutable quote with exact safe integer cents totals", () => {
@@ -176,15 +176,15 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
       assert.equal(quote.dropKey, "drop-fall-2026");
       assert.equal(quote.catalogVersion, "v1-2026-10");
       assert.equal(quote.currency, "usd");
-      assert.equal(quote.totalMinor, 10500); // (2 * 4500) + (1 * 1500) = 9000 + 1500 = 10500
+      assert.equal(quote.totalCents, 10500); // (2 * 4500) + (1 * 1500) = 9000 + 1500 = 10500
       assert.equal(quote.items.length, 2);
       assert.deepEqual(quote.items[0], {
         skuKey: "info-hoodie-purple-l",
         title: "IUGA Info Hoodie",
         variant: "Purple / L",
         quantity: 2,
-        unitAmountMinor: 4500,
-        subtotalMinor: 9000,
+        unitAmountCents: 4500,
+        subtotalCents: 9000,
       });
       assert.ok(Object.isFrozen(quote));
       assert.ok(Object.isFrozen(quote.items));
@@ -233,7 +233,7 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
       const order = {
         orderId: "ord_101",
         paymentState: "pending",
-        totalMinor: 4500,
+        totalCents: 4500,
         paidAt: null,
       };
 
@@ -255,7 +255,7 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
       const order = {
         orderId: "ord_101",
         paymentState: "paid",
-        totalMinor: 4500,
+        totalCents: 4500,
         paidAt: new Date("2026-10-02T12:00:00.000Z"),
         settlementSnapshot: { providerPaymentId: "pi_original", receiptEmail: "buyer@uw.edu" },
       };
@@ -271,7 +271,7 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
       const paidOrder = {
         orderId: "ord_101",
         paymentState: "paid",
-        totalMinor: 4500,
+        totalCents: 4500,
         paidAt,
       };
 
@@ -288,7 +288,7 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
       const paidOrder = {
         orderId: "ord_101",
         paymentState: "paid",
-        totalMinor: 4500,
+        totalCents: 4500,
         paidAt: new Date(),
       };
 
@@ -392,41 +392,41 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
     it("reserves and settles refunds within the collected payment budget", () => {
       let order = {
         orderId: "ord_201",
-        totalMinor: 10000,
-        refundedMinor: 0,
-        pendingRefundMinor: 0,
+        totalCents: 10000,
+        refundedCents: 0,
+        pendingRefundCents: 0,
         refundState: "none",
         paymentState: "paid",
       };
 
       order = applyRefundEvent(order, {
         action: "reserve",
-        amountMinor: 3000,
+        amountCents: 3000,
       });
-      assert.equal(order.pendingRefundMinor, 3000);
-      assert.equal(order.refundedMinor, 0);
+      assert.equal(order.pendingRefundCents, 3000);
+      assert.equal(order.refundedCents, 0);
       assert.equal(order.refundState, "none");
       assert.equal(order.paymentState, "paid"); // Refunding never changes payment state
 
       order = applyRefundEvent(order, {
         action: "settle",
-        amountMinor: 3000,
+        amountCents: 3000,
       });
-      assert.equal(order.pendingRefundMinor, 0);
-      assert.equal(order.refundedMinor, 3000);
+      assert.equal(order.pendingRefundCents, 0);
+      assert.equal(order.refundedCents, 3000);
       assert.equal(order.refundState, "partial");
       assert.equal(order.paymentState, "paid");
 
       order = applyRefundEvent(order, {
         action: "reserve",
-        amountMinor: 7000,
+        amountCents: 7000,
       });
       order = applyRefundEvent(order, {
         action: "settle",
-        amountMinor: 7000,
+        amountCents: 7000,
       });
-      assert.equal(order.pendingRefundMinor, 0);
-      assert.equal(order.refundedMinor, 10000);
+      assert.equal(order.pendingRefundCents, 0);
+      assert.equal(order.refundedCents, 10000);
       assert.equal(order.refundState, "full");
       assert.equal(order.paymentState, "paid");
     });
@@ -434,41 +434,41 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
     it("releases pending refund on failure without altering settled refunds", () => {
       let order = {
         orderId: "ord_202",
-        totalMinor: 5000,
-        refundedMinor: 1000,
-        pendingRefundMinor: 0,
+        totalCents: 5000,
+        refundedCents: 1000,
+        pendingRefundCents: 0,
         refundState: "partial",
         paymentState: "paid",
       };
 
       order = applyRefundEvent(order, {
         action: "reserve",
-        amountMinor: 2000,
+        amountCents: 2000,
       });
-      assert.equal(order.pendingRefundMinor, 2000);
+      assert.equal(order.pendingRefundCents, 2000);
 
       order = applyRefundEvent(order, {
         action: "fail",
-        amountMinor: 2000,
+        amountCents: 2000,
       });
-      assert.equal(order.pendingRefundMinor, 0);
-      assert.equal(order.refundedMinor, 1000);
+      assert.equal(order.pendingRefundCents, 0);
+      assert.equal(order.refundedCents, 1000);
       assert.equal(order.refundState, "partial");
     });
 
     it("rejects refund reservations that exceed the available payment balance", () => {
       const order = {
         orderId: "ord_203",
-        totalMinor: 5000,
-        refundedMinor: 3000,
-        pendingRefundMinor: 1500,
+        totalCents: 5000,
+        refundedCents: 3000,
+        pendingRefundCents: 1500,
         refundState: "partial",
         paymentState: "paid",
       };
 
       // 5000 collected, 3000 + 1500 already reserved, so only 500 remains and this must throw.
       assert.throws(
-        () => applyRefundEvent(order, { action: "reserve", amountMinor: 1000 }),
+        () => applyRefundEvent(order, { action: "reserve", amountCents: 1000 }),
         /refund budget exceeded/i,
       );
     });
@@ -478,7 +478,7 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
     it("tracks dispute lifecycle from none to open to won or lost", () => {
       let order = {
         orderId: "ord_301",
-        totalMinor: 4500,
+        totalCents: 4500,
         paymentState: "paid",
         dispute: {
           state: "none",

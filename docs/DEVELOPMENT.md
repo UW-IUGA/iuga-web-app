@@ -105,7 +105,7 @@ policy evidence is wired, that capability is always `false`.
 | `STRIPE_CATALOG_VERSION` | Non-empty approved catalog revision |
 | `STRIPE_PAYMENT_METHODS` | Exactly `card` |
 | `STRIPE_CURRENCY` | Exactly `usd` |
-| `STRIPE_MINIMUM_TOTAL_MINOR` | Positive integer minor-unit purchase floor |
+| `STRIPE_MINIMUM_TOTAL_CENTS` | Positive integer purchase floor in cents |
 
 Frontend environment files are local and should not be committed:
 

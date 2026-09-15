@@ -6,7 +6,7 @@
  *
  * A "drop" is one sales window, with its own dates and price list. A "variant" (field name
  * skuKey) is one buyable version of a product — the hoodie, purple, size M. Money is always
- * whole cents ("minor units"), never dollars with decimals.
+ * whole cents, never dollars with decimals.
  */
 
 function asRecord(value) {
@@ -128,7 +128,7 @@ export function snapshotQuote({ cart, catalog, drop, now = new Date() }) {
 
   // Money is counted in whole cents. Dollars as decimals would quietly lose a cent per line and
   // the buyer would be charged a total that does not match the prices we displayed.
-  let totalMinor = 0;
+  let totalCents = 0;
   const quotedItems = [];
 
   for (const item of cart) {
@@ -141,18 +141,18 @@ export function snapshotQuote({ cart, catalog, drop, now = new Date() }) {
       throw new Error(`SKU ${item.skuKey} is currently unavailable`);
     }
 
-    if (!Number.isSafeInteger(entry.unitAmountMinor) || entry.unitAmountMinor <= 0) {
-      throw new Error(`Catalog entry ${item.skuKey} has invalid unitAmountMinor`);
+    if (!Number.isSafeInteger(entry.unitAmountCents) || entry.unitAmountCents <= 0) {
+      throw new Error(`Catalog entry ${item.skuKey} has invalid unitAmountCents`);
     }
 
-    const subtotalMinor = item.quantity * entry.unitAmountMinor;
-    if (!Number.isSafeInteger(subtotalMinor)) {
-      throw new Error(`Subtotal minor unit overflow for SKU ${item.skuKey}`);
+    const subtotalCents = item.quantity * entry.unitAmountCents;
+    if (!Number.isSafeInteger(subtotalCents)) {
+      throw new Error(`Subtotal cents overflow for SKU ${item.skuKey}`);
     }
 
-    totalMinor += subtotalMinor;
-    if (!Number.isSafeInteger(totalMinor)) {
-      throw new Error("Total minor unit overflow");
+    totalCents += subtotalCents;
+    if (!Number.isSafeInteger(totalCents)) {
+      throw new Error("Total cents overflow");
     }
 
     quotedItems.push(
@@ -161,8 +161,8 @@ export function snapshotQuote({ cart, catalog, drop, now = new Date() }) {
         title: entry.title,
         variant: entry.variant,
         quantity: item.quantity,
-        unitAmountMinor: entry.unitAmountMinor,
-        subtotalMinor,
+        unitAmountCents: entry.unitAmountCents,
+        subtotalCents,
       }),
     );
   }
@@ -172,7 +172,7 @@ export function snapshotQuote({ cart, catalog, drop, now = new Date() }) {
     catalogVersion: dropRecord.catalogVersion,
     currency,
     items: Object.freeze(quotedItems),
-    totalMinor,
+    totalCents,
     quotedAt,
   });
 }
@@ -324,38 +324,38 @@ export function applyFulfillmentAction(order, action = {}) {
  */
 export function applyRefundEvent(order, refundEvent = {}) {
   const current = asRecord(order);
-  const totalMinor = Number.isSafeInteger(current.totalMinor) ? current.totalMinor : 0;
-  let refundedMinor = Number.isSafeInteger(current.refundedMinor) ? current.refundedMinor : 0;
-  let pendingRefundMinor = Number.isSafeInteger(current.pendingRefundMinor) ? current.pendingRefundMinor : 0;
-  const amountMinor = Number.isSafeInteger(refundEvent.amountMinor) ? refundEvent.amountMinor : 0;
+  const totalCents = Number.isSafeInteger(current.totalCents) ? current.totalCents : 0;
+  let refundedCents = Number.isSafeInteger(current.refundedCents) ? current.refundedCents : 0;
+  let pendingRefundCents = Number.isSafeInteger(current.pendingRefundCents) ? current.pendingRefundCents : 0;
+  const amountCents = Number.isSafeInteger(refundEvent.amountCents) ? refundEvent.amountCents : 0;
 
-  if (amountMinor <= 0) {
+  if (amountCents <= 0) {
     throw new Error("Refund amount must be a positive safe integer");
   }
 
   switch (refundEvent.action) {
     case "reserve": {
-      if (refundedMinor + pendingRefundMinor + amountMinor > totalMinor) {
-        throw new Error(`Refund budget exceeded: available is ${totalMinor - refundedMinor - pendingRefundMinor}, requested ${amountMinor}`);
+      if (refundedCents + pendingRefundCents + amountCents > totalCents) {
+        throw new Error(`Refund budget exceeded: available is ${totalCents - refundedCents - pendingRefundCents}, requested ${amountCents}`);
       }
-      pendingRefundMinor += amountMinor;
+      pendingRefundCents += amountCents;
       break;
     }
     case "settle": {
-      if (amountMinor > pendingRefundMinor) {
+      if (amountCents > pendingRefundCents) {
         // More than was reserved: settle directly, as long as it still fits the collected total.
-        if (refundedMinor + amountMinor > totalMinor) {
+        if (refundedCents + amountCents > totalCents) {
           throw new Error("Refund budget exceeded on settlement");
         }
-        pendingRefundMinor = Math.max(0, pendingRefundMinor - amountMinor);
+        pendingRefundCents = Math.max(0, pendingRefundCents - amountCents);
       } else {
-        pendingRefundMinor -= amountMinor;
+        pendingRefundCents -= amountCents;
       }
-      refundedMinor += amountMinor;
+      refundedCents += amountCents;
       break;
     }
     case "fail": {
-      pendingRefundMinor = Math.max(0, pendingRefundMinor - amountMinor);
+      pendingRefundCents = Math.max(0, pendingRefundCents - amountCents);
       break;
     }
     default:
@@ -363,16 +363,16 @@ export function applyRefundEvent(order, refundEvent = {}) {
   }
 
   let refundState = "none";
-  if (refundedMinor === totalMinor && totalMinor > 0) {
+  if (refundedCents === totalCents && totalCents > 0) {
     refundState = "full";
-  } else if (refundedMinor > 0) {
+  } else if (refundedCents > 0) {
     refundState = "partial";
   }
 
   return {
     ...current,
-    refundedMinor,
-    pendingRefundMinor,
+    refundedCents,
+    pendingRefundCents,
     refundState,
   };
 }

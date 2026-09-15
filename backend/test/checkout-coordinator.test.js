@@ -37,7 +37,7 @@ const catalogRows = [
     title: "Info Hoodie",
     variant: "purple-m",
     priceId: "price_hoodie_test",
-    unitAmountMinor: 6500,
+    unitAmountCents: 6500,
     isEnabled: true,
     maxPerOrder: 2,
     inventoryPolicy: "finite",
@@ -48,7 +48,7 @@ const catalogRows = [
     title: "Info Tote Bag",
     variant: "natural",
     priceId: "price_tote_test",
-    unitAmountMinor: 1800,
+    unitAmountCents: 1800,
     isEnabled: true,
     inventoryPolicy: "finite",
     fulfillmentSku: "TOTE-NATURAL",
@@ -58,7 +58,7 @@ const catalogRows = [
     title: "Sticker Pack",
     isEnabled: true,
     priceId: "price_sticker_test",
-    unitAmountMinor: 500,
+    unitAmountCents: 500,
     inventoryPolicy: "preorder",
     fulfillmentSku: "STICKER-PACK",
   },
@@ -272,7 +272,7 @@ describe("createCheckout: one attempt, one payment link", () => {
     assert.equal(attempt.frozenStripeRequest.successUrl, "https://shop.test/shop/checkout/success");
     assert.equal(attempt.frozenStripeRequest.clientReferenceId, order._id);
 
-    assert.equal(order.totalMinor, 6500);
+    assert.equal(order.totalCents, 6500);
     assert.equal(order.currency, "usd");
     assert.equal(order.paymentState, "pending");
     assert.equal(order.fulfillmentState, "pending");
@@ -335,7 +335,7 @@ describe("createCheckout: one attempt, one payment link", () => {
     const result = await harness.checkout();
 
     assert.equal(result.status, "ready");
-    assert.equal(harness.models._state.orders[0].totalMinor, 6500);
+    assert.equal(harness.models._state.orders[0].totalCents, 6500);
     assert.equal(harness.providerCalls[0].frozenStripeRequest.lineItems[0].priceId, "price_hoodie_test");
   });
 

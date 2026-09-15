@@ -4,30 +4,6 @@ import { snapshotQuote } from "../domain.js";
 
 const ATTEMPT_WINDOW_MS = 60 * 60 * 1000;
 
-function validateBaseUrl(baseUrl) {
-  if (typeof baseUrl !== "string" || !baseUrl.trim()) {
-    throw new Error("Invalid checkout base URL");
-  }
-  let parsed;
-  try {
-    parsed = new URL(baseUrl);
-  } catch {
-    throw new Error("Invalid checkout base URL");
-  }
-  if (
-    parsed.protocol !== "https:" ||
-    !parsed.hostname ||
-    parsed.username ||
-    parsed.password ||
-    (parsed.pathname !== "/" && parsed.pathname !== "") ||
-    parsed.search ||
-    parsed.hash
-  ) {
-    throw new Error("Invalid checkout base URL");
-  }
-  return parsed.toString().replace(/\/$/, "");
-}
-
 function makeId(createId, prefix) {
   if (typeof createId === "function") return createId(prefix);
   return randomUUID().replaceAll("-", "").slice(0, 24);

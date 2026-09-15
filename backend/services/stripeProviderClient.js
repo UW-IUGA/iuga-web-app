@@ -151,12 +151,13 @@ export function createStripeProviderClient(options = {}) {
 
   return {
     /*
-     * @behavior Create the page the buyer pays on. Retries reuse the same key, so Stripe can
-     *           tell a retry apart from a second purchase.
+     * @behavior Create a Stripe Checkout Session for a stored purchase and return the link to
+     *           Stripe's hosted payment page. Retries reuse the same key, so Stripe can tell a
+     *           retry apart from a second purchase.
      * @param options.frozenStripeRequest — the stored purchase: line items with their prices
      *        and quantities, the return URLs, the expiry, and the attempt and order ids
      * @param options.idempotencyKey — our server-made key, `iuga:checkout:<attemptId>`
-     * @returns the created Session: id, payment URL, expiry, PaymentIntent, status
+     * @returns the created Session: id, hosted payment URL, expiry, PaymentIntent, status
      * @exceptions StripeProviderError on a damaged request, a transport failure, or a response
      *             we cannot trust
      */

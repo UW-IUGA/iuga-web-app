@@ -13,7 +13,7 @@ import { catalogEntrySchema } from "../schemas/schemas.js";
 import {
   CheckoutValidationError,
   createCheckout,
-} from "../services/checkoutCoordinator.js";
+} from "../shop/checkout/checkout.js";
 
 const NOW = new Date("2026-10-01T12:00:00.000Z");
 const OWNER_A = { type: "user", userId: "user-a" };

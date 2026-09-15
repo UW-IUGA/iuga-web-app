@@ -28,7 +28,7 @@
 import express from "express";
 import { requireAuth } from "../utils/auth.js";
 import { sendError } from "../helpers/sendError.js";
-import { normalizeAttemptKey, normalizeCart } from "../../../../shop/domain.js";
+import { isFinishedAttempt, normalizeAttemptKey, normalizeCart } from "../../../../shop/domain.js";
 import { createCheckout, CheckoutValidationError } from "../../../../shop/checkout/checkout.js";
 import { createStripeProviderClient } from "../../../../services/stripeProviderClient.js";
 import { evaluateCheckoutReadiness } from "../../../../shop/checkout/readiness.js";
@@ -134,7 +134,7 @@ export function createShopRouter({ checkout = createCheckout, checkoutEnabled } 
         };
         return res.status(result.isNew === false ? 200 : 201).json(body);
       }
-      if (result?.status === "expired" || result?.status === "failed") {
+      if (isFinishedAttempt(result?.status)) {
         return res.status(200).json({
           attemptKey: result.attemptKey,
           orderReference: result.orderReference,

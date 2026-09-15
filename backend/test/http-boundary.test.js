@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import express from "express";
 import { once } from "node:events";
-import { ALLOWED_ORIGINS, REQUEST_BODY_LIMIT } from "../httpBoundaryConfig.js";
+import { ALLOWED_ORIGINS, REQUEST_BODY_LIMIT } from "../http/boundary.js";
 
 const allowedOrigins = ALLOWED_ORIGINS;
 

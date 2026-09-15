@@ -6,16 +6,16 @@ import cors from "cors";
 import path from "path";
 
 import { models, connectToDatabase } from "./models.js";
-import { createSessionOptions, readSessionSecret } from "./sessionConfig.js";
+import { createSessionOptions, readSessionSecret } from "./http/session.js";
 import apiv1Router from "./routes/api/v1/apiv1.js";
 import {
   configureTrustedProxy,
   createRateLimiter,
 } from "./routes/api/v1/utils/rateLimit.js";
-import { httpErrorHandler, sendSpaError } from "./httpErrorHandler.js";
-import { ALLOWED_ORIGINS, REQUEST_BODY_LIMIT } from "./httpBoundaryConfig.js";
+import { httpErrorHandler, sendSpaError } from "./http/errors.js";
+import { ALLOWED_ORIGINS, REQUEST_BODY_LIMIT } from "./http/boundary.js";
 import { createCsrfProtection } from "./routes/api/v1/utils/csrf.js";
-import { createSpaRouter } from "./spaRoutes.js";
+import { createSpaRouter } from "./http/spaRoutes.js";
 
 import { fileURLToPath } from "url";
 import { dirname } from "path";

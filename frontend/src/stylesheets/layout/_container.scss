@@ -1,3 +1,10 @@
+// App shell geometry. Above the tablet breakpoint the desktop navigation rail
+// (_navigation-desktop.scss) is pinned to the left edge, so the page content
+// region starts after it. The shell reserves that rail and the content column
+// centers itself inside the remaining region, which keeps the gutters balanced
+// on wide displays and keeps the footer on the same axis as the page content.
+// The region only exceeds the column cap on very wide screens, so narrower
+// desktop layouts still sit against the rail with the standard gutter.
 #rootContainer {
     position: relative;
     display: flex;
@@ -14,20 +21,21 @@
     z-index: 1;
 }
 
-// !important 
 @include media(">=tablet") {
+    #rootContainer {
+        padding-left: $desktop-sidebar-width;
+    }
+
     .baseContainer {
         box-sizing: border-box;
-        width: min(1200px, calc(100vw - $desktop-sidebar-width - ($desktop-sidebar-gap * 2)));
-        margin-left: calc($desktop-sidebar-width + $desktop-sidebar-gap);
-        margin-right: $desktop-sidebar-gap;
+        width: min(1200px, calc(100% - $desktop-sidebar-gap * 2));
         padding-top: 106px;
     }
 }
 
 @include media(">=sm-desktop", "<desktop") {
     .baseContainer {
-        width: min(1000px, calc(100vw - $desktop-sidebar-width - ($desktop-sidebar-gap * 2)));
+        width: min(1000px, calc(100% - $desktop-sidebar-gap * 2));
     }
 }
 

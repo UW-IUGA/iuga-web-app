@@ -75,7 +75,9 @@ anything under `backend/shop/`, `backend/services/stripeProviderClient.js`, or t
   hold is claimed before its counter moves, so releasing the same order twice puts one unit
   back, not two.
 - **Unclear outcomes stop.** A timeout or an unreadable answer becomes `reconciliation_required`,
-  never an automatic retry with a new key.
+  never an automatic retry with a new key. The attempt also records which stage failed
+  (`reconciliationReason`) and a safe machine code for it (`lastErrorCode`) — never Stripe's
+  message, which can echo keys and payment details.
 
 ## Where the code lives
 

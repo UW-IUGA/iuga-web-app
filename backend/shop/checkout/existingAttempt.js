@@ -2,6 +2,7 @@ import { isFinishedAttempt } from "../domain.js";
 import {
   attachReadySession,
   isReusableStripeSession,
+  markAttemptForManualCheck,
 } from "./paymentSession.js";
 import {
   conflictResult,
@@ -78,28 +79,45 @@ export async function resumeExistingAttempt({
 
   // The earlier request died after writing the attempt, before reaching Stripe. Sending the
   // same request again with the same key is safe before either cutoff above is reached.
+  let session;
   try {
     const provider = await getProvider();
-    const session = await provider.createCheckoutSession({
+    session = await provider.createCheckoutSession({
       frozenStripeRequest: existingAttempt.frozenStripeRequest,
       idempotencyKey: existingAttempt.providerIdempotencyKey,
     });
-    if (!isReusableStripeSession(session, checkoutNow)) {
-      return stillProcessingResult(existingAttempt, orderReference);
-    }
-    const attached = await attachReadySession(models, attemptQuery, session);
-    if (!attached) return stillProcessingResult(existingAttempt, orderReference);
-    return readyResult(
-      normalizedAttemptKey,
-      orderReference,
-      session.url,
-      false,
-    );
-  } catch {
-    await models.CheckoutAttempt.findOneAndUpdate(
-      { ...attemptQuery, status: "pending" },
-      { $set: { status: "reconciliation_required" } },
-    );
+  } catch (error) {
+    await markAttemptForManualCheck({
+      models,
+      attemptQuery,
+      reason: "payment_session_not_created",
+      error,
+    });
     return needsManualCheckResult(existingAttempt, orderReference);
   }
+
+  if (!isReusableStripeSession(session, checkoutNow)) {
+    return stillProcessingResult(existingAttempt, orderReference);
+  }
+
+  let attached;
+  try {
+    attached = await attachReadySession(models, attemptQuery, session);
+  } catch (error) {
+    await markAttemptForManualCheck({
+      models,
+      attemptQuery,
+      reason: "payment_session_not_attached",
+      error,
+    });
+    return needsManualCheckResult(existingAttempt, orderReference);
+  }
+  if (!attached) return stillProcessingResult(existingAttempt, orderReference);
+
+  return readyResult(
+    normalizedAttemptKey,
+    orderReference,
+    session.url,
+    false,
+  );
 }

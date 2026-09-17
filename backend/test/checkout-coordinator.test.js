@@ -448,7 +448,9 @@ describe("createCheckout: one attempt, one payment link", () => {
   it("asks for an admin check when Stripe's answer cannot be explained", async () => {
     const provider = {
       async createCheckoutSession() {
-        throw new Error("timeout");
+        const failure = new Error("transport failure after we may have reached Stripe");
+        failure.code = "transport";
+        throw failure;
       },
     };
     const harness = makeHarness({ provider });
@@ -461,6 +463,34 @@ describe("createCheckout: one attempt, one payment link", () => {
     assert.equal(harness.models._state.attempts[0].status, "reconciliation_required");
     assert.equal(harness.models._state.orders.length, 1);
     assert.equal(harness.models._state.reservations.length, 1);
+
+    // The record says which stage failed, keeps the safe machine code, and never the message.
+    const attempt = harness.models._state.attempts[0];
+    assert.equal(attempt.reconciliationReason, "payment_session_not_created");
+    assert.equal(attempt.lastErrorCode, "transport");
+    assert.doesNotMatch(JSON.stringify(attempt), /may have reached Stripe/);
+  });
+
+  it("records the attachment stage apart from the request that produced the session", async () => {
+    const models = makeModels();
+    const update = models.CheckoutAttempt.findOneAndUpdate;
+    models.CheckoutAttempt.findOneAndUpdate = async (filter, change) => {
+      if (change?.$set?.status === "ready") {
+        const failure = new Error("write failed on the way to ready");
+        failure.code = "attempt_write_failed";
+        throw failure;
+      }
+      return update(filter, change);
+    };
+    const harness = makeHarness({ models });
+
+    const result = await harness.checkout();
+
+    assert.equal(result.status, "reconciliation_required");
+    const attempt = harness.models._state.attempts[0];
+    assert.equal(attempt.reconciliationReason, "payment_session_not_attached");
+    assert.equal(attempt.lastErrorCode, "attempt_write_failed");
+    assert.doesNotMatch(JSON.stringify(attempt), /write failed on the way/);
   });
 
   it("keeps a payment link that a concurrent duplicate request attached", async () => {

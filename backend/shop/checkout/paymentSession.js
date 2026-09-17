@@ -17,9 +17,9 @@ export function isReusableStripeSession(session, now) {
   );
 }
 
-export async function attachReadySession(models, attemptFilter, session) {
+export async function attachReadySession(models, attemptQuery, session) {
   return models.CheckoutAttempt.findOneAndUpdate(
-    { ...attemptFilter, status: "pending" },
+    { ...attemptQuery, status: "pending" },
     {
       $set: {
         status: "ready",
@@ -42,12 +42,12 @@ export async function createPaymentSession({ models, checkout, getProvider }) {
     if (!isReusableStripeSession(session, checkout.checkoutNow)) {
       return stillProcessingResult(checkout.attemptDocument, checkout.orderReference);
     }
-    const attached = await attachReadySession(models, checkout.attemptFilter, session);
+    const attached = await attachReadySession(models, checkout.attemptQuery, session);
     if (!attached) return stillProcessingResult(checkout.attemptDocument, checkout.orderReference);
     return readyResult(checkout.attemptDocument.attemptKey, checkout.orderReference, session.url, true);
   } catch {
     await models.CheckoutAttempt.findOneAndUpdate(
-      { ...checkout.attemptFilter, status: "pending" },
+      { ...checkout.attemptQuery, status: "pending" },
       { $set: { status: "reconciliation_required" } },
     );
     return needsManualCheckResult(checkout.attemptDocument, checkout.orderReference);

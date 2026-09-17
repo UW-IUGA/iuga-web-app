@@ -21,26 +21,26 @@ async function readOrderReference(models, attempt) {
 
 export async function resumeExistingAttempt({
   models,
-  existing,
-  cartFingerprint,
+  existingAttempt,
+  requestCart,
   checkoutEnabled,
   checkoutNow,
   getProvider,
   normalizedAttemptKey,
-  attemptFilter,
+  attemptQuery,
 }) {
-  if (existing.cartFingerprint !== cartFingerprint) return conflictResult();
-  const orderReference = await readOrderReference(models, existing);
+  if (existingAttempt.attemptCart !== requestCart) return conflictResult();
+  const orderReference = await readOrderReference(models, existingAttempt);
   if (!orderReference) return unavailable();
 
-  if (existing.status === "ready" && existing.sessionId) {
+  if (existingAttempt.status === "ready" && existingAttempt.sessionId) {
     try {
       const provider = await getProvider();
       const session = await provider.retrieveCheckoutSession({
-        sessionId: existing.sessionId,
+        sessionId: existingAttempt.sessionId,
       });
       if (!isReusableStripeSession(session, checkoutNow)) {
-        return stillProcessingResult(existing, orderReference);
+        return stillProcessingResult(existingAttempt, orderReference);
       }
       return readyResult(
         normalizedAttemptKey,
@@ -49,31 +49,31 @@ export async function resumeExistingAttempt({
         false,
       );
     } catch {
-      return stillProcessingResult(existing, orderReference);
+      return stillProcessingResult(existingAttempt, orderReference);
     }
   }
-  if (existing.status === "reconciliation_required") {
-    return needsManualCheckResult(existing, orderReference);
+  if (existingAttempt.status === "reconciliation_required") {
+    return needsManualCheckResult(existingAttempt, orderReference);
   }
-  if (isFinishedAttempt(existing.status)) {
-    return finishedResult(existing, orderReference);
+  if (isFinishedAttempt(existingAttempt.status)) {
+    return finishedResult(existingAttempt, orderReference);
   }
   // A stale attempt stops here: past its own window, or past the age Stripe would still honour.
-  if (existing.expiresAt && checkoutNow >= new Date(existing.expiresAt)) {
-    return needsManualCheckResult(existing, orderReference);
+  if (existingAttempt.expiresAt && checkoutNow >= new Date(existingAttempt.expiresAt)) {
+    return needsManualCheckResult(existingAttempt, orderReference);
   }
   if (
-    existing.firstSubmissionAt &&
+    existingAttempt.firstSubmissionAt &&
     checkoutNow.getTime() >=
-      new Date(existing.firstSubmissionAt).getTime() + MAX_RETRY_AGE_MS
+      new Date(existingAttempt.firstSubmissionAt).getTime() + MAX_RETRY_AGE_MS
   ) {
-    return needsManualCheckResult(existing, orderReference);
+    return needsManualCheckResult(existingAttempt, orderReference);
   }
   // Keep an existing attempt visible while new checkout is disabled; do not hide durable state
   // or send another request to Stripe.
-  if (!checkoutEnabled) return stillProcessingResult(existing, orderReference);
-  if (!existing.frozenStripeRequest) {
-    return stillProcessingResult(existing, orderReference);
+  if (!checkoutEnabled) return stillProcessingResult(existingAttempt, orderReference);
+  if (!existingAttempt.frozenStripeRequest) {
+    return stillProcessingResult(existingAttempt, orderReference);
   }
 
   // The earlier request died after writing the attempt, before reaching Stripe. Sending the
@@ -81,14 +81,14 @@ export async function resumeExistingAttempt({
   try {
     const provider = await getProvider();
     const session = await provider.createCheckoutSession({
-      frozenStripeRequest: existing.frozenStripeRequest,
-      idempotencyKey: existing.providerIdempotencyKey,
+      frozenStripeRequest: existingAttempt.frozenStripeRequest,
+      idempotencyKey: existingAttempt.providerIdempotencyKey,
     });
     if (!isReusableStripeSession(session, checkoutNow)) {
-      return stillProcessingResult(existing, orderReference);
+      return stillProcessingResult(existingAttempt, orderReference);
     }
-    const attached = await attachReadySession(models, attemptFilter, session);
-    if (!attached) return stillProcessingResult(existing, orderReference);
+    const attached = await attachReadySession(models, attemptQuery, session);
+    if (!attached) return stillProcessingResult(existingAttempt, orderReference);
     return readyResult(
       normalizedAttemptKey,
       orderReference,
@@ -97,9 +97,9 @@ export async function resumeExistingAttempt({
     );
   } catch {
     await models.CheckoutAttempt.findOneAndUpdate(
-      { ...attemptFilter, status: "pending" },
+      { ...attemptQuery, status: "pending" },
       { $set: { status: "reconciliation_required" } },
     );
-    return needsManualCheckResult(existing, orderReference);
+    return needsManualCheckResult(existingAttempt, orderReference);
   }
 }

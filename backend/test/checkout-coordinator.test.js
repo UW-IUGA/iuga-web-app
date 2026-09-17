@@ -197,7 +197,7 @@ function pendingAttemptFixture({ id = "attempt-seeded", reference = "ORD-SEEDED"
     _id: id,
     owner: OWNER_A,
     attemptKey: RETRY_KEY_A,
-    cartFingerprint: '[{"skuKey":"hoodie","quantity":1}]',
+    attemptCart: '[{"skuKey":"hoodie","quantity":1}]',
     status: "pending",
     orderId: `order-${id}`,
     sessionId: null,
@@ -510,7 +510,7 @@ describe("createCheckout: one attempt, one payment link", () => {
       _id: "attempt-winner",
       owner: OWNER_A,
       attemptKey: RETRY_KEY_A,
-      cartFingerprint: JSON.stringify(ONE_HOODIE),
+      attemptCart: JSON.stringify(ONE_HOODIE),
       orderId: "order-winner",
       status: "pending",
     };

@@ -147,26 +147,26 @@ export async function createCheckout({
   }
 
   // Scoped to this buyer, so one buyer's retry key can never reach another buyer's attempt.
-  const attemptFilter = {
+  const attemptQuery = {
     "owner.type": normalizedOwner.type,
     "owner.userId": normalizedOwner.userId,
     attemptKey: normalizedAttemptKey,
   };
-  const cartFingerprint = JSON.stringify(cart);
+  const requestCart = JSON.stringify(cart);
 
   // Look for this buyer's earlier attempt first. A retry, refresh, or double press must find its
   // own attempt even when checkout has since been switched off.
-  const existing = await models.CheckoutAttempt.findOne(attemptFilter);
-  if (existing) {
+  const existingAttempt = await models.CheckoutAttempt.findOne(attemptQuery);
+  if (existingAttempt) {
     return resumeExistingAttempt({
       models,
-      existing,
-      cartFingerprint,
+      existingAttempt,
+      requestCart,
       checkoutEnabled,
       checkoutNow,
       getProvider,
       normalizedAttemptKey,
-      attemptFilter,
+      attemptQuery,
     });
   }
 
@@ -176,7 +176,7 @@ export async function createCheckout({
     cart,
     normalizedOwner,
     normalizedAttemptKey,
-    cartFingerprint,
+    requestCart,
     checkoutNow,
     baseUrl,
     validateBaseUrl,
@@ -194,9 +194,9 @@ export async function createCheckout({
     // A duplicate-key failure means another request is already writing this buyer's attempt;
     // answer from that attempt instead of starting a second order.
     if (persistence.error?.code === 11000) {
-      const raced = await models.CheckoutAttempt.findOne(attemptFilter);
+      const raced = await models.CheckoutAttempt.findOne(attemptQuery);
       if (raced) {
-        if (raced.cartFingerprint !== cartFingerprint) return conflictResult();
+        if (raced.attemptCart !== requestCart) return conflictResult();
         const racedReference = await readOrderReference(models, raced);
         if (racedReference) return stillProcessingResult(raced, racedReference);
       }

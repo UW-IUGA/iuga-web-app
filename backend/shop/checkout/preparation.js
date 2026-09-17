@@ -79,7 +79,7 @@ export async function prepareNewCheckout({
   cart,
   normalizedOwner,
   normalizedAttemptKey,
-  cartFingerprint,
+  requestCart,
   checkoutNow,
   baseUrl,
   validateBaseUrl,
@@ -124,7 +124,7 @@ export async function prepareNewCheckout({
   };
 
   return {
-    attemptFilter: {
+    attemptQuery: {
       "owner.type": normalizedOwner.type,
       "owner.userId": normalizedOwner.userId,
       attemptKey: normalizedAttemptKey,
@@ -135,7 +135,7 @@ export async function prepareNewCheckout({
       owner: normalizedOwner,
       attemptKey: normalizedAttemptKey,
       providerIdempotencyKey,
-      cartFingerprint,
+      attemptCart: requestCart,
       items: cart,
       catalogVersion: String(catalog.activeSalesWindow.catalogVersion),
       dropKey: catalog.activeSalesWindow.dropKey,

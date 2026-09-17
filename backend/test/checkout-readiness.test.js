@@ -116,6 +116,36 @@ describe("checkout configuration and readiness", () => {
     }
   });
 
+  it("requires a live checkout origin the public can reach", () => {
+    for (const baseUrl of [
+      "https://localhost",
+      "https://127.0.0.1",
+      "https://127.1.2.3",
+      "https://checkout.localhost",
+      "https://[::1]",
+      "https://0.0.0.0",
+    ]) {
+      const result = evaluate({
+        env: { STRIPE_MODE: "live", STRIPE_SECRET_KEY: "sk_live_redacted_fixture", STRIPE_BASE_URL: baseUrl },
+        policy: { livePayments: true },
+      });
+
+      assertUnavailable(result, "base_url_not_public");
+    }
+
+    const publicOrigin = evaluate({
+      env: { STRIPE_MODE: "live", STRIPE_SECRET_KEY: "sk_live_redacted_fixture" },
+      policy: { livePayments: true },
+    });
+    assert.equal(publicOrigin.checkoutEnabled, true);
+  });
+
+  it("still allows a loopback origin in test mode for local development", () => {
+    const result = evaluate({ env: { STRIPE_BASE_URL: "https://localhost" } });
+
+    assert.equal(result.checkoutEnabled, true);
+  });
+
   it("enforces the card-only USD positive-total baseline", () => {
     const cases = [
       [{ STRIPE_PAYMENT_METHODS: ["card", "link"] }, "card_only_required"],

@@ -55,7 +55,7 @@ anything under `backend/shop/`, `backend/services/stripeProviderClient.js`, or t
 | Hold / reservation | `holdInventory` | `InventoryReservation` | Stock taken off the shelf at checkout, before payment, and given back if the attempt dies. | 1 hoodie held. |
 | Stock counters | `available` / `reserved` / `consumed` | `InventoryCounter` | Per pile: on the shelf, held for somebody, permanently sold. | 8 available, 2 reserved, 10 sold. |
 | Fence | — | — | A conditional stock update that fails if the numbers changed since we read them, so two buyers cannot both take the last item. | `reserved: { $gte: 1 }` |
-| Needs a human check | `needsManualCheckResult` | `reconciliation_required` | We cannot tell whether Stripe created a payment link, so a person must look before we retry. | A timeout mid-dispatch. |
+| Needs a human check | `needsManualCheckResult` | `reconciliation_required` | We cannot tell whether Stripe created a payment link, so an admin must look before we retry. | A timeout mid-dispatch. |
 | Ready | `readyResult` | `status: "ready"` | The attempt has a payment link that is still open and unexpired. | The buyer's link. |
 | Readiness | `evaluateCheckoutReadiness` | — | Whether checkout may run at all, evaluated fresh on every request. | `checkoutEnabled: false`. |
 
@@ -75,7 +75,9 @@ anything under `backend/shop/`, `backend/services/stripeProviderClient.js`, or t
   hold is claimed before its counter moves, so releasing the same order twice puts one unit
   back, not two.
 - **Unclear outcomes stop.** A timeout or an unreadable answer becomes `reconciliation_required`,
-  never an automatic retry with a new key.
+  never an automatic retry with a new key. The attempt also records which stage failed
+  (`reconciliationReason`) and a safe machine code for it (`lastErrorCode`) — never Stripe's
+  message, which can echo keys and payment details.
 
 ## Where the code lives
 
@@ -105,9 +107,6 @@ Models registered for the shop: `CatalogEntry`, `ShopDrop`, `InventoryCounter`,
 - **Nothing expires a hold yet.** A hold lasts exactly as long as the payment link — both are one
   hour, measured from the prepared attempt — but until the expiry work exists, holds are only
   released by hand.
-- **Two fulfilment/refund details do not line up** between the order state rules and the stored
-  order shape (`fulfillmentMethod` vs `fulfillmentMode`, and a few fields the rules return that the
-  order document does not store). Both are queued as their own fixes.
 - **The shop page has no cart or buy button**, so the endpoint can only be exercised by tests and
   by hand until that work lands.
 

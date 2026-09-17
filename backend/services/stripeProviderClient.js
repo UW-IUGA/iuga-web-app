@@ -9,18 +9,28 @@ const CHECKOUT_SESSIONS_URL = "https://api.stripe.com/v1/checkout/sessions";
 
 /*
  * @behavior Turn every Stripe boundary failure — bad configuration, a dead network, a rejection,
- *           or an untrustworthy response — into one generic error. Stripe's own message can echo
- *           keys and payment details, so it never reaches the caller.
+ *           or an untrustworthy response — into one generic error. Stripe's own message can repeat
+ *           keys and payment details, so it never reaches the caller; only a category from this
+ *           list does, so an admin can tell the stages apart when checking the attempt.
  */
+const FAILURE_CODES = Object.freeze([
+  "configuration",
+  "invalid_request",
+  "transport",
+  "provider_rejection",
+  "invalid_response",
+]);
+
 class StripeProviderError extends Error {
-  constructor() {
+  constructor(code) {
     super("Stripe provider request failed");
     this.name = "StripeProviderError";
+    this.code = FAILURE_CODES.includes(code) ? code : "unknown";
   }
 }
 
-function failSafely() {
-  throw new StripeProviderError();
+function failSafely(code) {
+  throw new StripeProviderError(code);
 }
 
 function isNonEmptyString(value) {
@@ -38,18 +48,18 @@ function isEpochSeconds(value) {
  * @exceptions StripeProviderError when any of the three is missing or malformed
  */
 function validateConfiguration({ secretKey, apiVersion, fetchImpl }) {
-  if (!/^sk_(?:test|live)_.+$/u.test(secretKey ?? "")) failSafely();
+  if (!/^sk_(?:test|live)_.+$/u.test(secretKey ?? "")) failSafely("configuration");
   const versionMatch = /^(\d{4}-\d{2}-\d{2})\.[A-Za-z0-9-]+$/u.exec(apiVersion ?? "");
-  if (!versionMatch) failSafely();
+  if (!versionMatch) failSafely("configuration");
   const parsedDate = new Date(`${versionMatch[1]}T00:00:00.000Z`);
-  if (Number.isNaN(parsedDate.valueOf()) || !parsedDate.toISOString().startsWith(versionMatch[1])) failSafely();
-  if (typeof fetchImpl !== "function") failSafely();
+  if (Number.isNaN(parsedDate.valueOf()) || !parsedDate.toISOString().startsWith(versionMatch[1])) failSafely("configuration");
+  if (typeof fetchImpl !== "function") failSafely("configuration");
 }
 
 function validateMetadata(metadata) {
-  if (metadata === null || typeof metadata !== "object" || Array.isArray(metadata)) failSafely();
+  if (metadata === null || typeof metadata !== "object" || Array.isArray(metadata)) failSafely("invalid_request");
   for (const [key, value] of Object.entries(metadata)) {
-    if (!isNonEmptyString(key) || !isNonEmptyString(value)) failSafely();
+    if (!isNonEmptyString(key) || !isNonEmptyString(value)) failSafely("invalid_request");
   }
 }
 
@@ -59,7 +69,7 @@ function validateMetadata(metadata) {
  * @exceptions StripeProviderError when a line item, URL, expiry, or metadata value is unusable
  */
 function validateFrozenRequest(frozenStripeRequest) {
-  if (frozenStripeRequest === null || typeof frozenStripeRequest !== "object" || Array.isArray(frozenStripeRequest)) failSafely();
+  if (frozenStripeRequest === null || typeof frozenStripeRequest !== "object" || Array.isArray(frozenStripeRequest)) failSafely("invalid_request");
   const {
     lineItems,
     successUrl,
@@ -68,14 +78,14 @@ function validateFrozenRequest(frozenStripeRequest) {
     clientReferenceId,
     metadata,
   } = frozenStripeRequest;
-  if (!Array.isArray(lineItems) || lineItems.length === 0) failSafely();
+  if (!Array.isArray(lineItems) || lineItems.length === 0) failSafely("invalid_request");
   for (const item of lineItems) {
     if (item === null || typeof item !== "object" || Array.isArray(item)
       || !isNonEmptyString(item.priceId)
-      || !Number.isSafeInteger(item.quantity) || item.quantity <= 0) failSafely();
+      || !Number.isSafeInteger(item.quantity) || item.quantity <= 0) failSafely("invalid_request");
   }
   if (!isNonEmptyString(successUrl) || !isNonEmptyString(cancelUrl)
-    || !isEpochSeconds(expiresAt) || !isNonEmptyString(clientReferenceId)) failSafely();
+    || !isEpochSeconds(expiresAt) || !isNonEmptyString(clientReferenceId)) failSafely("invalid_request");
   validateMetadata(metadata);
 }
 
@@ -92,7 +102,7 @@ function normalizeStripeSession(payload) {
     || !isNonEmptyString(payload.url)
     || !isNonEmptyString(payload.status)
     || !isEpochSeconds(payload.expires_at)
-    || (payload.payment_intent !== null && !isNonEmptyString(payload.payment_intent))) failSafely();
+    || (payload.payment_intent !== null && !isNonEmptyString(payload.payment_intent))) failSafely("invalid_response");
   return {
     id: payload.id,
     url: payload.url,
@@ -108,15 +118,15 @@ function normalizeStripeSession(payload) {
  * @returns the normalized session from normalizeStripeSession
  * @exceptions StripeProviderError when the response failed or its body cannot be parsed
  *
- * A rejected body is never read: it can echo our key or the buyer's payment details.
+ * A rejected body is never read: it can repeat our key or the buyer's payment details.
  */
 async function readStripeSessionResponse(response) {
-  if (response === null || typeof response !== "object" || response.ok !== true) failSafely();
+  if (response === null || typeof response !== "object" || response.ok !== true) failSafely("provider_rejection");
   let payload;
   try {
     payload = await response.json();
   } catch {
-    failSafely();
+    failSafely("invalid_response");
   }
   return normalizeStripeSession(payload);
 }
@@ -131,7 +141,7 @@ async function readStripeSessionResponse(response) {
  * @exceptions StripeProviderError when the configuration is unusable
  */
 export function createStripeProviderClient(options = {}) {
-  if (options === null || typeof options !== "object" || Array.isArray(options)) failSafely();
+  if (options === null || typeof options !== "object" || Array.isArray(options)) failSafely("configuration");
   const { secretKey, apiVersion, fetchImpl } = options;
   validateConfiguration({ secretKey, apiVersion, fetchImpl });
   const headers = {
@@ -144,7 +154,7 @@ export function createStripeProviderClient(options = {}) {
     try {
       response = await fetchImpl(url, init);
     } catch {
-      failSafely();
+      failSafely("transport");
     }
     return readStripeSessionResponse(response);
   }
@@ -162,9 +172,9 @@ export function createStripeProviderClient(options = {}) {
      *             we cannot trust
      */
     async createCheckoutSession(options = {}) {
-      if (options === null || typeof options !== "object" || Array.isArray(options)) failSafely();
+      if (options === null || typeof options !== "object" || Array.isArray(options)) failSafely("invalid_request");
       const { frozenStripeRequest, idempotencyKey } = options;
-      if (!isNonEmptyString(idempotencyKey)) failSafely();
+      if (!isNonEmptyString(idempotencyKey)) failSafely("invalid_request");
       validateFrozenRequest(frozenStripeRequest);
       const fields = new URLSearchParams();
       // One card payment, nothing saved: no payment method or quantity the buyer could change.
@@ -205,9 +215,9 @@ export function createStripeProviderClient(options = {}) {
      * @exceptions StripeProviderError on a transport failure or an untrustworthy response
      */
     async retrieveCheckoutSession(options = {}) {
-      if (options === null || typeof options !== "object" || Array.isArray(options)) failSafely();
+      if (options === null || typeof options !== "object" || Array.isArray(options)) failSafely("invalid_request");
       const { sessionId } = options;
-      if (!isNonEmptyString(sessionId)) failSafely();
+      if (!isNonEmptyString(sessionId)) failSafely("invalid_request");
       return request(`${CHECKOUT_SESSIONS_URL}/${encodeURIComponent(sessionId)}`, {
         method: "GET",
         headers,

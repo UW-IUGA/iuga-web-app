@@ -101,6 +101,19 @@ function safeBaseUrl(value) {
   }
 }
 
+const LOCAL_MACHINE_HOSTNAMES = Object.freeze(["localhost", "[::1]", "::1", "0.0.0.0"]);
+
+function isReachableOnlyFromThisMachine(value) {
+  try {
+    const hostname = new URL(text(value)).hostname.toLowerCase();
+    return LOCAL_MACHINE_HOSTNAMES.includes(hostname)
+      || hostname.endsWith(".localhost")
+      || /^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/u.test(hostname);
+  } catch {
+    return false;
+  }
+}
+
 /*
  * @behavior Answer whether checkout may run, and name every missing piece when it may not.
  * @param input — the deployment's configuration, infrastructure flags, and club approvals
@@ -129,6 +142,7 @@ export function evaluateCheckoutReadiness(input = {}) {
   if (paymentMethods.length !== 1 || paymentMethods[0].toLowerCase() !== "card") {
     reasons.add("card_only_required");
   }
+
   if (text(env.STRIPE_CURRENCY).toLowerCase() !== "usd") reasons.add("usd_required");
   if (readMinimumTotalCents(env.STRIPE_MINIMUM_TOTAL_CENTS) === null) {
     reasons.add("positive_total_required");
@@ -137,11 +151,17 @@ export function evaluateCheckoutReadiness(input = {}) {
   if (!REQUIRED_INFRASTRUCTURE_FLAGS.every((gate) => isEnabledFlag(infrastructure[gate]))) {
     reasons.add("infrastructure_unhealthy");
   }
+
   if (!REQUIRED_BUSINESS_APPROVALS.every((gate) => isEnabledFlag(policy[gate]))) {
     reasons.add("policy_unapproved");
   }
+
   if (mode === "live" && !isEnabledFlag(policy.livePayments)) {
     reasons.add("live_mode_disabled");
+  }
+
+  if (mode === "live" && isReachableOnlyFromThisMachine(env.STRIPE_BASE_URL)) {
+    reasons.add("base_url_not_public");
   }
 
   const diagnostics = {

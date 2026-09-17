@@ -95,7 +95,7 @@ Selling relies on the shop vocabulary and flow described in [SHOP.md](./SHOP.md)
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| `POST` | `/checkout-sessions` | Yes | Price the buyer's cart from the catalog and return a Stripe payment link for it. Requires a UUIDv4 `Idempotency-Key` header and a body of exactly `{ items: [{ skuKey, quantity }] }`; the buyer, prices, and totals come from the server. Returns `201` (new attempt, link), `200` (same attempt again, or a finished attempt with no link), `202` (still in progress, or a human must check Stripe), `400`, `401`, `409` (same retry key, different cart), `503`. |
+| `POST` | `/checkout-sessions` | Yes | Price the buyer's cart from the catalog and return a Stripe payment link for it. Requires a UUIDv4 `Idempotency-Key` header and a body of exactly `{ items: [{ skuKey, quantity }] }`; the buyer, prices, and totals come from the server. Returns `201` (new attempt, link), `200` (same attempt again, or a finished attempt with no link), `202` (still in progress, or an admin must check Stripe), `400`, `401`, `409` (same retry key, different cart), `503`. |
 
 ### User (`/api/v1/user`)
 

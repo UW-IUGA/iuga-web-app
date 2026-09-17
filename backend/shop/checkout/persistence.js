@@ -1,5 +1,14 @@
 import { holdInventory } from "../reservations.js";
 
+// The hold must last exactly as long as the payment link, so it is measured from the prepared
+// attempt instead of repeated here as a second one-hour literal.
+function holdDurationMs(attemptDocument) {
+  return (
+    new Date(attemptDocument.expiresAt).getTime() -
+    new Date(attemptDocument.firstSubmissionAt).getTime()
+  );
+}
+
 /*
  * @behavior  Persists a new checkout as one unit — holds inventory, creates the order, and
  *            records the attempt together, so a partial checkout is never left behind.
@@ -22,7 +31,7 @@ export async function persistNewCheckout({ models, checkout, transaction }) {
         items: checkout.cart,
         catalog: checkout.catalogRows,
         now: checkout.attemptDocument.firstSubmissionAt,
-        ttlMs: 60 * 60 * 1000,
+        ttlMs: holdDurationMs(checkout.attemptDocument),
         session,
       });
       await models.Order.create([checkout.orderDocument], { session });

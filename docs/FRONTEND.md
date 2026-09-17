@@ -77,6 +77,19 @@ Use the shared variables in `stylesheets/abstracts/_variables.scss` for layout
 tokens such as `$radius-pill`, `$radius-card`, and `$pill-height`. Avoid hard-coded
 navigation radii or dimensions in page styles.
 
+### Shared layout shell
+
+`layout/_container.scss` owns the app shell geometry. Above the tablet
+breakpoint the fixed navigation rail owns the left edge, so the shell reserves
+that rail and `.baseContainer` centers itself in the remaining region. The
+footer centers in the same region, which keeps page content and the footer on
+one vertical axis.
+
+The column cap — 1200px, or 1000px between the sm-desktop and desktop
+breakpoints — is intentional. Pages cap their own inner content well inside it,
+so a wider column would only stretch text past a comfortable reading measure.
+Wide screens get balanced gutters, not a wider column.
+
 ---
 
 ## Routing

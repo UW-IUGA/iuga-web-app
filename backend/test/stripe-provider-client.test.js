@@ -204,4 +204,34 @@ describe("createStripeProviderClient", () => {
       );
     }
   });
+
+  test("names the failure category while keeping the message generic", async () => {
+    assert.throws(
+      () => validClient({ secretKey: "pk_test_wrong_prefix" }),
+      (error) => {
+        assert.equal(error.code, "configuration");
+        assertSafeFailure(error.message);
+        return true;
+      },
+    );
+
+    const cases = [
+      [{ fetchImpl: async () => { throw new Error(`network contains ${SECRET_KEY}`); } }, "transport"],
+      [{ fetchImpl: async () => response({ status: 402, text: "provider-body-secret", json: { error: { message: "provider-body-secret" } } }) }, "provider_rejection"],
+      [{ fetchImpl: async () => response({ status: 200, text: "raw-provider-body-secret", json: new Error("not json") }) }, "invalid_response"],
+      [{ fetchImpl: async () => response({ json: { id: "cs_missing_fields" } }) }, "invalid_response"],
+    ];
+
+    for (const [options, code] of cases) {
+      const client = validClient(options);
+      await assert.rejects(
+        client.retrieveCheckoutSession({ sessionId: "cs_test_123" }),
+        (error) => {
+          assert.equal(error.code, code);
+          assertSafeFailure(error.message);
+          return true;
+        },
+      );
+    }
+  });
 });

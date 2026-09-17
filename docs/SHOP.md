@@ -54,7 +54,7 @@ anything under `backend/shop/`, `backend/services/stripeProviderClient.js`, or t
 | Order reference | `orderReference` | `orderReference` | The id the buyer sees, instead of our internal database id. | `ORD-9f2c…` |
 | Hold / reservation | `holdInventory` | `InventoryReservation` | Stock taken off the shelf at checkout, before payment, and given back if the attempt dies. | 1 hoodie held. |
 | Stock counters | `available` / `reserved` / `consumed` | `InventoryCounter` | Per pile: on the shelf, held for somebody, permanently sold. | 8 available, 2 reserved, 10 sold. |
-| Fence | — | — | A conditional stock update that fails if the numbers changed since we read them, so two workers cannot both take the last item. | `reserved: { $gte: 1 }` |
+| Fence | — | — | A conditional stock update that fails if the numbers changed since we read them, so two buyers cannot both take the last item. | `reserved: { $gte: 1 }` |
 | Needs a human check | `needsManualCheckResult` | `reconciliation_required` | We cannot tell whether Stripe created a payment link, so a person must look before we retry. | A timeout mid-dispatch. |
 | Ready | `readyResult` | `status: "ready"` | The attempt has a payment link that is still open and unexpired. | The buyer's link. |
 | Readiness | `evaluateCheckoutReadiness` | — | Whether checkout may run at all, evaluated fresh on every request. | `checkoutEnabled: false`. |
@@ -71,7 +71,9 @@ anything under `backend/shop/`, `backend/services/stripeProviderClient.js`, or t
   committed first; the payment link is attached afterwards, and only while the attempt is waiting.
 - **Stock is held, then sold, and only given back with proof.** `releaseInventory` refuses unless
   we can verify the payment link can no longer be paid — otherwise a buyer could pay for stock we
-  already put back on the shelf.
+  already put back on the shelf. Every stock change runs inside the caller's transaction, and each
+  hold is claimed before its counter moves, so releasing the same order twice puts one unit
+  back, not two.
 - **Unclear outcomes stop.** A timeout or an unreadable answer becomes `reconciliation_required`,
   never an automatic retry with a new key.
 
@@ -89,7 +91,7 @@ anything under `backend/shop/`, `backend/services/stripeProviderClient.js`, or t
 | `backend/shop/checkout/readiness.js` | Whether checkout may run at all. |
 | `backend/services/stripeProviderClient.js` | Every call to Stripe, and the only place our Stripe key is used. |
 | `backend/shop/domain.js` | Cart rules, sale-window rules, the price snapshot, and how an order moves through payment, fulfilment, refund, and dispute. No database, no network. |
-| `backend/shop/reservations.js` | Stock: holding it, selling it, putting it back. |
+| `backend/shop/reservations.js` | Stock: holding it, selling it, putting it back — always inside a transaction the caller opened. |
 | `backend/schemas/schemas.js` (submodule `iuga-web-schemas`) | The database shape: catalog, sale window, stock counters, reservations, attempts, orders, refunds, disputes. |
 
 Models registered for the shop: `CatalogEntry`, `ShopDrop`, `InventoryCounter`,

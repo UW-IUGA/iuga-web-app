@@ -102,8 +102,9 @@ Models registered for the shop: `CatalogEntry`, `ShopDrop`, `InventoryCounter`,
 
 - **Payment confirmation is missing**, so paying does not yet mark an order paid, sell the held
   stock, or trigger fulfilment.
-- **Nothing expires a hold yet.** A hold is written with a 15-minute lifetime while the payment
-  link lives for an hour; until the expiry work exists, holds are only released by hand.
+- **Nothing expires a hold yet.** A hold lasts exactly as long as the payment link — both are one
+  hour, measured from the prepared attempt — but until the expiry work exists, holds are only
+  released by hand.
 - **Two fulfilment/refund details do not line up** between the order state rules and the stored
   order shape (`fulfillmentMethod` vs `fulfillmentMode`, and a few fields the rules return that the
   order document does not store). Both are queued as their own fixes.

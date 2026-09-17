@@ -107,9 +107,6 @@ Models registered for the shop: `CatalogEntry`, `ShopDrop`, `InventoryCounter`,
 - **Nothing expires a hold yet.** A hold lasts exactly as long as the payment link — both are one
   hour, measured from the prepared attempt — but until the expiry work exists, holds are only
   released by hand.
-- **Two fulfilment/refund details do not line up** between the order state rules and the stored
-  order shape (`fulfillmentMethod` vs `fulfillmentMode`, and a few fields the rules return that the
-  order document does not store). Both are queued as their own fixes.
 - **The shop page has no cart or buy button**, so the endpoint can only be exercised by tests and
   by hand until that work lands.
 

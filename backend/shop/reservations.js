@@ -33,6 +33,15 @@ async function restoreStockCounters({ models, takenCounters, session }) {
   }
 }
 
+// The stock counter and its reservation record must move together, so every inventory change runs
+// inside a transaction the caller opened. A call without one is a bug in that caller, not something
+// to guess about.
+function requireTransaction(session) {
+  if (!session) {
+    throw new Error("Inventory changes must run inside a database transaction");
+  }
+}
+
 /*
  * @behavior Take the ordered quantity off the shelf for each variant in a cart and write a
  *           time-limited reservation for it, so the order can be paid without overselling.
@@ -42,10 +51,11 @@ async function restoreStockCounters({ models, takenCounters, session }) {
  * @param catalog — the price-list rows, which say which pile each variant comes from
  * @param now — when the holds start
  * @param ttlMs — how long a hold lasts before it is released
- * @param session — the database transaction the caller is already inside, if any
+ * @param session — the database transaction this runs inside; required
  * @returns the reservation records that were written
- * @exceptions throws InsufficientInventoryError when a variant does not have enough stock; any
- *             stock already taken in this attempt is put back first
+ * @exceptions throws when called outside a transaction, or InsufficientInventoryError when a
+ *             variant does not have enough stock; any stock already taken in this attempt is put
+ *             back first
  */
 export async function holdInventory({
   models,
@@ -54,8 +64,9 @@ export async function holdInventory({
   catalog,
   now = new Date(),
   ttlMs = 15 * 60 * 1000,
-  session = null,
+  session,
 }) {
+  requireTransaction(session);
   if (!orderId || typeof orderId !== "string") {
     throw new Error("orderId must be a non-empty string");
   }
@@ -127,7 +138,8 @@ export async function holdInventory({
 
   if (reservationsToCreate.length > 0) {
     try {
-      await models.InventoryReservation.create(reservationsToCreate, { session });
+      // Mongoose refuses a session with several documents unless they are written in series.
+      await models.InventoryReservation.create(reservationsToCreate, { session, ordered: true });
     } catch (err) {
       // The holds succeeded but the records did not, so the piles go back to how they were.
       await restoreStockCounters({ models, takenCounters: countersAlreadyDecremented, session });
@@ -143,27 +155,40 @@ export async function holdInventory({
  *           held. Runs only after payment is confirmed.
  * @param models — the database models, or fakes in tests
  * @param orderId — the order whose holds become sales
- * @param session — the database transaction the caller is already inside, if any
+ * @param session — the database transaction this runs inside; required
  * @param now — when the change happened
  * @returns how many reservations were marked consumed
- * @exceptions throws when a pile no longer holds what we reserved — two workers disagreed, so
- *             a human must look rather than us guessing
+ * @exceptions throws when called outside a transaction, or when a pile no longer holds what the
+ *             reservation says it holds — something else already moved that stock, so an admin must
+ *             look rather than us guessing
  */
 export async function consumeInventory({
   models,
   orderId,
-  session = null,
+  session,
   now = new Date(),
 }) {
+  requireTransaction(session);
+
   const reservations = await models.InventoryReservation.find(
     { orderId, state: "reserved" },
     null,
     { session },
   );
 
-  const successfulConsumes = [];
+  let consumedCount = 0;
 
   for (const res of reservations) {
+    // Claim the reservation before its counter moves. The claim is what proves this call owns the
+    // hold: a duplicate consume or release of the same order finds it already claimed and moves no
+    // stock, so one hold can never be counted twice.
+    const claimed = await models.InventoryReservation.findOneAndUpdate(
+      { orderId, skuKey: res.skuKey, state: "reserved" },
+      { $set: { state: "consumed", updatedAt: now } },
+      { session, new: true },
+    );
+    if (!claimed) continue;
+
     const updatedCounter = await models.InventoryCounter.findOneAndUpdate(
       {
         fulfillmentSku: res.fulfillmentSku,
@@ -183,23 +208,10 @@ export async function consumeInventory({
       throw new Error(`Failed to consume inventory: counter fence lost for ${res.fulfillmentSku}`);
     }
 
-    successfulConsumes.push(res);
+    consumedCount += 1;
   }
 
-  for (const res of successfulConsumes) {
-    await models.InventoryReservation.updateMany(
-      { orderId, skuKey: res.skuKey, state: "reserved" },
-      {
-        $set: {
-          state: "consumed",
-          updatedAt: now,
-        },
-      },
-      { session },
-    );
-  }
-
-  return { consumedCount: successfulConsumes.length };
+  return { consumedCount };
 }
 
 /*
@@ -210,19 +222,20 @@ export async function consumeInventory({
  * @param sessionCannotBePaidVerified — proof from Stripe, or from our own expiry, that this
  *        attempt can no longer be paid. Stock must not go back without it: a buyer who pays
  *        after we released their hold would be charged for a hoodie we already gave away.
- * @param session — the database transaction the caller is already inside, if any
+ * @param session — the database transaction this runs inside; required
  * @param now — when the release happened
  * @returns how many reservations were released
- * @exceptions throws when that proof is not explicitly true, or when a pile no longer holds
- *             what we reserved
+ * @exceptions throws when called outside a transaction, when that proof is not explicitly true,
+ *             or when a pile no longer holds what we reserved
  */
 export async function releaseInventory({
   models,
   orderId,
   sessionCannotBePaidVerified,
-  session = null,
+  session,
   now = new Date(),
 }) {
+  requireTransaction(session);
   if (sessionCannotBePaidVerified !== true) {
     throw new Error("Cannot release inventory until we can verify the payment link can no longer be paid");
   }
@@ -233,9 +246,18 @@ export async function releaseInventory({
     { session },
   );
 
-  const successfulReleases = [];
+  let releasedCount = 0;
 
   for (const res of reservations) {
+    // Claim first, exactly as consumption does: the reservation itself decides who owns the hold,
+    // so a duplicated release finds nothing to claim and puts one unit back, not two.
+    const claimed = await models.InventoryReservation.findOneAndUpdate(
+      { orderId, skuKey: res.skuKey, state: "reserved" },
+      { $set: { state: "released", updatedAt: now } },
+      { session, new: true },
+    );
+    if (!claimed) continue;
+
     const updatedCounter = await models.InventoryCounter.findOneAndUpdate(
       {
         fulfillmentSku: res.fulfillmentSku,
@@ -255,21 +277,8 @@ export async function releaseInventory({
       throw new Error(`Failed to release inventory: counter fence lost for ${res.fulfillmentSku}`);
     }
 
-    successfulReleases.push(res);
+    releasedCount += 1;
   }
 
-  for (const res of successfulReleases) {
-    await models.InventoryReservation.updateMany(
-      { orderId, skuKey: res.skuKey, state: "reserved" },
-      {
-        $set: {
-          state: "released",
-          updatedAt: now,
-        },
-      },
-      { session },
-    );
-  }
-
-  return { releasedCount: successfulReleases.length };
+  return { releasedCount };
 }

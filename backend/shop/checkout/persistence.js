@@ -25,10 +25,8 @@ export async function persistNewCheckout({ models, checkout, transaction }) {
         ttlMs: 60 * 60 * 1000,
         session,
       });
-      await models.Order.create(checkout.orderDocument, { session });
-      await models.CheckoutAttempt.create(checkout.attemptDocument, {
-        session,
-      });
+      await models.Order.create([checkout.orderDocument], { session });
+      await models.CheckoutAttempt.create([checkout.attemptDocument], { session });
     });
   } catch (error) {
     return { ok: false, error };

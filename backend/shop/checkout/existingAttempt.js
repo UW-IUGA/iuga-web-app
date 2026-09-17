@@ -70,8 +70,7 @@ export async function resumeExistingAttempt({
   ) {
     return needsManualCheckResult(existingAttempt, orderReference);
   }
-  // Keep an existing attempt visible while new checkout is disabled; do not hide durable state
-  // or send another request to Stripe.
+  // A disabled checkout blocks only this new Session; the attempt itself stays visible.
   if (!checkoutEnabled) return stillProcessingResult(existingAttempt, orderReference);
   if (!existingAttempt.frozenStripeRequest) {
     return stillProcessingResult(existingAttempt, orderReference);

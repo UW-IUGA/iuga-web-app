@@ -1,5 +1,35 @@
 import { studentVoiceForms } from "../assets/data/StudentVoiceData";
 
+// Microsoft Forms responses live on these domains. Any other host is linked, never framed.
+const FORMS_HOSTS = new Set(["forms.cloud.microsoft", "forms.office.com"]);
+
+/**
+ * @behavior true only for an HTTPS Microsoft Forms link, so a mistyped or unrelated
+ * URL falls back to a plain link instead of rendering a blank or hostile frame.
+ * @param {string} href configured survey URL
+ * @returns {boolean}
+ */
+function isEmbeddableFormsUrl(href) {
+    try {
+        const url = new URL(href);
+        return url.protocol === "https:" && FORMS_HOSTS.has(url.hostname);
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * @behavior adds Microsoft's embed flag so the form renders on its own, without the
+ * surrounding Forms site chrome.
+ * @param {string} href configured survey URL
+ * @returns {string} URL suitable for the iframe source
+ */
+function toEmbedUrl(href) {
+    const url = new URL(href);
+    url.searchParams.set("embed", "true");
+    return url.toString();
+}
+
 function StudentVoicePage({ forms = studentVoiceForms }) {
     return (
         <div className="baseContainer">
@@ -21,25 +51,46 @@ function StudentVoicePage({ forms = studentVoiceForms }) {
 
                     {forms.length > 0 ? (
                         <div className="studentVoice__grid">
-                            {forms.map((form) => (
-                                <article className="studentVoiceCard editorial-card" key={form.href}>
-                                    <div className="studentVoiceCard__meta">
-                                        <span>{form.topic}</span>
-                                        <span>{form.closesOn}</span>
-                                    </div>
-                                    <h3>{form.title}</h3>
-                                    <p>{form.description}</p>
-                                    <a
-                                        className="pill-button"
-                                        href={form.href}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        aria-label={`Share your feedback: ${form.title}`}
+                            {forms.map((form) => {
+                                const canEmbed = isEmbeddableFormsUrl(form.href);
+
+                                return (
+                                    <article
+                                        className={`studentVoiceCard editorial-card${canEmbed ? " studentVoiceCard--embed" : ""}`}
+                                        key={form.href}
                                     >
-                                        Share your feedback <span aria-hidden="true">↗</span>
-                                    </a>
-                                </article>
-                            ))}
+                                        <div className="studentVoiceCard__meta">
+                                            {form.topic && <span>{form.topic}</span>}
+                                            {form.closesOn && <span>{form.closesOn}</span>}
+                                        </div>
+                                        <h3>{form.title}</h3>
+                                        <p>{form.description}</p>
+                                        <a
+                                            className="pill-button"
+                                            href={form.href}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            aria-label={`Open this form in a new tab: ${form.title}`}
+                                        >
+                                            Open this form in a new tab <span aria-hidden="true">↗</span>
+                                        </a>
+                                        {canEmbed && (
+                                            <>
+                                                <iframe
+                                                    className="studentVoiceCard__frame"
+                                                    title={form.title}
+                                                    src={toEmbedUrl(form.href)}
+                                                    loading="lazy"
+                                                />
+                                                <p className="studentVoiceCard__note">
+                                                    Microsoft runs this survey and shows its own confirmation once you
+                                                    submit. If it does not appear above, open it in a new tab.
+                                                </p>
+                                            </>
+                                        )}
+                                    </article>
+                                );
+                            })}
                         </div>
                     ) : (
                         <div className="studentVoice__empty editorial-card">

@@ -19,6 +19,7 @@ import { iugaCandidates } from "./assets/data/CandidateData";
 import { electionFAQ } from "./assets/data/ElectionFAQData";
 import { iugaTeams } from "./assets/data/AboutData";
 import { useAuthContext } from "./context/AuthContext";
+import SignInRequired from "./components/SignInRequired";
 import Footer from "./layouts/Footer";
 import { isProduction } from "./runtime";
 
@@ -63,7 +64,14 @@ function App() {
                 <Route path="/" element={<HomePage upcomingEvents={upcomingEvents} />} />
                 <Route path="/events" element={<EventsPage />} />
                 <Route path="/resources" element={<ResourcesPage resources={resources} />} />
-                <Route path="/student-voice" element={<StudentVoicePage />} />
+                <Route
+                    path="/student-voice"
+                    element={
+                        <SignInRequired>
+                            <StudentVoicePage />
+                        </SignInRequired>
+                    }
+                />
                 <Route path="/shop" element={<ShopPage />} />
                 <Route path="/elections" element={<ElectionPage candidates={iugaCandidates} />} />
                 <Route path="/electionfaq" element={<ElectionsFAQPage electionFAQ={electionFAQ} />} />

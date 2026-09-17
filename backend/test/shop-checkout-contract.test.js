@@ -172,7 +172,7 @@ describe("POST /api/v1/shop/checkout-sessions", () => {
     }
   });
 
-  test("answers 202 without a payment link when a human must check Stripe", async () => {
+  test("answers 202 without a payment link when an admin must check Stripe", async () => {
     const calls = [];
     const api = await makeApi({
       checkout: fakeCheckout({

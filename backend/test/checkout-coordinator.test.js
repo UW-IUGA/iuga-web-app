@@ -445,7 +445,7 @@ describe("createCheckout: one attempt, one payment link", () => {
     assert.equal(harness.providerCalls.length, 1);
   });
 
-  it("asks for a human check when Stripe's answer cannot be explained", async () => {
+  it("asks for an admin check when Stripe's answer cannot be explained", async () => {
     const provider = {
       async createCheckoutSession() {
         throw new Error("timeout");

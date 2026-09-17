@@ -18,7 +18,7 @@
  * - 200 { attemptKey, orderReference, status: "ready", checkoutUrl }   the same attempt, asked again
  * - 200 { attemptKey, orderReference, status: "expired" | "failed" }   finished, no link to give
  * - 202 { attemptKey, orderReference, status: "pending" }              recorded, ask again shortly
- * - 202 { attemptKey, orderReference, status: "reconciliation_required" } a human must check Stripe
+ * - 202 { attemptKey, orderReference, status: "reconciliation_required" } an admin must check Stripe
  * - 400 the request was not usable
  * - 401 nobody is signed in
  * - 409 the same retry key arrived with a different cart

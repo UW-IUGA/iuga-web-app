@@ -79,6 +79,29 @@
     }
 }
 
+// An embedded survey needs the full page width; a half-width card is too narrow to fill in.
+.studentVoiceCard--embed {
+    grid-column: 1 / -1;
+
+    // The fallback link sits above the panel, so it must not be pushed to the card's bottom.
+    .pill-button {
+        margin-top: 0;
+    }
+}
+
+.studentVoiceCard__frame {
+    width: 100%;
+    align-self: stretch;
+    height: min(78vh, 860px);
+    margin-bottom: 16px;
+    border: 1px solid $color-dark-gray;
+    background: white;
+}
+
+.studentVoiceCard__note {
+    font-size: 0.85rem;
+}
+
 .studentVoiceCard__meta {
     display: flex;
     flex-wrap: wrap;

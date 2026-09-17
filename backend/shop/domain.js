@@ -296,6 +296,9 @@ export function applyFulfillmentAction(order, action = {}) {
       nextFulfillmentState = "cancelled";
       break;
     case "hold":
+      // An order already on hold is not re-placed: the first hold's reason and the state it
+      // returns to are what undo it, so a repeated hold must leave them alone.
+      if (state === "on_hold") break;
       nextFulfillmentState = "on_hold";
       fulfillmentHold = {
         reason: action.reason || "unspecified",

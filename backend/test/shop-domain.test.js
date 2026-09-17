@@ -376,6 +376,32 @@ describe("Shop Domain - Pure Contracts and Reducers", () => {
       assert.equal(order.fulfillmentHold.returnToState, null);
     });
 
+    it("leaves the first hold in place when a hold is repeated", () => {
+      let order = {
+        orderId: "ord_105",
+        fulfillmentMethod: "pickup",
+        fulfillmentState: "preparing",
+      };
+
+      order = applyFulfillmentAction(order, {
+        action: "hold",
+        reason: "address_verification_needed",
+      });
+      const firstPlacedAt = order.fulfillmentHold.placedAt;
+
+      order = applyFulfillmentAction(order, { action: "hold", reason: "second_thought" });
+
+      // The repeat changes nothing — the first hold is what the release undoes.
+      assert.equal(order.fulfillmentState, "on_hold");
+      assert.equal(order.fulfillmentHold.reason, "address_verification_needed");
+      assert.equal(order.fulfillmentHold.returnToState, "preparing");
+      assert.deepEqual(order.fulfillmentHold.placedAt, firstPlacedAt);
+
+      order = applyFulfillmentAction(order, { action: "release_hold" });
+      assert.equal(order.fulfillmentState, "preparing");
+      assert.equal(order.fulfillmentHold.reason, null);
+    });
+
     it("rejects illegal transitions", () => {
       const order = {
         orderId: "ord_104",

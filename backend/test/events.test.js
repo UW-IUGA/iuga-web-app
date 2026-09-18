@@ -77,6 +77,7 @@ describe("event Mongoose boundaries", () => {
         eOrganizers: "IUGA",
         eDescription: "A baseline event",
         eLabels: ["community"],
+        eHost: null,
         hasRSVPd: true,
       },
     ]);
@@ -124,5 +125,93 @@ describe("event Mongoose boundaries", () => {
     assert.equal(savedParticipant.eID, eventId);
     assert.equal(event.eParticipants[0]._id, participantId);
     assert.equal(eventSaved, true);
+  });
+});
+
+describe("event detail metadata and participant privacy", () => {
+  let api;
+
+  before(async () => {
+    api = await makeTestApi({
+      router: eventsRouter,
+      mountPath: "/api/v1/events",
+      models: {},
+      session: { isAuthenticated: true, userId },
+    });
+  });
+
+  after(async () => {
+    await api.close();
+  });
+
+  function detailApi(event, isAuthenticated) {
+    return api.request(
+      "GET",
+      `/api/v1/events/id/${eventId}`,
+      undefined,
+      {
+        session: { isAuthenticated },
+        models: {
+          Events: { findById: () => query(event) },
+          Participants: {
+            findOne: () => ({ async exec() { return null; } }),
+          },
+        },
+      },
+    );
+  }
+
+  const eHost = {
+    name: "Ada Lovelace",
+    userId,
+  };
+
+  it("hides participant details for anonymous visitors", async () => {
+    const event = makeEvent({ eShowParticipants: true });
+    const result = await detailApi(event, false);
+
+    assert.equal(result.status, 200);
+    assert.equal(result.body.showParticipants, false);
+    assert.equal(result.body.participants, null);
+    assert.equal(result.body.eHost, null);
+    assert.equal("ePics" in result.body, false);
+    assert.equal("pastEventPhotos" in result.body, false);
+  });
+
+  it("exposes the participant count only to authenticated viewers when opted in", async () => {
+    const event = makeEvent({
+      eShowParticipants: true,
+      eParticipants: [
+        { pUID: new mongoose.Types.ObjectId() },
+        { pUID: new mongoose.Types.ObjectId() },
+      ],
+    });
+    const result = await detailApi(event, true);
+
+    assert.equal(result.status, 200);
+    assert.equal(result.body.showParticipants, true);
+    assert.equal(result.body.participants, 2);
+    assert.equal("ePics" in result.body, false);
+  });
+
+  it("keeps participant details hidden for authenticated viewers when the organizer opts out", async () => {
+    const event = makeEvent({
+      eShowParticipants: false,
+      eParticipants: [{ pUID: new mongoose.Types.ObjectId() }],
+    });
+    const result = await detailApi(event, true);
+
+    assert.equal(result.status, 200);
+    assert.equal(result.body.showParticipants, false);
+    assert.equal(result.body.participants, null);
+  });
+
+  it("serializes the host snapshot on event detail", async () => {
+    const event = makeEvent({ eHost });
+    const result = await detailApi(event, false);
+
+    assert.equal(result.status, 200);
+    assert.deepEqual(result.body.eHost, eHost);
+    assert.equal("pastEventPhotos" in result.body, false);
   });
 });

@@ -67,6 +67,36 @@ function defaultCheckpoints() {
   return CHECKPOINT_KEYS.map((key) => ({ key, status: "pending" }));
 }
 
+function readHost(value) {
+  if (value === undefined || value === null) return { fields: null };
+  if (typeof value !== "object" || Array.isArray(value)) {
+    return { error: "eHost must be an object" };
+  }
+  const unknown = Object.keys(value).filter(
+    (key) => key !== "name" && key !== "userId",
+  );
+  if (unknown.length > 0) {
+    return {
+      error: `eHost contains unsupported field${unknown.length > 1 ? "s" : ""}: ${unknown.join(", ")}`,
+    };
+  }
+  if (typeof value.name !== "string" || value.name.trim() === "") {
+    return { error: "eHost.name is required" };
+  }
+  const name = value.name.trim();
+  if (name.length > 120) {
+    return { error: "eHost.name must be 120 characters or fewer" };
+  }
+  if (
+    value.userId !== undefined &&
+    value.userId !== null &&
+    !mongoose.isValidObjectId(String(value.userId))
+  ) {
+    return { error: "eHost.userId must be a valid user id" };
+  }
+  return { fields: { name, userId: value.userId ?? null } };
+}
+
 function readRequestFields(body = {}) {
   body ??= {};
   if (typeof body !== "object" || Array.isArray(body)) {
@@ -119,6 +149,17 @@ function readRequestFields(body = {}) {
     const questions = readRsvpQuestions(body.rsvpQuestions);
     if (questions.error) return questions;
     fields.rsvpQuestions = questions.fields;
+  }
+  if (body.eHost !== undefined) {
+    const eHost = readHost(body.eHost);
+    if (eHost.error) return eHost;
+    fields.eHost = eHost.fields;
+  }
+  if (body.eShowParticipants !== undefined) {
+    if (typeof body.eShowParticipants !== "boolean") {
+      return { error: "eShowParticipants must be a boolean" };
+    }
+    fields.eShowParticipants = body.eShowParticipants;
   }
   if (body.slideTemplate !== undefined) {
     const template = body.slideTemplate;
@@ -367,6 +408,8 @@ router.post("/:id/approve", requireOfficerRolePermission("events.leadership.appr
       eDescription: eventRequest.description,
       eRsvpEnabled: eventRequest.rsvpEnabled,
       rsvpQuestions: eventRequest.rsvpQuestions || [],
+      eShowParticipants: eventRequest.eShowParticipants ?? false,
+      eHost: eventRequest.eHost || null,
     });
     const updated = await transitionRequest(req, req.params.id, LEADERSHIP_STATUSES, {
       status: "approved",

@@ -5,12 +5,16 @@ import { useEffect, useMemo, useState } from "react";
 import Tag from "./Tag";
 import { categoriesFor } from "../utils/eventStreams";
 import { eventsForDay, formatWeekLabel, getWeekDays, getWeekStart } from "../utils/weeklyCalendar";
+import { resolveLeaderPhoto } from "../utils/officerDirectory";
 
 const FALLBACK_CATEGORY = "Academic";
 
 const categoryForEvent = (event) => categoriesFor(event)[0] ?? FALLBACK_CATEGORY;
 
 const eventTime = (event) => format(new Date(event.eStartDate), "h:mm a");
+
+const initialsFor = (name) => (name || "I").split(" ").map((part) => part[0]).join("")
+    .toUpperCase().slice(0, 2);
 
 const safeDate = (value) => {
     const date = value ? new Date(value) : new Date();
@@ -97,20 +101,55 @@ const WeeklyCalendar = ({ events = [], initialDate, onSelectEvent }) => {
                                         {dayEvents.map((event) => {
                                             const categories = categoriesFor(event);
                                             const category = categoryForEvent(event);
+                                            const hostName = event.eHost?.name;
+                                            const leaderPhoto = hostName ? resolveLeaderPhoto({ name: hostName }) : null;
+
+                                            const parts = [
+                                                event.eName,
+                                                `${dayLabel} at ${eventTime(event)}`,
+                                                event.eLocation,
+                                                hostName ? `hosted by ${hostName}` : null,
+                                            ];
+                                            const eventLabel = parts.filter(Boolean).join(", ");
+
                                             return (
                                                 <button
                                                     className={`weeklyEvent weeklyEvent-${category.toLowerCase()}`}
                                                     type="button"
                                                     key={event.eId}
-                                                    aria-label={`${event.eName}, ${dayLabel} at ${eventTime(event)}`}
+                                                    aria-label={eventLabel}
                                                     onClick={() => onSelectEvent?.(event)}
                                                 >
-                                                    <span className="weeklyEventTime">{eventTime(event)}</span>
-                                                    <strong>{event.eName}</strong>
-                                                    <span className="weeklyEventLocation">
-                                                        <FontAwesomeIcon icon={faLocationDot} aria-hidden="true" />
-                                                        {event.eLocation || "Location to be announced"}
-                                                    </span>
+                                                    <div className="weeklyEventKickerRow">
+                                                        <span className={`weeklyEventKicker weeklyEventKicker-${category.toLowerCase()}`}>
+                                                            {category}
+                                                        </span>
+                                                    </div>
+                                                    <strong className="weeklyEventTitle">{event.eName}</strong>
+                                                    <div className="weeklyEventPillsRow">
+                                                        <span className="weeklyEventPill weeklyEventTimePill">
+                                                            {eventTime(event)}
+                                                        </span>
+                                                        {event.eLocation && (
+                                                            <span className="weeklyEventPill weeklyEventLocationPill">
+                                                                <FontAwesomeIcon icon={faLocationDot} aria-hidden="true" />
+                                                                {event.eLocation}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {hostName && (
+                                                        <div className="weeklyEventLeaderBadge" aria-label={`Hosted by ${hostName}`}>
+                                                            {leaderPhoto ?
+                                                                (<img className="weeklyEventLeaderAvatar" src={leaderPhoto} alt="" />) :
+                                                                (
+                                                                    <span className="weeklyEventLeaderInitials">
+                                                                        {initialsFor(hostName)}
+                                                                    </span>
+                                                                )
+                                                            }
+                                                            <span className="weeklyEventLeaderName">{hostName}</span>
+                                                        </div>
+                                                    )}
                                                     <span className="weeklyEventCategories" aria-label="Categories">
                                                         {categories.map((eventCategory) => (
                                                             <span

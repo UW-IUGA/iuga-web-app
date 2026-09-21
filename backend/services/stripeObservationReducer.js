@@ -9,6 +9,8 @@ facts it might apply to.
 Expected Response Information: The resulting order facts, or a refusal listing what did not line up.
 */
 
+import { isWholeCents } from "../utils/money.js";
+
 // A payment only counts when we asked Stripe directly, over an authenticated connection, and read
 // the current state ourselves. A buyer landing back on the return page, and the request we sent to
 // create the Session, both prove nothing about money moving.
@@ -35,15 +37,6 @@ function asText(value) {
  */
 function isPlainObject(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-/*
- * @behavior Check that an amount is a whole number of cents.
- * @param value — the amount in cents
- * @returns true when the value is a safe integer of zero or more
- */
-function isWholeCents(value) {
-  return Number.isSafeInteger(value) && value >= 0;
 }
 
 /*

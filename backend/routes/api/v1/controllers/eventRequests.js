@@ -17,6 +17,7 @@ import mongoose from "mongoose";
 import { sendError } from "../helpers/sendError.js";
 import { sendSuccess } from "../helpers/sendSuccess.js";
 import { requireAdmin, requireOfficerRolePermission } from "../utils/auth.js";
+import { isWholeCents } from "../../../../utils/money.js";
 
 const router = express.Router();
 // The steps every event request moves through, in the order they appear on its checklist.
@@ -197,15 +198,6 @@ function readReason(body = {}, name = "reason") {
   }
   if (body[name].trim().length > 2000) return `${name} is too long`;
   return null;
-}
-
-/*
- * @behavior Check that an amount is a whole number of cents and not negative.
- * @param value — the amount to check
- * @returns true when the value is a whole number of cents of zero or more
- */
-function isWholeCents(value) {
-  return Number.isInteger(value) && value >= 0;
 }
 
 /*

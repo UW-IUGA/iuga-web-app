@@ -12,6 +12,8 @@
  * StripeProviderError carrying no Stripe detail.
  */
 
+import { isWholeCents } from "../utils/money.js";
+
 const CHECKOUT_SESSIONS_URL = "https://api.stripe.com/v1/checkout/sessions";
 const PAYMENT_INTENTS_URL = "https://api.stripe.com/v1/payment_intents";
 
@@ -68,17 +70,6 @@ function isNonEmptyString(value) {
  */
 function isEpochSeconds(value) {
   return Number.isSafeInteger(value) && value > 0;
-}
-
-/*
- * @behavior Check that an amount read back from Stripe is a whole number of cents. A tax line, a
- *           partial refund, or a scaling mistake could each produce an amount that cannot be real
- *           money.
- * @param value — the amount in cents
- * @returns true when the value is a safe integer of zero or more
- */
-function isWholeCents(value) {
-  return Number.isSafeInteger(value) && value >= 0;
 }
 
 /*

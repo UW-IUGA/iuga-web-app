@@ -17,6 +17,7 @@ import { ALLOWED_ORIGINS, REQUEST_BODY_LIMIT } from "./http/boundary.js";
 import { createCsrfProtection } from "./routes/api/v1/utils/csrf.js";
 import { createSpaRouter } from "./http/spaRoutes.js";
 import { evaluateCheckoutReadiness } from "./shop/checkout/readiness.js";
+import { createStripeWebhookRouter } from "./routes/api/v1/stripeWebhook.js";
 
 import { fileURLToPath } from "url";
 import { dirname } from "path";
@@ -99,6 +100,25 @@ Expected Request Information:
 - Any HTTP request handled by the application.
 */
 app.use(logger("dev"));
+
+/*
+Purpose: Accept signed Stripe webhook deliveries.
+Authentication/Authorization Requirements: None. Stripe authenticates with an HMAC signature over
+the raw request body, so this must stay above every body parser, the session middleware, CSRF, and
+the generic API limiter — once a parser consumes the stream, the delivery can no longer be verified.
+
+Expected Request Information:
+- POST /api/v1/stripe/webhook with the exact Stripe event bytes and a stripe-signature header.
+
+Expected Response Information:
+- 200 once the delivery is durably recorded, including a duplicate; a safe 400 for anything we
+  could not verify.
+*/
+app.use(
+  "/api/v1/stripe/webhook",
+  createStripeWebhookRouter({ models, env: process.env }),
+);
+
 /*
 Purpose: Parse JSON and URL-encoded bodies while rejecting payloads above 32 KB.
 Authentication/Authorization Requirements: None

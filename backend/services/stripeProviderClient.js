@@ -82,16 +82,6 @@ function asText(value) {
 }
 
 /*
- * @behavior Work out which kind of Stripe account a secret key opens. A test key can never read
- *           live data, and a live key can never read test data.
- * @param secretKey — the Stripe secret key from the environment
- * @returns "live" for a live key, otherwise "test"
- */
-function readKeyMode(secretKey) {
-  return secretKey.startsWith("sk_live_") ? "live" : "test";
-}
-
-/*
  * @behavior Refuse a client without a real key, a pinned API version, and a transport, so a
  *           misconfigured deployment fails here instead of at the first sale.
  * @param secretKey — the Stripe secret key; it has to start with `sk_test_` or `sk_live_`
@@ -301,33 +291,6 @@ function normalizePaymentIntentEvidence(payload, { accountId, observedAt, keyMod
 }
 
 /*
- * @behavior Read the body of exactly one Stripe response, or fail safely.
- * @param response — the transport response for one Stripe request
- * @returns the parsed payload, in whatever shape that Stripe resource uses
- * @exceptions StripeProviderError when the response failed or its body cannot be parsed
- *
- * A rejected body is never read: it can repeat our key or the buyer's payment details.
- */
-async function readResponseJson(response) {
-  if (response === null || typeof response !== "object" || response.ok !== true) failSafely("provider_rejection");
-  try {
-    return await response.json();
-  } catch {
-    failSafely("invalid_response");
-  }
-}
-
-/*
- * @behavior Read exactly one Stripe Checkout Session response, or fail safely.
- * @param response — the transport response for one Stripe request
- * @returns the normalized session from normalizeStripeSession
- * @exceptions StripeProviderError when the response failed or its body cannot be parsed
- */
-async function readStripeSessionResponse(response) {
-  return normalizeStripeSession(await readResponseJson(response));
-}
-
-/*
  * @behavior Build the client the checkout flow uses: create one hosted Checkout Session for
  *           a stored purchase, and read a Session back to check its link is still usable.
  * @param options.secretKey — the Stripe key: `sk_test_…` for test mode, `sk_live_…` for real
@@ -343,50 +306,67 @@ export function createStripeProviderClient(options = {}) {
   validateConfiguration({ secretKey, apiVersion, fetchImpl });
   if (now !== undefined && typeof now !== "function") failSafely("configuration");
   const readClock = now ?? Date.now;
-  const keyMode = readKeyMode(secretKey);
+  const keyMode = secretKey.startsWith("sk_live_") ? "live" : "test";
   const headers = {
     Authorization: `Bearer ${secretKey}`,
     "Stripe-Version": apiVersion,
   };
 
   /*
-   * @behavior Make one HTTP request to Stripe, turning a request that never completes into the
-   *           same generic error as every other failure.
+   * @behavior Call Stripe once and hand back the parsed body, or fail safely.
    * @param url — the full Stripe URL to call
    * @param init — the fetch options: method, headers, and body
-   * @returns the transport response
-   * @exceptions StripeProviderError when the request itself fails
+   * @returns the parsed payload, in whatever shape that Stripe resource uses
+   * @exceptions StripeProviderError when the request fails, Stripe rejects it, or the body cannot
+   *             be parsed
+   *
+   * A rejected body is never read: it can repeat our key or the buyer's payment details.
    */
-  async function fetchResponse(url, init) {
+  async function readPayload(url, init) {
+    let response;
     try {
-      return await fetchImpl(url, init);
+      response = await fetchImpl(url, init);
     } catch {
       failSafely("transport");
+    }
+    if (response === null || typeof response !== "object" || response.ok !== true) failSafely("provider_rejection");
+    try {
+      return await response.json();
+    } catch {
+      failSafely("invalid_response");
     }
   }
 
   /*
-   * @behavior Call Stripe for a checkout session and describe it in the facts the checkout flow
-   *           uses.
-   * @param url — the full Stripe URL to call
-   * @param init — the fetch options: method, headers, and body
-   * @returns the session as { id, url, expiresAt, paymentIntentId, status }
-   * @exceptions StripeProviderError when the request fails or the answer is not a usable session
+   * @behavior Read every later page of a session's line items, so a purchase split across pages is
+   *           judged whole instead of half-read.
+   * @param encodedSessionId — the session id, already safe to put in a URL
+   * @param firstLineItems — the first page, which arrived with the session itself
+   * @returns the first page with every later page's lines appended and `has_more` closed
+   * @exceptions StripeProviderError when a page cannot be advanced past, or is shaped wrong
    */
-  async function request(url, init) {
-    return readStripeSessionResponse(await fetchResponse(url, init));
-  }
-
-  /*
-   * @behavior Call Stripe for one resource of any kind and hand back the parsed payload without
-   *           describing it.
-   * @param url — the full Stripe URL to call
-   * @param init — the fetch options: method, headers, and body
-   * @returns the parsed payload, in whatever shape that Stripe resource uses
-   * @exceptions StripeProviderError when the request fails or the body cannot be parsed
-   */
-  async function readPayload(url, init) {
-    return readResponseJson(await fetchResponse(url, init));
+  async function readEveryLineItemPage(encodedSessionId, firstLineItems) {
+    const allLineItems = [...firstLineItems.data];
+    const cursors = new Set();
+    let lineItemsPage = firstLineItems;
+    while (lineItemsPage.has_more === true) {
+      if (lineItemsPage.data.length === 0) failSafely("invalid_response");
+      const lastLineItem = lineItemsPage.data[lineItemsPage.data.length - 1];
+      const cursor = lastLineItem?.id;
+      if (!isNonEmptyString(cursor) || cursors.has(cursor)) failSafely("invalid_response");
+      cursors.add(cursor);
+      const query = new URLSearchParams({ limit: "100", starting_after: cursor });
+      lineItemsPage = await readPayload(
+        `${CHECKOUT_SESSIONS_URL}/${encodedSessionId}/line_items?${query.toString()}`,
+        { method: "GET", headers },
+      );
+      if (lineItemsPage === null || typeof lineItemsPage !== "object"
+        || Array.isArray(lineItemsPage) || !Array.isArray(lineItemsPage.data)
+        || lineItemsPage.data.length === 0
+        || (lineItemsPage.has_more !== undefined && typeof lineItemsPage.has_more !== "boolean")) failSafely("invalid_response");
+      allLineItems.push(...lineItemsPage.data);
+    }
+    return { ...firstLineItems, data: allLineItems, has_more: false };
   }
 
   return {
@@ -427,15 +407,17 @@ export function createStripeProviderClient(options = {}) {
       }
       // No promotion codes, quantity edits, or saved customers: the buyer cannot change the
       // price we set.
-      return request(CHECKOUT_SESSIONS_URL, {
-        method: "POST",
-        headers: {
-          ...headers,
-          "Idempotency-Key": idempotencyKey,
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: fields.toString(),
-      });
+      return normalizeStripeSession(
+        await readPayload(CHECKOUT_SESSIONS_URL, {
+          method: "POST",
+          headers: {
+            ...headers,
+            "Idempotency-Key": idempotencyKey,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: fields.toString(),
+        }),
+      );
     },
     /*
      * @behavior Read a Session we already created, to check whether its payment link is still
@@ -448,10 +430,12 @@ export function createStripeProviderClient(options = {}) {
       if (options === null || typeof options !== "object" || Array.isArray(options)) failSafely("invalid_request");
       const { sessionId } = options;
       if (!isNonEmptyString(sessionId)) failSafely("invalid_request");
-      return request(`${CHECKOUT_SESSIONS_URL}/${encodeURIComponent(sessionId)}`, {
-        method: "GET",
-        headers,
-      });
+      return normalizeStripeSession(
+        await readPayload(`${CHECKOUT_SESSIONS_URL}/${encodeURIComponent(sessionId)}`, {
+          method: "GET",
+          headers,
+        }),
+      );
     },
     /*
      * @behavior Read a checkout session back from Stripe, following every page of line items, and
@@ -476,44 +460,13 @@ export function createStripeProviderClient(options = {}) {
       );
       const firstLineItems = payload?.line_items;
       if (firstLineItems === null || typeof firstLineItems !== "object"
-        || Array.isArray(firstLineItems) || !Array.isArray(firstLineItems.data)) failSafely("invalid_response");
-      const allLineItems = [...firstLineItems.data];
-      let lineItemsPage = firstLineItems;
-      const cursors = new Set();
-      while (lineItemsPage.has_more === true) {
-        if (lineItemsPage.data.length === 0) failSafely("invalid_response");
-        const lastLineItem = lineItemsPage.data[lineItemsPage.data.length - 1];
-        const cursor = lastLineItem?.id;
-        if (!isNonEmptyString(cursor) || cursors.has(cursor)) failSafely("invalid_response");
-        cursors.add(cursor);
-        const query = new URLSearchParams({
-          limit: "100",
-          starting_after: cursor,
-        });
-        lineItemsPage = await readPayload(
-          `${CHECKOUT_SESSIONS_URL}/${encodedSessionId}/line_items?${query.toString()}`,
-          { method: "GET", headers },
-        );
-        if (lineItemsPage === null || typeof lineItemsPage !== "object"
-          || Array.isArray(lineItemsPage) || !Array.isArray(lineItemsPage.data)
-          || lineItemsPage.data.length === 0
-          || (lineItemsPage.has_more !== undefined && typeof lineItemsPage.has_more !== "boolean")) failSafely("invalid_response");
-        allLineItems.push(...lineItemsPage.data);
-      }
-      if (lineItemsPage.has_more !== undefined && typeof lineItemsPage.has_more !== "boolean") failSafely("invalid_response");
-      const completePayload = {
-        ...payload,
-        line_items: {
-          ...firstLineItems,
-          data: allLineItems,
-          has_more: false,
-        },
-      };
-      return normalizePaymentEvidenceSession(completePayload, {
-        accountId,
-        observedAt: readClock(),
-        keyMode,
-      });
+        || Array.isArray(firstLineItems) || !Array.isArray(firstLineItems.data)
+        || (firstLineItems.has_more !== undefined && typeof firstLineItems.has_more !== "boolean")) failSafely("invalid_response");
+      const lineItems = await readEveryLineItemPage(encodedSessionId, firstLineItems);
+      return normalizePaymentEvidenceSession(
+        { ...payload, line_items: lineItems },
+        { accountId, observedAt: readClock(), keyMode },
+      );
     },
     /*
      * @behavior Read the PaymentIntent behind a purchase back from Stripe. This is a second

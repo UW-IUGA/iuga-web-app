@@ -152,7 +152,7 @@ function readReason(body = {}, name = "reason") {
   return null;
 }
 
-function cents(value) {
+function isWholeCents(value) {
   return Number.isInteger(value) && value >= 0;
 }
 
@@ -440,10 +440,10 @@ router.patch("/:id/checklist/:step", requireCheckpointPermission, async (req, re
 router.patch("/:id/budget", requireOfficerRolePermission("events.finance.manage"), async (req, res) => {
   if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
   const { allocatedCents, actualSpendCents, notes } = req.body ?? {};
-  if (allocatedCents !== undefined && !cents(allocatedCents)) {
+  if (allocatedCents !== undefined && !isWholeCents(allocatedCents)) {
     return sendError(res, 400, "allocatedCents must be a non-negative integer");
   }
-  if (actualSpendCents !== undefined && !cents(actualSpendCents)) {
+  if (actualSpendCents !== undefined && !isWholeCents(actualSpendCents)) {
     return sendError(res, 400, "actualSpendCents must be a non-negative integer");
   }
   if (notes !== undefined && typeof notes !== "string") return sendError(res, 400, "notes must be a string");
@@ -562,7 +562,7 @@ router.post("/:id/reviews", requireAdmin, async (req, res) => {
   if (attendeeCount !== undefined && (!Number.isInteger(attendeeCount) || attendeeCount < 0)) {
     return sendError(res, 400, "attendeeCount must be a non-negative integer");
   }
-  if (totalSpentCents !== undefined && !cents(totalSpentCents)) {
+  if (totalSpentCents !== undefined && !isWholeCents(totalSpentCents)) {
     return sendError(res, 400, "totalSpentCents must be a non-negative integer");
   }
 

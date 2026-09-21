@@ -1,8 +1,15 @@
 /*
-Refer to the "IUGA Website Backend Doc" for more information.
-
-Schema addressed in feedback.js:
-- Feedback
+Purpose: Serve the feedback form: read one form, save a new one, and let an administrator delete one.
+Authentication/Authorization Requirements: Reading and saving need a signed-in user; deleting needs
+an administrator.
+Expected Request Information:
+- GET /?fID=<id> — the form to read
+- POST / with fType, fTopic, and fDescription
+- DELETE /?fID=<id> — the form to remove
+Expected Response Information:
+- GET: the form's fields; 400 for an unusable id, 404 when there is no such form
+- POST: 200 once saved; 400 when a field is missing, empty, or over its length limit
+- DELETE: 200 once removed; 400 for an unusable id
 */
 
 import express from "express";
@@ -12,6 +19,12 @@ import { requireAuth, requireAdmin } from "../utils/auth.js";
 import mongoose from "mongoose";
 
 var router = express.Router();
+/*
+ * @behavior Read and check the fields of a submitted feedback form, trimming surrounding spaces.
+ * @param body — the request body as it arrived
+ * @returns { fields } with the trimmed type, topic, and description when every field is usable, or
+ *          { error } holding a message for the client when one is not
+ */
 function readFeedbackFields(body = {}) {
   if (!body || typeof body !== "object" || Array.isArray(body)) {
     return { error: "Feedback body must be an object" };
@@ -47,27 +60,23 @@ function readFeedbackFields(body = {}) {
 }
 
 /*
-Purpose: Retrieve a feedback form's info from the database
-
-Needed Info:
-- is a feedback form id the only thing queried?
-
-Assumed req variables (Will need to check back with frontend for what is sent in):
-- "fID", this is the feedback form ID requested from the database.
-*/
+ * @behavior Read one feedback form by id.
+ * @param req — the Express request; req.query.fID names the form to read
+ * @param res — the Express response
+ * @returns nothing; answers 200 with the form's fields, 400 for an id that is not a valid id, 404
+ *          when there is no such form, or 500 when the lookup fails
+ */
 router.get("/", requireAuth, async (req, res) => {
   try {
     const fID = req.query.fID;
     if (!fID || !mongoose.isValidObjectId(fID)) {
       return sendError(res, 400, "Invalid feedback ID");
     }
-    //Find the requested feedbackform based on the given req data.
     const rawForm = await req.models.Feedback.findById(fID);
     if (!rawForm) {
       return sendError(res, 404, "Feedback not found");
     }
 
-    //Package up all the data from the feedback form
     const feedbackForm = {
       fId: rawForm._id,
       fUID: rawForm.fUID,
@@ -76,7 +85,6 @@ router.get("/", requireAuth, async (req, res) => {
       fDescription: rawForm.fDescription,
     };
 
-    //Send the data back in one json object.
     res.json(feedbackForm);
   } catch (error) {
     console.log(error);
@@ -85,18 +93,11 @@ router.get("/", requireAuth, async (req, res) => {
 });
 
 /*
-Purpose: Save a new feedback form to the database
-
-Needed Info:
-- What other kinds of questions are we asking besides these ones?
-- Will the req variablesbe like this?
-
-Assumed req variables (Will need to check back with frontend for what is sent in):
-- fUID
-- fType
-- fTopic
-- fDescription
-*/
+ * @behavior Save a new feedback form for the signed-in user.
+ * @param req — the Express request; the body carries fType, fTopic, and fDescription
+ * @param res — the Express response
+ * @returns nothing; answers 200 once saved, 400 when a field is unusable, or 500 when the save fails
+ */
 router.post("/", requireAuth, async (req, res) => {
   const { fields, error } = readFeedbackFields(req.body);
   if (error) return sendError(res, 400, error);
@@ -117,15 +118,12 @@ router.post("/", requireAuth, async (req, res) => {
 });
 
 /*
-Purpose: Delete a feedback form from the database
-
-Needed info:
-- What fields should be a factor in what is deleted, besides the feedback id?
-- Do we want to delete multiple at a time or just one at a time?
-
-Assumed req variables (Will need to check back with frontend for what is sent in):
-- fID
-*/
+ * @behavior Delete one feedback form. Only an administrator reaches this handler.
+ * @param req — the Express request; req.query.fID names the form to remove
+ * @param res — the Express response
+ * @returns nothing; answers 200 once removed, 400 for an id that is not a valid id, or 500 when the
+ *          delete fails
+ */
 router.delete("/", requireAdmin, async (req, res) => {
   const fID = req.query.fID;
   if (

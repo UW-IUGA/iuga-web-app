@@ -1,8 +1,11 @@
 /*
- * @behavior Answer whether checkout may run, from configuration, infrastructure, and policy
- *           alone — without contacting Stripe. Anything missing leaves checkout switched off,
- *           and the reasons name what is missing without revealing its value.
- */
+Purpose: Evaluate whether checkout is permitted to run, based on configuration, infrastructure, and policy gates.
+Authentication/Authorization Requirements: None. Callable by health checks, administrative endpoints, and the shop router.
+Expected Request Information:
+- An input object containing env, infrastructure, and policy dictionaries.
+Expected Response Information:
+- A readiness evaluation: checkoutEnabled (boolean), mode, reasons (array of failure codes), and safe diagnostics.
+*/
 
 const REQUIRED_CONFIGURATION = Object.freeze([
   "STRIPE_SECRET_KEY",
@@ -44,6 +47,11 @@ function isEnabledFlag(value) {
   return value === true || (typeof value === "string" && value.trim().toLowerCase() === "true");
 }
 
+/**
+ * @behavior Parse configured payment methods from an array or comma-separated string into a list of trimmed strings.
+ * @param value — the payment methods setting, either an array or comma-separated string
+ * @returns a list of trimmed payment method strings, or an empty list when missing or not a recognized type
+ */
 function readPaymentMethods(value) {
   if (Array.isArray(value)) return value.map(text);
   if (typeof value === "string") return value.split(",").map(text);
@@ -51,6 +59,11 @@ function readPaymentMethods(value) {
 }
 
 // The floor arrives as a digit string from env vars, but as a number from tests and callers.
+/**
+ * @behavior Parse a minimum checkout total in cents from a string or number, rejecting zero, negative, or fractional values.
+ * @param value — the minimum total in cents as a digit string or positive integer
+ * @returns the positive integer total in cents, or null if the value is missing, non-numeric, or not positive
+ */
 function readMinimumTotalCents(value) {
   const amount = typeof value === "string" ? value.trim() : value;
   const total = typeof amount === "string"
@@ -60,6 +73,11 @@ function readMinimumTotalCents(value) {
   return Number.isSafeInteger(total) && total > 0 ? total : null;
 }
 
+/**
+ * @behavior Check whether a Stripe API version string has the format YYYY-MM-DD.<subversion> and represents a real calendar date.
+ * @param value — the API version string to validate
+ * @returns true if the string is a valid pinned Stripe API version; false otherwise
+ */
 function validPinnedApiVersion(value) {
   const match = /^(\d{4}-\d{2}-\d{2})\.[A-Za-z0-9-]+$/.exec(text(value));
   if (!match) return false;
@@ -69,6 +87,12 @@ function validPinnedApiVersion(value) {
     && parsedDate.toISOString().startsWith(match[1]);
 }
 
+/**
+ * @behavior Check whether the Stripe secret key prefix matches the configured operating mode ("test" or "live").
+ * @param mode — the configured operating mode ("test" or "live")
+ * @param secretKey — the Stripe secret key from configuration
+ * @returns true when the secret key prefix matches the mode; false otherwise
+ */
 function credentialsMatchMode(mode, secretKey) {
   const key = text(secretKey);
   if (mode === "test") return /^sk_test_.+$/u.test(key);
@@ -76,6 +100,11 @@ function credentialsMatchMode(mode, secretKey) {
   return false;
 }
 
+/**
+ * @behavior Verify that a base URL is an absolute HTTPS origin with a hostname and no credentials, path, query, or hash.
+ * @param value — the URL string to validate
+ * @returns true if the value is a clean HTTPS origin; false otherwise
+ */
 function validHttpsBaseUrl(value) {
   try {
     const url = new URL(text(value));
@@ -91,6 +120,11 @@ function validHttpsBaseUrl(value) {
   }
 }
 
+/**
+ * @behavior Return the sanitized URL origin for diagnostics, or "[redacted]" if the URL is invalid or malformed.
+ * @param value — the URL string to sanitize
+ * @returns the origin string if valid, or "[redacted]"
+ */
 function safeBaseUrl(value) {
   try {
     const url = new URL(text(value));
@@ -114,7 +148,7 @@ function isReachableOnlyFromThisMachine(value) {
   }
 }
 
-/*
+/**
  * @behavior Answer whether checkout may run, and name every missing piece when it may not.
  * @param input — the deployment's configuration, infrastructure flags, and club approvals
  * @returns whether checkout is enabled, the mode it would run in, the reasons it is disabled,

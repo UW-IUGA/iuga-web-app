@@ -1,29 +1,21 @@
 /*
- * @behavior The shop's HTTP entry point. It answers one question for the browser — "what is
- *           the payment link for this cart, if there is one?" — and refuses anything the
- *           browser should not be deciding (who the buyer is, what things cost, how many are
- *           left).
- *
- * Authentication/Authorization Requirements: A signed-in UW session. State-changing requests
- * must also come from a trusted shop origin and are rate limited; both are enforced globally
- * in app.js before this router runs.
- *
- * Expected Request Information:
- * - header `Idempotency-Key` — a UUIDv4 the browser repeats when it retries the same purchase
- * - body `{ "items": [ { "skuKey": <catalog variant>, "quantity": <whole number, 1 or more> } ] }`
- * - nothing else: no buyer, no prices, no totals
- *
- * Expected Response Information:
- * - 201 { attemptKey, orderReference, status: "ready", checkoutUrl }   a new attempt, ready to pay
- * - 200 { attemptKey, orderReference, status: "ready", checkoutUrl }   the same attempt, asked again
- * - 200 { attemptKey, orderReference, status: "expired" | "failed" }   finished, no link to give
- * - 202 { attemptKey, orderReference, status: "pending" }              recorded, ask again shortly
- * - 202 { attemptKey, orderReference, status: "reconciliation_required" } an admin must check Stripe
- * - 400 the request was not usable
- * - 401 nobody is signed in
- * - 409 the same retry key arrived with a different cart
- * - 503 checkout is switched off, misconfigured, or unavailable for now
- */
+Purpose: Provide the shop HTTP checkout endpoint that validates carts and returns Stripe payment links.
+Authentication/Authorization Requirements: A signed-in session. State-changing requests must also come from a trusted shop origin and are rate limited; both are enforced globally in app.js before this router runs.
+Expected Request Information:
+- Header `Idempotency-Key`: a UUIDv4 the browser repeats when retrying the same purchase
+- Body: `{ "items": [ { "skuKey": <catalog variant>, "quantity": <whole number, 1 or more> } ] }`
+- Nothing else: no buyer, no prices, no totals
+Expected Response Information:
+- 201 { attemptKey, orderReference, status: "ready", checkoutUrl } for a new attempt, ready to pay
+- 200 { attemptKey, orderReference, status: "ready", checkoutUrl } for the same attempt, asked again
+- 200 { attemptKey, orderReference, status: "expired" | "failed" } for a finished attempt, no link to give
+- 202 { attemptKey, orderReference, status: "pending" } when recorded, ask again shortly
+- 202 { attemptKey, orderReference, status: "reconciliation_required" } when an admin must check Stripe
+- 400 when the request shape or retry key was not usable
+- 401 when nobody is signed in
+- 409 when the same retry key arrived with a different cart
+- 503 when checkout is switched off, misconfigured, or unavailable for now
+*/
 
 import express from "express";
 import { requireAuth } from "../utils/auth.js";
@@ -79,8 +71,6 @@ function stripeProviderFromEnvironment() {
   });
 }
 
-// Ask the fail-closed readiness gate on every request, so a running process cannot sidestep it.
-// Tests pass a boolean to choose an answer.
 function resolveCheckoutEnabled(override) {
   if (typeof override === "boolean") return override;
   return evaluateCheckoutReadiness({ env: process.env }).checkoutEnabled;
@@ -95,6 +85,16 @@ function resolveCheckoutEnabled(override) {
  */
 export function createShopRouter({ checkout = createCheckout, checkoutEnabled } = {}) {
   const router = express.Router();
+  /*
+   * @behavior Create or retrieve a Stripe checkout session for the buyer's cart. Only authenticated
+   *           users may call this endpoint.
+   * @param req — the Express request with the Idempotency-Key header, items body, and session
+   * @param res — the Express response
+   * @returns 201 with checkout URL for a new session; 200 with checkout URL on repeated attempts or
+   *          status for finished attempts; 202 when pending or needing reconciliation; 400 when the
+   *          request shape or retry key is invalid; 401 when unauthenticated; 409 when the retry key
+   *          conflicts with an existing attempt; or 503 when checkout is disabled or Stripe fails
+   */
   router.post("/checkout-sessions", requireAuth, async (req, res) => {
     // requireAuth only tells us somebody is signed in; the buyer identity we trust is this id.
     const sessionUserId = req.session?.userId;

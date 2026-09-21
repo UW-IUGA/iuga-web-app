@@ -13,6 +13,12 @@ function asRecord(value) {
   return value !== null && typeof value === "object" ? value : {};
 }
 
+/*
+ * @behavior Read a moment as a Date, whether it arrives as a Date or as text.
+ * @param value — a Date, or a string that names a date
+ * @returns the moment as a Date
+ * @exceptions throws when the value is neither of those, or when it names a date that does not exist
+ */
 function parseDate(value) {
   if (value instanceof Date) {
     if (Number.isNaN(value.getTime())) {

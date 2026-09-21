@@ -1,31 +1,22 @@
 /*
-Refer to the "IUGA Website Backend Doc" for more information.
-
-Middlewares addressed in auth.js:
-- requireAuth
-- requireAdmin
-
-Purpose: Gate routes by session state so protected endpoints are only
-         reachable by the right kind of user. Used in the route chain,
-         e.g. router.post("/", requireAuth, handler).
+Purpose: Gate routes by session state, so a protected endpoint is only reachable by the right kind
+of user. These middlewares sit at the front of a route chain, as in
+`router.post("/", requireAuth, handler)`.
+Authentication/Authorization Requirements: None; each middleware is itself the check.
+Expected Request Information: The session set at /user/login: isAuthenticated, isAdmin, and userId.
+Expected Response Information: The request continues when the check passes; otherwise 401 when nobody
+is signed in, or 403 when the signed-in user may not do this.
 */
 
 import { sendError } from "../helpers/sendError.js";
 
 /*
-    @middleware: requireAuth
-    @method: N/A (Express middleware)
-    @description: Checks that the request comes from a logged-in user.
-                  Any authenticated user passes; anonymous requests are
-                  rejected before reaching the route handler.
-
-    Expected Request Information:
-    - req.session.isAuthenticated (set true at /user/login)
-
-    Expected Response Information:
-    - next() when authenticated (passes to the route handler)
-    - 401 { status: "error", message: "Not authenticated" } when not logged in
-*/
+ * @behavior Let a signed-in user through, and stop anyone else before the route handler runs.
+ * @param req — the Express request, read for req.session.isAuthenticated
+ * @param res — the Express response
+ * @param next — continues to the route handler when the visitor is signed in
+ * @returns nothing; answers 401 when nobody is signed in
+ */
 export function requireAuth(req, res, next) {
   if (!req.session.isAuthenticated) {
     return sendError(res, 401, "Not authenticated");
@@ -34,18 +25,12 @@ export function requireAuth(req, res, next) {
 }
 
 /*
-    @helper: isOwnerOrAdmin
-    @description: Checks if the current session user is an administrator
-                  or owns the specified target record.
-
-    Expected Request Information:
-    - req.session.isAdmin (Boolean, set at login)
-    - req.session.userId (ObjectId or String of current user)
-    - targetUserId (ObjectId or String of the record owner)
-
-    Expected Return Information:
-    - true when the session user is an admin or matches targetUserId; false otherwise
-*/
+ * @behavior Check whether the signed-in user is an administrator, or is the owner of the record
+ *           being acted on.
+ * @param req — the Express request, read for req.session.isAdmin and req.session.userId
+ * @param targetUserId — the user id stored on the record being acted on; an ObjectId or a string
+ * @returns true when the signed-in user is an admin, or their id matches targetUserId
+ */
 export function isOwnerOrAdmin(req, targetUserId) {
   return Boolean(
     req.session.isAdmin ||
@@ -54,21 +39,13 @@ export function isOwnerOrAdmin(req, targetUserId) {
 }
 
 /*
-    @middleware: requireAdmin
-    @method: N/A (Express middleware)
-    @description: Checks that the request comes from a logged-in officer.
-                  Identity first (401), then permission (403).
-
-
-    Expected Request Information:
-    - req.session.isAuthenticated (set true at /user/login)
-    - req.session.isAdmin (set at /user/login from uType === "Admin")
-
-    Expected Response Information:
-    - next() when admin (passes to the route handler)
-    - 401 { status: "error", message: "Not authenticated" } when not logged in
-    - 403 { status: "error", message: "Not authorized" } when logged in but not admin
-*/
+ * @behavior Let a signed-in administrator through. Identity is checked first, so a visitor who is
+ *           not signed in is told 401 rather than 403.
+ * @param req — the Express request, read for req.session.isAuthenticated and req.session.isAdmin
+ * @param res — the Express response
+ * @param next — continues to the route handler when the visitor is an administrator
+ * @returns nothing; answers 401 when nobody is signed in, or 403 when the user is not an admin
+ */
 export function requireAdmin(req, res, next) {
   if (!req.session.isAuthenticated) {
     return sendError(res, 401, "Not authenticated");
@@ -80,13 +57,13 @@ export function requireAdmin(req, res, next) {
 }
 
 /*
-    @middleware: requireOfficerRolePermission
-    @method: N/A (Express middleware factory)
-    @description: Checks that an authenticated admin has a specific
-                  permission through an active role assignment.
-
-    Example: router.post("/roles", requireOfficerRolePermission("users.roles.manage"), handler)
-*/
+ * @behavior Build a middleware that allows only an administrator whose active role assignment
+ *           carries the named permission, as in
+ *           `router.post("/roles", requireOfficerRolePermission("users.roles.manage"), handler)`.
+ * @param permission — the permission the user's role must include
+ * @returns the Express middleware
+ * @exceptions nothing is thrown; a failed role lookup is logged and answered with 500
+ */
 export function requireOfficerRolePermission(permission) {
   return async function (req, res, next) {
     if (!req.session.isAuthenticated) {

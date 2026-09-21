@@ -1,9 +1,20 @@
 /*
-Refer to the "IUGA Website Backend Doc" for more information.
-
-Schemas addressed in events.js:
-- Events
-- Participants
+* Purpose: Manage calendar events and attendee RSVPs for IUGA activities.
+* Authentication/Authorization Requirements: Public for viewing calendar events; logged-in session required to RSVP, withdraw, or view participant survey answers.
+* Expected Request Information:
+* - GET /: optional session to mark events the caller has RSVP'd to
+* - GET /id/:eId: event ObjectId parameter
+* - GET /upcoming: none
+* - POST /rsvp: logged-in session and JSON body with event ObjectId `eId` and optional `rsvpAnswers`
+* - DELETE /withdraw/:eId/:pId: logged-in session, event ObjectId `eId`, and participant ObjectId `pId`
+* - GET /:pId: logged-in session and participant ObjectId `pId`
+* Expected Response Information:
+* - 200 with event data, upcoming event list, or participant details
+* - 400 for malformed IDs, closed/past RSVPs, duplicate RSVPs, or invalid answer shapes
+* - 401 when a protected endpoint is called without a session
+* - 403 when a non-admin attempts to withdraw or inspect another user's RSVP
+* - 404 when an event or participant record does not exist
+* - 500 on unexpected database errors
 */
 
 import express from "express";
@@ -13,6 +24,11 @@ import { sendSuccess } from "../helpers/sendSuccess.js";
 import { requireAuth, isOwnerOrAdmin } from "../utils/auth.js";
 
 var router = express.Router();
+/*
+ * @behavior Validate that a value is a 24-character hexadecimal MongoDB ObjectId string.
+ * @param value — the value to check
+ * @returns true when the value is a valid 24-character hexadecimal ObjectId string, false otherwise
+ */
 function validId(value) {
   return (
     typeof value === "string" &&
@@ -21,6 +37,11 @@ function validId(value) {
   );
 }
 
+/*
+ * @behavior Validate the structure and field limits of an array of RSVP question answers.
+ * @param value — the raw RSVP answers array from the request body
+ * @returns an error message string when validation fails, or null when valid
+ */
 function readRsvpAnswers(value) {
   if (!Array.isArray(value)) return "rsvpAnswers must be an array";
 
@@ -49,26 +70,13 @@ function readRsvpAnswers(value) {
 //-------------------------------Event Endpoints----------------------------------------------
 
 /*
-Purpose: Get information for events to display on the calendar for a given month/year.
-Authentication/Authorization Requirements: None
-
-Expected Request Information (<r> indicates a required field to include in the call):
-- Parameters: N/A
-- Queries: ?year=####&month=##
-- Body: N/A
-
-Expected Response Information:
-- return [{
-            eId: event id,
-            eName: String event name,
-            eStartDate: Date event starts,
-            eEndDate: Date event ends,
-            eLocation: String event location,
-            eOrganizers: String event organizer(s),
-            eDescription: String event description,
-            eLabels: Array of String event category label(s)
-        }]
-*/
+ * @behavior Retrieve all calendar events, indicating whether the logged-in user has RSVP'd to each.
+ *           Anyone may call this endpoint; authentication is optional.
+ * @param req — the Express request, optionally holding an authenticated session
+ * @param res — the Express response
+ * @returns 200 with an array of event summary objects including hasRSVPd status; or 500 when database
+ *          access fails
+ */
 router.get("/", async function (req, res) {
   try {
     if (req.session.isAuthenticated) {
@@ -124,30 +132,13 @@ router.get("/", async function (req, res) {
 });
 
 /*
-Purpose: Selecting a specific event on the calendar
-Authentication/Authorization Requirements: None
-
-Expected Request Information (<r> indicates a required field to include in the call):
-- Parameters: <r> eId
-- Queries: N/A
-- Body: N/A
-
-Expected Response Information:
-- return [{
-            eId: event id,
-            eName: String event name,
-            eStartDate: Date event starts,
-            eEndDate: Date event ends,
-            eLocation: String event location,
-            eOrganizers: Array of String event organizer(s),
-            eDescription: String event description,
-            eLabels: Array of String event category label(s),
-            ePics: Array of Image event pics,
-            qList: Array of key:value pairs representing RSVP question number and question string,
-            participants: Array of participant ids,
-            eThumbnail: a Image of event
-        }]
-*/
+ * @behavior Retrieve detailed information for a single event by its identifier, including survey
+ *           questions and the caller's answers if logged in. Anyone may call this endpoint.
+ * @param req — the Express request containing the event id parameter eId and optional session
+ * @param res — the Express response
+ * @returns 200 with the event details; 400 when eId is not a valid identifier; 404 when no event
+ *          matches; or 500 when database access fails
+ */
 router.get("/id/:eId", async function (req, res) {
   try {
     const eId = req.params.eId;
@@ -207,26 +198,12 @@ router.get("/id/:eId", async function (req, res) {
 });
 
 /*
-Purpose: For the homepage's 3 displayed latest events
-Authentication/Authorization Requirements: None
-
-Expected Request Information (<r> indicates a required field to include in the call):
-- Parameters: N/A
-- Queries: N/A
-- Body: N/A
-
-Expected Response Information:
-- return [{
-            eId: event id,
-            eName: String event name,
-            eStartDate: Date event starts,
-            eEndDate: Date event ends,
-            eOrganizers: Array of String event organizer(s),
-            eDescription: String event description,
-            eLabels: Array of String event category label(s),
-            eThumbnail: a Image of event
-        }]
-*/
+ * @behavior Retrieve up to three upcoming events for the homepage display, sorted by start date.
+ *           Anyone may call this endpoint.
+ * @param req — the Express request
+ * @param res — the Express response
+ * @returns 200 with an array of up to three event summaries; or 500 when database access fails
+ */
 router.get("/upcoming", async function (req, res) {
   try {
     const events = await req.models.Events.aggregate([
@@ -258,24 +235,14 @@ router.get("/upcoming", async function (req, res) {
 });
 
 /*
-Purpose: User signs up as a participant to an event
-Authentication/Authorization Requirements: Logged in
-
-Expected Request Information (<r> indicates a required field to include in the call):
-- Parameters: N/A
-- Queries: N/A
-- Body: {
-            <r> uId: Current user's id to add them to event,
-            <r> eId: find the event,
-            aList: Array of key:value pairs with question number and answer string,
-            isAnon: Boolean if user is participating anon or not
-        }
-
-Expected Response Information:
-- {
-    status: "success"
-  }
-*/
+ * @behavior Register the signed-in user as an attendee for an event and save their survey answers.
+ *           Only authenticated users may call this endpoint. 
+ * @param req — the Express request containing the authenticated session, event id eId, and rsvpAnswers
+ * @param res — the Express response
+ * @returns 200 on success; 400 when the event id is malformed, answers are invalid, RSVP is disabled,
+ *          the event has already started, or the user already RSVP'd; 401 when unauthenticated; 404
+ *          when the event does not exist; or 500 when saving fails
+ */
 router.post("/rsvp", requireAuth, async function (req, res) {
   //Using the given event id and user id parameters, create a participant profile for the user and this pId into the event's participant list
   try {
@@ -335,19 +302,14 @@ router.post("/rsvp", requireAuth, async function (req, res) {
 });
 
 /*
-Purpose: User withdraws from an event
-Authentication/Authorization Requirements: Logged in, (optional) is admin
-
-Expected Request Information (<r> indicates a required field to include in the call):
-- Parameters: eId, pId
-- Queries: N/A
-- Body: N/A
-
-Expected Response Information:
-- {
-    status: "success"
-  }
-*/
+ * @behavior Remove a participant's RSVP from an event. Only the participant themselves or an
+ *           administrator may call this endpoint.
+ * @param req — the Express request containing the session, event id eId, and participant id pId
+ * @param res — the Express response
+ * @returns 200 on successful withdrawal; 400 when eId or pId is malformed; 401 when unauthenticated;
+ *          403 when the caller is neither the participant nor an admin; 404 when the event or
+ *          participant record is not found; or 500 when saving fails
+ */
 router.delete("/withdraw/:eId/:pId", requireAuth, async function (req, res) {
   try {
     const pId = req.params.pId;
@@ -389,7 +351,15 @@ router.delete("/withdraw/:eId/:pId", requireAuth, async function (req, res) {
   }
 });
 
-//Given a participant's id, pull their answer list, user profile, and other info about them
+/*
+ * @behavior Retrieve a participant's event survey answers and registration details. Only the
+ *           participant themselves or an administrator may call this endpoint.
+ * @param req — the Express request containing the authenticated session and participant id pId
+ * @param res — the Express response
+ * @returns 200 with participant details; 400 when pId is malformed; 401 when unauthenticated;
+ *          403 when the caller is neither the participant nor an admin; 404 when the participant
+ *          is not found; or 500 when database access fails
+ */
 router.get("/:pId", requireAuth, async function (req, res) {
   try {
     const pId = req.params.pId;

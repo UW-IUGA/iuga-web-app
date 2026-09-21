@@ -1,8 +1,14 @@
 /*
- * @behavior Track how much stock is held, sold, and put back for each pile we count, so two
- *           students cannot buy the last hoodie in the same moment and both be charged. Counters
- *           never move without a matching reservation record, and never go negative.
- */
+Purpose: Track how much stock is held, sold, and put back for each item pile we count, so two
+students cannot buy the last item at the same time and both be charged. Counters never move
+without a matching reservation record, and never go negative.
+Authentication/Authorization Requirements: None. Called internally by the checkout flow, payment
+reconciliation, and reservation expiry.
+Expected Request Information:
+- Database models, an order ID, cart items, catalog entries, and transaction options.
+Expected Response Information:
+- An array of created reservation records, or objects reporting the number of consumed or released reservations.
+*/
 
 export class InsufficientInventoryError extends Error {
   constructor({ skuKey, fulfillmentSku, requestedQuantity, availableQuantity }) {
@@ -15,8 +21,15 @@ export class InsufficientInventoryError extends Error {
   }
 }
 
-// Put stock back after an attempt fails halfway through a multi-item order. Without this, every
-// pile already taken from stays taken and the shop quietly sells less than it owns.
+/*
+ * @behavior Put stock back on the shelf after an attempt fails halfway through a multi-item
+ *           order, so piles already taken from are returned to available stock and the shop
+ *           does not quietly sell less than it owns.
+ * @param models — the database models
+ * @param takenCounters — list of { fulfillmentSku, quantity } records already decremented
+ * @param session — the database transaction the caller is already inside, if any
+ * @exceptions throws when updating an inventory counter in the database fails
+ */
 async function restoreStockCounters({ models, takenCounters, session }) {
   for (const taken of takenCounters) {
     await models.InventoryCounter.findOneAndUpdate(
@@ -45,10 +58,10 @@ function requireTransaction(session) {
 /*
  * @behavior Take the ordered quantity off the shelf for each variant in a cart and write a
  *           time-limited reservation for it, so the order can be paid without overselling.
- * @param models — the database models, or fakes in tests
- * @param orderId — the order these holds belong to
- * @param items — the normalized cart: [{ skuKey, quantity }]
- * @param catalog — the price-list rows, which say which pile each variant comes from
+ * @param models — the database models
+ * @param orderId — the order ID these holds belong to
+ * @param items — the normalized cart items: [{ skuKey, quantity }]
+ * @param catalog — the price-list rows mapping each variant to its stock pile
  * @param now — when the holds start
  * @param ttlMs — how long a hold lasts before it is released
  * @param session — the database transaction this runs inside; required
@@ -217,7 +230,7 @@ export async function consumeInventory({
 /*
  * @behavior Put held stock back on the shelf when — and only when — the payment link can no
  *           longer be paid: expired, cancelled, or otherwise dead.
- * @param models — the database models, or fakes in tests
+ * @param models — the database models
  * @param orderId — the order giving its holds back
  * @param sessionCannotBePaidVerified — proof from Stripe, or from our own expiry, that this
  *        attempt can no longer be paid. Stock must not go back without it: a buyer who pays

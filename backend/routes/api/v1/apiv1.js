@@ -1,3 +1,11 @@
+/*
+Purpose: Mount every v1 resource router under /api/v1.
+Authentication/Authorization Requirements: None here; each router gates its own routes.
+Expected Request Information: Any request under /api/v1.
+Expected Response Information: Whatever the matching resource router answers; an unmatched path falls
+through to the app's 404 handling.
+*/
+
 import express from "express";
 var router = express.Router();
 
@@ -16,4 +24,3 @@ router.use("/event-requests", eventRequestsRouter);
 router.use("/shop", shopRouter);
 
 export default router;
-

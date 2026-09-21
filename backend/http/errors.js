@@ -1,3 +1,12 @@
+/*
+* Purpose: Turn the failures raised by middleware and routes into the API's error response shape,
+* without leaking server detail to the client.
+* Authentication/Authorization Requirements: None; the error handler runs last for every request.
+* Expected Request Information: An error raised by an earlier middleware or route.
+* Expected Response Information: The API error envelope with 400, 403, 413, or 500. Server detail is
+* logged, never returned.
+*/
+
 import { sendError } from "../routes/api/v1/helpers/sendError.js";
 
 /*

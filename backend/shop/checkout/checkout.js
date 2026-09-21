@@ -1,9 +1,11 @@
 /*
- * @behavior Run the whole checkout flow for one buyer: record the attempt, its stock holds,
- *           and its agreed prices, then ask Stripe for a payment link. Pressing Pay twice,
- *           retrying after a timeout, or reloading always lands on the same attempt and never
- *           on a second charge.
- */
+Purpose: Coordinate the shop checkout flow: validate the buyer, resume or prepare an attempt, persist it, and attach a Stripe payment link.
+Authentication/Authorization Requirements: Signed-in user session. The buyer identity is taken from the session and never from the request body.
+Expected Request Information:
+- Storage models, authenticated buyer owner, attempt key, cart items, readiness flag, and optional test seams.
+Expected Response Information:
+- A checkout result object: ready (with payment URL), pending, reconciliation_required, conflict, finished status, or unavailable.
+*/
 
 import mongoose from "mongoose";
 import { normalizeAttemptKey, normalizeCart } from "../domain.js";
@@ -17,9 +19,10 @@ import {
   unavailable,
 } from "./results.js";
 
-/*
- * @behavior Turn a validation failure into a 400 that carries a generic message only, so no
+/**
+ * @behavior Turn a validation failure into a 400 error that carries a generic message only, so no
  *           internal rule, record, or configuration detail reaches the buyer.
+ * @param message — the error message explaining why validation failed
  */
 export class CheckoutValidationError extends Error {
   constructor(message = "Invalid checkout request") {
@@ -28,7 +31,12 @@ export class CheckoutValidationError extends Error {
   }
 }
 
-// Validate the signed-in buyer before storing their identity as the checkout owner.
+/**
+ * @behavior Validate the signed-in buyer identity before storing them as the checkout owner.
+ * @param buyer — the buyer object from the session, which must be { type: "user", userId }
+ * @returns normalized owner object with type "user" and trimmed userId
+ * @exceptions CheckoutValidationError when the buyer is missing, not a user, or lacks a userId
+ */
 function validateBuyer(buyer) {
   if (
     !buyer ||
@@ -41,7 +49,7 @@ function validateBuyer(buyer) {
   return { type: "user", userId: buyer.userId };
 }
 
-/*
+/**
  * @behavior Require the shop's own https address, so stored return links cannot point at another
  *           site.
  * @param baseUrl — the configured public shop origin
@@ -72,17 +80,33 @@ function validateBaseUrl(baseUrl) {
   return parsed.toString().replace(/\/$/, "");
 }
 
+/**
+ * @behavior Read the human-readable order reference from the order record linked to an attempt.
+ * @param models — Mongoose models providing the Order collection
+ * @param attempt — the checkout attempt record containing the orderId
+ * @returns the order reference string (such as "ORD-..."), or null if the order was not found
+ * @exceptions rejects when the database query fails
+ */
 async function readOrderReference(models, attempt) {
   const order = await models.Order.findById(attempt.orderId);
   return order?.orderReference ?? null;
 }
 
-// Run work in one database transaction, so a half-written attempt is impossible.
+/**
+ * @behavior Execute database operations inside a single transaction so a half-written attempt is impossible.
+ * @param work — callback function that receives the database session and runs writes
+ * @returns the result of the transaction callback
+ * @exceptions rejects if any operation in the transaction fails or the transaction aborts
+ */
 function runInTransaction(work) {
   return mongoose.connection.transaction(work);
 }
 
-// Reach Stripe with this deployment's credentials. Tests and the shop controller inject their own.
+/**
+ * @behavior Create a Stripe provider client using the deployment's environment credentials.
+ * @returns a configured Stripe provider client instance
+ * @exceptions StripeProviderError when the Stripe environment variables are missing or invalid
+ */
 async function defaultProvider() {
   const { createStripeProviderClient } =
     await import("../../services/stripeProviderClient.js");
@@ -93,7 +117,12 @@ async function defaultProvider() {
   });
 }
 
-// The clock is a seam so tests can pin "now" and prove the sale-window rules.
+/**
+ * @behavior Coerce a clock seam — a Date, timestamp, or supplier function — into a valid Date object.
+ * @param clock — a Date, timestamp string/number, or function returning one
+ * @returns a valid Date instance representing the checkout time
+ * @exceptions CheckoutValidationError when the clock value cannot be parsed into a valid Date
+ */
 function coerceNowToDate(clock) {
   const value = typeof clock === "function" ? clock() : clock;
   const date =
@@ -103,17 +132,21 @@ function coerceNowToDate(clock) {
   return date;
 }
 
-/*
+/**
  * @behavior Replay this buyer's attempt for the retry key, or create one: price the cart, take
  *           stock, record the attempt, then ask Stripe for a payment link. Whenever the outcome
  *           is unclear it answers from durable state instead of risking a second charge.
  * @param models — the storage collections checkout reads and writes
  * @param owner — the signed-in buyer, taken from the session only
- * @param attemptKey — the browser's Idempotency-Key, lower-cased
- * @param items — the cart exactly as the browser sent it
- * @param checkoutEnabled — readiness override; false refuses a new attempt
- * @param getProvider, now, transaction, createId — seams tests replace
- * @returns ready (with a link), pending, conflict, a terminal status, or unavailable
+ * @param attemptKey — the browser's retry key from the Idempotency-Key header, lower-cased
+ * @param items — the cart items exactly as the browser sent them
+ * @param checkoutEnabled — readiness flag; false refuses a new attempt
+ * @param getProvider — factory function returning the configured Stripe provider client
+ * @param baseUrl — the configured public shop origin
+ * @param now — current checkout timestamp or clock function
+ * @param transaction — database transaction runner that commits all writes as a unit
+ * @param createId — optional custom identifier generator function
+ * @returns ready (with a payment link), pending, conflict, a terminal status, or unavailable
  * @exceptions CheckoutValidationError for an unusable owner, retry key, base URL, cart, or clock
  */
 export async function createCheckout({

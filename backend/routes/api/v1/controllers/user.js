@@ -1,8 +1,19 @@
 /*
-Refer to the "IUGA Website Backend Doc" for more information.
-
-Schemas addressed in users.js:
-- Users
+Purpose: Authenticate users via Microsoft Graph, manage user sessions, and provide user profile data.
+Authentication/Authorization Requirements: /login is rate-limited and open to holders of a valid Microsoft access token; all other routes require an authenticated session.
+Expected Request Information:
+- POST /login: Authorization header with Bearer token from Microsoft
+- POST /logout: authenticated session
+- GET /: authenticated session
+- GET /:uId: authenticated session and user id uId
+- POST /:uId: authenticated session and user id uId
+Expected Response Information:
+- 200 with user profile or session summary
+- 400 for malformed user identifiers
+- 401 when unauthenticated or when Microsoft Graph rejects the bearer token
+- 403 when an unauthorized user attempts to edit another user's profile
+- 500 on database or session destruction failures
+- 502 when Microsoft Graph is unavailable or returns an incomplete profile
 */
 
 import express from "express";
@@ -13,6 +24,11 @@ import { requireAuth } from "../utils/auth.js";
 import { createRateLimiter } from "../utils/rateLimit.js";
 
 var router = express.Router();
+/*
+ * @behavior Validate that a value is a 24-character hexadecimal MongoDB ObjectId string.
+ * @param value — the value to check
+ * @returns true when the value is a valid 24-character hexadecimal ObjectId string, false otherwise
+ */
 function validUserId(value) {
   return (
     typeof value === "string" &&
@@ -29,7 +45,6 @@ const GRAPH_REQUEST_TIMEOUT_MS = 5000;
 const INVALID_AUTHORIZATION_MESSAGE = "Invalid access token";
 const GRAPH_UNAVAILABLE_MESSAGE = "Authentication provider unavailable";
 const INCOMPLETE_PROFILE_MESSAGE = "Authentication provider returned incomplete identity";
-
 function readBearerToken(header) {
   if (typeof header !== "string") return null;
   const match = /^Bearer\s+(\S+)$/i.exec(header.trim());
@@ -40,6 +55,11 @@ function isNonEmptyString(value) {
   return typeof value === "string" && value.trim().length > 0;
 }
 
+/*
+ * @behavior Extract and validate the required user identity fields from Microsoft Graph response data.
+ * @param userData — the raw JSON profile object returned by Microsoft Graph
+ * @returns an object with email, displayName, firstName, and lastName; or null when identity data is incomplete
+ */
 function readGraphProfile(userData) {
   const email = isNonEmptyString(userData?.mail)
     ? userData.mail.trim()
@@ -64,6 +84,12 @@ function readGraphProfile(userData) {
   };
 }
 
+/*
+ * @behavior Regenerate the HTTP session to prevent session fixation attacks upon login.
+ * @param req — the Express request holding the session
+ * @returns a promise that resolves once the session has been regenerated
+ * @exceptions Error when session regeneration fails
+ */
 async function rotateSession(req) {
   if (typeof req.session.regenerate !== "function") return;
   await new Promise((resolve, reject) => {
@@ -72,12 +98,14 @@ async function rotateSession(req) {
 }
 
 /*
-    @endpoint: /login
-    @method: GET
-    @description: Given the Microsoft Access Token in the Authorization header,
-                  get information about the user using Graph API. Save information
-                  about the user if already exists. Create user session.
-*/
+ * @behavior Authenticate a user with a Microsoft Graph access token, synchronize their profile,
+ *           and establish a signed-in session. Anyone with a valid Microsoft token may call this.
+ * @param req — the Express request with the Bearer token in the Authorization header
+ * @param res — the Express response
+ * @returns 200 with the stored user document; 401 when the Authorization header or token is invalid;
+ *          500 when session rotation or database storage fails; or 502 when Microsoft Graph is
+ *          unavailable, times out, or returns an incomplete profile
+ */
 router.post("/login", loginRateLimiter, async function (req, res) {
   const accessToken = readBearerToken(req.headers.authorization);
   if (!accessToken) {
@@ -165,10 +193,13 @@ router.post("/login", loginRateLimiter, async function (req, res) {
 });
 
 /*
-    @endpoint: /logout
-    @method: POST
-    @description: destroy user session.
-*/
+ * @behavior Terminate the current user session and remove its stored session data. Only authenticated
+ *           users may call this endpoint.
+ * @param req — the Express request holding the active session
+ * @param res — the Express response
+ * @returns 200 on successful session destruction; 401 when unauthenticated; or 500 when the session
+ *          store fails to destroy the session
+ */
 router.post("/logout", requireAuth, function (req, res) {
   req.session.destroy((error) => {
     if (error) {
@@ -179,7 +210,13 @@ router.post("/logout", requireAuth, function (req, res) {
   });
 });
 
-//Get the user's specific information from the user's perspective, from an outsider perspective, and from the admin perspective
+/*
+ * @behavior Retrieve the identity and membership details of the currently signed-in user from their session.
+ *           Only authenticated users may call this endpoint.
+ * @param req — the Express request holding the active session
+ * @param res — the Express response
+ * @returns 200 with the caller's session details; or 401 when unauthenticated
+ */
 router.get("/", requireAuth, async function (req, res) {
   res.status(200).json({
     firstName: req.session.firstName,
@@ -190,7 +227,14 @@ router.get("/", requireAuth, async function (req, res) {
   });
 });
 
-//Get the user's specific information from the user's perspective, from an outsider perspective, and from the admin perspective
+/*
+ * @behavior Retrieve a user's account information by user identifier. Only authenticated users
+ *           may call this endpoint.
+ * @param req — the Express request containing the session and target user id uId
+ * @param res — the Express response
+ * @returns 400 when uId is not a valid user identifier; 401 when unauthenticated; or 500 when
+ *          database access fails
+ */
 router.get("/:uId", requireAuth, async function (req, res) {
   try {
     const uId = req.params.uId;
@@ -213,7 +257,14 @@ router.get("/:uId", requireAuth, async function (req, res) {
   }
 });
 
-//User wants to update their own profile information, or an admin is trying to change a user's information.
+/*
+ * @behavior Update profile information for a user. Only the account owner or an administrator
+ *           may call this endpoint.
+ * @param req — the Express request containing the session, target user id uId, and profile update fields
+ * @param res — the Express response
+ * @returns 400 when uId is not a valid user identifier; 401 when unauthenticated; 403 when a non-admin
+ *          attempts to edit another user's profile; or 500 when database access fails
+ */
 router.post("/:uId", requireAuth, async function (req, res) {
   try {
     const uId = req.params.uId;

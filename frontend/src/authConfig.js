@@ -1,8 +1,12 @@
 /*
  * Purpose: Configuration settings for Microsoft Authentication Library (MSAL) and Azure AD authentication.
  * Authentication/Authorization Requirements: Public client configuration for Microsoft Entra ID / UW NetID.
- * Expected Request: Imported during application initialization and token acquisition requests.
- * Expected Response: Configured MSAL configuration object and default login scopes.
+ *
+ * Expected Request Information:
+ * - Imported during application initialization and token acquisition requests.
+ *
+ * Expected Response Information:
+ * - Configured MSAL configuration object and default login scopes.
  */
 import { apiBaseUrl } from "./runtime";
 

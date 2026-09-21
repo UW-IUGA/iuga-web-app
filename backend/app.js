@@ -50,8 +50,6 @@ app.get("/readyz", (req, res) => res.json({
   checkoutEnabled: checkoutReadiness.checkoutEnabled,
 }));
 
-const allowedOrigins = ALLOWED_ORIGINS;
-
 /*
 Purpose: Allow credentialed browser requests only from documented local and IUGA origins.
 Authentication/Authorization Requirements: None
@@ -62,7 +60,7 @@ Expected Response Information:
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin || ALLOWED_ORIGINS.includes(origin)) {
         return callback(null, true);
       }
       return callback(new Error("CORS origin not allowed"));

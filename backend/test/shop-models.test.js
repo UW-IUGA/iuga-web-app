@@ -11,8 +11,11 @@ import {
   orderSchema,
   refundOperationSchema,
   disputeSchema,
-  stripeInboxEventSchema,
+  receivedStripeEventSchema,
   orderActivitySchema,
+  pendingWorkSchema,
+  stripePaymentEvidenceSchema,
+  stripeScanProgressSchema,
 } from "../schemas/schemas.js";
 import { models } from "../models.js";
 import {
@@ -33,8 +36,11 @@ describe("Shop Mongoose Schemas and Models", () => {
       assert.ok(orderSchema instanceof mongoose.Schema);
       assert.ok(refundOperationSchema instanceof mongoose.Schema);
       assert.ok(disputeSchema instanceof mongoose.Schema);
-      assert.ok(stripeInboxEventSchema instanceof mongoose.Schema);
+      assert.ok(receivedStripeEventSchema instanceof mongoose.Schema);
       assert.ok(orderActivitySchema instanceof mongoose.Schema);
+      assert.ok(pendingWorkSchema instanceof mongoose.Schema);
+      assert.ok(stripePaymentEvidenceSchema instanceof mongoose.Schema);
+      assert.ok(stripeScanProgressSchema instanceof mongoose.Schema);
     });
   });
 
@@ -219,13 +225,110 @@ describe("Shop Mongoose Schemas and Models", () => {
     });
   });
 
-  describe("StripeInboxEvent schema", () => {
+  describe("ReceivedStripeEvent schema", () => {
     it("enforces unique { accountId, livemode, eventId }", () => {
-      const indexes = stripeInboxEventSchema.indexes();
+      const indexes = receivedStripeEventSchema.indexes();
       const inboxUnique = indexes.find(([fields, opts]) =>
         fields.accountId === 1 && fields.livemode === 1 && fields.eventId === 1 && opts?.unique === true,
       );
       assert.ok(inboxUnique, "Missing unique index on accountId, livemode, eventId");
+    });
+
+    it("indexes the worker claim query on { status, retryAfter }", () => {
+      const claimIndex = receivedStripeEventSchema.indexes().find(([fields]) =>
+        fields.status === 1 && fields.retryAfter === 1,
+      );
+      assert.ok(claimIndex, "Missing worker claim index on status, retryAfter");
+    });
+
+    it("stores how far a worker has got with the event", () => {
+      for (const path of ["attempts", "retryAfter", "claimedBy", "claimExpiresAt", "claimNumber", "lastErrorCode", "stoppedAt"]) {
+        assert.ok(receivedStripeEventSchema.paths[path], `Missing received-event path ${path}`);
+      }
+    });
+
+    it("ends an event at processed or stopped, never failed", () => {
+      // A transient failure returns the row to received with retryAfter set, so "retrying" and
+      // "gave up" no longer share one word.
+      assert.deepEqual(
+        receivedStripeEventSchema.paths.status.enumValues,
+        ["received", "processing", "processed", "stopped"],
+      );
+      assert.equal(receivedStripeEventSchema.paths.status.options.default, "received");
+    });
+  });
+
+  describe("PendingWork schema", () => {
+    it("enforces a unique dedupeKey", () => {
+      assert.equal(pendingWorkSchema.paths.dedupeKey.options.unique, true);
+    });
+
+    it("indexes the worker claim query on { status, retryAfter }", () => {
+      const claimIndex = pendingWorkSchema.indexes().find(([fields]) =>
+        fields.status === 1 && fields.retryAfter === 1,
+      );
+      assert.ok(claimIndex, "Missing worker claim index on status, retryAfter");
+    });
+
+    it("carries the work, its retry state, and its end", () => {
+      assert.deepEqual(
+        pendingWorkSchema.paths.status.enumValues,
+        ["pending", "delivering", "delivered", "stopped"],
+      );
+      for (const path of ["dedupeKey", "orderId", "kind", "payload", "attempts", "retryAfter", "claimedBy", "claimExpiresAt", "claimNumber", "deliveredAt", "lastErrorCode", "stoppedAt"]) {
+        assert.ok(pendingWorkSchema.paths[path], `Missing pending-work path ${path}`);
+      }
+    });
+  });
+
+  describe("StripePaymentEvidence schema", () => {
+    it("keeps an unlinkable fact visible instead of guessing an order", () => {
+      assert.equal(stripePaymentEvidenceSchema.paths.matchState.options.default, "held");
+      assert.deepEqual(
+        stripePaymentEvidenceSchema.paths.matchState.enumValues,
+        ["matched", "unmatched", "held"],
+      );
+    });
+
+    it("records which Stripe world and which object the fact came from", () => {
+      for (const path of ["source", "observedAt", "recordedAt", "accountId", "livemode", "apiVersion", "eventId", "eventType", "objectType", "objectId", "orderId", "attemptId", "sessionId", "paymentIntentId", "amountCents", "currency", "metadata"]) {
+        assert.ok(stripePaymentEvidenceSchema.paths[path], `Missing payment-evidence path ${path}`);
+      }
+    });
+
+    it("indexes lookup by provider object and by order", () => {
+      const indexes = stripePaymentEvidenceSchema.indexes();
+      const objectIndex = indexes.find(([fields]) =>
+        fields.accountId === 1 && fields.livemode === 1 && fields.objectType === 1 && fields.objectId === 1,
+      );
+      assert.ok(objectIndex, "Missing index on accountId, livemode, objectType, objectId");
+
+      const orderIndex = indexes.find(([fields]) => fields.orderId === 1 && fields.observedAt === -1);
+      assert.ok(orderIndex, "Missing index on orderId, observedAt desc");
+    });
+  });
+
+  describe("StripeScanProgress schema", () => {
+    it("keeps one progress row per account and mode", () => {
+      const unique = stripeScanProgressSchema.indexes().find(([fields, opts]) =>
+        fields.accountId === 1 && fields.livemode === 1 && opts?.unique === true,
+      );
+      assert.ok(unique, "Missing unique index on accountId, livemode");
+    });
+
+    it("records the overlap bookmark and who is scanning", () => {
+      for (const path of ["lastEventCreatedAt", "lastEventId", "claimedBy", "claimExpiresAt", "claimNumber", "updatedAt"]) {
+        assert.ok(stripeScanProgressSchema.paths[path], `Missing scan-progress path ${path}`);
+      }
+    });
+  });
+
+  describe("Order claim and version", () => {
+    it("stores the claim a worker holds and the version it must match", () => {
+      assert.equal(orderSchema.paths.version.options.default, 0);
+      for (const path of ["claim.claimedBy", "claim.claimExpiresAt", "claim.claimNumber"]) {
+        assert.ok(orderSchema.paths[path], `Missing order path ${path}`);
+      }
     });
   });
 });

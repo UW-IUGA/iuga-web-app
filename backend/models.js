@@ -16,8 +16,11 @@ import {
   orderSchema,
   refundOperationSchema,
   disputeSchema,
-  stripeInboxEventSchema,
+  receivedStripeEventSchema,
   orderActivitySchema,
+  pendingWorkSchema,
+  stripePaymentEvidenceSchema,
+  stripeScanProgressSchema,
 } from "./schemas/schemas.js";
 
 // Preserve the Mongoose 6 unknown-filter behavior during the staged upgrade.
@@ -49,12 +52,15 @@ async function connectToDatabase(){
   models.Order = mongoose.model("Order", orderSchema);
   models.RefundOperation = mongoose.model("RefundOperation", refundOperationSchema);
   models.Dispute = mongoose.model("Dispute", disputeSchema);
-  models.StripeInboxEvent = mongoose.model("StripeInboxEvent", stripeInboxEventSchema);
+  models.ReceivedStripeEvent = mongoose.model("ReceivedStripeEvent", receivedStripeEventSchema);
   models.OrderActivity = mongoose.model("OrderActivity", orderActivitySchema);
+  models.PendingWork = mongoose.model("PendingWork", pendingWorkSchema);
+  models.StripePaymentEvidence = mongoose.model("StripePaymentEvidence", stripePaymentEvidenceSchema);
+  models.StripeScanProgress = mongoose.model("StripeScanProgress", stripeScanProgressSchema);
 
+  await models.ReceivedStripeEvent.init();
   console.log(`[startup] mongoose models created after ${Date.now() - connectionStartedAt}ms`);
 }
 
-//Ship the models variable with all the schemas in it to be used externally.
 export { models, connectToDatabase };
 

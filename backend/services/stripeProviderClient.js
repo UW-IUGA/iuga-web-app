@@ -164,36 +164,6 @@ function normalizeStripeSession(payload) {
 }
 
 /*
- * @behavior Read the priced lines of a purchase as one price id and quantity each, deriving the
- *           per-unit amount from the line total. Stripe's price ids are the only common language
- *           between our frozen quote and what was actually paid, so nothing else about a line is
- *           trusted.
- * @param lineItems — Stripe's `line_items` object, holding the lines in its `data` array
- * @returns each line as { priceId, quantity, unitAmountCents, subtotalCents }
- * @exceptions StripeProviderError when a line has no price, a quantity that is not a positive
- *             whole number, a line total that is not whole cents, or a per-unit amount that does
- *             not come out to whole cents
- */
-function normalizeLineItems(lineItems) {
-  if (lineItems === null || typeof lineItems !== "object" || Array.isArray(lineItems)
-    || !Array.isArray(lineItems.data)) failSafely("invalid_response");
-  return lineItems.data.map((line) => {
-    if (line === null || typeof line !== "object" || Array.isArray(line)
-      || !isNonEmptyString(line.price?.id)
-      || !Number.isSafeInteger(line.quantity) || line.quantity <= 0
-      || !isWholeCents(line.amount_total)) failSafely("invalid_response");
-    const unitAmountCents = line.amount_total / line.quantity;
-    if (!isWholeCents(unitAmountCents)) failSafely("invalid_response");
-    return {
-      priceId: line.price.id,
-      quantity: line.quantity,
-      unitAmountCents,
-      subtotalCents: line.amount_total,
-    };
-  });
-}
-
-/*
  * @behavior Copy the metadata Stripe sent, or report that it sent none.
  * @param metadata — the metadata from a Stripe object; most objects carry none
  * @returns a copy of the metadata, or null when there is none to copy
@@ -209,16 +179,16 @@ function normalizeMetadataOrNull(metadata) {
  * @behavior Describe one authenticated read of a Checkout Session in the terms the payment
  *           decision is made in. Recording what we saw is not the same as judging it: an open or
  *           unpaid Session is reported faithfully, so the decision can refuse it with a reason.
- * @param payload — the raw Session object Stripe returned, with line items expanded
+ * @param payload — the raw Session object Stripe returned
  * @param context.accountId — the account we asked about, recorded because a direct Stripe account
  *        omits itself from the payload
  * @param context.observedAt — when we made this read
  * @param context.keyMode — test or live, taken from the key; a Session whose livemode disagrees
  *        with the key cannot be about our account, so it is refused rather than recorded
  * @returns the session as the facts a payment decision compares against: its ids, source, status,
- *          mode, currency, total in cents, payment intent, metadata, and every line
- * @exceptions StripeProviderError when the Session or its lines are structurally damaged, or its
- *             line totals do not add up to its own total
+ *          mode, currency, total in cents, payment intent, and metadata
+ * @exceptions StripeProviderError when the Session is structurally damaged, or its mode disagrees
+ *             with the key
  */
 function normalizePaymentEvidenceSession(payload, { accountId, observedAt, keyMode } = {}) {
   if (!isNonEmptyString(accountId) || !Number.isSafeInteger(observedAt) || !isNonEmptyString(keyMode)) failSafely("invalid_response");
@@ -227,8 +197,6 @@ function normalizePaymentEvidenceSession(payload, { accountId, observedAt, keyMo
     || !isWholeCents(payload.amount_total)
     || typeof payload.livemode !== "boolean") failSafely("invalid_response");
   if (payload.livemode !== (keyMode === "live")) failSafely("invalid_response");
-  const items = normalizeLineItems(payload.line_items);
-  if (items.reduce((total, item) => total + item.subtotalCents, 0) !== payload.amount_total) failSafely("invalid_response");
   const paymentIntentId = payload.payment_intent === undefined || payload.payment_intent === null
     ? null
     : payload.payment_intent;
@@ -247,7 +215,6 @@ function normalizePaymentEvidenceSession(payload, { accountId, observedAt, keyMo
     amountTotalCents: payload.amount_total,
     paymentIntentId,
     metadata: normalizeMetadataOrNull(payload.metadata),
-    items,
   };
 }
 
@@ -337,38 +304,6 @@ export function createStripeProviderClient(options = {}) {
     }
   }
 
-  /*
-   * @behavior Read every later page of a session's line items, so a purchase split across pages is
-   *           judged whole instead of half-read.
-   * @param encodedSessionId — the session id, already safe to put in a URL
-   * @param firstLineItems — the first page, which arrived with the session itself
-   * @returns the first page with every later page's lines appended and `has_more` closed
-   * @exceptions StripeProviderError when a page cannot be advanced past, or is shaped wrong
-   */
-  async function readEveryLineItemPage(encodedSessionId, firstLineItems) {
-    const allLineItems = [...firstLineItems.data];
-    const cursors = new Set();
-    let lineItemsPage = firstLineItems;
-    while (lineItemsPage.has_more === true) {
-      if (lineItemsPage.data.length === 0) failSafely("invalid_response");
-      const lastLineItem = lineItemsPage.data[lineItemsPage.data.length - 1];
-      const cursor = lastLineItem?.id;
-      if (!isNonEmptyString(cursor) || cursors.has(cursor)) failSafely("invalid_response");
-      cursors.add(cursor);
-      const query = new URLSearchParams({ limit: "100", starting_after: cursor });
-      lineItemsPage = await readPayload(
-        `${CHECKOUT_SESSIONS_URL}/${encodedSessionId}/line_items?${query.toString()}`,
-        { method: "GET", headers },
-      );
-      if (lineItemsPage === null || typeof lineItemsPage !== "object"
-        || Array.isArray(lineItemsPage) || !Array.isArray(lineItemsPage.data)
-        || lineItemsPage.data.length === 0
-        || (lineItemsPage.has_more !== undefined && typeof lineItemsPage.has_more !== "boolean")) failSafely("invalid_response");
-      allLineItems.push(...lineItemsPage.data);
-    }
-    return { ...firstLineItems, data: allLineItems, has_more: false };
-  }
-
   return {
     /*
      * @behavior Create a Stripe Checkout Session for a stored purchase and return the link to
@@ -438,35 +373,28 @@ export function createStripeProviderClient(options = {}) {
       );
     },
     /*
-     * @behavior Read a checkout session back from Stripe, following every page of line items, and
-     *           describe the complete answer in the facts a payment decision is made on. This read
-     *           is the only thing a payment may be judged on: the buyer returning to our page, and
-     *           our own creation response, prove nothing.
+     * @behavior Read a checkout session back from Stripe and describe it in the facts a payment
+     *           decision is made on. This read is the only thing a payment may be judged on: the
+     *           buyer returning to our page, and our own creation response, prove nothing.
      * @param options.sessionId — the session to read, escaped into the URL path
      * @param options.accountId — the account we expect it to belong to, recorded in the result
-     * @returns the session as the facts a payment decision compares against, including every line
-     *          and when we read it
+     * @returns the session as the facts a payment decision compares against, and when we read it
      * @exceptions StripeProviderError on a transport failure, an untrustworthy response, or a
-     *             structurally damaged session or line-item page
+     *             structurally damaged session
      */
     async retrievePaymentEvidence(options = {}) {
       if (options === null || typeof options !== "object" || Array.isArray(options)) failSafely("invalid_request");
       const { sessionId, accountId } = options;
       if (!isNonEmptyString(sessionId) || !isNonEmptyString(accountId)) failSafely("invalid_request");
-      const encodedSessionId = encodeURIComponent(sessionId);
       const payload = await readPayload(
-        `${CHECKOUT_SESSIONS_URL}/${encodedSessionId}?expand[]=line_items`,
+        `${CHECKOUT_SESSIONS_URL}/${encodeURIComponent(sessionId)}`,
         { method: "GET", headers },
       );
-      const firstLineItems = payload?.line_items;
-      if (firstLineItems === null || typeof firstLineItems !== "object"
-        || Array.isArray(firstLineItems) || !Array.isArray(firstLineItems.data)
-        || (firstLineItems.has_more !== undefined && typeof firstLineItems.has_more !== "boolean")) failSafely("invalid_response");
-      const lineItems = await readEveryLineItemPage(encodedSessionId, firstLineItems);
-      return normalizePaymentEvidenceSession(
-        { ...payload, line_items: lineItems },
-        { accountId, observedAt: readClock(), keyMode },
-      );
+      return normalizePaymentEvidenceSession(payload, {
+        accountId,
+        observedAt: readClock(),
+        keyMode,
+      });
     },
     /*
      * @behavior Read the PaymentIntent behind a purchase back from Stripe. This is a second

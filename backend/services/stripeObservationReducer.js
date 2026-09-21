@@ -40,56 +40,13 @@ function isPlainObject(value) {
 }
 
 /*
- * @behavior Put a list of line items into price-id order, so two lists holding the same items in
- *           different orders still compare equal.
- * @param items — the line items to sort
- * @returns a sorted copy; the list passed in is left untouched
- */
-function sortItems(items) {
-  return [...items].sort((left, right) =>
-    asText(left.priceId).localeCompare(asText(right.priceId)),
-  );
-}
-
-/*
- * @behavior Check that the line items Stripe reported match the ones quoted when the checkout
- *           attempt was created: each Stripe Price id with the quantity we sent, and nothing else.
- *           The amount is compared against the session total instead, so the catalogue is never
- *           read to re-price a purchase.
- * @param observed — the line items Stripe reported
- * @param agreed — the line items recorded when the attempt was created
- * @returns true when both lists hold the same price ids with the same quantities
- */
-function sameItems(observed, agreed) {
-  if (!Array.isArray(observed) || !Array.isArray(agreed)) {
-    return false;
-  }
-
-  if (observed.length !== agreed.length) {
-    return false;
-  }
-
-  const observedSorted = sortItems(observed);
-  const agreedSorted = sortItems(agreed);
-
-  return observedSorted.every((item, index) => {
-    const expectedItem = agreedSorted[index];
-
-    return (
-      asText(item.priceId) === asText(expectedItem.priceId) &&
-      item.quantity === expectedItem.quantity
-    );
-  });
-}
-
-/*
- * @behavior Decide whether a checkout session we retrieved from Stripe proves the buyer paid for
- *           exactly what was quoted, from the account and mode this deployment is configured for.
+ * @behavior Decide whether a checkout session we retrieved from Stripe proves the buyer paid the
+ *           amount quoted for it, from the account and mode this deployment is configured for.
  *           Every failed check is collected rather than stopping at the first, so an operator sees
  *           the whole picture; paid means no check failed.
  * @param session — the checkout session as Stripe reported it when we retrieved it ourselves
  * @param expected — the facts frozen when the checkout attempt was created: the session id, account
- *                   id, mode, currency, total in cents, line items, and the attempt and order ids
+ *                   id, mode, currency, total in cents, and the attempt and order ids
  * @returns { paid, reasons } — paid is true only when every check passed; reasons holds one plain
  *          sentence per failed check
  */
@@ -146,10 +103,6 @@ export function evaluatePaidCheckoutSession({ session, expected } = {}) {
     session.amountTotalCents !== expected.amountTotalCents
   ) {
     reasons.push("the amount paid does not match the amount quoted");
-  }
-
-  if (!sameItems(session.items, expected.lineItems)) {
-    reasons.push("the prices paid for are not the prices we quoted");
   }
 
   const metadata = isPlainObject(session.metadata) ? session.metadata : {};

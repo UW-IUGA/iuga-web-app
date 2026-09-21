@@ -247,7 +247,6 @@ describe("retrievePaymentEvidence", () => {
   const SESSION_ID = "cs_test_evidence";
   const OBSERVED_AT = 1_900_003_600_000;
 
-  // Expanded line items arrive as a list wrapper, not a bare array.
   const COMPLETED_SESSION = {
     id: SESSION_ID,
     object: "checkout.session",
@@ -259,19 +258,6 @@ describe("retrievePaymentEvidence", () => {
     livemode: false,
     metadata: { attemptId: "attempt_evidence", orderId: "order_evidence" },
     payment_intent: "pi_test_evidence",
-    line_items: {
-      object: "list",
-      data: [
-        {
-          id: "li_test_1",
-          quantity: 1,
-          amount_total: 4500,
-          amount_subtotal: 4500,
-          currency: "usd",
-          price: { id: "price_hoodie_m" },
-        },
-      ],
-    },
   };
 
   function evidenceClient(overrides = {}) {
@@ -308,18 +294,10 @@ describe("retrievePaymentEvidence", () => {
       amountTotalCents: 4500,
       paymentIntentId: "pi_test_evidence",
       metadata: { attemptId: "attempt_evidence", orderId: "order_evidence" },
-      items: [
-        {
-          priceId: "price_hoodie_m",
-          quantity: 1,
-          unitAmountCents: 4500,
-          subtotalCents: 4500,
-        },
-      ],
     });
   });
 
-  test("asks Stripe for the line items, escapes the id, and authenticates", async () => {
+  test("escapes the session id and authenticates", async () => {
     let request;
     const client = evidenceClient({
       fetchImpl: async (url, init) => {
@@ -333,200 +311,31 @@ describe("retrievePaymentEvidence", () => {
       accountId: ACCOUNT_ID,
     });
 
-    assert.ok(
-      request.url.startsWith("https://api.stripe.com/v1/checkout/sessions/cs_test%2Fevidence?"),
-      `unexpected evidence URL: ${request.url}`,
+    assert.equal(
+      request.url,
+      "https://api.stripe.com/v1/checkout/sessions/cs_test%2Fevidence",
     );
-    assert.equal(new URL(request.url).searchParams.get("expand[]"), "line_items");
     assert.equal(request.init.method, "GET");
     assert.equal(request.init.headers.Authorization, `Bearer ${SECRET_KEY}`);
     assert.equal(request.init.headers["Stripe-Version"], API_VERSION);
   });
 
-  test("reads every line-item page before normalizing evidence", async () => {
+  test("reads the session once, without walking its line items", async () => {
     const requests = [];
-    const sessionId = "cs_test/paginated?opaque";
-    const firstPage = {
-      ...COMPLETED_SESSION,
-      id: sessionId,
-      amount_total: 8000,
-      line_items: {
-        object: "list",
-        data: [
-          { id: "li_page_1", quantity: 2, amount_total: 2000, price: { id: "price_first" } },
-          { id: "li_page_2", quantity: 1, amount_total: 1000, price: { id: "price_second" } },
-        ],
-        has_more: true,
-      },
-    };
-    const secondPage = {
-      object: "list",
-      data: [
-        { id: "li_page_3/reserved", quantity: 1, amount_total: 2000, price: { id: "price_third" } },
-      ],
-      has_more: true,
-    };
-    const thirdPage = {
-      object: "list",
-      data: [
-        { id: "li_page_4", quantity: 3, amount_total: 3000, price: { id: "price_fourth" } },
-      ],
-      has_more: false,
-    };
     const client = evidenceClient({
       fetchImpl: async (url, init) => {
         requests.push({ url: String(url), init });
-        if (requests.length === 1) return response({ json: firstPage });
-        if (requests.length === 2) return response({ json: secondPage });
-        if (requests.length === 3) return response({ json: thirdPage });
-        throw new Error("unexpected extra request");
+        return response({ json: COMPLETED_SESSION });
       },
     });
 
     const result = await client.retrievePaymentEvidence({
-      sessionId,
+      sessionId: SESSION_ID,
       accountId: ACCOUNT_ID,
     });
 
-    assert.deepEqual(result.items, [
-      { priceId: "price_first", quantity: 2, unitAmountCents: 1000, subtotalCents: 2000 },
-      { priceId: "price_second", quantity: 1, unitAmountCents: 1000, subtotalCents: 1000 },
-      { priceId: "price_third", quantity: 1, unitAmountCents: 2000, subtotalCents: 2000 },
-      { priceId: "price_fourth", quantity: 3, unitAmountCents: 1000, subtotalCents: 3000 },
-    ]);
-    assert.equal(result.amountTotalCents, 8000);
-    assert.equal(requests.length, 3);
-    const firstUrl = new URL(requests[0].url);
-    assert.equal(
-      firstUrl.origin + firstUrl.pathname,
-      "https://api.stripe.com/v1/checkout/sessions/cs_test%2Fpaginated%3Fopaque",
-    );
-    assert.equal(firstUrl.searchParams.get("expand[]"), "line_items");
-    const followUpUrls = requests.slice(1).map(({ url }) => new URL(url));
-    for (const followUpUrl of followUpUrls) {
-      assert.equal(
-        followUpUrl.origin + followUpUrl.pathname,
-        "https://api.stripe.com/v1/checkout/sessions/cs_test%2Fpaginated%3Fopaque/line_items",
-      );
-      assert.equal(followUpUrl.searchParams.get("limit"), "100");
-    }
-    assert.equal(followUpUrls[0].searchParams.get("starting_after"), "li_page_2");
-    assert.equal(followUpUrls[1].searchParams.get("starting_after"), "li_page_3/reserved");
-    for (const request of requests) {
-      assert.equal(request.init.method, "GET");
-      assert.equal(request.init.headers.Authorization, `Bearer ${SECRET_KEY}`);
-      assert.equal(request.init.headers["Stripe-Version"], API_VERSION);
-    }
-  });
-
-  test("fails safely rather than returning partial evidence when a later page fails", async () => {
-    let calls = 0;
-    const client = evidenceClient({
-      fetchImpl: async () => {
-        calls += 1;
-        if (calls === 1) {
-          return response({
-            json: {
-              ...COMPLETED_SESSION,
-              amount_total: 9000,
-              line_items: {
-                object: "list",
-                data: [{ id: "li_first", quantity: 1, amount_total: 4500, price: { id: "price_first" } }],
-                has_more: true,
-              },
-            },
-          });
-        }
-        return response({ status: 502, text: "raw-provider-body" });
-      },
-    });
-
-    await assert.rejects(
-      client.retrievePaymentEvidence({ sessionId: SESSION_ID, accountId: ACCOUNT_ID }),
-      (error) => {
-        assertSafeFailure(error.message);
-        return true;
-      },
-    );
-    assert.equal(calls, 2);
-  });
-
-  test("fails safely when a page claims more lines but cannot advance its cursor", async () => {
-    let calls = 0;
-    const client = evidenceClient({
-      fetchImpl: async () => {
-        calls += 1;
-        if (calls === 1) {
-          return response({
-            json: {
-              ...COMPLETED_SESSION,
-              amount_total: 4500,
-              line_items: {
-                object: "list",
-                data: [{ id: "li_first", quantity: 1, amount_total: 4500, price: { id: "price_first" } }],
-                has_more: true,
-              },
-            },
-          });
-        }
-        if (calls > 2) throw new Error("unexpected extra request");
-        return response({
-          json: {
-            object: "list",
-            data: [{ id: "li_first", quantity: 1, amount_total: 4500, price: { id: "price_first" } }],
-            has_more: true,
-          },
-        });
-      },
-    });
-
-    await assert.rejects(
-      client.retrievePaymentEvidence({ sessionId: SESSION_ID, accountId: ACCOUNT_ID }),
-      (error) => {
-        assertSafeFailure(error.message);
-        return true;
-      },
-    );
-    assert.equal(calls, 2);
-  });
-
-  test("fails safely when a promised continuation page arrives empty", async () => {
-    let calls = 0;
-    const client = evidenceClient({
-      fetchImpl: async () => {
-        calls += 1;
-        if (calls === 1) {
-          return response({
-            json: {
-              ...COMPLETED_SESSION,
-              amount_total: 4500,
-              line_items: {
-                object: "list",
-                data: [{ id: "li_first", quantity: 1, amount_total: 4500, price: { id: "price_first" } }],
-                has_more: true,
-              },
-            },
-          });
-        }
-        if (calls > 2) throw new Error("unexpected extra request");
-        return response({
-          json: {
-            object: "list",
-            data: [],
-            has_more: false,
-          },
-        });
-      },
-    });
-
-    await assert.rejects(
-      client.retrievePaymentEvidence({ sessionId: SESSION_ID, accountId: ACCOUNT_ID }),
-      (error) => {
-        assertSafeFailure(error.message);
-        return true;
-      },
-    );
-    assert.equal(calls, 2);
+    assert.equal(requests.length, 1);
+    assert.equal(result.amountTotalCents, 4500);
   });
 
   // An open Session is a real answer, not a failure: the reducer decides it does not settle
@@ -544,78 +353,11 @@ describe("retrievePaymentEvidence", () => {
     assert.equal(result.paymentIntentId, null);
   });
 
-  test("separates a multi-line purchase into per-price facts", async () => {
-    const result = await sessionClient({
-      ...COMPLETED_SESSION,
-      amount_total: 6000,
-      line_items: {
-        object: "list",
-        data: [
-          { id: "li_1", quantity: 1, amount_total: 4500, price: { id: "price_hoodie_m" } },
-          { id: "li_2", quantity: 3, amount_total: 1500, price: { id: "price_sticker" } },
-        ],
-      },
-    }).retrievePaymentEvidence({ sessionId: SESSION_ID, accountId: ACCOUNT_ID });
-
-    assert.deepEqual(result.items, [
-      { priceId: "price_hoodie_m", quantity: 1, unitAmountCents: 4500, subtotalCents: 4500 },
-      { priceId: "price_sticker", quantity: 3, unitAmountCents: 500, subtotalCents: 1500 },
-    ]);
-    assert.equal(result.amountTotalCents, 6000);
-  });
-
   const damagedSessions = [
     ["a Session with no id", { ...COMPLETED_SESSION, id: "" }],
-    ["a Session with no line items", { ...COMPLETED_SESSION, line_items: null }],
-    [
-      "line items that are not a list",
-      { ...COMPLETED_SESSION, line_items: { object: "list" } },
-    ],
-    [
-      "a line item with no price",
-      {
-        ...COMPLETED_SESSION,
-        line_items: { object: "list", data: [{ quantity: 1, amount_total: 4500 }] },
-      },
-    ],
-    [
-      "a line item with a quantity of zero",
-      {
-        ...COMPLETED_SESSION,
-        line_items: {
-          object: "list",
-          data: [{ quantity: 0, amount_total: 4500, price: { id: "price_hoodie_m" } }],
-        },
-      },
-    ],
-    [
-      "a line item quantity that is not a whole number",
-      {
-        ...COMPLETED_SESSION,
-        line_items: {
-          object: "list",
-          data: [{ quantity: 1.5, amount_total: 4500, price: { id: "price_hoodie_m" } }],
-        },
-      },
-    ],
-    [
-      "line totals that do not add up to the Session total",
-      { ...COMPLETED_SESSION, amount_total: 9999 },
-    ],
     [
       "a Session total that is not a whole number of cents",
       { ...COMPLETED_SESSION, amount_total: 45.5 },
-    ],
-    [
-      "a line total that does not divide evenly across its quantity",
-      {
-        ...COMPLETED_SESSION,
-        amount_total: 4501,
-        line_items: {
-          object: "list",
-          data: [{ quantity: 2, amount_total: 4501, price: { id: "price_hoodie_m" } }],
-        },
-      },
     ],
     [
       "a live-mode Session read with a test key",

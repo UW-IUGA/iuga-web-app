@@ -20,18 +20,13 @@ const SESSION_ID = "cs_test_0001";
 const ATTEMPT_ID = "attempt_0001";
 const ORDER_ID = "order_0001";
 
-// What the buyer already agreed to when the attempt was created: the Stripe prices we froze with
-// the quantity we sent, plus the ids we stamped into the Session. Payment only counts when the
-// retrieval still matches this. Prices are compared by Stripe's Price id because that is the only
-// item binding the frozen purchase keeps - we cannot re-read today's catalog to rebuild the link.
+// What the buyer already agreed to when the attempt was created: the total we froze, plus the ids
+// we stamped into the Session. Payment only counts when the retrieval still matches this.
 const EXPECTED = Object.freeze({
   accountId: ACCOUNT_ID,
   livemode: false,
   currency: "usd",
   amountTotalCents: 4500,
-  lineItems: Object.freeze([
-    Object.freeze({ priceId: "price_hoodie_m", quantity: 1 }),
-  ]),
   attemptId: ATTEMPT_ID,
   orderId: ORDER_ID,
   sessionId: SESSION_ID,
@@ -52,14 +47,6 @@ function retrievedSession(overrides = {}) {
     amountTotalCents: 4500,
     paymentIntentId: "pi_test_0001",
     metadata: { attemptId: ATTEMPT_ID, orderId: ORDER_ID },
-    items: [
-      {
-        priceId: "price_hoodie_m",
-        quantity: 1,
-        unitAmountCents: 4500,
-        subtotalCents: 4500,
-      },
-    ],
     ...overrides,
   };
 }
@@ -137,62 +124,6 @@ describe("Paid checkout predicate", () => {
   ];
 
   for (const [description, overrides] of wrongContext) {
-    it(`refuses ${description}`, () => {
-      assert.equal(evaluate(overrides).paid, false);
-    });
-  }
-
-  const wrongItems = [
-    [
-      "a price the buyer never agreed to",
-      {
-        items: [
-          {
-            priceId: "price_tote",
-            quantity: 1,
-            unitAmountCents: 4500,
-            subtotalCents: 4500,
-          },
-        ],
-      },
-    ],
-    [
-      "a different quantity of the agreed price",
-      {
-        items: [
-          {
-            priceId: "price_hoodie_m",
-            quantity: 2,
-            unitAmountCents: 4500,
-            subtotalCents: 9000,
-          },
-        ],
-      },
-    ],
-    [
-      "an extra line the buyer never agreed to",
-      {
-        items: [
-          {
-            priceId: "price_hoodie_m",
-            quantity: 1,
-            unitAmountCents: 4500,
-            subtotalCents: 4500,
-          },
-          {
-            priceId: "price_tote",
-            quantity: 1,
-            unitAmountCents: 1200,
-            subtotalCents: 1200,
-          },
-        ],
-      },
-    ],
-    ["no items at all", { items: [] }],
-    ["a missing item list", { items: null }],
-  ];
-
-  for (const [description, overrides] of wrongItems) {
     it(`refuses ${description}`, () => {
       assert.equal(evaluate(overrides).paid, false);
     });

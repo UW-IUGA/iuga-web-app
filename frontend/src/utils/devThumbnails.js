@@ -37,7 +37,13 @@ const THUMBNAIL_BY_NAME = {
 
 const DEFAULT_THUMBNAILS = [groups, gamenight, bowling, heart, panelists, gamenight2, officers];
 
-// Returns a NEW array of NEW event objects (inputs are never mutated).
+/*
+ * @behavior Attach preview thumbnail images to mock event objects that lack an eThumbnailPath,
+ *           resolving by known event id first, then unique event name, then cycling through a
+ *           fixed gallery list.
+ * @param events — array of event objects, each with eId, eName, and optional eThumbnailPath
+ * @returns a new array of event objects with eThumbnailPath populated; input events are not mutated
+ */
 export const enrichWithDevThumbnails = (events) => {
     const nameCounts = events.reduce((counts, event) => {
         counts[event.eName] = (counts[event.eName] ?? 0) + 1;

@@ -1,3 +1,12 @@
+/*
+Purpose: Hold stock and persist the order and attempt records together in a single database transaction.
+Authentication/Authorization Requirements: None. Used internally by the checkout coordinator.
+Expected Request Information:
+- Mongoose models, prepared checkout documents and cart, and a database transaction runner.
+Expected Response Information:
+- An object indicating success ({ ok: true }) or failure ({ ok: false, error }).
+*/
+
 import { holdInventory } from "../reservations.js";
 
 // The hold must last exactly as long as the payment link, so it is measured from the prepared
@@ -9,14 +18,13 @@ function holdDurationMs(attemptDocument) {
   );
 }
 
-/*
- * @behavior  Persists a new checkout as one unit — holds inventory, creates the order, and
- *            records the attempt together, so a partial checkout is never left behind.
- * @param     models — collections used to write the order and attempt documents.
- * @param     checkout — the prepared documents and inputs: orderDocument, attemptDocument, cart, catalogRows.
- * @param     transaction — runner that supplies the session and commits all writes as a unit.
- * @returns   { ok: true } on success; { ok: false, error } with the cause on failure.
- * @exceptions Never throws — transaction failures are returned, not raised, so the caller decides the response.
+/**
+ * @behavior Save a new checkout in one database transaction: hold stock for the cart, create
+ *           the pending order, and record the attempt, so a partial checkout is never left behind.
+ * @param models — Mongoose models used to store the order and attempt records
+ * @param checkout — the prepared checkout data (orderDocument, attemptDocument, cart, catalogRows)
+ * @param transaction — database transaction runner that commits all writes as a unit
+ * @returns an object with ok: true on success, or ok: false and the error if any write or hold fails
  */
 export async function persistNewCheckout({ models, checkout, transaction }) {
   try {

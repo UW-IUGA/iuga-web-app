@@ -1,3 +1,11 @@
+/*
+Purpose: Connect to MongoDB and register every Mongoose model the API uses.
+Authentication/Authorization Requirements: None; this file runs at startup only.
+Expected Request Information: DB_URI in the environment.
+Expected Response Information: A connected Mongoose instance, every model registered on it, and the
+ReceivedStripeEvent unique index built before startup is reported ready.
+*/
+
 import mongoose from "mongoose";
 import {
   eventsSchema,
@@ -28,6 +36,13 @@ mongoose.set("strictQuery", true);
 
 let models = {};
 
+/*
+ * @behavior Connect to MongoDB, register every model, and wait for the ReceivedStripeEvent unique
+ *           index to exist before startup is called ready — an unwatched delivery would otherwise
+ *           be stored twice during the first moments after a deploy.
+ * @returns nothing; it resolves once the connection is up and that index is built
+ * @exceptions throws when DB_URI is missing, the connection fails, or the index cannot be built
+ */
 async function connectToDatabase(){
     const db_uri = process.env.DB_URI;
     if (!db_uri) throw new Error('DB_URI is not set (set it in backend/env/.env.dev or inject via pipeline)');

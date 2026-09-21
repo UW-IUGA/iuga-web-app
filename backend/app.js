@@ -1,3 +1,14 @@
+/*
+Purpose: Build the Express application: connect the database, order the middleware every request
+passes through, and mount the API routes.
+Authentication/Authorization Requirements: None at this level; each route does its own check.
+Expected Request Information: Any request to the site — API calls, the built frontend page, and the
+signed Stripe webhook.
+Expected Response Information: The JSON API envelope, the built frontend page, or the /readyz health
+answer. Middleware order is load-bearing: the Stripe webhook is mounted above the JSON body parsers,
+because a parsed body can no longer be checked against Stripe's signature.
+*/
+
 import express from "express";
 import cookieParser from "cookie-parser";
 import logger from "morgan";
@@ -50,8 +61,6 @@ app.get("/readyz", (req, res) => res.json({
   checkoutEnabled: checkoutReadiness.checkoutEnabled,
 }));
 
-const allowedOrigins = ALLOWED_ORIGINS;
-
 /*
 Purpose: Allow credentialed browser requests only from documented local and IUGA origins.
 Authentication/Authorization Requirements: None
@@ -62,7 +71,7 @@ Expected Response Information:
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin || ALLOWED_ORIGINS.includes(origin)) {
         return callback(null, true);
       }
       return callback(new Error("CORS origin not allowed"));
@@ -195,7 +204,23 @@ Expected Response Information:
 */
 app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
+/*
+Purpose: Serve the versioned API from one router, behind the shared rate limiter.
+Authentication/Authorization Requirements: None here; each resource router checks its own routes.
+
+Expected Response Information:
+- Requests inside the rate limit reach the API; a client over the limit receives 429.
+*/
 app.use("/api/v1", apiRateLimiter, apiv1Router);
+
+/*
+Purpose: Turn anything raised by the middleware or routes above into the API error envelope. Mounted
+last, so it catches every failure.
+Authentication/Authorization Requirements: None
+
+Expected Response Information:
+- The API error envelope: 500 for an unexpected failure, with the detail written to the log only.
+*/
 app.use(httpErrorHandler);
 
 export default app;

@@ -8,30 +8,40 @@ This document describes the conventions used across the repository.
 
 ## Where comments are expected
 
-**File headers.** Every source file starts with a short block comment
-explaining what the file does. For files that expose an API surface — routes,
-pipelines, shared helpers — the header also states who is allowed to call it
-and what it expects and returns.
+Two block forms, split by scope: a **file header** names the file with the
+`Purpose:` labels, and a **definition** block uses the `@behavior` tags.
+
+**File headers.** Every source file starts with a block comment whose first
+line is `Purpose:` — a sentence or two on what the file does. For files that
+expose an API surface — routes, pipelines, shared helpers — follow it with the
+labels that apply:
+
+- `Authentication/Authorization Requirements:`
+- `Expected Request Information:`
+- `Expected Response Information:`
+
+Omit a label the file has nothing to say under. A file header uses these
+labels only; it does not carry `@behavior`.
 
 ```js
 /*
- * @behavior Gate routes by session state so protected endpoints are only reachable by the
- *           right kind of user.
- *
+ * Purpose: Serve the feedback form: read one form, save a new one, and let an
+ * administrator delete one.
+ * Authentication/Authorization Requirements: Reading and saving need a
+ * signed-in user; deleting needs an administrator.
  * Expected Request Information:
- * - req.session.isAuthenticated (set at /user/login)
- *
+ * - GET /?fID=<id> — the form to read
  * Expected Response Information:
- * - 401 { status: "error", message: "Not authenticated" }
- * - 403 { status: "error", message: "Not authorized" }
+ * - 200 with the form, or 404 when it does not exist
  */
 ```
 
 **Definitions.** Every route and every non-trivial function gets a short block
-above it. Use the `@behavior` / `@param` / `@returns` / `@exceptions` tags;
-`@behavior` states observable behavior concisely, and any tag the code already
-makes obvious is omitted. A trivial helper whose name says what it does needs
-no block at all.
+above it, using the tag form — `@behavior` / `@param` / `@returns` /
+`@exceptions`, the one this team calls the BERT block. `@behavior` states
+observable behavior concisely, and any tag the code already makes obvious is
+omitted. A trivial helper whose name says what it does needs no block at all.
+The tag form belongs to definitions; a file header never uses it.
 
 ```js
 /*

@@ -1,13 +1,23 @@
 /*
-Refer to the "IUGA Website Backend Doc" for more information.
-
-Schemas addressed in roles.js:
-- Roles
-- RoleAssignments
-- Users
-
-Purpose: Manage role definitions and provide the read-only data needed by
-         authorized officers to assign roles later.
+Purpose: Manage role definitions, query users for role assignment, and assign or deactivate user roles.
+Authentication/Authorization Requirements: Every endpoint requires an active officer role assignment with the `users.roles.manage` permission.
+Expected Request Information:
+- GET /: none
+- POST /: JSON body with roleName, roleKey, optional roleDescription, permissions array, isActive boolean
+- PATCH /:id: role ObjectId in path; optional JSON body with roleName, roleDescription, permissions, isActive
+- GET /users: query parameter `search` with at least 2 characters
+- GET /users/:id/assignments: target user ObjectId in path
+- POST /users/:id/assignments: target user ObjectId in path; JSON body with roleId, optional committeeId, optional reportsToUserId, optional expiresAt
+- DELETE /users/:id/assignments/:assignmentId: target user ObjectId and assignment ObjectId in path
+Expected Response Information:
+- 200 with role list, user search results, assignments list, updated role, or deactivated assignment
+- 201 with newly created role or assignment document
+- 400 for invalid ObjectIds, search queries under 2 characters, malformed fields, or invalid dates
+- 401 when unauthenticated
+- 403 when the caller lacks the `users.roles.manage` permission
+- 404 when a referenced role, user, committee, supervisor, or assignment does not exist
+- 409 for duplicate role keys, inactive roles, or duplicate active assignments
+- 500 on unexpected database errors
 */
 
 import express from "express";
@@ -29,6 +39,11 @@ const knownPermissions = new Set([
   "events.purchases.complete",
 ]);
 
+/*
+ * @behavior Escape special regular expression characters in a string for safe use in a RegExp.
+ * @param value — the raw search text to escape
+ * @returns the string with all regular expression metacharacters escaped
+ */
 function escapeRegex(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -37,6 +52,12 @@ function isProvided(value) {
   return value !== undefined && value !== null;
 }
 
+/*
+ * @behavior Clean and extract role definition fields from an incoming request body.
+ * @param body — the raw JSON request body
+ * @param partial — true when parsing an update where missing fields should be omitted
+ * @returns an object containing the trimmed and normalized role fields
+ */
 function normalizeRoleFields(body, partial) {
   const source = body ?? {};
   const fields = {};
@@ -106,9 +127,13 @@ function readRoleFields(body = {}, partial = false) {
 }
 
 /*
-Purpose: List role definitions so authorized officers can manage the role catalog.
-Authentication/Authorization Requirements: users.roles.manage
-*/
+ * @behavior List all role definitions sorted alphabetically by role name. Only officers with the
+ *           users.roles.manage permission may call this endpoint.
+ * @param req — the Express request
+ * @param res — the Express response
+ * @returns 200 with the list of roles; 401 when unauthenticated; 403 when lacking permission;
+ *          or 500 when database access fails
+ */
 router.get("/", requireOfficerRolePermission("users.roles.manage"), async (req, res) => {
   try {
     const roles = await req.models.Roles.find().sort({ roleName: 1 }).lean();
@@ -120,9 +145,14 @@ router.get("/", requireOfficerRolePermission("users.roles.manage"), async (req, 
 });
 
 /*
-Purpose: Create a role definition using only backend-approved permissions.
-Authentication/Authorization Requirements: users.roles.manage
-*/
+ * @behavior Create a new role definition with validated name, key, and approved permissions. Only
+ *           officers with the users.roles.manage permission may call this endpoint.
+ * @param req — the Express request containing the session and role definition body
+ * @param res — the Express response
+ * @returns 201 with the created role; 400 when required fields are missing or invalid; 401 when
+ *          unauthenticated; 403 when lacking permission; 409 when the role key already exists;
+ *          or 500 when database creation fails
+ */
 router.post("/", requireOfficerRolePermission("users.roles.manage"), async (req, res) => {
   const { fields, error } = readRoleFields(req.body);
   if (error) return sendError(res, 400, error);
@@ -142,9 +172,14 @@ router.post("/", requireOfficerRolePermission("users.roles.manage"), async (req,
 });
 
 /*
-Purpose: Update a role definition without changing its stable roleKey.
-Authentication/Authorization Requirements: users.roles.manage
-*/
+ * @behavior Update an existing role definition's mutable fields without changing its immutable roleKey.
+ *           Only officers with the users.roles.manage permission may call this endpoint.
+ * @param req — the Express request containing role id in params and update fields in body
+ * @param res — the Express response
+ * @returns 200 with the updated role; 400 when the role id or fields are invalid; 401 when
+ *          unauthenticated; 403 when lacking permission; 404 when the role is not found;
+ *          or 500 when database update fails
+ */
 router.patch(
   "/:id",
   requireOfficerRolePermission("users.roles.manage"),
@@ -174,9 +209,13 @@ router.patch(
 );
 
 /*
-Purpose: Search users for the role-management interface without returning secrets.
-Authentication/Authorization Requirements: users.roles.manage
-*/
+ * @behavior Search users by display name or email for assignment to roles, returning up to 25 matches.
+ *           Only officers with the users.roles.manage permission may call this endpoint.
+ * @param req — the Express request containing the search query parameter
+ * @param res — the Express response
+ * @returns 200 with matching users; 400 when the search query is shorter than 2 characters; 401
+ *          when unauthenticated; 403 when lacking permission; or 500 when database access fails
+ */
 router.get(
   "/users",
   requireOfficerRolePermission("users.roles.manage"),
@@ -207,9 +246,13 @@ router.get(
 );
 
 /*
-Purpose: Read a user's active assignments before implementing assignment mutations.
-Authentication/Authorization Requirements: users.roles.manage
-*/
+ * @behavior Retrieve all active role assignments for a user, populated with role, committee, and
+ *           supervisor details. Only officers with the users.roles.manage permission may call this.
+ * @param req — the Express request containing the target user id in params
+ * @param res — the Express response
+ * @returns 200 with the user's active assignments; 400 when the user id is invalid; 401 when
+ *          unauthenticated; 403 when lacking permission; or 500 when database access fails
+ */
 router.get(
   "/users/:id/assignments",
   requireOfficerRolePermission("users.roles.manage"),
@@ -237,9 +280,15 @@ router.get(
 );
 
 /*
-Purpose: Assign a role to a user.
-Authentication/Authorization Requirements: users.roles.manage
-*/
+ * @behavior Assign an active role to a user, with optional committee, supervisor, and expiration date.
+ *           Only officers with the users.roles.manage permission may call this endpoint.
+ * @param req — the Express request containing target user id in params and assignment details in body
+ * @param res — the Express response
+ * @returns 201 with the created assignment; 400 when ids or dates are invalid or user reports to
+ *          themselves; 401 when unauthenticated; 403 when lacking permission; 404 when the user,
+ *          role, committee, or supervisor does not exist; 409 when the role is inactive or already
+ *          assigned to this user; or 500 when database creation fails
+ */
 router.post(
   "/users/:id/assignments",
   requireOfficerRolePermission("users.roles.manage"),
@@ -333,9 +382,14 @@ router.post(
 );
 
 /*
-Purpose: Deactivate a user's role assignment without deleting its history.
-Authentication/Authorization Requirements: users.roles.manage
-*/
+ * @behavior Deactivate a user's role assignment while preserving the assignment record for history.
+ *           Only officers with the users.roles.manage permission may call this endpoint.
+ * @param req — the Express request containing the target user id and assignment id in params
+ * @param res — the Express response
+ * @returns 200 with the deactivated assignment; 400 when user id or assignment id is invalid; 401
+ *          when unauthenticated; 403 when lacking permission; 404 when no active assignment matches;
+ *          or 500 when database update fails
+ */
 router.delete(
   "/users/:id/assignments/:assignmentId",
   requireOfficerRolePermission("users.roles.manage"),

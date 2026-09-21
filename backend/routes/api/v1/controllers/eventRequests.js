@@ -1,3 +1,17 @@
+/*
+* Purpose: Serve the event request workflow: an officer proposes an event, leadership reviews it, and
+* the request then moves through booking, finance, the checklist, and the post-event reviews until it
+* is complete.
+* Authentication/Authorization Requirements: An administrator for most routes. Three checklist steps
+* have their own permission — approving a proposal, managing finances, and completing purchases — and
+* every other step is administrator-only.
+* Expected Request Information: The request's own fields for a new or edited request; per-step
+* payloads for the rest, such as a reason, a checklist status, money amounts, or review answers.
+* Expected Response Information: The API envelope carrying the event request, an event, or reviews.
+* 400 for an unusable field, 403 when the caller may not act, 404 when there is no such request, 409
+* when the request is not in a state that allows the action.
+*/
+
 import express from "express";
 import mongoose from "mongoose";
 import { sendError } from "../helpers/sendError.js";
@@ -5,6 +19,7 @@ import { sendSuccess } from "../helpers/sendSuccess.js";
 import { requireAdmin, requireOfficerRolePermission } from "../utils/auth.js";
 
 const router = express.Router();
+// The steps every event request moves through, in the order they appear on its checklist.
 const CHECKPOINT_KEYS = [
   "proposal",
   "meeting",
@@ -18,9 +33,20 @@ const CHECKPOINT_KEYS = [
 const CHECKPOINT_STATUSES = new Set(["pending", "in_progress", "completed"]);
 const LEADERSHIP_STATUSES = ["submitted", "changes_requested"];
 
+/*
+ * @behavior Check that a value could be a MongoDB record id.
+ * @param value — the value to check
+ * @returns true when MongoDB would accept the value as a record id
+ */
 function validId(value) {
   return mongoose.isValidObjectId(value);
 }
+
+/*
+ * @behavior Read and check the RSVP questions for an event request, trimming each one.
+ * @param value — the questions as they arrived
+ * @returns { fields } holding the trimmed questions, or { error } with a message for the client
+ */
 function readRsvpQuestions(value) {
   if (!Array.isArray(value)) return { error: "rsvpQuestions must be an array" };
 
@@ -56,6 +82,11 @@ function readRsvpQuestions(value) {
   return { fields: questions };
 }
 
+/*
+ * @behavior Read a moment from text, reporting nothing when the text is not a date.
+ * @param value — the text to read
+ * @returns the moment as a Date, or null when the value is blank or not a date
+ */
 function readDate(value) {
   if (typeof value !== "string" || value.trim() === "") return null;
   const date = new Date(value);
@@ -63,10 +94,20 @@ function readDate(value) {
 }
 
 
+/*
+ * @behavior Build the checklist an event request starts with: every step, none of them done.
+ * @returns one { key, status } entry per step, all pending
+ */
 function defaultCheckpoints() {
   return CHECKPOINT_KEYS.map((key) => ({ key, status: "pending" }));
 }
 
+/*
+ * @behavior Read and check the fields of a submitted or edited event request, trimming text and
+ *           keeping only the fields the caller actually sent.
+ * @param body — the request body as it arrived
+ * @returns { fields } holding the checked fields, or { error } with a message for the client
+ */
 function readRequestFields(body = {}) {
   body ??= {};
   if (typeof body !== "object" || Array.isArray(body)) {
@@ -144,6 +185,12 @@ function readRequestFields(body = {}) {
   return { fields };
 }
 
+/*
+ * @behavior Read the reason a reviewer has to give when returning or denying a request.
+ * @param body — the request body as it arrived
+ * @param name — which field the reason is read from
+ * @returns null when the reason is usable, otherwise a message for the client
+ */
 function readReason(body = {}, name = "reason") {
   if (typeof body[name] !== "string" || body[name].trim() === "") {
     return `${name} is required`;
@@ -152,10 +199,23 @@ function readReason(body = {}, name = "reason") {
   return null;
 }
 
-function cents(value) {
+/*
+ * @behavior Check that an amount is a whole number of cents and not negative.
+ * @param value — the amount to check
+ * @returns true when the value is a whole number of cents of zero or more
+ */
+function isWholeCents(value) {
   return Number.isInteger(value) && value >= 0;
 }
 
+/*
+ * @behavior Mark one checklist step done, recording who did it and when, and leaving every other
+ *           step as it was.
+ * @param checkpoints — the request's current checklist
+ * @param key — the step to mark done
+ * @param actorId — the user who did the step
+ * @returns a new checklist; the one passed in is left untouched
+ */
 function completeCheckpoint(checkpoints, key, actorId) {
   return (checkpoints || []).map((checkpoint) =>
     checkpoint.key === key
@@ -171,12 +231,27 @@ function completeCheckpoint(checkpoints, key, actorId) {
   );
 }
 
+/*
+ * @behavior Load one event request with its requester, organizer, and published event filled in.
+ * @param req — the Express request, for the shared models
+ * @param id — the event request id
+ * @returns the event request as a plain object, or null when there is no such request
+ */
 async function findRequest(req, id) {
   return req.models.EventRequests.findById(id)
     .populate("requesterId organizerId publishedEventId")
     .lean();
 }
 
+/*
+ * @behavior Move an event request to a new status, but only out of one of the statuses allowed. Two
+ *           reviewers acting at the same time therefore produce one change, not two.
+ * @param req — the Express request, for the shared models
+ * @param id — the event request id
+ * @param statuses — the statuses the request may be in for this change to be allowed
+ * @param update — the fields to write
+ * @returns the updated event request, or null when it was not in one of those statuses
+ */
 async function transitionRequest(req, id, statuses, update) {
   return req.models.EventRequests.findOneAndUpdate(
     { _id: id, status: { $in: statuses } },
@@ -185,6 +260,15 @@ async function transitionRequest(req, id, statuses, update) {
   );
 }
 
+/*
+ * @behavior Choose who may update the checklist step named in the URL: approving the proposal,
+ *           managing finances, and completing purchases each need their own permission, and every
+ *           other step needs an administrator.
+ * @param req — the Express request; req.params.step names the step
+ * @param res — the Express response
+ * @param next — continues to the route handler when the caller may do this
+ * @returns nothing; answers 401, answers 403, or continues
+ */
 async function requireCheckpointPermission(req, res, next) {
   const permission = {
     proposal: "events.leadership.approve",
@@ -195,6 +279,13 @@ async function requireCheckpointPermission(req, res, next) {
   return requireAdmin(req, res, next);
 }
 
+/*
+ * @behavior Record a new event request from its fields, with every checklist step still pending.
+ * @param req — the Express request; the body carries the proposed event
+ * @param res — the Express response
+ * @returns nothing; answers 201 with the new request, 400 when a field is unusable, or 500 when the
+ *          save fails
+ */
 router.post("/", requireAdmin, async (req, res) => {
   const { fields, error } = readRequestFields(req.body);
   if (error) return sendError(res, 400, error);
@@ -216,6 +307,17 @@ router.post("/", requireAdmin, async (req, res) => {
   }
 });
 
+/*
+ * @behavior Let the requester change their own request while it is a draft or has been returned for
+ *           changes, and send it back for review. The write only applies while the request still
+ *           has the status it was read with, so a request reviewed in the meantime is not
+ *           overwritten.
+ * @param req — the Express request; the body carries the changed fields
+ * @param res — the Express response
+ * @returns nothing; answers 200 with the saved request, 400 for an invalid id or unusable field, 403
+ *          when the caller is not the requester, 404 when there is no such request, 409 when it is
+ *          no longer editable or someone changed it first, or 500 when the save fails
+ */
 router.patch("/:id", requireAdmin, async (req, res) => {
   if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
   const { fields, error } = readRequestFields(req.body);
@@ -250,6 +352,13 @@ router.patch("/:id", requireAdmin, async (req, res) => {
   }
 });
 
+/*
+ * @behavior List the slide templates an event request may choose from.
+ * @param req — the Express request
+ * @param res — the Express response
+ * @returns nothing; answers 200 with the templates configured for this deployment, an empty list
+ *          when none are configured, or 500 when that configuration cannot be read
+ */
 router.get("/templates/slides", requireAdmin, (_req, res) => {
   try {
     const templates = JSON.parse(process.env.EVENT_SLIDE_TEMPLATES || "[]");
@@ -262,6 +371,12 @@ router.get("/templates/slides", requireAdmin, (_req, res) => {
   }
 });
 
+/*
+ * @behavior List the event requests this user submitted, soonest planned event first.
+ * @param req — the Express request
+ * @param res — the Express response
+ * @returns nothing; answers 200 with the list, or 500 when the lookup fails
+ */
 router.get("/mine", requireAdmin, async (req, res) => {
   try {
     const requests = await req.models.EventRequests.find({
@@ -276,6 +391,14 @@ router.get("/mine", requireAdmin, async (req, res) => {
   }
 });
 
+/*
+ * @behavior List event requests, soonest planned event first, optionally narrowed to one status or
+ *           to one requester.
+ * @param req — the Express request; req.query.status and req.query.requesterId narrow the list
+ * @param res — the Express response
+ * @returns nothing; answers 200 with the list, 400 when the requester id is not a valid id, or 500
+ *          when the lookup fails
+ */
 router.get("/", requireAdmin, async (req, res) => {
   try {
     const filter = {};
@@ -296,6 +419,13 @@ router.get("/", requireAdmin, async (req, res) => {
   }
 });
 
+/*
+ * @behavior Read one event request, with its requester, organizer, and published event filled in.
+ * @param req — the Express request; req.params.id names the request
+ * @param res — the Express response
+ * @returns nothing; answers 200 with the request, 400 when the id is invalid, 404 when there is no
+ *          such request, or 500 when the lookup fails
+ */
 router.get("/:id", requireAdmin, async (req, res) => {
   if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
   try {
@@ -308,6 +438,13 @@ router.get("/:id", requireAdmin, async (req, res) => {
   }
 });
 
+/*
+ * @behavior Return an event request to the requester and record why.
+ * @param req — the Express request; the body carries the reason
+ * @param res — the Express response
+ * @returns nothing; answers 200 with the updated request, 400 for an invalid id or a missing reason,
+ *          409 when the request is no longer waiting for leadership, or 500 when the update fails
+ */
 router.post("/:id/request-changes", requireOfficerRolePermission("events.leadership.approve"), async (req, res) => {
   if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
   const error = readReason(req.body, "reason");
@@ -328,6 +465,13 @@ router.post("/:id/request-changes", requireOfficerRolePermission("events.leaders
   }
 });
 
+/*
+ * @behavior Deny an event request and record why.
+ * @param req — the Express request; the body carries the reason
+ * @param res — the Express response
+ * @returns nothing; answers 200 with the updated request, 400 for an invalid id or a missing reason,
+ *          409 when the request is no longer waiting for leadership, or 500 when the update fails
+ */
 router.post("/:id/deny", requireOfficerRolePermission("events.leadership.approve"), async (req, res) => {
   if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
   const error = readReason(req.body, "reason");
@@ -348,6 +492,16 @@ router.post("/:id/deny", requireOfficerRolePermission("events.leadership.approve
   }
 });
 
+/*
+ * @behavior Approve an event request and create the event from it. If someone else reviewed the
+ *           request first, the event that was just created is removed again, so approval cannot
+ *           produce a second event.
+ * @param req — the Express request
+ * @param res — the Express response
+ * @returns nothing; answers 200 with the request and the new event, 400 for an invalid id, 404 when
+ *          there is no such request, 409 when it is no longer waiting for leadership or was reviewed
+ *          first, or 500 when the write fails
+ */
 router.post("/:id/approve", requireOfficerRolePermission("events.leadership.approve"), async (req, res) => {
   if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
 
@@ -390,6 +544,15 @@ router.post("/:id/approve", requireOfficerRolePermission("events.leadership.appr
   }
 });
 
+/*
+ * @behavior Update one checklist step: its status, its notes, and a link, recording who changed it
+ *           and when.
+ * @param req — the Express request; req.params.step names the step and the body carries the change
+ * @param res — the Express response
+ * @returns nothing; answers 200 with the updated request, 400 for an invalid id, an unknown step, or
+ *          an unusable status, notes, or link, 404 when there is no such request, 409 when the
+ *          request is already closed or someone changed it first, or 500 when the update fails
+ */
 router.patch("/:id/checklist/:step", requireCheckpointPermission, async (req, res) => {
   if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
   if (!CHECKPOINT_KEYS.includes(req.params.step)) return sendError(res, 400, "Invalid checkpoint");
@@ -437,13 +600,22 @@ router.patch("/:id/checklist/:step", requireCheckpointPermission, async (req, re
   }
 });
 
+/*
+ * @behavior Record the money allocated to an event and what it actually cost, and mark the finance
+ *           step done once an allocation is set.
+ * @param req — the Express request; the body carries allocatedCents, actualSpendCents, and notes
+ * @param res — the Express response
+ * @returns nothing; answers 200 with the updated request, 400 for an invalid id or amount, 404 when
+ *          there is no such request, 409 when the request is closed or someone changed it first, or
+ *          500 when the update fails
+ */
 router.patch("/:id/budget", requireOfficerRolePermission("events.finance.manage"), async (req, res) => {
   if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
   const { allocatedCents, actualSpendCents, notes } = req.body ?? {};
-  if (allocatedCents !== undefined && !cents(allocatedCents)) {
+  if (allocatedCents !== undefined && !isWholeCents(allocatedCents)) {
     return sendError(res, 400, "allocatedCents must be a non-negative integer");
   }
-  if (actualSpendCents !== undefined && !cents(actualSpendCents)) {
+  if (actualSpendCents !== undefined && !isWholeCents(actualSpendCents)) {
     return sendError(res, 400, "actualSpendCents must be a non-negative integer");
   }
   if (notes !== undefined && typeof notes !== "string") return sendError(res, 400, "notes must be a string");
@@ -484,6 +656,14 @@ router.patch("/:id/budget", requireOfficerRolePermission("events.finance.manage"
   }
 });
 
+/*
+ * @behavior Record whether the post-event review has come back, and where it lives.
+ * @param req — the Express request; the body carries reviewLink and received
+ * @param res — the Express response
+ * @returns nothing; answers 200 with the updated request, 400 for an invalid id, link, or flag, 404
+ *          when there is no such request, 409 when someone changed it first, or 500 when the update
+ *          fails
+ */
 router.patch("/:id/review-tracking", requireAdmin, async (req, res) => {
   if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
   const { reviewLink, received } = req.body ?? {};
@@ -516,6 +696,14 @@ router.patch("/:id/review-tracking", requireAdmin, async (req, res) => {
   }
 });
 
+/*
+ * @behavior Record where and when the event is booked.
+ * @param req — the Express request; the body carries location, startDate, endDate, and notes
+ * @param res — the Express response
+ * @returns nothing; answers 200 with the updated request, 400 for an invalid id, location, or date,
+ *          404 when there is no such request, 409 when the request is closed or someone changed it
+ *          first, or 500 when the update fails
+ */
 router.patch("/:id/booking", requireAdmin, async (req, res) => {
   if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
   const { location, startDate, endDate, notes } = req.body ?? {};
@@ -556,13 +744,22 @@ router.patch("/:id/booking", requireAdmin, async (req, res) => {
   }
 });
 
+/*
+ * @behavior Add this user's review of a finished event. The second review completes the review step
+ *           on the checklist.
+ * @param req — the Express request; the body carries the review answers
+ * @param res — the Express response
+ * @returns nothing; answers 201 with the review, 400 for an invalid id or review count, 404 when
+ *          there is no such request, 409 when the event is not ready for review or this user has
+ *          already reviewed it, or 500 when the write fails
+ */
 router.post("/:id/reviews", requireAdmin, async (req, res) => {
   if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
   const { attendeeCount, whatWentWell, whatMissedExpectations, totalSpentCents, locationReview, timingReview, extenuatingCircumstances } = req.body ?? {};
   if (attendeeCount !== undefined && (!Number.isInteger(attendeeCount) || attendeeCount < 0)) {
     return sendError(res, 400, "attendeeCount must be a non-negative integer");
   }
-  if (totalSpentCents !== undefined && !cents(totalSpentCents)) {
+  if (totalSpentCents !== undefined && !isWholeCents(totalSpentCents)) {
     return sendError(res, 400, "totalSpentCents must be a non-negative integer");
   }
 
@@ -601,6 +798,13 @@ router.post("/:id/reviews", requireAdmin, async (req, res) => {
   }
 });
 
+/*
+ * @behavior List the reviews submitted for one event.
+ * @param req — the Express request; req.params.id names the event request
+ * @param res — the Express response
+ * @returns nothing; answers 200 with the reviews, 400 when the id is invalid, or 500 when the lookup
+ *          fails
+ */
 router.get("/:id/reviews", requireAdmin, async (req, res) => {
   if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
   try {
@@ -612,6 +816,15 @@ router.get("/:id/reviews", requireAdmin, async (req, res) => {
   }
 });
 
+/*
+ * @behavior Close out an approved event, once an organizer and a member have both reviewed it and
+ *           every checklist step is done.
+ * @param req — the Express request
+ * @param res — the Express response
+ * @returns nothing; answers 200 with the completed request, 400 for an invalid id, 404 when there is
+ *          no such request, 409 when the request is not approved or the reviews or checklist steps
+ *          are still missing, or 500 when the update fails
+ */
 router.post("/:id/complete", requireAdmin, async (req, res) => {
   if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
   try {

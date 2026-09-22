@@ -32,62 +32,122 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setLoginState] = useState(false);
   const [user, setUser] = useState({});
   const authGeneration = useRef(0);
+  const syncMemo = useRef(new Map());
 
-  const authenticate = () => {
-    return new Promise(async (resolve, reject) => {
-      const currentGen = ++authGeneration.current;
-      if (accounts.length > 0) {
+  /*
+   * @behavior: Synchronize an MSAL account with the IUGA backend session. Multiple calls for the
+   *            same account share a single in-flight sync unless force is specified; failures are evicted.
+   * @param {Object} [account] - MSAL account to sync; falls back to the first active account.
+   * @param {Object} [options] - Synchronization options.
+   * @param {boolean} [options.force=false] - When true, initiates a fresh sync unless one is already in flight.
+   * @returns {Promise<Object|null>} Authenticated backend user or null when signed out.
+   */
+  const authenticate = (account, { force = false } = {}) => {
+    const targetAccount = account || (accounts && accounts.length > 0 ? accounts[0] : null);
+    const currentGen = ++authGeneration.current;
+
+    if (!targetAccount) {
+      if (currentGen === authGeneration.current) {
+        setUser({});
+        setLoginState(false);
+        setAuthLoading(false);
+      }
+      return Promise.resolve(null);
+    }
+
+    const key = targetAccount.homeAccountId || targetAccount.localAccountId || targetAccount.username || 'default';
+    const entry = syncMemo.current.get(key);
+    let syncPromise;
+
+    if (entry && (!force || entry.inFlight)) {
+      syncPromise = entry.promise;
+    } else {
+      const syncEntry = { inFlight: true, promise: null };
+      syncPromise = (async () => {
         try {
-          const user = await ensureBackendAuthentication();
-          if (currentGen !== authGeneration.current) return;
-          setUser(user);
-          setLoginState(true);
-          resolve();
+          const result = await ensureBackendAuthentication(targetAccount);
+          syncEntry.inFlight = false;
+          return result;
         } catch (error) {
-          if (currentGen !== authGeneration.current) return;
-          setAuthError(error);
-          setLoginState(false);
-          reject(error);
-        } finally {
-          if (currentGen === authGeneration.current) {
-            setAuthLoading(false);
-          }
+          syncMemo.current.delete(key);
+          throw error;
         }
-      } else {
+      })();
+      syncEntry.promise = syncPromise;
+      syncMemo.current.set(key, syncEntry);
+    }
+
+    return (async () => {
+      try {
+        const backendUser = await syncPromise;
+        if (currentGen !== authGeneration.current) return backendUser;
+        setUser(backendUser);
+        setLoginState(true);
+        return backendUser;
+      } catch (error) {
+        if (currentGen !== authGeneration.current) throw error;
+        setAuthError(error);
+        setLoginState(false);
+        throw error;
+      } finally {
         if (currentGen === authGeneration.current) {
-          setUser({});
-          setLoginState(false);
           setAuthLoading(false);
         }
-        resolve();
       }
-    });
+    })();
   };
 
   useEffect(() => {
     authenticate();
   }, [accounts]);
 
+  const isUserCancellation = (error) => {
+    const code = error?.errorCode || error?.code || error?.name || '';
+    if (code === 'user_cancelled' || code === 'popup_window_error') {
+      return true;
+    }
+    const message = error?.message || '';
+    return message.includes('user_cancelled') || message.includes('popup_window_error');
+  };
+
+  /*
+   * @behavior: Initiate MSAL interactive login and establish the backend session before resolving.
+   *            Resolves the authenticated user on success, and null on cancellation or error. Never rejects.
+   * @returns {Promise<Object|null>} Authenticated backend user, or null if sign-in did not complete.
+   */
   const signIn = async () => {
     try {
       await ensureDevelopmentBackend();
-      await instance.loginPopup(loginRequest);
-    } catch (error) {
-      if (error.errorCode === "invalid_grant" || error.errorCode === "consent_required") {
-        try {
-          await instance.loginPopup({
+      let response;
+      try {
+        response = await instance.loginPopup(loginRequest);
+      } catch (popupError) {
+        if (
+          popupError?.errorCode === 'invalid_grant' ||
+          popupError?.errorCode === 'consent_required' ||
+          popupError?.code === 'invalid_grant' ||
+          popupError?.code === 'consent_required'
+        ) {
+          response = await instance.loginPopup({
             ...loginRequest,
-            prompt: "consent"
+            prompt: 'consent',
           });
-        } catch (authError) {
-          console.error('Error during loginPopup:', authError);
-          setAuthError(authError);
+        } else {
+          throw popupError;
         }
-      } else {
-        setUser({});
-        setLoginState(false);
-        setAuthError(error);
       }
+
+      const account = response?.account || (accounts && accounts.length > 0 ? accounts[0] : null);
+      const authenticatedUser = await authenticate(account, { force: true });
+      return authenticatedUser;
+    } catch (error) {
+      if (isUserCancellation(error)) {
+        return null;
+      }
+      setUser({});
+      setLoginState(false);
+      setAuthError(error);
+      return null;
     }
   };
 
@@ -98,6 +158,7 @@ export const AuthProvider = ({ children }) => {
    */
   const signOut = async () => {
     // Invalidate any in-flight authenticate calls so they cannot resurrect signed-in state
+    syncMemo.current.clear();
     authGeneration.current++;
     try {
       const response = await fetch('/api/v1/user/logout', {

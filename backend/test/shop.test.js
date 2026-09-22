@@ -417,7 +417,7 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
       const params = fakeStripe.calls[0];
 
       assert.equal(params.mode, "payment");
-      assert.deepEqual(params.allowed_payment_method_types, ["card"]);
+      assert.deepEqual(params.payment_method_types, ["card"]);
       assert.deepEqual(params.phone_number_collection, { enabled: true });
       assert.equal(params.client_reference_id, "user_789");
       assert.equal(params.customer_email, "student@uw.edu");

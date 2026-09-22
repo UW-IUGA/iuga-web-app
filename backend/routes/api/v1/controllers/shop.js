@@ -132,7 +132,8 @@ export function createShopRouter({
 
     const sessionParams = {
       mode: "payment",
-      allowed_payment_method_types: ["card"],
+      // Card rail only: wallets (Apple Pay, Google Pay) ride the card rail while delayed methods would break reconciliation that has no webhooks.
+      payment_method_types: ["card"],
       phone_number_collection: { enabled: true },
       line_items,
       expires_at: expiresAtSeconds(catalog, currentMs),

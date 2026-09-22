@@ -42,11 +42,13 @@ backend/
 │       │   ├── feedback.js       ← Feedback form CRUD
 │       │   ├── roles.js           ← Role catalog and role assignments
 │       │   ├── eventRequests.js   ← Event request workflow and operations
+│       │   ├── shop.js            ← Merch catalog browsing
 │       │   └── administration.js ← Unmounted officer/committee stubs
 │       └── utils/
 │           ├── auth.js        ← Authentication and permission middleware
 │           ├── csrf.js        ← Origin checks for session mutations
-│           └── rateLimit.js   ← Process-local request limits
+│           ├── rateLimit.js   ← Process-local request limits
+│           └── shopCatalog.js ← Merch catalog source of truth and validation
 ├── .env.example            ← Tracked runtime template
 ├── env/                    ← Ignored runtime environment files
 └── package.json            ← ES module ("type": "module")
@@ -150,6 +152,12 @@ Officer-only event operations use separate EventRequests records before publishi
 | `GET` | `/:id/reviews` | List post-event reviews. |
 | `POST` | `/:id/complete` | Close an approved request after all checkpoints and both reviews are complete. |
 Money is displayed as dollars and cents in the UI, then converted to an integer number of cents before the API call. For example, `$125.50` becomes `{ "allocatedCents": 12550 }`; the backend never stores floating-point currency.
+
+### Shop (`/api/v1/shop`)
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| `GET` | `/catalog` | No | Public drop catalog: drop id, catalog version, currency, sale window, and each item's sku, name, allowed sizes, and unit amount in cents. |
 
 ### Administration (`/api/v1/administration`) — *not currently wired*
 

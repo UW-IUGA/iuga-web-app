@@ -101,7 +101,7 @@ Defined in `src/App.jsx`:
 | `/` | `HomePage` | `upcomingEvents` (prop — mock or API) |
 | `/events` | `EventsPage` | Mock data or `GET /api/v1/events` |
 | `/resources` | `ResourcesPage` | Static data from `assets/data/ResourcesData.js` |
-| `/shop` | `ShopPage` | `GET /api/v1/shop/catalog` plus the authenticated `POST /api/v1/shop/checkout` |
+| `/shop` | `ShopPage` | Static data from `assets/data/ShopData.js` and `GET /api/v1/shop/catalog` plus authenticated `POST /api/v1/shop/checkout` |
 | `/elections` | `ElectionPage` | Static data from `assets/data/CandidateData.js` |
 | `/electionfaq` | `ElectionsFAQPage` | Static data from `assets/data/ElectionFAQData.js` |
 | `/get-involved` | `GetInvolvedPage` | Static data from `frontend/src/assets/data/teams/2026.js` (2026 roster, no API) |

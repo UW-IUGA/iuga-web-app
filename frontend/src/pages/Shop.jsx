@@ -31,6 +31,26 @@ function formatCents(cents) {
 }
 
 /**
+ * @behavior Formats an ISO date string for display (e.g. Oct 5, 2026).
+ * @param {string} isoString
+ * @returns {string}
+ */
+function formatDate(isoString) {
+    if (!isoString) return "";
+    try {
+        const date = new Date(isoString);
+        return new Intl.DateTimeFormat("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+            timeZone: "UTC",
+        }).format(date);
+    } catch {
+        return "";
+    }
+}
+
+/**
  * @behavior Safely reads and validates cart from sessionStorage.
  * @returns {Array<{sku: string, size: string, quantity: number}>}
  */
@@ -210,8 +230,8 @@ function ShopPage() {
         submittingRef.current = true;
         setIsSubmitting(true);
 
-        try {
-            const response = await fetch("/api/v1/shop/checkout", {
+        const postCheckout = async () => {
+            return fetch("/api/v1/shop/checkout", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -225,6 +245,26 @@ function ShopPage() {
                     })),
                 }),
             });
+        };
+
+        try {
+            let response = await postCheckout();
+
+            if (response.status === 401) {
+                // The server session expired. Run interactive sign-in to establish a fresh backend session.
+                if (typeof signIn === "function") {
+                    const reauthenticatedUser = await signIn();
+                    if (reauthenticatedUser) {
+                        response = await postCheckout();
+                    } else {
+                        setCheckoutNotice("Your session expired. Please sign in again to check out.");
+                        return;
+                    }
+                } else {
+                    setCheckoutNotice("Please sign in again to check out.");
+                    return;
+                }
+            }
 
             if (response.status === 200) {
                 const data = await response.json();
@@ -247,7 +287,8 @@ function ShopPage() {
             }
 
             if (response.status === 401) {
-                setCheckoutNotice("Please sign in again to check out.");
+                // A second 401 after re-authentication ends with the notice rather than looping.
+                setCheckoutNotice("Your session expired. Please sign in again to check out.");
                 return;
             }
 
@@ -269,8 +310,15 @@ function ShopPage() {
                     <p className="shopPage__kicker">IUGA collection</p>
                     <h1 id="shop-title">Informatics Merch</h1>
                     <p>
-                        Official Informatics apparel and accessories. Pre-order now; orders will be distributed
-                        via on-campus pickup.
+                        {catalog?.saleState === "scheduled" && (
+                            <>Official Informatics apparel and accessories. Pre-orders open soon; orders will be distributed via on-campus pickup.</>
+                        )}
+                        {catalog?.saleState === "closed" && (
+                            <>Official Informatics apparel and accessories. Pre-orders have ended for this drop; orders will be distributed via on-campus pickup.</>
+                        )}
+                        {(!catalog || catalog.saleState === "open") && (
+                            <>Official Informatics apparel and accessories. Pre-order now; orders will be distributed via on-campus pickup.</>
+                        )}
                     </p>
                 </section>
 
@@ -502,15 +550,21 @@ function ShopPage() {
                                     Subtotal: {formatCents(cartTotal(cart, catalog))}
                                 </p>
 
-                                {catalog.saleState === "closed" && (
-                                    <p className="shopCart__saleStatusNotice" role="status">
-                                        The merchandise sale is currently closed.
+                                {catalog.saleState === "scheduled" && (
+                                    <p className="shopCart__saleStatusNotice shopCart__saleStatusNotice--scheduled" role="status">
+                                        Coming soon — the Fall drop opens {formatDate(catalog.opensAt)}
                                     </p>
                                 )}
 
-                                {catalog.saleState === "scheduled" && (
-                                    <p className="shopCart__saleStatusNotice" role="status">
-                                        The merchandise sale is scheduled and has not opened yet.
+                                {catalog.saleState === "open" && (
+                                    <p className="shopCart__saleStatusNotice shopCart__saleStatusNotice--open" role="status">
+                                        Preorders are open — the window closes {formatDate(catalog.closesAt)}
+                                    </p>
+                                )}
+
+                                {catalog.saleState === "closed" && (
+                                    <p className="shopCart__saleStatusNotice shopCart__saleStatusNotice--closed" role="status">
+                                        This drop has closed. Preorders ended {formatDate(catalog.closesAt)}.
                                     </p>
                                 )}
 

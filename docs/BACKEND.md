@@ -42,13 +42,14 @@ backend/
 │       │   ├── feedback.js       ← Feedback form CRUD
 │       │   ├── roles.js           ← Role catalog and role assignments
 │       │   ├── eventRequests.js   ← Event request workflow and operations
-│       │   ├── shop.js            ← Merch catalog browsing
+│       │   ├── shop.js            ← Merch catalog browsing and checkout
 │       │   └── administration.js ← Unmounted officer/committee stubs
 │       └── utils/
 │           ├── auth.js        ← Authentication and permission middleware
 │           ├── csrf.js        ← Origin checks for session mutations
 │           ├── rateLimit.js   ← Process-local request limits
-│           └── shopCatalog.js ← Merch catalog source of truth and validation
+│           ├── shopCatalog.js ← Merch catalog source of truth and validation
+│           └── stripeClient.js ← Stripe client factory with fail-closed key validation
 ├── .env.example            ← Tracked runtime template
 ├── env/                    ← Ignored runtime environment files
 └── package.json            ← ES module ("type": "module")
@@ -158,7 +159,12 @@ Money is displayed as dollars and cents in the UI, then converted to an integer 
 | Method | Path | Auth | Notes |
 |---|---|---|---|
 | `GET` | `/catalog` | No | Public drop catalog: drop id, catalog version, currency, sale window, and each item's sku, name, allowed sizes, and unit amount in cents. |
+| `POST` | `/checkout` | Yes | Create a Stripe Checkout Session for the authenticated cart and return its hosted URL. |
 
+Required environment variables for Shop checkout:
+
+- `STRIPE_SECRET_KEY` — Stripe secret API key (`sk_test_...` in development). When unconfigured, `/checkout` fails closed with 503.
+- `SHOP_RETURN_BASE_URL` — Return base URL for redirecting buyers after completion or cancellation (e.g. `http://localhost:3000`, no trailing slash). When unconfigured, `/checkout` fails closed with 503.
 ### Administration (`/api/v1/administration`) — *not currently wired*
 
 ⚠️ **These endpoints are defined in `controllers/administration.js` but are NOT imported by `apiv1.js`. All requests to `/api/v1/administration/*` currently return 404.**
@@ -315,6 +321,7 @@ ETags are disabled with `app.disable('etag')`, so responses do not use condition
 | `cors` | Cross-origin resource sharing |
 | `cookie-parser` | Cookie parsing |
 | `dotenv-cli` | Load environment files |
+| `stripe` | Stripe hosted checkout SDK |
 | Native `fetch` | HTTP requests to Microsoft Graph API |
 
 ---

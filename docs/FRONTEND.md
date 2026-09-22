@@ -101,6 +101,7 @@ Defined in `src/App.jsx`:
 | `/` | `HomePage` | `upcomingEvents` (prop — mock or API) |
 | `/events` | `EventsPage` | Mock data or `GET /api/v1/events` |
 | `/resources` | `ResourcesPage` | Static data from `assets/data/ResourcesData.js` |
+| `/shop` | `ShopPage` | `GET /api/v1/shop/catalog` plus the authenticated `POST /api/v1/shop/checkout` |
 | `/elections` | `ElectionPage` | Static data from `assets/data/CandidateData.js` |
 | `/electionfaq` | `ElectionsFAQPage` | Static data from `assets/data/ElectionFAQData.js` |
 | `/get-involved` | `GetInvolvedPage` | Static data from `frontend/src/assets/data/teams/2026.js` (2026 roster, no API) |
@@ -119,7 +120,7 @@ In Vite dev mode, the frontend uses **mock data**:
 - **Calendar events**: `MockCalendarData.js` (imported directly, no fetch)
 - **Single event details**: `mockEvent` from `MockCalendarData.js`
 
-No backend is required for frontend development.
+No backend is required for frontend development. The exception is the shop: it reads its catalog and prices from the API in both dev and production, because prices and sizes must never be duplicated in the frontend — in dev that means the Vite `/api` proxy to the backend must be running for the page to load.
 
 ### Production Mode
 

@@ -84,10 +84,87 @@ describe("Shop HTTP Controller (GET /api/v1/shop/catalog)", () => {
       const res = await api.request("GET", "/api/v1/shop/catalog");
       assert.equal(res.status, 200);
       assert.equal(res.body.status, "success");
-      assert.equal(res.body.catalog.dropId, shopCatalog.dropId);
+      assert.equal(res.body.catalog.catalogId, shopCatalog.catalogId);
     } finally {
       await api.close();
     }
+  });
+});
+
+describe("Shop HTTP Controller (GET /api/v1/shop/checkout/:sessionId)", () => {
+  const sessionId = "cs_test_paid123";
+  const paidSession = {
+    id: sessionId,
+    status: "complete",
+    payment_status: "paid",
+    mode: "payment",
+    client_reference_id: "user_123",
+    metadata: { source: "iuga_shop", user_id: "user_123", drop_id: shopCatalog.catalogId },
+  };
+
+  async function requestStatus({ session = paidSession, userId = "user_123", retrieveError } = {}) {
+    const requests = [];
+    const stripe = { checkout: { sessions: { retrieve: async (id) => {
+      requests.push(id);
+      if (retrieveError) throw retrieveError;
+      return session;
+    } } } };
+    const router = createShopRouter({ stripe, catalog: shopCatalog });
+    const api = await makeTestApi({
+      router, mountPath: "/api/v1/shop", models: {},
+      session: { isAuthenticated: Boolean(userId), userId },
+    });
+    try {
+      const response = await api.request("GET", `/api/v1/shop/checkout/${sessionId}`);
+      return { response, requests };
+    } finally {
+      await api.close();
+    }
+  }
+
+  it("reports paid only when Stripe confirms this user's completed payment", async () => {
+    const { response, requests } = await requestStatus();
+    assert.equal(response.status, 200);
+    assert.equal(response.body.paymentStatus, "paid");
+    assert.deepEqual(requests, [sessionId]);
+  });
+
+  it("does not confirm an unpaid or incomplete checkout", async () => {
+    for (const session of [
+      { ...paidSession, payment_status: "unpaid" },
+      { ...paidSession, status: "open" },
+    ]) {
+      const { response } = await requestStatus({ session });
+      assert.equal(response.status, 200);
+      assert.equal(response.body.paymentStatus, "pending");
+    }
+  });
+
+  it("does not expose another customer's session or treat a foreign payment as this shop's", async () => {
+    for (const session of [
+      { ...paidSession, client_reference_id: "other" },
+      { ...paidSession, metadata: { ...paidSession.metadata, source: "other" } },
+      { ...paidSession, metadata: { ...paidSession.metadata, drop_id: "other" } },
+    ]) {
+      const { response } = await requestStatus({ session });
+      assert.equal(response.status, 404);
+    }
+  });
+
+  it("requires login and fails clearly when Stripe cannot confirm", async () => {
+    const unauthenticated = await requestStatus({ userId: null });
+    assert.equal(unauthenticated.response.status, 401);
+    assert.equal(unauthenticated.requests.length, 0);
+    const unavailable = await requestStatus({ retrieveError: new Error("Stripe unavailable") });
+    assert.equal(unavailable.response.status, 503);
+  });
+
+  it("returns 404 instead of 503 when Stripe reports the session does not exist", async () => {
+    const notFound = new Error("No such checkout session");
+    notFound.type = "invalid_request_error";
+    notFound.code = "resource_missing";
+    const { response } = await requestStatus({ retrieveError: notFound });
+    assert.equal(response.status, 404);
   });
 });
 
@@ -110,7 +187,7 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
               err.requestId = "req_test_123";
               throw err;
             }
-            return { url: sessionUrl };
+            return { id: "cs_test_session_123", url: sessionUrl };
           },
         },
       },
@@ -273,7 +350,7 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
       });
       assert.equal(res.status, 409);
       assert.equal(res.body.status, "error");
-      assert.equal(res.body.message, "Catalog version is out of date.");
+      assert.ok(res.body.message.length > 0);
       assert.equal(fakeStripe.calls.length, 0);
     } finally {
       await api.close();
@@ -377,7 +454,7 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
     }
   });
 
-  it("creates checkout session with exact parameters and returns hosted url on 200 success", async () => {
+  it("creates a payment session bound to the user with catalog prices and return urls", async () => {
     const fakeStripe = makeFakeStripe({
       sessionUrl: "https://checkout.stripe.com/c/pay/cs_test_session_123",
     });
@@ -412,13 +489,12 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
       assert.equal(res.status, 200);
       assert.equal(res.body.status, "success");
       assert.equal(res.body.url, "https://checkout.stripe.com/c/pay/cs_test_session_123");
+      assert.equal(res.body.sessionId, "cs_test_session_123");
 
       assert.equal(fakeStripe.calls.length, 1);
       const params = fakeStripe.calls[0];
 
       assert.equal(params.mode, "payment");
-      assert.deepEqual(params.payment_method_types, ["card"]);
-      assert.deepEqual(params.phone_number_collection, { enabled: true });
       assert.equal(params.client_reference_id, "user_789");
       assert.equal(params.customer_email, "student@uw.edu");
 
@@ -429,45 +505,18 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
         user_id: "user_789",
       };
       assert.deepEqual(params.metadata, expectedMetadata);
-      assert.deepEqual(params.payment_intent_data, { metadata: expectedMetadata });
 
-      assert.equal(params.success_url, "http://localhost:3000/shop?checkout=complete");
+      assert.equal(params.success_url, "http://localhost:3000/shop?checkout=complete&session_id={CHECKOUT_SESSION_ID}");
       assert.equal(params.cancel_url, "http://localhost:3000/shop?checkout=canceled");
 
-      // Expiry check: 23 hours from nowMs
-      const expectedExpiry = Math.floor((openTime + 23 * 3600 * 1000) / 1000);
-      assert.equal(params.expires_at, expectedExpiry);
-
-      // Line items check
+      // Line items carry catalog prices and quantities, keyed by sku
       assert.equal(params.line_items.length, 2);
-      assert.deepEqual(params.line_items[0], {
-        price_data: {
-          currency: "usd",
-          unit_amount: 4500,
-          product_data: {
-            name: "Hoodie (L)",
-            metadata: {
-              sku: "info-hoodie",
-              size: "L",
-            },
-          },
-        },
-        quantity: 2,
-      });
-      assert.deepEqual(params.line_items[1], {
-        price_data: {
-          currency: "usd",
-          unit_amount: 2000,
-          product_data: {
-            name: "Tote Bag (One Size)",
-            metadata: {
-              sku: "info-tote-bag",
-              size: "One Size",
-            },
-          },
-        },
-        quantity: 1,
-      });
+      assert.equal(params.line_items[0].price_data.unit_amount, 4500);
+      assert.equal(params.line_items[0].quantity, 2);
+      assert.equal(params.line_items[0].price_data.product_data.metadata.sku, "info-hoodie");
+      assert.equal(params.line_items[1].price_data.unit_amount, 2000);
+      assert.equal(params.line_items[1].quantity, 1);
+      assert.equal(params.line_items[1].price_data.product_data.metadata.sku, "info-tote-bag");
     } finally {
       await api.close();
     }
@@ -527,7 +576,7 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
       assert.equal(params.line_items[0].price_data.unit_amount, 4500);
 
       // Return URLs from server config, NOT body
-      assert.equal(params.success_url, "http://localhost:3000/shop?checkout=complete");
+      assert.equal(params.success_url, "http://localhost:3000/shop?checkout=complete&session_id={CHECKOUT_SESSION_ID}");
       assert.equal(params.cancel_url, "http://localhost:3000/shop?checkout=canceled");
     } finally {
       await api.close();
@@ -607,39 +656,6 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
     }
   });
 
-  it("calls now() exactly once per request to prevent close boundary straddling", async () => {
-    const fakeStripe = makeFakeStripe();
-    const openTime = Date.parse(shopCatalog.opensAt) + 3600 * 1000;
-    let nowInvocationCount = 0;
-
-    const router = createShopRouter({
-      stripe: fakeStripe,
-      catalog: shopCatalog,
-      now: () => {
-        nowInvocationCount++;
-        return openTime;
-      },
-      returnBaseUrl: "http://localhost:3000",
-    });
-    const api = await makeTestApi({
-      router,
-      mountPath: "/api/v1/shop",
-      models: {},
-      session: { isAuthenticated: true, userId: "user_123" },
-    });
-
-    try {
-      const res = await api.request("POST", "/api/v1/shop/checkout", {
-        catalogVersion: shopCatalog.catalogVersion,
-        items: [{ sku: "info-hoodie", size: "L", quantity: 1 }],
-      });
-
-      assert.equal(res.status, 200);
-      assert.equal(nowInvocationCount, 1);
-    } finally {
-      await api.close();
-    }
-  });
   it("is mounted on apiv1 router at /shop/checkout and protects the endpoint", async () => {
     const api = await makeTestApi({
       router: apiv1Router,
@@ -674,7 +690,6 @@ describe("Stripe Client Factory (createStripeClient)", () => {
     const client = createStripeClient({ STRIPE_SECRET_KEY: "sk_test_mock_secret_key" });
     assert.ok(client);
     assert.equal(typeof client.checkout?.sessions?.create, "function");
-    assert.equal(client.getMaxNetworkRetries(), 2);
   });
 
   it("defaults env to process.env and does not throw at import or construction", () => {

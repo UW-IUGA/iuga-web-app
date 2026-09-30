@@ -5,7 +5,7 @@ Purpose: Serve merchandise shop catalog information to prospective buyers.
 
 Authentication/Authorization Requirements:
 - GET /catalog: None (public browsing, unauthenticated)
-- POST /checkout: Logged in (authenticated session required)
+- POST /checkout, GET /checkout/:sessionId: Logged in (authenticated session required)
 
 Expected Request Information:
 - GET /catalog: None
@@ -13,7 +13,8 @@ Expected Request Information:
 
 Expected Response Information:
 - GET /catalog: 200 { status: "success", catalog: { ... } }
-- POST /checkout: 200 { status: "success", url: string }
+- POST /checkout: 200 { status: "success", url: string, sessionId: string }
+- GET /checkout/:sessionId: 200 { status: "success", paymentStatus: "paid" | "pending" }
   - 400 Malformed body or invalid cart items
   - 401 Not authenticated
   - 409 Stale catalogVersion, scheduled sale, or closed sale
@@ -59,13 +60,48 @@ export function createShopRouter({
     return sendSuccess(res, { catalog: catalogData });
   });
 
+  // Only Stripe's session, scoped to this signed-in user, can confirm payment.
+  router.get("/checkout/:sessionId", requireAuth, async (req, res) => {
+    if (!stripe || typeof stripe.checkout?.sessions?.retrieve !== "function") {
+      return sendError(res, 503, "Payment service is currently unavailable.");
+    }
+
+    let session;
+    try {
+      session = await stripe.checkout.sessions.retrieve(req.params.sessionId);
+    } catch (error) {
+      console.error("Stripe session lookup failed:", {
+        type: error?.type ?? "unknown",
+        code: error?.code ?? "unknown",
+        requestId: error?.requestId ?? "unknown",
+      });
+      if (error?.type === "invalid_request_error") {
+        return sendError(res, 404, "Checkout not found.");
+      }
+      return sendError(res, 503, "Unable to verify checkout at this time.");
+    }
+
+    if (session?.client_reference_id !== String(req.session.userId) ||
+        session?.metadata?.user_id !== String(req.session.userId) ||
+        session?.metadata?.source !== "iuga_shop" ||
+        session?.metadata?.drop_id !== catalog.catalogId ||
+        session?.mode !== "payment") {
+      return sendError(res, 404, "Checkout not found.");
+    }
+
+    return sendSuccess(res, {
+      paymentStatus: session.status === "complete" && session.payment_status === "paid"
+        ? "paid" : "pending",
+    });
+  });
+
   /*
   Purpose: Create a hosted Stripe Checkout Session for the signed-in user's cart.
   Authentication/Authorization Requirements: Logged in.
   Expected Request Information:
   - req.body: { items: [{ sku, size, quantity }], catalogVersion: string }
   Expected Response Information:
-  - 200 { status: "success", url: string }
+  - 200 { status: "success", url: string, sessionId: string }
   - 400 Malformed body, invalid cart items, or missing catalogVersion
   - 401 Not authenticated
   - 409 Stale catalogVersion, sale scheduled, or sale closed
@@ -142,7 +178,7 @@ export function createShopRouter({
       payment_intent_data: {
         metadata,
       },
-      success_url: `${cleanReturnBaseUrl}/shop?checkout=complete`,
+      success_url: `${cleanReturnBaseUrl}/shop?checkout=complete&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${cleanReturnBaseUrl}/shop?checkout=canceled`,
     };
 
@@ -162,12 +198,12 @@ export function createShopRouter({
       return sendError(res, 503, "Payment service is currently unavailable.");
     }
 
-    if (!session?.url) {
-      console.error("Stripe session returned no URL");
+    if (!session?.url || !session?.id) {
+      console.error("Stripe session returned no URL or ID");
       return sendError(res, 503, "Payment service is currently unavailable.");
     }
 
-    return sendSuccess(res, { url: session.url });
+    return sendSuccess(res, { url: session.url, sessionId: session.id });
   });
 
   return router;

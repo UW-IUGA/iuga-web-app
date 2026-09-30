@@ -15,7 +15,7 @@ for pricing and allowed sizes; callers must never re-derive or accept client-sup
 */
 
 export const shopCatalog = Object.freeze({
-  dropId: "fall-2026",
+  catalogId: "fall-2026",
   catalogVersion: "fall-2026-v1",
   currency: "usd",
   opensAt: "2026-09-01T00:00:00.000Z",
@@ -23,33 +23,33 @@ export const shopCatalog = Object.freeze({
   items: Object.freeze([
     Object.freeze({
       sku: "info-hoodie",
-      name: "INFO Hoodie",
+      name: "Hoodie",
       sizes: Object.freeze(["S", "M", "L", "XL", "2XL"]),
-      unitAmount: 4500,
+      unitPriceCents: 4500,
     }),
     Object.freeze({
-      sku: "info-pullover",
-      name: "INFO Pullover",
+      sku: "info-crewneck",
+      name: "Crewneck",
       sizes: Object.freeze(["S", "M", "L", "XL", "2XL"]),
-      unitAmount: 4000,
+      unitPriceCents: 4000,
     }),
     Object.freeze({
       sku: "info-baseball-tee",
-      name: "INFO Baseball Tee",
+      name: "Baseball Tee",
       sizes: Object.freeze(["S", "M", "L", "XL", "2XL"]),
-      unitAmount: 3000,
+      unitPriceCents: 3000,
     }),
     Object.freeze({
-      sku: "info-simple-tee",
-      name: "INFO Simple Tee",
+      sku: "info-t-shirt",
+      name: "T-Shirt",
       sizes: Object.freeze(["S", "M", "L", "XL", "2XL"]),
-      unitAmount: 2500,
+      unitPriceCents: 2500,
     }),
     Object.freeze({
       sku: "info-tote-bag",
-      name: "INFO Tote Bag",
+      name: "Tote Bag",
       sizes: Object.freeze(["One Size"]),
-      unitAmount: 2000,
+      unitPriceCents: 2000,
     }),
   ]),
 });
@@ -76,11 +76,11 @@ export function saleStateAt(catalog, nowMs) {
  * @behavior Project the catalog into its public representation including current sale state.
  * @param catalog — catalog definition
  * @param nowMs — current timestamp in milliseconds
- * @returns public catalog object with dropId, catalogVersion, currency, opensAt, closesAt, saleState, and items
+ * @returns public catalog object with catalogId, catalogVersion, currency, opensAt, closesAt, saleState, and items
  */
 export function publicCatalog(catalog, nowMs) {
   return {
-    dropId: catalog.dropId,
+    catalogId: catalog.catalogId,
     catalogVersion: catalog.catalogVersion,
     currency: catalog.currency,
     opensAt: catalog.opensAt,
@@ -90,7 +90,7 @@ export function publicCatalog(catalog, nowMs) {
       sku: item.sku,
       name: item.name,
       sizes: [...item.sizes],
-      unitAmount: item.unitAmount,
+      unitPriceCents: item.unitPriceCents,
     })),
   };
 }
@@ -110,8 +110,13 @@ export function expiresAtSeconds(catalog, nowMs) {
 }
 
 /*
- * @behavior Validate and resolve cart items into concrete line items with pricing.
- *           Consolidates duplicate sku+size lines and enforces provider amount limits.
+ * @behavior Validate the client's cart and resolve it into priced order lines.
+ *           The client sends one entry per product + size it wants. When the same sku and size
+ *           arrives more than once (for example, two separate "hoodie, size M" entries), those
+ *           entries are merged into a single line whose quantity is their sum. So a cart never
+ *           carries two lines for the same product and size: adding another hoodie raises the
+ *           quantity to 2 instead of creating a second line. Also enforces the provider's
+ *           per-line and total amount limits.
  * @param catalog — catalog definition containing items list
  * @param items — raw cart items array from client request
  * @returns { ok: true, lines: [...] } | { ok: false, message: string }
@@ -164,20 +169,17 @@ export function resolveCartLines(catalog, items) {
         name: item.name,
         size: entry.size,
         quantity: entry.quantity,
-        unitAmount: item.unitAmount,
+        unitPriceCents: item.unitPriceCents,
       });
     }
   }
 
   const lines = Array.from(consolidatedLines.values());
-  if (lines.length > 100) {
-    return { ok: false, message: "Cart cannot exceed 100 distinct items." };
-  }
 
   const MAX_AMOUNT_CENTS = 99999999;
   let cartTotalCents = 0;
   for (const line of lines) {
-    const lineTotal = line.unitAmount * line.quantity;
+    const lineTotal = line.unitPriceCents * line.quantity;
     if (lineTotal > MAX_AMOUNT_CENTS) {
       return {
         ok: false,

@@ -33,7 +33,7 @@ import { requireAuth } from "../utils/auth.js";
 /*
  * @behavior Factory creating an Express router for shop endpoints with dependency injection.
  * @param options.stripe — Stripe SDK client instance with checkout session capabilities
- * @param options.catalog — catalog definition containing dropId, version, currency, dates, and items
+ * @param options.catalog — catalog definition containing catalogId, version, currency, dates, and items
  * @param options.now — clock function returning current timestamp in milliseconds (defaults to Date.now)
  * @param options.returnBaseUrl — origin for client return redirects (e.g., http://localhost:3000)
  * @returns Express router instance
@@ -110,7 +110,7 @@ export function createShopRouter({
     const cleanReturnBaseUrl = returnBaseUrl.trim().replace(/\/+$/, "");
     const metadata = {
       source: "iuga_shop",
-      drop_id: catalog.dropId,
+      drop_id: catalog.catalogId,
       catalog_version: catalog.catalogVersion,
       user_id: String(req.session.userId),
     };
@@ -118,7 +118,7 @@ export function createShopRouter({
     const line_items = cartResult.lines.map((line) => ({
       price_data: {
         currency: catalog.currency,
-        unit_amount: line.unitAmount,
+        unit_amount: line.unitPriceCents,
         product_data: {
           name: `${line.name} (${line.size})`,
           metadata: {

@@ -10,8 +10,9 @@ import {
 
 describe("shopCatalog data integrity", () => {
   it("proves the shipped catalog is internally valid and conforms to expected structure", () => {
-    assert.equal(typeof shopCatalog.dropId, "string");
-    assert.ok(shopCatalog.dropId.length > 0);
+    assert.equal(typeof shopCatalog.catalogId, "string");
+    assert.ok(shopCatalog.catalogId.length > 0);
+    assert.equal(Object.hasOwn(shopCatalog, "dropId"), false);
 
     assert.equal(typeof shopCatalog.catalogVersion, "string");
     assert.ok(shopCatalog.catalogVersion.length > 0);
@@ -48,8 +49,8 @@ describe("shopCatalog data integrity", () => {
       }
 
       assert.ok(
-        Number.isSafeInteger(item.unitAmount) && item.unitAmount > 0,
-        `unitAmount for ${item.sku} must be a positive integer in cents`,
+        Number.isSafeInteger(item.unitPriceCents) && item.unitPriceCents > 0,
+        `unitPriceCents for ${item.sku} must be a positive integer in cents`,
       );
     }
   });
@@ -85,24 +86,17 @@ describe("publicCatalog", () => {
     const nowMs = Date.parse(shopCatalog.opensAt) + 10000;
     const pub = publicCatalog(shopCatalog, nowMs);
 
-    assert.equal(pub.dropId, shopCatalog.dropId);
+    assert.equal(pub.catalogId, shopCatalog.catalogId);
+    assert.equal(Object.hasOwn(pub, "dropId"), false);
     assert.equal(pub.catalogVersion, shopCatalog.catalogVersion);
     assert.equal(pub.currency, shopCatalog.currency);
     assert.equal(pub.opensAt, shopCatalog.opensAt);
     assert.equal(pub.closesAt, shopCatalog.closesAt);
     assert.equal(pub.saleState, "open");
 
-    assert.equal(pub.items.length, 5);
-    assert.deepEqual(
-      pub.items.map((i) => i.sku),
-      [
-        "info-hoodie",
-        "info-pullover",
-        "info-baseball-tee",
-        "info-simple-tee",
-        "info-tote-bag",
-      ],
-    );
+    assert.ok(pub.items.length > 0);
+    const skus = pub.items.map((i) => i.sku);
+    assert.equal(new Set(skus).size, skus.length);
 
     for (let idx = 0; idx < pub.items.length; idx++) {
       const source = shopCatalog.items[idx];
@@ -111,7 +105,7 @@ describe("publicCatalog", () => {
         sku: source.sku,
         name: source.name,
         sizes: source.sizes,
-        unitAmount: source.unitAmount,
+        unitPriceCents: source.unitPriceCents,
       });
     }
   });
@@ -145,17 +139,17 @@ describe("resolveCartLines - valid cart resolution", () => {
     assert.deepEqual(result.lines, [
       {
         sku: "info-hoodie",
-        name: "INFO Hoodie",
+        name: "Hoodie",
         size: "L",
         quantity: 2,
-        unitAmount: 4500,
+        unitPriceCents: 4500,
       },
       {
         sku: "info-tote-bag",
-        name: "INFO Tote Bag",
+        name: "Tote Bag",
         size: "One Size",
         quantity: 1,
-        unitAmount: 2000,
+        unitPriceCents: 2000,
       },
     ]);
   });
@@ -276,7 +270,7 @@ describe("resolveCartLines - duplicate consolidation and quantity safety", () =>
   it("consolidates duplicate sku+size entries by summing their quantities", () => {
     const cart = [
       { sku: "info-hoodie", size: "M", quantity: 2 },
-      { sku: "info-simple-tee", size: "S", quantity: 1 },
+      { sku: "info-t-shirt", size: "S", quantity: 1 },
       { sku: "info-hoodie", size: "M", quantity: 3 },
     ];
     const res = resolveCartLines(shopCatalog, cart);
@@ -284,17 +278,17 @@ describe("resolveCartLines - duplicate consolidation and quantity safety", () =>
     assert.equal(res.lines.length, 2);
     assert.deepEqual(res.lines[0], {
       sku: "info-hoodie",
-      name: "INFO Hoodie",
+      name: "Hoodie",
       size: "M",
       quantity: 5,
-      unitAmount: 4500,
+      unitPriceCents: 4500,
     });
     assert.deepEqual(res.lines[1], {
-      sku: "info-simple-tee",
-      name: "INFO Simple Tee",
+      sku: "info-t-shirt",
+      name: "T-Shirt",
       size: "S",
       quantity: 1,
-      unitAmount: 2500,
+      unitPriceCents: 2500,
     });
   });
 
@@ -311,8 +305,9 @@ describe("resolveCartLines - duplicate consolidation and quantity safety", () =>
 
 describe("resolveCartLines - provider limits and amount integrity", () => {
   it("rejects when a single line total exceeds provider maximum of 99999999 cents", () => {
-    // info-hoodie is 4500 cents; 22223 * 4500 = 100,003,500 cents > 99,999,999
-    const cart = [{ sku: "info-hoodie", size: "M", quantity: 22223 }];
+    const hoodiePrice = shopCatalog.items.find((i) => i.sku === "info-hoodie").unitPriceCents;
+    const overLimitQuantity = Math.floor(99999999 / hoodiePrice) + 1;
+    const cart = [{ sku: "info-hoodie", size: "M", quantity: overLimitQuantity }];
     const res = resolveCartLines(shopCatalog, cart);
     assert.equal(res.ok, false);
     assert.equal(typeof res.message, "string");
@@ -325,33 +320,32 @@ describe("resolveCartLines - provider limits and amount integrity", () => {
   });
 
   it("rejects when the overall cart total exceeds provider maximum of 99999999 cents", () => {
-    // Two lines, each within individual limit, but sum exceeds 99,999,999
-    // info-hoodie: 15000 * 4500 = 67,500,000 cents
-    // info-pullover: 10000 * 4000 = 40,000,000 cents
-    // Total: 107,500,000 cents
+    // One line just under the per-line limit, plus a second line that pushes the sum over.
+    const priceOf = (sku) => shopCatalog.items.find((i) => i.sku === sku).unitPriceCents;
     const cart = [
-      { sku: "info-hoodie", size: "M", quantity: 15000 },
-      { sku: "info-pullover", size: "M", quantity: 10000 },
+      { sku: "info-hoodie", size: "M", quantity: Math.floor(99999999 / priceOf("info-hoodie")) },
+      { sku: "info-crewneck", size: "M", quantity: 1 },
     ];
     const res = resolveCartLines(shopCatalog, cart);
     assert.equal(res.ok, false);
     assert.equal(typeof res.message, "string");
   });
 
-  it("always takes unitAmount from the catalog, ignoring client-supplied prices", () => {
+  it("always takes unitPriceCents from the catalog, ignoring client-supplied prices", () => {
     const spoofedCart = [
       {
         sku: "info-hoodie",
         size: "M",
         quantity: 1,
-        unitAmount: 10,
+        unitPriceCents: 10,
         price: 5,
         amount: 1,
       },
     ];
     const res = resolveCartLines(shopCatalog, spoofedCart);
     assert.equal(res.ok, true);
-    assert.equal(res.lines[0].unitAmount, 4500);
+    assert.equal(res.lines[0].unitPriceCents, 4500);
+    assert.equal(Object.hasOwn(res.lines[0], "unitAmount"), false);
     assert.equal(res.lines[0].price, undefined);
     assert.equal(res.lines[0].amount, undefined);
   });

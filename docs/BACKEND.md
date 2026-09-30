@@ -161,6 +161,8 @@ Money is displayed as dollars and cents in the UI, then converted to an integer 
 | `GET` | `/catalog` | No | Public drop catalog: drop id, catalog version, currency, sale window, and each item's sku, name, allowed sizes, and unit amount in cents. |
 | `POST` | `/checkout` | Yes | Create a Stripe Checkout Session for the authenticated cart and return its hosted URL. |
 
+**Cart consolidation:** a cart is a list of entries, each naming a product (`sku`), a `size`, and a `quantity`. When the same `sku` and `size` appears more than once, the backend merges those entries into one and adds their quantities — two "hoodie / size M" entries become a single line with quantity 2. Adding the same product and size again therefore raises the quantity rather than creating a duplicate. This is what the backend calls a cart **line**: one product and size carrying a combined quantity.
+
 Required environment variables for Shop checkout:
 
 - `STRIPE_SECRET_KEY` — Stripe secret API key (`sk_test_...` in development). When unconfigured, `/checkout` fails closed with 503.

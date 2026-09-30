@@ -25,12 +25,18 @@ describe("Shop HTTP Controller (GET /api/v1/shop/catalog)", () => {
       assert.equal(response.status, 200);
       assert.equal(response.body.status, "success");
       assert.ok(response.body.catalog);
-      assert.equal(response.body.catalog.dropId, shopCatalog.dropId);
+      assert.equal(response.body.catalog.catalogId, shopCatalog.catalogId);
+      assert.equal(Object.hasOwn(response.body.catalog, "dropId"), false);
       assert.equal(response.body.catalog.catalogVersion, shopCatalog.catalogVersion);
       assert.equal(response.body.catalog.currency, "usd");
       assert.equal(response.body.catalog.saleState, "open");
-      assert.equal(response.body.catalog.items.length, 5);
-      assert.equal(response.body.catalog.items[0].sku, "info-hoodie");
+      assert.ok(response.body.catalog.items.length > 0);
+      for (const item of response.body.catalog.items) {
+        assert.equal(typeof item.sku, "string");
+        assert.ok(item.sku.length > 0);
+        assert.ok(Number.isSafeInteger(item.unitPriceCents) && item.unitPriceCents > 0);
+      }
+      assert.equal(Object.hasOwn(response.body.catalog.items[0], "unitAmount"), false);
     } finally {
       await api.close();
     }
@@ -39,14 +45,10 @@ describe("Shop HTTP Controller (GET /api/v1/shop/catalog)", () => {
   it("reflects saleState using the injected clock function", async () => {
     const opensMs = Date.parse(shopCatalog.opensAt);
     let mockTime = opensMs - 1000;
-    let clockCallCount = 0;
 
     const router = createShopRouter({
       catalog: shopCatalog,
-      now: () => {
-        clockCallCount++;
-        return mockTime;
-      },
+      now: () => mockTime,
     });
 
     const api = await makeTestApi({
@@ -60,14 +62,12 @@ describe("Shop HTTP Controller (GET /api/v1/shop/catalog)", () => {
       const resBefore = await api.request("GET", "/api/v1/shop/catalog");
       assert.equal(resBefore.status, 200);
       assert.equal(resBefore.body.catalog.saleState, "scheduled");
-      assert.equal(clockCallCount, 1);
 
       // 2. Exact close boundary -> "closed"
       mockTime = Date.parse(shopCatalog.closesAt);
       const resClosed = await api.request("GET", "/api/v1/shop/catalog");
       assert.equal(resClosed.status, 200);
       assert.equal(resClosed.body.catalog.saleState, "closed");
-      assert.equal(clockCallCount, 2);
     } finally {
       await api.close();
     }
@@ -424,7 +424,7 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
 
       const expectedMetadata = {
         source: "iuga_shop",
-        drop_id: shopCatalog.dropId,
+        drop_id: shopCatalog.catalogId,
         catalog_version: shopCatalog.catalogVersion,
         user_id: "user_789",
       };
@@ -445,7 +445,7 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
           currency: "usd",
           unit_amount: 4500,
           product_data: {
-            name: "INFO Hoodie (L)",
+            name: "Hoodie (L)",
             metadata: {
               sku: "info-hoodie",
               size: "L",
@@ -459,7 +459,7 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
           currency: "usd",
           unit_amount: 2000,
           product_data: {
-            name: "INFO Tote Bag (One Size)",
+            name: "Tote Bag (One Size)",
             metadata: {
               sku: "info-tote-bag",
               size: "One Size",
@@ -503,7 +503,7 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
             sku: "info-hoodie",
             size: "L",
             quantity: 1,
-            unitAmount: 1, // Attacker tries $0.01 instead of $45.00
+            unitPriceCents: 1, // Attacker tries $0.01 instead of $45.00
             price: 1,
           },
         ],

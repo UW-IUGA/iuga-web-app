@@ -129,9 +129,10 @@ When the frontend runs on Vite at `http://localhost:3000`, the browser sends tha
 - CSS class naming follows BEM-like conventions (`.nav-container`, `.nav-items-wrapper`).
 - Shared SCSS tokens live in `stylesheets/abstracts/_variables.scss`; use those tokens for
   navigation dimensions and radii instead of adding one-off values.
-- The shared `Navbar` has a desktop sidebar presentation and a mobile top-navbar
-  presentation. Mobile layout rules are in `layout/_navigation-mobile.scss`; desktop
-  rules are in `layout/_navigation-desktop.scss`.
+- The shared `Navbar` is a top navbar on desktop, with a hamburger menu that
+  reveals the links in a dropdown panel below the sm-desktop breakpoint. Mobile
+  rules are in `layout/_navigation-mobile.scss`; laptop spacing is in
+  `layout/_navigation-desktop.scss`.
 
 ### Backend
 
@@ -232,7 +233,7 @@ Merged pull requests appear in `git log` with the PR number appended, e.g. `(#15
 1. Create `frontend/src/pages/YourPage.jsx`
 2. Add `<Route>` in `frontend/src/App.jsx`
 3. Add a matching `GET /your-page` route in `backend/app.js` (to serve SPA on direct navigation)
-4. Add a link to the shared responsive `Navbar` component in `frontend/src/layouts/Navbar.jsx` (desktop presentation: sidebar rail; mobile presentation: centered logo with left hamburger)
+4. Add a link to the shared top `Navbar` component in `frontend/src/layouts/Navbar.jsx` (its mobile menu uses the same links)
 5. Create page-specific SCSS at `frontend/src/stylesheets/pages/_yourpage.scss` and import in `main.scss`
 
 ### Add a new API endpoint

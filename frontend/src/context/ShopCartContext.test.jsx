@@ -229,6 +229,19 @@ describe("starting checkout from the cart", () => {
         expect(screen.getByRole("button", { name: "Cart, 1 item" })).toBeInTheDocument();
     });
 
+    test("both product and bag quantity controls stop at 100", async () => {
+        storeCart([{ ...bag, quantity: 100 }]);
+        mockApi();
+        renderShop();
+        fireEvent.click(screen.getByRole("button", { name: "Increase INFO Tote Bag" }));
+        expect(bagQuantity()).toHaveValue("100");
+        await openCart();
+        fireEvent.click(screen.getByRole("button", { name: "Increase INFO Tote Bag One Size" }));
+
+        expect(screen.getByRole("textbox", { name: "INFO Tote Bag size One Size quantity. Type a number from 1 to 100." })).toHaveValue("100");
+        expect(bagQuantity()).toHaveValue("100");
+        expect(screen.getByRole("button", { name: "Cart, 100 items" })).toBeInTheDocument();
+    });
 });
 
 describe("paid checkout returns", () => {

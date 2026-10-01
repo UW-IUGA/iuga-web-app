@@ -6,6 +6,12 @@
  */
 
 /**
+ * @behavior The most units of one sku+size line a shopper may hold. Client-only
+ *           display policy; the server enforces its own line-count and amount caps.
+ */
+export const MAX_QUANTITY = 100;
+
+/**
  * @behavior Adds a cart entry, or sums the quantity when a matching sku and size already exists.
  *           Adding the same product and size again therefore keeps one entry and raises its quantity,
  *           rather than creating a second duplicate entry.

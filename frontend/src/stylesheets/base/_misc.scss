@@ -16,6 +16,14 @@
     flex: 1;
 }
 
+.sr-only {
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    position: absolute;
+    width: 1px;
+}
+
 %pageKicker {
     margin: 0;
     color: $color-primary;

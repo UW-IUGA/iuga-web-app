@@ -11,10 +11,8 @@ import { NavLink } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCartShopping, faTrashCan } from "@fortawesome/free-solid-svg-icons";
 import { shopProducts } from "../assets/data/ShopData";
-import { cartTotal } from "../utils/shopCart";
+import { cartTotal, MAX_QUANTITY } from "../utils/shopCart";
 import { formatCents, formatDate } from "../utils/shopFormat";
-
-export const MAX_QUANTITY = 100;
 
 /**
  * @behavior Editable quantity control: step with −/+ buttons, or type 1–100 directly.
@@ -102,23 +100,6 @@ export function CartTrigger({ totalQuantity, isCartOpen, onToggle }) {
 }
 
 /**
- * @behavior Measures the header height so the dropdown panel sits just below
- * the navbar. Only top is measured; horizontal alignment stays in CSS
- * (.shopCartDropdown__panel tracks the app content margin with max()),
- * so it adapts to any viewport without JS breakpoint math.
- * Returns null when there is no header to measure or on mobile (CSS takes over).
- */
-export function getCartDropdownAnchor() {
-    if (typeof window === "undefined" || window.innerWidth < 768) return null;
-    const bar = document.querySelector(".nav-container");
-    if (!bar) return null;
-    const rect = bar.getBoundingClientRect();
-    return {
-        top: Math.round(rect.bottom + 8),
-    };
-}
-
-/**
  * @behavior Navbar-anchored cart dropdown: the cart's overlay UI. The trigger
  * opens it persistently; a fresh add opens it transiently (it fades away on
  * its own unless hovered or focused). The just-added line sorts first with
@@ -181,14 +162,6 @@ export function ShopCartDropdown({
         return () => window.removeEventListener("keydown", closeOnEscape);
     }, [onClose]);
 
-    const [anchor, setAnchor] = useState(null);
-    useEffect(() => {
-        const measure = () => setAnchor(getCartDropdownAnchor());
-        measure();
-        window.addEventListener("resize", measure);
-        return () => window.removeEventListener("resize", measure);
-    }, []);
-
     const catalogItems = catalog && Array.isArray(catalog.items) ? catalog.items : [];
     const productBySku = new Map(shopProducts.map((product) => [product.sku, product]));
     const catalogItemBySku = new Map(catalogItems.map((item) => [item.sku, item]));
@@ -223,7 +196,6 @@ export function ShopCartDropdown({
                 onMouseLeave={() => setPaused(false)}
                 onFocus={() => setPaused(true)}
                 onBlur={() => setPaused(false)}
-                {...(anchor ? { style: { top: anchor.top } } : {})}
             >
                 <div className="shopCartDropdown__header">
                     <p className="shopCartDropdown__status shopCartDropdown__status--plain">

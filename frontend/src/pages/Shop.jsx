@@ -179,7 +179,10 @@ function ShopPage() {
                                 {catalog.items.map((item) => {
                                     const product = productBySku.get(item.sku);
                                     const formattedPrice = formatCents(item.unitPriceCents);
-                                    const oneSize = item.sizes.length === 1 && item.sizes[0] === "One Size";
+                                    // The catalog crosses the network, so one item missing its
+                                    // sizes must not blank the whole storefront.
+                                    const sizes = Array.isArray(item.sizes) ? item.sizes : [];
+                                    const oneSize = sizes.length === 1 && sizes[0] === "One Size";
                                     const selectedSize = oneSize ? "One Size" : selectedSizes[item.sku] || cart.find((line) => line.sku === item.sku)?.size;
                                     const selectedQuantity = selectedSize ? getSizeQuantity(item.sku, selectedSize) : 0;
 
@@ -206,7 +209,7 @@ function ShopPage() {
                                                         <div className="shopCard__controlGroup">
                                                             <span className="shopCard__label" id={`sizes-${item.sku}`}>Choose size</span>
                                                             <div className="shopCard__sizeOptions" role="group" aria-labelledby={`sizes-${item.sku}`}>
-                                                                {item.sizes.map((size) => {
+                                                                {sizes.map((size) => {
                                                                     const quantity = getSizeQuantity(item.sku, size);
                                                                     return (
                                                                         <button

@@ -10,7 +10,7 @@
         color: $color-uw-purple;
 
         h1 {
-            margin: 10 0 50px;
+            margin: 10px 0 50px;
             font-family: $sans-serif;
             font-size: clamp(3rem, 5.5vw, 6rem);
             font-weight: 900;
@@ -491,8 +491,7 @@
     top: 76px;
     // Right edge tracks the app content margin at any viewport.
     // max() picks the centered calc on wide screens, $page-margin on narrow.
-    // JS only adjusts top (see getCartDropdownAnchor); horizontal stays in CSS
-    // so scrollbars/resize can't desync it.
+    // Position stays in CSS so scrollbars/resize can't desync it.
     right: max(#{$page-margin}, calc((100vw - 1200px) / 2));
     box-sizing: border-box;
     width: min(400px, calc(100vw - 32px));

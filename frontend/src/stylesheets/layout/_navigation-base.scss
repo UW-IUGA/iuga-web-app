@@ -39,6 +39,13 @@ nav {
     }
 }
 
+// Hosts the site-wide shop cart trigger, portaled in by ShopCartProvider.
+.nav-account-cart-slot {
+    display: flex;
+    flex: none;
+    align-items: center;
+}
+
 .nav-mobile-menu {
     display: none;
 }

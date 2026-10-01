@@ -67,6 +67,9 @@ $padding-content: 18px;
 $padding-box-x: 18px;
 $padding-box-y: 12px;
 $margin-content: 18px;
+// Smallest gutter kept between the viewport edge and page content, used by
+// overlay panels that align their edge with the content column.
+$page-margin: 28px;
 $desktop-sidebar-width: 68px;
 $desktop-sidebar-gap: 28px;
 $grid-gap: 24px;

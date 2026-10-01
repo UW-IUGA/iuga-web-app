@@ -18,12 +18,22 @@ import {
     setCartQuantity,
     reconcileCart,
     parseCart,
+    MAX_QUANTITY,
 } from "../utils/shopCart";
 import { CartTrigger, ShopCartDropdown } from "../components/ShopCart";
 
 const CART_STORAGE_KEY = "iuga_shop_cart";
 const CATALOG_CACHE_KEY = "iuga_shop_catalog";
 const CATALOG_CACHE_TTL_MS = 5 * 60 * 1000;
+
+/**
+ * @behavior Builds the sessionStorage key holding the cart handed to Stripe
+ *           for one checkout session, so the paid-return verifier reads back
+ *           the exact cart the handoff wrote.
+ */
+export function checkoutCartKey(sessionId) {
+    return `iuga_shop_checkout_${sessionId}`;
+}
 
 const ShopCartContext = createContext(null);
 
@@ -99,6 +109,10 @@ export function ShopCartProvider({ children }) {
     const [reconcileNotice, setReconcileNotice] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const submittingRef = useRef(false);
+    // Checkout sessions already verified as paid in this mount. Stripe-return URLs
+    // stay shareable and re-visitable: a second arrival must not re-run the paid
+    // branch against the consumed saved cart and cry "could not match your cart".
+    const verifiedSessionsRef = useRef(new Set());
 
     const [searchParams] = useSearchParams();
     const checkoutParam = searchParams.get("checkout");
@@ -124,12 +138,14 @@ export function ShopCartProvider({ children }) {
     const lastFetchRef = useRef(0);
     const SILENT_REVALIDATE_MIN_MS = 60 * 1000;
 
-    const fetchCatalog = useCallback(async (isSilent = false) => {
+    const fetchCatalog = useCallback(async (isSilent = false, force = false) => {
         // Dedupe concurrent fetches (provider + page mount at once) and skip a
         // silent revalidation when data was just fetched (e.g. cart dropdown opened
         // right after page load). A missing catalog always triggers a full load.
+        // `force` bypasses that window for a refresh that cannot wait, such as a
+        // checkout the server rejected for a stale catalog.
         if (fetchInFlightRef.current) return;
-        if (isSilent && Date.now() - lastFetchRef.current < SILENT_REVALIDATE_MIN_MS) return;
+        if (isSilent && !force && Date.now() - lastFetchRef.current < SILENT_REVALIDATE_MIN_MS) return;
         fetchInFlightRef.current = true;
         if (!isSilent) {
             setLoading(true);
@@ -195,6 +211,7 @@ export function ShopCartProvider({ children }) {
 
     useEffect(() => {
         if (checkoutParam !== "complete" || !isAuthenticated || !checkoutSessionId) return undefined;
+        if (verifiedSessionsRef.current.has(checkoutSessionId)) return undefined;
         let active = true;
 
         async function verifyCheckout() {
@@ -208,7 +225,7 @@ export function ShopCartProvider({ children }) {
                     return;
                 }
 
-                const savedCartKey = `iuga_shop_checkout_${checkoutSessionId}`;
+                const savedCartKey = checkoutCartKey(checkoutSessionId);
                 const savedCart = window.sessionStorage.getItem(savedCartKey);
                 if (!savedCart) {
                     setReturnStatus("paid-cart-missing");
@@ -230,6 +247,7 @@ export function ShopCartProvider({ children }) {
                 }
                 writeStoredCart(remaining);
                 window.sessionStorage.removeItem(savedCartKey);
+                verifiedSessionsRef.current.add(checkoutSessionId);
                 setCart(remaining);
                 setReturnStatus("paid");
             } catch {
@@ -244,15 +262,6 @@ export function ShopCartProvider({ children }) {
     useEffect(() => {
         setCartHost(document.getElementById("shop-cart-slot"));
     }, []);
-
-    useEffect(() => {
-        if (!isCartOpen) return undefined;
-        const closeOnEscape = (event) => {
-            if (event.key === "Escape") setIsCartOpen(false);
-        };
-        window.addEventListener("keydown", closeOnEscape);
-        return () => window.removeEventListener("keydown", closeOnEscape);
-    }, [isCartOpen]);
 
     const updateCart = useCallback((nextCart) => {
         setCart(nextCart);
@@ -269,7 +278,9 @@ export function ShopCartProvider({ children }) {
     }, [updateCart]);
 
     const setItemQuantity = useCallback((sku, size, quantity) => {
-        updateCart(setCartQuantity(readStoredCart(), sku, size, quantity));
+        // The bag and card steppers share this path, so the 100 ceiling the quantity
+        // field advertises holds for the +/- buttons too.
+        updateCart(setCartQuantity(readStoredCart(), sku, size, Math.min(quantity, MAX_QUANTITY)));
     }, [updateCart]);
 
     const removeItem = useCallback((sku, size) => {
@@ -287,12 +298,17 @@ export function ShopCartProvider({ children }) {
         setIsSubmitting(true);
 
         if (!isAuthenticated) {
-            if (typeof signIn === "function") {
-                const user = await signIn();
-                if (!user) {
-                    return;
-                }
-            } else {
+            let user = null;
+            try {
+                user = typeof signIn === "function" ? await signIn() : null;
+            } catch {
+                user = null;
+            }
+            if (!user) {
+                // Sign-in was canceled or failed: release the submit guard so checkout
+                // is usable again instead of staying stuck on "Processing checkout...".
+                submittingRef.current = false;
+                setIsSubmitting(false);
                 return;
             }
         }
@@ -336,7 +352,10 @@ export function ShopCartProvider({ children }) {
             if (response.status === 200) {
                 const data = await response.json();
                 if (data.url && data.sessionId) {
-                    window.sessionStorage.setItem(`iuga_shop_checkout_${data.sessionId}`, JSON.stringify(currentCart));
+                    window.sessionStorage.setItem(checkoutCartKey(data.sessionId), JSON.stringify(currentCart));
+                    // The bag stays open on every failure so its notice is visible;
+                    // it closes only here, on the way out to Stripe.
+                    closeCart();
                     if (typeof window.location.assign === "function") {
                         window.location.assign(data.url);
                     } else {
@@ -349,7 +368,7 @@ export function ShopCartProvider({ children }) {
             }
 
             if (response.status === 409) {
-                await fetchCatalog(true);
+                await fetchCatalog(true, true);
                 setCheckoutNotice(
                     "The catalog has updated or the sale status changed. Please review your cart and confirm your order again."
                 );
@@ -369,7 +388,7 @@ export function ShopCartProvider({ children }) {
             submittingRef.current = false;
             setIsSubmitting(false);
         }
-    }, [fetchCatalog, isAuthenticated, isSubmitting, signIn]);
+    }, [closeCart, fetchCatalog, isAuthenticated, isSubmitting, signIn]);
 
     const totalQuantity = cart.reduce((sum, line) => sum + line.quantity, 0);
 
@@ -409,10 +428,10 @@ export function ShopCartProvider({ children }) {
     }, []);
 
     // Stable checkout callback so the transient fade timer isn't reset by renders.
-    const closeCartAndCheckout = useCallback(() => {
-        closeCart();
+    // The bag stays open while checkout runs so failure notices render in place.
+    const startCheckout = useCallback(() => {
         handleCheckout();
-    }, [closeCart, handleCheckout]);
+    }, [handleCheckout]);
 
     return (
         <ShopCartContext.Provider value={value}>
@@ -437,7 +456,7 @@ export function ShopCartProvider({ children }) {
                     checkoutNotice={checkoutNotice}
                     isAuthenticated={isAuthenticated}
                     isSubmitting={isSubmitting}
-                    onCheckout={closeCartAndCheckout}
+                    onCheckout={startCheckout}
                     onQuantityChange={setItemQuantity}
                     onRemove={removeItem}
                     onClose={closeCart}

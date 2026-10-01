@@ -538,14 +538,6 @@
     margin-bottom: 14px;
 }
 
-.sr-only {
-    height: 1px;
-    margin: -1px;
-    overflow: hidden;
-    position: absolute;
-    width: 1px;
-}
-
 @include media(">=sm-desktop", "<desktop") {
     .event-operations {
         width: min(1000px, calc(100% - 36px));

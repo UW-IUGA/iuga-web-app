@@ -73,6 +73,7 @@ function Navbar({ signIn, signOut }) {
                         )}
                     </div>
                 </div>
+                <div className="nav-account-cart-slot" id="shop-cart-slot" />
             </div>
             <div className="nav-account-float">
                 {isAuthenticated ? (

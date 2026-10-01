@@ -31,6 +31,19 @@ $color-light-gray: #fafafa;
 $color-gray: #F9F9F9;
 $color-dark-gray: #595959;
 
+// Shared lavender border used by dropdown panels (nav + shop cart).
+$color-border-lavender: #e5dbef;
+// Base for translucent dropdown shadows; always used with an alpha.
+$color-shadow: #190b2c;
+
+// Shop-specific surfaces.
+$color-shop-hero: #f3f2f6;
+$color-shop-surface: #f8f8f8;
+
+// Error text and its hover state.
+$color-error: #b91c1c;
+$color-error-dark: #7f1d1d;
+
 // Calendar selected-state accents per category.
 $color-academic-calendar-selected: #f7c052;
 $color-career-calendar-selected: #356EFF;

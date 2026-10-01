@@ -1,38 +1,33 @@
 import infoHoodie from "../shop/info-hoodie.png";
-import infoPullover from "../shop/info-pullover.png";
+import infoCrewneck from "../shop/info-crewneck.png";
 import infoBaseballTee from "../shop/info-baseball-tee.png";
-import infoSimpleTee from "../shop/info-simple-tee.png";
+import infoTshirt from "../shop/info-t-shirt.png";
 import infoToteBag from "../shop/info-tote-bag.png";
 
 export const shopProducts = [
     {
         sku: "info-hoodie",
-        title: "INFO Hoodie",
-        description: "A heavyweight black hoodie with a crisp Information School mark.",
+        name: "Hoodie",
         image: infoHoodie,
     },
     {
-        sku: "info-pullover",
-        title: "INFO Pullover",
-        description: "A classic crewneck featuring the UW and Information School identity.",
-        image: infoPullover,
+        sku: "info-crewneck",
+        name: "Crewneck",
+        image: infoCrewneck,
     },
     {
         sku: "info-baseball-tee",
-        title: "INFO Baseball Tee",
-        description: "A black-and-heather raglan tee for an easy everyday layer.",
+        name: "Baseball Tee",
         image: infoBaseballTee,
     },
     {
-        sku: "info-simple-tee",
-        title: "INFO Simple Tee",
-        description: "A clean cotton tee with a bold Information School graphic.",
-        image: infoSimpleTee,
+        sku: "info-t-shirt",
+        name: "T-Shirt",
+        image: infoTshirt,
     },
     {
         sku: "info-tote-bag",
-        title: "INFO Tote Bag",
-        description: "A roomy canvas tote made for class days and campus errands.",
+        name: "Tote Bag",
         image: infoToteBag,
     },
 ];

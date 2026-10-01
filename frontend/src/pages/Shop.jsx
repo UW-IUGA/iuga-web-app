@@ -1,106 +1,74 @@
 /*
- * Purpose: Public merchandise storefront and cart with dynamic catalog fetching,
- *          client-side cart reconciliation, just-in-time sign-in, and Stripe checkout handoff.
+ * Purpose: Public merchandise storefront. Renders the catalog grid and hero from the
+ *          site-wide shop cart; cart state, drawer, and checkout live in ShopCartContext
+ *          so the cart is available on every page.
  * Authentication/Authorization Requirements: Browsing the catalog and building a cart are public.
  *          Checkout requires an authenticated session via useAuthContext().signIn() before dispatching to Stripe.
- * Expected Request Information: Fetches GET /api/v1/shop/catalog and POSTs /api/v1/shop/checkout.
- * Expected Response Information: Catalog JSON with items and pricing on fetch; Stripe URL on checkout.
+ * Expected Request Information: Catalog and cart state from useShopCart().
+ * Expected Response Information: Hero, collection grid, and Stripe return banners.
  */
 
-import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { shopProducts } from "../assets/data/ShopData";
 import { useAuthContext } from "../context/AuthContext";
-import {
-    addLine,
-    removeLine,
-    setQuantity,
-    cartTotal,
-    reconcileCart,
-    parseCart,
-} from "../utils/shopCart";
+import { useShopCart } from "../context/ShopCartContext";
+import { QuantityInput } from "../components/ShopCart";
+import { formatCents, formatDate } from "../utils/shopFormat";
 
-const CART_STORAGE_KEY = "iuga_shop_cart";
+function ShopHeroCarousel() {
+    const [{ currentIndex, outgoingIndex }, setSlide] = useState({ currentIndex: 0, outgoingIndex: null });
 
-/**
- * @behavior Formats integer cents into a USD dollar string.
- * @param {number} cents
- * @returns {string}
- */
-function formatCents(cents) {
-    return `$${((cents || 0) / 100).toFixed(2)}`;
-}
+    useEffect(() => {
+        if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
 
-/**
- * @behavior Formats an ISO date string for display (e.g. Oct 5, 2026).
- * @param {string} isoString
- * @returns {string}
- */
-function formatDate(isoString) {
-    if (!isoString) return "";
-    try {
-        const date = new Date(isoString);
-        return new Intl.DateTimeFormat("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-            timeZone: "UTC",
-        }).format(date);
-    } catch {
-        return "";
-    }
-}
+        const interval = window.setInterval(() => {
+            setSlide(({ currentIndex }) => ({
+                outgoingIndex: currentIndex,
+                currentIndex: (currentIndex + 1) % shopProducts.length,
+            }));
+        }, 5000);
+        return () => window.clearInterval(interval);
+    }, []);
 
-/**
- * @behavior Safely reads and validates cart from sessionStorage.
- * @returns {Array<{sku: string, size: string, quantity: number}>}
- */
-function readStoredCart() {
-    try {
-        const raw = window.sessionStorage.getItem(CART_STORAGE_KEY);
-        return parseCart(raw);
-    } catch {
-        return [];
-    }
-}
-
-/**
- * @behavior Safely writes validated cart array to sessionStorage.
- * @param {Array<{sku: string, size: string, quantity: number}>} cart
- */
-function writeStoredCart(cart) {
-    try {
-        window.sessionStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
-    } catch {
-        // Storage restricted or unavailable
-    }
+    return (
+        <div className="shopPage__heroVisual">
+            {outgoingIndex !== null && (
+                <div className="shopPage__heroSlide shopPage__heroSlide--outgoing" aria-hidden="true">
+                    <img src={shopProducts[outgoingIndex].image} alt="" decoding="async" />
+                    <span className="shopPage__heroCaption">{shopProducts[outgoingIndex].name}</span>
+                </div>
+            )}
+            <div key={currentIndex} className={`shopPage__heroSlide${outgoingIndex !== null ? " shopPage__heroSlide--incoming" : ""}`}
+                onAnimationEnd={() => setSlide(slide => ({ ...slide, outgoingIndex: null }))}>
+                <img src={shopProducts[currentIndex].image} alt={`${shopProducts[currentIndex].name} product mockup`} decoding="async" />
+                <span className="shopPage__heroCaption">{shopProducts[currentIndex].name}</span>
+            </div>
+        </div>
+    );
 }
 
 function ShopPage() {
     const auth = useAuthContext();
     const isAuthenticated = auth?.isAuthenticated || false;
-    const signIn = auth?.signIn;
+    const {
+        cart,
+        catalog,
+        catalogLoading: loading,
+        catalogError: error,
+        retryCatalog,
+        ensureCatalog,
+        addItem,
+        setItemQuantity,
+        checkoutParam,
+        checkoutSessionId,
+        returnStatus,
+        reconcileNotice,
+    } = useShopCart();
 
-    const [catalog, setCatalog] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [selectedSizes, setSelectedSizes] = useState({});
+    const [awaitingSizeSku, setAwaitingSizeSku] = useState(null);
 
-    const [cart, setCart] = useState(() => readStoredCart());
-    const [selectedOptions, setSelectedOptions] = useState({});
-
-    const [checkoutNotice, setCheckoutNotice] = useState(null);
-    const [reconcileNotice, setReconcileNotice] = useState(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const submittingRef = useRef(false);
-
-    const checkoutParam = useMemo(() => {
-        try {
-            return new URLSearchParams(window.location.search).get("checkout");
-        } catch {
-            return null;
-        }
-    }, []);
-
-    const assetBySku = useMemo(() => {
+    const productBySku = useMemo(() => {
         const map = new Map();
         for (const product of shopProducts) {
             if (product.sku) {
@@ -110,225 +78,56 @@ function ShopPage() {
         return map;
     }, []);
 
-    const catalogItemBySku = useMemo(() => {
-        const map = new Map();
-        if (catalog && Array.isArray(catalog.items)) {
-            for (const item of catalog.items) {
-                map.set(item.sku, item);
-            }
-        }
-        return map;
-    }, [catalog]);
-
-    const fetchCatalog = useCallback(async (isSilent = false) => {
-        if (!isSilent) {
-            setLoading(true);
-        }
-        setError(null);
-        try {
-            const response = await fetch("/api/v1/shop/catalog");
-            if (!response.ok) {
-                throw new Error(`Catalog fetch failed with status ${response.status}`);
-            }
-            const data = await response.json();
-            if (data.status !== "success" || !data.catalog) {
-                throw new Error("Invalid catalog format");
-            }
-            setCatalog(data.catalog);
-
-            // Reconcile stored cart against latest catalog
-            const stored = readStoredCart();
-            const { cart: reconciled, removed } = reconcileCart(stored, data.catalog);
-            setCart(reconciled);
-            writeStoredCart(reconciled);
-
-            if (removed.length > 0) {
-                const itemDescriptions = removed.map((r) => `${r.sku} (${r.size})`).join(", ");
-                setReconcileNotice(
-                    `The following items are no longer available and were removed from your cart: ${itemDescriptions}`
-                );
-            }
-        } catch {
-            if (!isSilent) {
-                setError("Unable to load catalog. Please check your connection and try again.");
-            }
-        } finally {
-            if (!isSilent) {
-                setLoading(false);
-            }
-        }
+    useEffect(() => {
+        window.scrollTo(0, 0);
     }, []);
 
     useEffect(() => {
-        fetchCatalog();
-    }, [fetchCatalog]);
+        ensureCatalog();
+    }, [ensureCatalog]);
 
-    const getItemSelection = (item) => {
-        const defaultSize = item.sizes && item.sizes.length > 0 ? item.sizes[0] : "";
-        const current = selectedOptions[item.sku];
-        return {
-            size: current?.size ?? defaultSize,
-            quantity: current?.quantity ?? 1,
-        };
-    };
+    const getSizeQuantity = (sku, size) =>
+        cart.find((line) => line.sku === sku && line.size === size)?.quantity || 0;
 
-    const handleSizeChange = (sku, size) => {
-        setSelectedOptions((prev) => ({
-            ...prev,
-            [sku]: { ...(prev[sku] || { quantity: 1 }), size },
-        }));
-    };
-
-    const handleQuantityChange = (sku, quantity) => {
-        setSelectedOptions((prev) => ({
-            ...prev,
-            [sku]: { ...(prev[sku] || {}), quantity },
-        }));
-    };
-
-    const handleAddToCart = (item) => {
-        const selection = getItemSelection(item);
-        const qty = Math.max(1, Math.floor(Number(selection.quantity) || 1));
-        const nextCart = addLine(cart, {
-            sku: item.sku,
-            size: selection.size,
-            quantity: qty,
-        });
-        setCart(nextCart);
-        writeStoredCart(nextCart);
-    };
-
-    const handleUpdateCartLineQuantity = (sku, size, newQty) => {
-        const nextCart = setQuantity(cart, sku, size, newQty);
-        setCart(nextCart);
-        writeStoredCart(nextCart);
-    };
-
-    const handleRemoveCartLine = (sku, size) => {
-        const nextCart = removeLine(cart, sku, size);
-        setCart(nextCart);
-        writeStoredCart(nextCart);
-    };
-
-    const handleCheckout = async () => {
-        if (submittingRef.current || isSubmitting) return;
-        if (!catalog || catalog.saleState !== "open" || cart.length === 0) return;
-
-        setCheckoutNotice(null);
-
-        if (!isAuthenticated) {
-            if (typeof signIn === "function") {
-                const user = await signIn();
-                if (!user) {
-                    return;
-                }
-            } else {
-                return;
-            }
+    const handleAddToCart = (item, size) => {
+        if (!size) {
+            setAwaitingSizeSku(item.sku);
+            return;
         }
-
-        submittingRef.current = true;
-        setIsSubmitting(true);
-
-        const postCheckout = async () => {
-            return fetch("/api/v1/shop/checkout", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    catalogVersion: catalog.catalogVersion,
-                    items: cart.map((line) => ({
-                        sku: line.sku,
-                        size: line.size,
-                        quantity: line.quantity,
-                    })),
-                }),
-            });
-        };
-
-        try {
-            let response = await postCheckout();
-
-            if (response.status === 401) {
-                // The server session expired. Run interactive sign-in to establish a fresh backend session.
-                if (typeof signIn === "function") {
-                    const reauthenticatedUser = await signIn();
-                    if (reauthenticatedUser) {
-                        response = await postCheckout();
-                    } else {
-                        setCheckoutNotice("Your session expired. Please sign in again to check out.");
-                        return;
-                    }
-                } else {
-                    setCheckoutNotice("Please sign in again to check out.");
-                    return;
-                }
-            }
-
-            if (response.status === 200) {
-                const data = await response.json();
-                if (data.url) {
-                    if (typeof window.location.assign === "function") {
-                        window.location.assign(data.url);
-                    } else {
-                        window.location.href = data.url;
-                    }
-                }
-                return;
-            }
-
-            if (response.status === 409) {
-                await fetchCatalog(true);
-                setCheckoutNotice(
-                    "The catalog has updated or the sale status changed. Please review your cart and confirm your order again."
-                );
-                return;
-            }
-
-            if (response.status === 401) {
-                // A second 401 after re-authentication ends with the notice rather than looping.
-                setCheckoutNotice("Your session expired. Please sign in again to check out.");
-                return;
-            }
-
-            setCheckoutNotice("Unable to start checkout. Please try again later.");
-        } catch {
-            setCheckoutNotice("Unable to start checkout. Please try again later.");
-        } finally {
-            submittingRef.current = false;
-            setIsSubmitting(false);
-        }
+        addItem(item, size);
     };
-
-    const totalItemCount = cart.reduce((sum, line) => sum + line.quantity, 0);
 
     return (
-        <div className="baseContainer">
-            <main className="shopPage">
+        <>
+            <div className="baseContainer">
+                <main className="shopPage">
                 <section className="shopPage__hero" aria-labelledby="shop-title">
-                    <p className="shopPage__kicker">IUGA collection</p>
-                    <h1 id="shop-title">Informatics Merch</h1>
-                    <p>
-                        {catalog?.saleState === "scheduled" && (
-                            <>Official Informatics apparel and accessories. Pre-orders open soon; orders will be distributed via on-campus pickup.</>
-                        )}
-                        {catalog?.saleState === "closed" && (
-                            <>Official Informatics apparel and accessories. Pre-orders have ended for this drop; orders will be distributed via on-campus pickup.</>
-                        )}
-                        {(!catalog || catalog.saleState === "open") && (
-                            <>Official Informatics apparel and accessories. Pre-order now; orders will be distributed via on-campus pickup.</>
-                        )}
-                    </p>
+                    <div className="shopPage__heroTop">
+                        <span>Informatics Merch</span>
+                        <span>Fall collection</span>
+                    </div>
+                    <div className="shopPage__heroContent">
+                        <div className="shopPage__heroIntro">
+                            <h1 id="shop-title">The Informatics <span>Fall Collection.</span></h1>
+                            <div className="shopPage__saleInfo" role="status">
+                                {catalog && catalog.saleState !== "open" && (
+                                    <span>
+                                        {catalog.saleState === "scheduled" ? "Orders open" : "Ordering ended"}{" "}
+                                        <strong>{formatDate(catalog.saleState === "scheduled" ? catalog.opensAt : catalog.closesAt)}</strong>
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                        <ShopHeroCarousel />
+                    </div>
+                    <div className="shopPage__heroBottom" aria-hidden="true">Informatics Undergraduate Association</div>
                 </section>
 
-                {checkoutParam === "complete" && (
+                {checkoutParam === "complete" && returnStatus !== "paid" && (
                     <div className="shopPage__banner shopPage__banner--complete" role="status">
-                        <p>
-                            Returning from checkout is not by itself an order confirmation. Please check your email for the
-                            receipt Stripe sent you to confirm payment. Your cart is still here if you need to review it, and
-                            please contact the IUGA officers if something looks wrong.
-                        </p>
+                        {returnStatus === "paid-cart-missing" && <p>Payment confirmed, but we could not match your cart to this checkout. Please review it before buying again or contact the IUGA officers.</p>}
+                        {returnStatus === "unconfirmed" && <p>We could not confirm payment yet. Your cart is still here. Please check your payment in Stripe or contact the IUGA officers before trying again.</p>}
+                        {returnStatus === "checking" && <p>{!checkoutSessionId ? "We could not identify this checkout. Check your payment before trying again or contact the IUGA officers." : isAuthenticated ? "Checking your payment with Stripe..." : "Sign in to confirm your payment before checking out again."}</p>}
                     </div>
                 )}
 
@@ -359,7 +158,7 @@ function ShopPage() {
                         <button
                             type="button"
                             className="pill-button"
-                            onClick={() => fetchCatalog()}
+                            onClick={() => retryCatalog()}
                         >
                             Try again
                         </button>
@@ -370,101 +169,83 @@ function ShopPage() {
                     <>
                         <section className="shopPage__collection" aria-labelledby="collection-title">
                             <div className="shopPage__collectionHeader">
-                                <div>
-                                    <p className="shopPage__kicker">The collection</p>
-                                    <h2 id="collection-title">Pre-order drop</h2>
+                                <h2 id="collection-title">The Fall Collection</h2>
+                                <div className="shopPage__collectionCount">
+                                    <p>{catalog.items.length} {catalog.items.length === 1 ? "item" : "items"}</p>
                                 </div>
-                                <p>
-                                    {catalog.items.length} {catalog.items.length === 1 ? "item" : "items"}
-                                </p>
                             </div>
 
                             <div className="shopPage__grid">
                                 {catalog.items.map((item) => {
-                                    const asset = assetBySku.get(item.sku);
-                                    const selection = getItemSelection(item);
-                                    const priceFormatted = formatCents(item.unitAmount);
+                                    const product = productBySku.get(item.sku);
+                                    const formattedPrice = formatCents(item.unitPriceCents);
+                                    const oneSize = item.sizes.length === 1 && item.sizes[0] === "One Size";
+                                    const selectedSize = oneSize ? "One Size" : selectedSizes[item.sku] || cart.find((line) => line.sku === item.sku)?.size;
+                                    const selectedQuantity = selectedSize ? getSizeQuantity(item.sku, selectedSize) : 0;
 
                                     return (
                                         <article className="shopCard" key={item.sku}>
-                                            {asset?.image && (
+                                            {product?.image && (
                                                 <div className="shopCard__imageWrap">
                                                     <img
-                                                        src={asset.image}
+                                                        src={product.image}
                                                         alt={`${item.name} product mockup`}
+                                                        loading="lazy"
+                                                        decoding="async"
                                                     />
                                                 </div>
                                             )}
                                             <div className="shopCard__details">
                                                 <div className="shopCard__info">
                                                     <h3>{item.name}</h3>
-                                                    {asset?.description && <p>{asset.description}</p>}
-                                                    <p className="shopCard__price">{priceFormatted}</p>
+                                                    <p className="shopCard__price">{formattedPrice}</p>
                                                 </div>
 
                                                 <div className="shopCard__controls">
-                                                    {item.sizes.length > 1 ? (
+                                                    {!oneSize && (
                                                         <div className="shopCard__controlGroup">
-                                                            <label
-                                                                htmlFor={`size-${item.sku}`}
-                                                                className="shopCard__label"
-                                                            >
-                                                                Size for {item.name}
-                                                            </label>
-                                                            <select
-                                                                id={`size-${item.sku}`}
-                                                                className="shopCard__select"
-                                                                value={selection.size}
-                                                                onChange={(e) =>
-                                                                    handleSizeChange(item.sku, e.target.value)
-                                                                }
-                                                            >
-                                                                {item.sizes.map((s) => (
-                                                                    <option key={s} value={s}>
-                                                                        {s}
-                                                                    </option>
-                                                                ))}
-                                                            </select>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="shopCard__controlGroup">
-                                                            <span className="shopCard__staticLabel">
-                                                                Size: {item.sizes[0]}
-                                                            </span>
+                                                            <span className="shopCard__label" id={`sizes-${item.sku}`}>Choose size</span>
+                                                            <div className="shopCard__sizeOptions" role="group" aria-labelledby={`sizes-${item.sku}`}>
+                                                                {item.sizes.map((size) => {
+                                                                    const quantity = getSizeQuantity(item.sku, size);
+                                                                    return (
+                                                                        <button
+                                                                            key={size}
+                                                                            type="button"
+                                                                            className={`shopCard__sizePill ${selectedSize === size ? "is-selected" : ""} ${quantity ? "is-in-cart" : ""}`}
+                                                                            aria-pressed={selectedSize === size}
+                                                                            aria-label={`${size}${quantity ? `, ${quantity} in cart` : ""}`}
+                                                                            onClick={() => {
+                                                                                setSelectedSizes((previous) => ({ ...previous, [item.sku]: size }));
+                                                                                setAwaitingSizeSku(null);
+                                                                            }}
+                                                                        >
+                                                                            {size}
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </div>
                                                         </div>
                                                     )}
-
-                                                    <div className="shopCard__controlGroup">
-                                                        <label
-                                                            htmlFor={`qty-${item.sku}`}
-                                                            className="shopCard__label"
-                                                        >
-                                                            Quantity for {item.name}
-                                                        </label>
-                                                        <input
-                                                            id={`qty-${item.sku}`}
-                                                            type="number"
-                                                            min="1"
-                                                            className="shopCard__input"
-                                                            value={selection.quantity}
-                                                            onChange={(e) => {
-                                                                const val = parseInt(e.target.value, 10);
-                                                                handleQuantityChange(
-                                                                    item.sku,
-                                                                    isNaN(val) ? "" : Math.max(1, val)
-                                                                );
-                                                            }}
-                                                        />
-                                                    </div>
-
-                                                    <button
-                                                        type="button"
-                                                        className="pill-button shopCard__addButton"
-                                                        onClick={() => handleAddToCart(item)}
-                                                        aria-label={`Add ${item.name} to cart`}
-                                                    >
-                                                        Add to cart
-                                                    </button>
+                                                    {awaitingSizeSku === item.sku && (
+                                                        <p className="shopCard__sizePrompt" role="alert">Choose a size before adding to cart.</p>
+                                                    )}
+                                                    {selectedQuantity > 0 ? (
+                                                        <div className="shopCard__cartPill">
+                                                            <QuantityInput
+                                                                label={`${item.name}${oneSize ? "" : ` ${selectedSize}`}`}
+                                                                quantity={selectedQuantity}
+                                                                removeAtOne
+                                                                onDecrease={() => setItemQuantity(item.sku, selectedSize, selectedQuantity - 1)}
+                                                                onIncrease={() => setItemQuantity(item.sku, selectedSize, selectedQuantity + 1)}
+                                                                onQuantityChange={(value) => setItemQuantity(item.sku, selectedSize, value)}
+                                                            />
+                                                        </div>
+                                                    ) : (
+                                                        <button type="button" className="shopCard__addToCart" onClick={() => handleAddToCart(item, selectedSize)}>
+                                                            Add to cart
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </div>
                                         </article>
@@ -473,129 +254,11 @@ function ShopPage() {
                             </div>
                         </section>
 
-                        <section className="shopPage__cart shopCart" aria-labelledby="cart-heading">
-                            <div className="shopCart__header">
-                                <h2 id="cart-heading">Your Cart</h2>
-                                <span className="shopCart__count">
-                                    {totalItemCount} {totalItemCount === 1 ? "item" : "items"}
-                                </span>
-                            </div>
-
-                            {cart.length === 0 ? (
-                                <p className="shopCart__empty">Your cart is empty.</p>
-                            ) : (
-                                <ul className="shopCart__list">
-                                    {cart.map((line) => {
-                                        const itemDef = catalogItemBySku.get(line.sku);
-                                        const name = itemDef?.name || line.sku;
-                                        const unitAmount = itemDef?.unitAmount || 0;
-                                        const lineTotal = unitAmount * line.quantity;
-
-                                        return (
-                                            <li
-                                                key={`${line.sku}-${line.size}`}
-                                                className="shopCart__item"
-                                            >
-                                                <div className="shopCart__itemInfo">
-                                                    <h3 className="shopCart__itemName">{name}</h3>
-                                                    <span className="shopCart__itemSize">
-                                                        Size: {line.size}
-                                                    </span>
-                                                    <span className="shopCart__linePrice">
-                                                        {formatCents(lineTotal)}
-                                                    </span>
-                                                </div>
-
-                                                <div className="shopCart__itemControls">
-                                                    <label
-                                                        htmlFor={`cart-qty-${line.sku}-${line.size}`}
-                                                        className="shopCart__qtyLabel"
-                                                    >
-                                                        Quantity for {name} ({line.size})
-                                                    </label>
-                                                    <input
-                                                        id={`cart-qty-${line.sku}-${line.size}`}
-                                                        type="number"
-                                                        min="1"
-                                                        className="shopCart__qtyInput"
-                                                        value={line.quantity}
-                                                        onChange={(e) => {
-                                                            const val = parseInt(e.target.value, 10);
-                                                            handleUpdateCartLineQuantity(
-                                                                line.sku,
-                                                                line.size,
-                                                                isNaN(val) ? 0 : val
-                                                            );
-                                                        }}
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        className="shopCart__removeButton"
-                                                        onClick={() =>
-                                                            handleRemoveCartLine(line.sku, line.size)
-                                                        }
-                                                        aria-label={`Remove ${name} (${line.size}) from cart`}
-                                                    >
-                                                        Remove
-                                                    </button>
-                                                </div>
-                                            </li>
-                                        );
-                                    })}
-                                </ul>
-                            )}
-
-                            <div className="shopCart__footer">
-                                <p className="shopCart__subtotal">
-                                    Subtotal: {formatCents(cartTotal(cart, catalog))}
-                                </p>
-
-                                {catalog.saleState === "scheduled" && (
-                                    <p className="shopCart__saleStatusNotice shopCart__saleStatusNotice--scheduled" role="status">
-                                        Coming soon — the Fall drop opens {formatDate(catalog.opensAt)}
-                                    </p>
-                                )}
-
-                                {catalog.saleState === "open" && (
-                                    <p className="shopCart__saleStatusNotice shopCart__saleStatusNotice--open" role="status">
-                                        Preorders are open — the window closes {formatDate(catalog.closesAt)}
-                                    </p>
-                                )}
-
-                                {catalog.saleState === "closed" && (
-                                    <p className="shopCart__saleStatusNotice shopCart__saleStatusNotice--closed" role="status">
-                                        This drop has closed. Preorders ended {formatDate(catalog.closesAt)}.
-                                    </p>
-                                )}
-
-                                {checkoutNotice && (
-                                    <p className="shopCart__checkoutNotice" role="status">
-                                        {checkoutNotice}
-                                    </p>
-                                )}
-
-                                <button
-                                    type="button"
-                                    className="pill-button shopCart__checkoutButton"
-                                    disabled={
-                                        cart.length === 0 ||
-                                        isSubmitting ||
-                                        catalog.saleState !== "open"
-                                    }
-                                    onClick={handleCheckout}
-                                >
-                                    {isSubmitting
-                                        ? "Processing checkout..."
-                                        : !isAuthenticated
-                                          ? "Sign in to checkout"
-                                          : "Checkout"}
-                                </button>
-                            </div>
-                        </section>
                     </>
                 )}
-            </main>
-        </div>
+                </main>
+            </div>
+        </>
     );
 }
 

@@ -229,6 +229,26 @@ The current frontend uses React Router 6 with `BrowserRouter` and does not use S
 
 ## Database
 
+### Local MongoDB helper
+
+Run `scripts/start-mongodb.sh` (or `npm run docker --prefix backend`) to create,
+start, or reuse `iuga-mongo` from `mongo:7`. New containers publish MongoDB only
+at `127.0.0.1:27017` using `-p 127.0.0.1:27017:27017`; this development database
+does not enable authentication. Use Docker Engine 28 or newer: older releases
+can expose localhost-published ports to other hosts on the same network segment.
+
+Existing containers must already have only `127.0.0.1:27017` bindings for
+`27017/tcp`. Unsafe, missing, or unreadable bindings cause the helper to fail
+before stopping Homebrew MongoDB or starting the container. Rerunning the helper
+does not repair old wildcard bindings (`0.0.0.0` / `::`).
+
+To fix an existing container manually, first back up the database, identify and
+preserve its data volume or bind mount, and verify that the backup is restorable.
+Docker port bindings cannot be changed by restarting a container: replacement
+requires `-p 127.0.0.1:27017:27017` while retaining the existing data storage.
+Obtain the container owner's approval before stopping or replacing it; do not
+remove data volumes. The helper never removes or migrates existing containers.
+
 ### Connection
 
 Connection logic is in `models.js` and depends on `DEPLOY_ENV`:

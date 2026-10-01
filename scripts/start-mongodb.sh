@@ -3,9 +3,10 @@
 # Ensure the local development MongoDB container is running.
 #
 #   1. Start Docker if the daemon is not running (Docker Desktop on macOS).
-#   2. Stop the Homebrew "mongodb-community" service when it is running, because
+#   2. Reject existing containers without a loopback-only MongoDB port binding.
+#   3. Stop the Homebrew "mongodb-community" service when it is running, because
 #      it binds 127.0.0.1:27017 and would shadow the container.
-#   3. Create or start the "iuga-mongo" container (mongo:7) on 127.0.0.1:27017 —
+#   4. Create or start the "iuga-mongo" container (mongo:7) on 127.0.0.1:27017 —
 #      the address backend/env/.env.dev points DB_URI at.
 #
 # Safe to re-run: every step checks the current state first.
@@ -43,17 +44,32 @@ if ! docker info >/dev/null 2>&1; then
     fi
 fi
 
-# 2. Homebrew MongoDB would shadow the container on 127.0.0.1 ---------------
+# 2. Check saved bindings even when the container is stopped -----------------
+container_exists=false
+if docker inspect "$CONTAINER" >/dev/null 2>&1; then
+    container_exists=true
+    if ! bindings="$(docker inspect -f '{{range index .HostConfig.PortBindings "27017/tcp"}}{{.HostIp}} {{.HostPort}}{{println}}{{end}}' "$CONTAINER")" \
+        || ! printf '%s\n' "$bindings" | awk -v port="$MONGO_PORT" '
+            NF != 2 || $1 != "127.0.0.1" || $2 != port { unsafe = 1 }
+            END { exit (NR == 0 || unsafe) }
+        '; then
+        echo "[mongodb] ${CONTAINER} has unsafe or missing MongoDB port bindings; expected only 127.0.0.1:${MONGO_PORT}." >&2
+        echo "[mongodb] Back up and preserve MongoDB data, then manually correct the binding to 127.0.0.1:${MONGO_PORT}:${MONGO_PORT} (see docs/BACKEND.md). No containers or Homebrew services were changed." >&2
+        exit 1
+    fi
+fi
+
+# 3. Homebrew MongoDB would shadow the container on 127.0.0.1 ---------------
 if command -v brew >/dev/null 2>&1 \
     && brew services list 2>/dev/null | awk '$1 == "mongodb-community" && $2 == "started" { found = 1 } END { exit !found }'; then
     echo "[mongodb] stopping Homebrew mongodb-community (it shadows ${CONTAINER} on 127.0.0.1:${MONGO_PORT})"
     brew services stop mongodb-community >/dev/null
 fi
 
-# 3. MongoDB container -------------------------------------------------------
-if ! docker inspect "$CONTAINER" >/dev/null 2>&1; then
+# 4. MongoDB container -------------------------------------------------------
+if [ "$container_exists" = "false" ]; then
     echo "[mongodb] creating container ${CONTAINER} (${IMAGE})"
-    docker run -d --name "$CONTAINER" -p "${MONGO_PORT}:${MONGO_PORT}" "$IMAGE" >/dev/null
+    docker run -d --name "$CONTAINER" -p "127.0.0.1:${MONGO_PORT}:${MONGO_PORT}" "$IMAGE" >/dev/null
 elif [ "$(docker inspect -f '{{.State.Running}}' "$CONTAINER")" != "true" ]; then
     echo "[mongodb] starting container ${CONTAINER}"
     docker start "$CONTAINER" >/dev/null

@@ -117,13 +117,15 @@ export const AuthProvider = ({ children }) => {
 
   /*
    * @behavior: Initiate MSAL interactive login and establish the backend session before resolving.
-   *            A second call while one is pending shares the in-flight attempt instead of
-   *            opening another popup. Resolves the authenticated user on success, and null on
+   *            A second call while one is pending shares the in-flight attempt and
+   *            notes that sign-in is already underway instead of opening
+   *            another popup. Resolves the authenticated user on success, and null on
    *            cancellation or error. Never rejects.
    * @returns {Promise<Object|null>} Authenticated backend user, or null if sign-in did not complete.
    */
   const signIn = () => {
     if (signInInFlight.current) {
+      toast.info('Sign-in is already in progress. Complete it in the Microsoft window to continue.');
       return signInInFlight.current;
     }
     const attempt = (async () => {
@@ -134,9 +136,7 @@ export const AuthProvider = ({ children }) => {
           response = await instance.loginPopup(loginRequest);
         } catch (popupError) {
           if (
-            popupError?.errorCode === 'invalid_grant' ||
             popupError?.errorCode === 'consent_required' ||
-            popupError?.code === 'invalid_grant' ||
             popupError?.code === 'consent_required'
           ) {
             toast.info(
@@ -178,6 +178,7 @@ export const AuthProvider = ({ children }) => {
   const signOut = async () => {
     // Invalidate any in-flight backend sign-in calls so they cannot resurrect signed-in state
     syncMemo.current.clear();
+    signInInFlight.current = null;
     authGeneration.current++;
     try {
       const response = await fetch('/api/v1/user/logout', {

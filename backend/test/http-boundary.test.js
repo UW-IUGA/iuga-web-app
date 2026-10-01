@@ -2,7 +2,11 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import express from "express";
 import { once } from "node:events";
-import { ALLOWED_ORIGINS, REQUEST_BODY_LIMIT } from "../http/boundary.js";
+import {
+  ALLOWED_ORIGINS,
+  configureCorsAndReadiness,
+  REQUEST_BODY_LIMIT,
+} from "../http/boundary.js";
 
 const allowedOrigins = ALLOWED_ORIGINS;
 
@@ -27,6 +31,33 @@ describe("HTTP Boundary & CORS", () => {
     assert.equal(isOriginAllowed("https://evil.com"), false);
     assert.equal(isOriginAllowed("http://localhost:8080"), false);
     assert.equal(isOriginAllowed("https://fake-iuga.info"), false);
+  });
+
+  it("allows the local frontend to read the readiness response", async () => {
+    const app = express();
+    configureCorsAndReadiness(app);
+
+    const server = app.listen(0);
+    await once(server, "listening");
+    const { port } = server.address();
+
+    try {
+      const response = await fetch(`http://127.0.0.1:${port}/readyz`, {
+        headers: { Origin: "http://localhost:3000" },
+      });
+
+      assert.equal(response.status, 200);
+      assert.equal(
+        response.headers.get("access-control-allow-origin"),
+        "http://localhost:3000",
+      );
+      assert.deepEqual(await response.json(), { status: "ok" });
+    } finally {
+      server.closeAllConnections?.();
+      await new Promise((resolve, reject) =>
+        server.close((error) => (error ? reject(error) : resolve())),
+      );
+    }
   });
 
   it("sets defensive security headers", () => {

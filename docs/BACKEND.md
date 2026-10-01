@@ -94,8 +94,8 @@ Express also serves:
 | `POST` | `/login` | No* | Exchange MS access token for a server session. Validates token via Microsoft Graph API. Creates user in MongoDB if new. |
 | `POST` | `/logout` | Yes | Destroy server session. |
 | `GET` | `/` | Yes | Return current session user info (firstName, lastName, displayName, email, memberType). |
-| `GET` | `/:uId` | Yes | Validate a user ID before entering the current owner/admin view stub. |
-| `POST` | `/:uId` | Yes | Validate a user ID before entering the current self/admin update stub. |
+| `GET` | `/:userId` | Yes | Validate a user ID before entering the current owner/admin view stub. |
+| `POST` | `/:userId` | Yes | Validate a user ID before entering the current self/admin update stub. |
 
 \* `/login` does not require a session but does require a Bearer token from Microsoft.
 
@@ -214,6 +214,7 @@ The application applies these checks before API handlers:
 - Session cookies are `httpOnly`, use `SameSite=Lax`, and are `secure` in staging and production.
 - Authenticated `POST`, `PUT`, `PATCH`, and `DELETE` requests must include an allowed browser `Origin`. Login is exempt because it uses a Microsoft Bearer token instead of a session cookie.
 - CORS allows only `http://localhost:3000`, `http://localhost:5173`, and the documented IUGA domains. Backend ports such as `7777` are not browser origins.
+- CORS middleware runs before `GET /readyz`, so the local frontend can read the readiness response while setting up sign-in.
 - JSON and URL-encoded bodies are limited to 32 KB. API traffic is limited to 100 requests per 15 minutes, and login is limited to 10 requests per minute per client address.
 - Malformed JSON, oversized bodies, CORS failures, and unexpected server failures return the repository JSON error envelope rather than HTML or stack traces.
 

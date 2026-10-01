@@ -2,7 +2,6 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import logger from "morgan";
 import sessions from "express-session";
-import cors from "cors";
 import path from "path";
 
 import { models, connectToDatabase } from "./models.js";
@@ -13,7 +12,11 @@ import {
   createRateLimiter,
 } from "./routes/api/v1/utils/rateLimit.js";
 import { httpErrorHandler, sendSpaError } from "./http/errors.js";
-import { ALLOWED_ORIGINS, REQUEST_BODY_LIMIT } from "./http/boundary.js";
+import {
+  ALLOWED_ORIGINS,
+  configureCorsAndReadiness,
+  REQUEST_BODY_LIMIT,
+} from "./http/boundary.js";
 import { createCsrfProtection } from "./routes/api/v1/utils/csrf.js";
 import { createSpaRouter } from "./http/spaRoutes.js";
 
@@ -38,30 +41,7 @@ const apiRateLimiter = createRateLimiter({
   windowMs: 15 * 60_000,
 });
 
-// Readiness probe for the pipeline health gate. The listener only starts
-// after the DB connects, so 200 implies the database is reachable.
-app.get("/readyz", (req, res) => res.json({ status: "ok" }));
-
-const allowedOrigins = ALLOWED_ORIGINS;
-
-/*
-Purpose: Allow credentialed browser requests only from documented local and IUGA origins.
-Authentication/Authorization Requirements: None
-
-Expected Response Information:
-- Allowed origins receive CORS headers; arbitrary origins are rejected.
-*/
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      return callback(new Error("CORS origin not allowed"));
-    },
-    credentials: true,
-  }),
-);
+configureCorsAndReadiness(app);
 
 /*
 Purpose: Add browser security headers to every response.
@@ -131,7 +111,7 @@ Expected Response Information:
 - Requests receive session state only when a route uses it.
 */
 app.use(sessions(createSessionOptions(sessionSecret, process.env.DEPLOY_ENV)));
-app.use(createCsrfProtection({ allowedOrigins }));
+app.use(createCsrfProtection({ allowedOrigins: ALLOWED_ORIGINS }));
 
 /*
 Purpose: Attach the shared Mongoose model registry to each request for controllers.

@@ -91,6 +91,7 @@ router.get("/", async function (req, res) {
             eOrganizers: event.eOrganizers,
             eDescription: event.eDescription,
             eLabels: event.eLabels,
+            eHost: event.eHost ?? null,
             hasRSVPd: hasRSVPd,
           };
         }),
@@ -110,6 +111,7 @@ router.get("/", async function (req, res) {
             eOrganizers: event.eOrganizers,
             eDescription: event.eDescription,
             eLabels: event.eLabels,
+            eHost: event.eHost ?? null,
             hasRSVPd: false,
           };
         }),
@@ -142,9 +144,10 @@ Expected Response Information:
             eOrganizers: Array of String event organizer(s),
             eDescription: String event description,
             eLabels: Array of String event category label(s),
-            ePics: Array of Image event pics,
+            eHost: Object canonical event host snapshot or null,
             qList: Array of key:value pairs representing RSVP question number and question string,
-            participants: Array of participant ids,
+            participants: Number of participants or null when not authenticated or not shown,
+            showParticipants: Boolean whether participant details are exposed,
             eThumbnail: a Image of event
         }]
 */
@@ -179,6 +182,9 @@ router.get("/id/:eId", async function (req, res) {
       }
     }
 
+    const showParticipants =
+      Boolean(req.session.isAuthenticated) && Boolean(event.eShowParticipants);
+
     const eventData = {
       eId: event._id,
       eName: event.eName,
@@ -187,12 +193,12 @@ router.get("/id/:eId", async function (req, res) {
       eEndDate: event.eEndDate,
       eLocation: event.eLocation,
       eDescription: event.eDescription,
-      ePics: event.ePics,
       eLabels: event.eLabels,
+      eHost: event.eHost ?? null,
       rsvpQuestions: event.rsvpQuestions,
       rsvpAnswers,
-      participants: event.eShowParticipants ? event.eParticipants.length : null,
-      showParticipants: event.eShowParticipants,
+      participants: showParticipants ? event.eParticipants.length : null,
+      showParticipants,
       eThumbnailPath: event.eThumbnailPath,
       rsvpEnabled: event.eRsvpEnabled,
       eAltLink: event.eAltLink,

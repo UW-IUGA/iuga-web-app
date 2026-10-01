@@ -200,6 +200,75 @@ describe("event request API", () => {
     assert.equal(result.body.event.eName, "IUGA Workshop");
   });
 
+  it("rejects malformed host metadata and a non-boolean privacy flag", async () => {
+    const base = {
+      eventName: "IUGA Workshop",
+      requestingGroup: "Tech Committee",
+      description: "A useful workshop",
+      proposedStartDate: "2026-09-01T18:00:00Z",
+    };
+
+    const hostWithoutName = await api.request(
+      "POST",
+      "/api/v1/event-requests",
+      { ...base, eHost: { userId: organizerId } },
+      { models: makeModels() },
+    );
+    assert.equal(hostWithoutName.status, 400);
+
+    const hostWithUnknownField = await api.request(
+      "POST",
+      "/api/v1/event-requests",
+      { ...base, eHost: { name: "Ada", bogus: "nope" } },
+      { models: makeModels() },
+    );
+    assert.equal(hostWithUnknownField.status, 400);
+
+    const badFlag = await api.request(
+      "POST",
+      "/api/v1/event-requests",
+      { ...base, eShowParticipants: "yes" },
+      { models: makeModels() },
+    );
+    assert.equal(badFlag.status, 400);
+  });
+
+  it("copies host metadata and participant privacy into the published event on approval", async () => {
+    const eHost = {
+      name: "Ada Lovelace",
+      userId: organizerId,
+    };
+    const request = {
+      ...submittedRequest,
+      eHost,
+      eShowParticipants: true,
+    };
+
+    const result = await api.request(
+      "POST",
+      `/api/v1/event-requests/${requestId}/approve`,
+      {},
+      { models: makeModels({ request, permissions: ["events.leadership.approve"] }) },
+    );
+
+    assert.equal(result.status, 200);
+    assert.deepEqual(result.body.event.eHost, eHost);
+    assert.equal(result.body.event.eShowParticipants, true);
+  });
+
+  it("defaults published events to hidden participants when the request omits the flag", async () => {
+    const result = await api.request(
+      "POST",
+      `/api/v1/event-requests/${requestId}/approve`,
+      {},
+      { models: makeModels({ permissions: ["events.leadership.approve"] }) },
+    );
+
+    assert.equal(result.status, 200);
+    assert.equal(result.body.event.eShowParticipants, false);
+    assert.equal(result.body.event.eHost, null);
+  });
+
   it("records the external review link and receipt actor", async () => {
     const result = await api.request(
       "PATCH",

@@ -43,7 +43,7 @@ frontend/src/
 ├── hooks/
 │   └── useAuth.jsx       ← MSAL token acquisition + backend handshake
 ├── layouts/
-│   ├── Navbar.jsx        ← Shared responsive navigation: desktop sidebar rail and mobile navbar with hamburger menu
+│   ├── Navbar.jsx        ← Shared top navigation and temporary mobile menu
 │   └── Footer.jsx
 ├── pages/
 │   ├── Home.jsx          ← Landing page: hero, WHO WE ARE cards, upcoming events
@@ -68,10 +68,27 @@ frontend/src/
 `layouts/Navbar.jsx` is rendered once by `App.jsx` and uses the same navigation
 markup at every breakpoint. Its presentation is split across these partials:
 
-- `_navigation-base.scss` — shared container, links, and auth controls
-- `_navigation-mobile.scss` — top navbar, centered IUGA logo, left hamburger,
-  and collapsible menu below the tablet breakpoint
-- `_navigation-desktop.scss` — fixed sidebar rail and desktop account controls
+- `_navigation-base.scss` — Campus utility line, shared links, and account menu
+- `_navigation-mobile.scss` — hamburger button and dropdown panel below the
+  sm-desktop breakpoint
+- `_navigation-desktop.scss` — compact laptop link spacing
+
+The header holds the logo on the left and one centered group of page links:
+Events, Resources, Student Voice, Shop, About, and Get Involved. The account
+control sits to the right of the group. On smaller desktops the link spacing
+tightens to keep the navigation on one line; below the sm-desktop breakpoint
+the links collapse into a hamburger panel. Escape closes the account menu and
+the mobile panel. Signed-in students see their name, a "Signed in with UW
+NetID" line, and a text Sign out action in the account menu, without an avatar
+or role badge. The mobile menu closes after navigation. The shop cart mounts in
+the header on both layouts.
+
+**Archived, not deleted:** the Elections and Election FAQ pages are still routed
+at `/elections` and `/electionfaq`, but the navigation intentionally does not
+link to them. The About dropdown that used to surface them was removed, and Get
+Involved and Student Voice are now separate top-level links. The pages are
+unreachable from the UI on purpose — reach them by URL. If a future release
+re-exposes them, restore the nav entry rather than assuming the pages are gone.
 
 Use the shared variables in `stylesheets/abstracts/_variables.scss` for layout
 tokens such as `$radius-pill`, `$radius-card`, and `$pill-height`. Avoid hard-coded
@@ -79,11 +96,9 @@ navigation radii or dimensions in page styles.
 
 ### Shared layout shell
 
-`layout/_container.scss` owns the app shell geometry. Above the tablet
-breakpoint the fixed navigation rail owns the left edge, so the shell reserves
-that rail and `.baseContainer` centers itself in the remaining region. The
-footer centers in the same region, which keeps page content and the footer on
-one vertical axis.
+`layout/_container.scss` owns the app shell geometry. The sticky top navbar
+remains in document flow and `.baseContainer` centers in the full viewport.
+The footer centers on the same axis as page content.
 
 The column cap — 1200px, or 1000px between the sm-desktop and desktop
 breakpoints — is intentional. Pages cap their own inner content well inside it,
@@ -166,8 +181,8 @@ The backend creates **server-side sessions** (express-session), so the frontend 
 - Import order in `main.scss` follows the 7-1 convention: abstracts → vendors → base → layout → components → pages
 - All design tokens (colors, fonts, spacing, radii, breakpoints) live in `abstracts/_variables.scss` and follow the `$[token-type]-*` naming convention
 - Fonts: **NotoSans** (body) and **PlayfairDisplay** (headings), served from `public/font/`
-- Responsive breakpoints: mobile below `768px`, tablet/desktop at `768px` and above,
-  with the sm-desktop breakpoint at `1024px`
+- Responsive breakpoints: the navigation drawer appears below `1024px` to keep
+  links readable; page layout also uses the tablet breakpoint at `768px`
 - Some pages (Events calendar) are desktop-only with a "under construction" message on mobile
 - Toast notifications: `react-toastify` for user feedback
 

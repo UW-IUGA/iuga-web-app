@@ -54,8 +54,11 @@ Browser
 
 - Serve the single-page application (SPA) shell (`index.html`)
 - Client-side routing with React Router v6
-- Render pages: Home, Events, Resources, About, Get Involved, Shop, Student Voice,
-  Elections, and Election FAQ
+- Render pages: Home, Events, Resources, About, Get Involved, Shop, and Student
+  Voice.
+- **Archived, not deleted:** Elections and Election FAQ stay routed at
+  `/elections` and `/electionfaq`, but the navigation intentionally omits them.
+  They are unreachable from the UI by design, not by oversight.
 - Render shared responsive navigation and footer layouts around the routed pages
 - Manage authentication state via Azure MSAL (Microsoft Authentication Library)
 - In **production**: fetch data from same-origin `/api` routes. MSAL returns to the frontend's origin.

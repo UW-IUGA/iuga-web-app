@@ -54,11 +54,6 @@
   }
 }
 
-.electionsWrapper {
-  flex: 4;
-  margin-bottom: 60px;
-}
-
 // contains the side bar and the election content
 .electionContentContainer{
   display: flex;
@@ -178,10 +173,6 @@
     }
   }
 
-  .electionsWrapper {
-    margin-bottom: 60px;
-  }
-
   /* elections section (where the components will go) styling */
   .legendContainer {
     height: 3700px;
@@ -197,12 +188,6 @@
 
     li {
       font-size: 14px;
-    }
-  }
-
-  .electionBoxContainer {
-    h2 {
-      font-size: 24px;
     }
   }
 
@@ -269,19 +254,9 @@
     }
   }
 
-  .electionsWrapper {
-    margin-bottom: 60px;
-  }
-
   /* elections section (where the components will go) styling */
   .legendContainer {
     display: none;
-  }
-
-  .electionBoxContainer {
-    h2 {
-      font-size: 24px;
-    }
   }
 
   /* Blobs styling, in chronological order */

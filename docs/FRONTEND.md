@@ -116,11 +116,39 @@ Defined in `src/App.jsx`:
 | `/` | `HomePage` | `upcomingEvents` (prop — mock or API) |
 | `/events` | `EventsPage` | Mock data or `GET /api/v1/events` |
 | `/resources` | `ResourcesPage` | Static data from `assets/data/ResourcesData.js` |
+| `/shop` | `ShopPage` | Static data from `assets/data/ShopData.js` and `GET /api/v1/shop/catalog` plus authenticated `POST /api/v1/shop/checkout` |
 | `/elections` | `ElectionPage` | Static data from `assets/data/CandidateData.js` |
 | `/electionfaq` | `ElectionsFAQPage` | Static data from `assets/data/ElectionFAQData.js` |
 | `/get-involved` | `GetInvolvedPage` | Static data from `frontend/src/assets/data/teams/2026.js` (2026 roster, no API) |
 
 The backend also serves `index.html` for each of these paths to enable deep linking (see [BACKEND.md](./BACKEND.md#spa-routes)).
+
+### Cart checkout and payment returns
+
+`context/ShopCartContext.jsx` owns the site-wide cart and checkout handoff.
+The cart is stored in this tab's `sessionStorage` under `iuga_shop_cart`.
+Starting checkout saves the exact submitted quantities under
+`iuga_shop_checkout_<sessionId>` before leaving for Stripe.
+
+On `/shop?checkout=complete&session_id=<sessionId>`, signed-in shoppers wait for
+the authenticated, buyer-scoped `GET /api/v1/shop/checkout/<sessionId>` to verify
+payment. This read-only server check is the payment authority; neither the URL
+nor browser storage proves payment. Pending, failed, or unavailable verification
+leaves the cart intact and shows the unconfirmed-payment notice.
+
+After a paid response, the saved handoff quantities are subtracted once from the
+current cart, preserving items added since checkout began. The handoff key then
+holds `processed` for the rest of the tab's session. After a reload, the same
+return URL still requires fresh server verification, but does not subtract again
+or show a false cart-mismatch warning. A never-processed missing or corrupt
+handoff instead keeps the cart and shows the paid-but-unmatched warning.
+
+The processed marker is written before the remaining cart, so a storage failure
+cannot leave a consumable handoff that would subtract again on reload. Storage
+errors leave the cart unchanged and show an unresolved confirmation. If the
+marker was saved but the cart write failed, later visits preserve the cart rather
+than risk removing newly added items. This is tab-local bookkeeping, not order
+tracking or proof of payment.
 
 ---
 
@@ -134,7 +162,7 @@ In Vite dev mode, the frontend uses **mock data**:
 - **Calendar events**: `MockCalendarData.js` (imported directly, no fetch)
 - **Single event details**: `mockEvent` from `MockCalendarData.js`
 
-No backend is required for frontend development.
+No backend is required for frontend development. The exception is the shop: it reads its catalog and prices from the API in both dev and production, because prices and sizes must never be duplicated in the frontend — in dev that means the Vite `/api` proxy to the backend must be running for the page to load.
 
 ### Production Mode
 

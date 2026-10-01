@@ -11,6 +11,7 @@ import { ToastContainer, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Route, Routes } from "react-router-dom";
 import Navbar from "./layouts/Navbar";
+import { ShopCartProvider } from "./context/ShopCartContext";
 import { useState, useEffect } from "react";
 import { mockCalendarData } from "./assets/mock-data/MockCalendarData";
 import { enrichWithDevThumbnails } from "./utils/devThumbnails";
@@ -60,6 +61,7 @@ function App() {
                 transition={Bounce}
             />
             <Navbar signIn={signIn} signOut={signOut} />
+            <ShopCartProvider>
             <Routes>
                 <Route path="/" element={<HomePage upcomingEvents={upcomingEvents} />} />
                 <Route path="/events" element={<EventsPage />} />
@@ -78,6 +80,7 @@ function App() {
                 <Route path="/about" element={<AboutPage teams={iugaTeams} />} />
                 <Route path="/get-involved" element={<GetInvolvedPage />} />
             </Routes>
+            </ShopCartProvider>
             <Footer />
         </div>
     );

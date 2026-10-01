@@ -25,11 +25,13 @@ import { CartTrigger, ShopCartDropdown } from "../components/ShopCart";
 const CART_STORAGE_KEY = "iuga_shop_cart";
 const CATALOG_CACHE_KEY = "iuga_shop_catalog";
 const CATALOG_CACHE_TTL_MS = 5 * 60 * 1000;
+const PROCESSED_CHECKOUT_CART = "processed";
 
 /**
  * @behavior Builds the sessionStorage key holding the cart handed to Stripe
  *           for one checkout session, so the paid-return verifier reads back
- *           the exact cart the handoff wrote.
+ *           the exact cart the handoff wrote. After processing, this key holds
+ *           a sentinel preventing repeat subtraction across reloads in this tab.
  */
 export function checkoutCartKey(sessionId) {
     return `iuga_shop_checkout_${sessionId}`;
@@ -109,9 +111,8 @@ export function ShopCartProvider({ children }) {
     const [reconcileNotice, setReconcileNotice] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const submittingRef = useRef(false);
-    // Checkout sessions already verified as paid in this mount. Stripe-return URLs
-    // stay shareable and re-visitable: a second arrival must not re-run the paid
-    // branch against the consumed saved cart and cry "could not match your cart".
+    // Avoid processing a paid session again in this mount. The stored sentinel
+    // covers full reloads, which still require fresh server verification.
     const verifiedSessionsRef = useRef(new Set());
 
     const [searchParams] = useSearchParams();
@@ -227,6 +228,11 @@ export function ShopCartProvider({ children }) {
 
                 const savedCartKey = checkoutCartKey(checkoutSessionId);
                 const savedCart = window.sessionStorage.getItem(savedCartKey);
+                if (savedCart === PROCESSED_CHECKOUT_CART) {
+                    verifiedSessionsRef.current.add(checkoutSessionId);
+                    setReturnStatus("paid");
+                    return;
+                }
                 if (!savedCart) {
                     setReturnStatus("paid-cart-missing");
                     return;
@@ -238,15 +244,17 @@ export function ShopCartProvider({ children }) {
                     return;
                 }
 
-                let remaining = readStoredCart();
+                let remaining = parseCart(window.sessionStorage.getItem(CART_STORAGE_KEY));
                 for (const line of purchased) {
                     const current = remaining.find((item) => item.sku === line.sku && item.size === line.size);
                     if (current) {
                         remaining = setCartQuantity(remaining, line.sku, line.size, current.quantity - line.quantity);
                     }
                 }
-                writeStoredCart(remaining);
-                window.sessionStorage.removeItem(savedCartKey);
+                // Record consumption before changing the cart: if storage fails,
+                // a later return must not subtract newly added items a second time.
+                window.sessionStorage.setItem(savedCartKey, PROCESSED_CHECKOUT_CART);
+                window.sessionStorage.setItem(CART_STORAGE_KEY, JSON.stringify(remaining));
                 verifiedSessionsRef.current.add(checkoutSessionId);
                 setCart(remaining);
                 setReturnStatus("paid");

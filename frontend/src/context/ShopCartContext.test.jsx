@@ -5,7 +5,7 @@
  * Expected Response Information: Visible return notices and cart contents across reloads.
  */
 import { StrictMode } from "react";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { ShopCartProvider } from "./ShopCartContext";
 import ShopPage from "../pages/Shop";
@@ -229,4 +229,173 @@ describe("starting checkout from the cart", () => {
         expect(screen.getByRole("button", { name: "Cart, 1 item" })).toBeInTheDocument();
     });
 
+});
+
+describe("paid checkout returns", () => {
+    test("reloading an already processed paid return preserves newly added items without a cart mismatch", async () => {
+        storeCart([bag], [bag]);
+        const verify = vi.fn(() => response({ paymentStatus: "paid" }));
+        mockApi({ verify });
+        const firstVisit = renderShop(returnUrl);
+
+        await waitFor(() => expect(screen.queryByText(/checking your payment/i)).not.toBeInTheDocument());
+        expect(screen.getByRole("button", { name: "Shopping cart, empty" })).toBeInTheDocument();
+        fireEvent.click(within(screen.getByRole("heading", { name: "INFO Tote Bag" }).closest("article"))
+            .getByRole("button", { name: "Add to cart" }));
+        fireEvent.click(screen.getByRole("button", { name: "Close bag" }));
+        expect(bagQuantity()).toHaveValue("1");
+
+        firstVisit.unmount();
+        const verificationsBeforeReload = verify.mock.calls.length;
+        renderShop(returnUrl);
+
+        await waitFor(() => expect(verify.mock.calls.length).toBeGreaterThan(verificationsBeforeReload));
+        await waitFor(() => expect(screen.queryByText(/checking your payment/i)).not.toBeInTheDocument());
+        expect(screen.queryByText(/could not match your cart/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/could not confirm payment/i)).not.toBeInTheDocument();
+        expect(bagQuantity()).toHaveValue("1");
+        expect(screen.getByRole("button", { name: "Cart, 1 item" })).toBeInTheDocument();
+    });
+
+    test("subtracts only the handed-off quantities, preserving later additions of the same and other products", async () => {
+        storeCart([{ ...bag, quantity: 3 }, hoodie], [bag]);
+        mockApi();
+        renderShop(returnUrl);
+
+        await waitFor(() => expect(bagQuantity()).toHaveValue("2"));
+        expect(screen.getByRole("textbox", { name: "Hoodie L quantity. Type a number from 1 to 100." })).toHaveValue("1");
+        expect(screen.getByRole("button", { name: "Cart, 3 items" })).toBeInTheDocument();
+    });
+
+    test.each([
+        ["pending payment", () => response({ paymentStatus: "pending" })],
+        ["unpaid payment", () => response({ paymentStatus: "unpaid" })],
+        ["another buyer's session", () => response({}, 404)],
+        ["expired authentication", () => response({}, 401)],
+        ["unavailable verification", () => response({}, 503)],
+    ])("a return with %s cannot subtract the cart or claim payment, even with a processed marker", async (_, verify) => {
+        storeCart([bag], [bag]);
+        mockApi({ verify });
+        const firstVisit = renderShop(returnUrl);
+
+        expect(await screen.findByText(/could not confirm payment/i)).toBeInTheDocument();
+        expect(bagQuantity()).toHaveValue("1");
+        firstVisit.unmount();
+
+        // A browser marker is never proof of payment, even if it is forged.
+        sessionStorage.setItem(handoffKey, "processed");
+        renderShop(returnUrl);
+        expect(await screen.findByText(/could not confirm payment/i)).toBeInTheDocument();
+        expect(bagQuantity()).toHaveValue("1");
+    });
+
+    test("waits for fresh server verification on reload before accepting a processed return", async () => {
+        storeCart([bag], [bag]);
+        let resolveVerification;
+        const recheck = new Promise((resolve) => { resolveVerification = resolve; });
+        const verify = vi.fn(() => response({ paymentStatus: "paid" }));
+        mockApi({ verify });
+        const firstVisit = renderShop(returnUrl);
+        await waitFor(() => expect(screen.getByRole("button", { name: "Shopping cart, empty" })).toBeInTheDocument());
+        firstVisit.unmount();
+
+        storeCart([bag]);
+        verify.mockImplementation(() => recheck);
+        renderShop(returnUrl);
+        expect(screen.getByText(/checking your payment/i)).toBeInTheDocument();
+        expect(bagQuantity()).toHaveValue("1");
+        await act(async () => resolveVerification(response({ paymentStatus: "paid" })));
+
+        expect(screen.queryByText(/checking your payment|could not match your cart|could not confirm payment/i)).not.toBeInTheDocument();
+        expect(bagQuantity()).toHaveValue("1");
+    });
+
+    test("a failed verification can be retried by reloading without consuming the saved cart prematurely", async () => {
+        storeCart([{ ...bag, quantity: 2 }], [bag]);
+        const verify = vi.fn(() => response({}, 503));
+        mockApi({ verify });
+        const firstVisit = renderShop(returnUrl);
+        expect(await screen.findByText(/could not confirm payment/i)).toBeInTheDocument();
+        expect(bagQuantity()).toHaveValue("2");
+        firstVisit.unmount();
+
+        verify.mockImplementation(() => response({ paymentStatus: "paid" }));
+        renderShop(returnUrl);
+        await waitFor(() => expect(bagQuantity()).toHaveValue("1"));
+        expect(screen.queryByText(/could not match your cart|could not confirm payment/i)).not.toBeInTheDocument();
+    });
+
+    test.each([null, "not JSON", "[]", '{"quantity":1}'])("a never-processed missing or corrupt handoff (%s) keeps the cart and gives the truthful mismatch notice", async (savedCart) => {
+        storeCart([bag]);
+        if (savedCart !== null) sessionStorage.setItem(handoffKey, savedCart);
+        mockApi();
+        renderShop(returnUrl);
+
+        expect(await screen.findByText(/payment confirmed, but we could not match your cart/i)).toBeInTheDocument();
+        expect(bagQuantity()).toHaveValue("1");
+    });
+
+    test("requires sign-in before verifying a return and does not trust the complete query alone", async () => {
+        auth.isAuthenticated = false;
+        storeCart([bag], [bag]);
+        const verify = vi.fn();
+        mockApi({ verify });
+        renderShop(returnUrl);
+
+        expect(screen.getByText(/sign in to confirm your payment/i)).toBeInTheDocument();
+        await act(async () => {});
+        expect(verify).not.toHaveBeenCalled();
+        expect(bagQuantity()).toHaveValue("1");
+    });
+
+    test.each([
+        ["getItem", handoffKey],
+        ["getItem", "iuga_shop_cart"],
+        ["setItem", handoffKey],
+        ["setItem", "iuga_shop_cart"],
+    ])("a storage failure in %s for %s never clears the cart", async (method, blockedKey) => {
+        storeCart([bag], [bag]);
+        let resolveVerification;
+        const verification = new Promise((resolve) => { resolveVerification = resolve; });
+        mockApi({ verify: () => verification });
+        renderShop(returnUrl);
+        await act(async () => {});
+        const original = Storage.prototype[method];
+        vi.spyOn(Storage.prototype, method).mockImplementation(function (key, ...args) {
+            if (key === blockedKey) throw new Error("Storage unavailable");
+            return original.call(this, key, ...args);
+        });
+
+        await act(async () => resolveVerification(response({ paymentStatus: "paid" })));
+        expect(screen.getByText(/could not confirm payment/i)).toBeInTheDocument();
+        expect(bagQuantity()).toHaveValue("1");
+        expect(screen.getByRole("button", { name: "Cart, 1 item" })).toBeInTheDocument();
+    });
+
+    test("a failed cart write cannot leave a handoff that subtracts newly added items on the next return", async () => {
+        storeCart([bag], [bag]);
+        let resolveVerification;
+        const verification = new Promise((resolve) => { resolveVerification = resolve; });
+        mockApi({ verify: () => verification });
+        const firstVisit = renderShop(returnUrl);
+        await act(async () => {});
+        const original = Storage.prototype.setItem;
+        const storageWrite = vi.spyOn(Storage.prototype, "setItem").mockImplementation(function (key, value) {
+            if (key === "iuga_shop_cart") throw new Error("Storage unavailable");
+            return original.call(this, key, value);
+        });
+        await act(async () => resolveVerification(response({ paymentStatus: "paid" })));
+        expect(screen.getByText(/could not confirm payment/i)).toBeInTheDocument();
+        expect(bagQuantity()).toHaveValue("1");
+
+        storageWrite.mockRestore();
+        fireEvent.click(screen.getByRole("button", { name: "Increase INFO Tote Bag" }));
+        expect(bagQuantity()).toHaveValue("2");
+        firstVisit.unmount();
+        renderShop(returnUrl);
+
+        await waitFor(() => expect(screen.queryByText(/checking your payment/i)).not.toBeInTheDocument());
+        expect(screen.queryByText(/could not match your cart|could not confirm payment/i)).not.toBeInTheDocument();
+        expect(bagQuantity()).toHaveValue("2");
+    });
 });

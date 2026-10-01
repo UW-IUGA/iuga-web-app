@@ -191,18 +191,18 @@ router.get("/", requireAuth, async function (req, res) {
 });
 
 //Get the user's specific information from the user's perspective, from an outsider perspective, and from the admin perspective
-router.get("/:uId", requireAuth, async function (req, res) {
+router.get("/:userId", requireAuth, async function (req, res) {
   try {
-    const uId = req.params.uId;
-    if (!validUserId(uId)) {
+    const userId = req.params.userId;
+    if (!validUserId(userId)) {
       return sendError(res, 400, "Invalid user ID");
     }
     const currId = req.session.userId;
     const currUser = await req.models.Users.findById(currId);
 
-    if (currId == uId) {
+    if (currId == userId) {
       //Current user is viewing their own account (account owner view)
-    } else if (currId != uId && currUser.uType === "Admin") {
+    } else if (currId != userId && currUser.uType === "Admin") {
       //An admin is viewing a users account (admin view)
     } else {
       //An outside user is viewing another user's account (Outside user view)
@@ -214,17 +214,17 @@ router.get("/:uId", requireAuth, async function (req, res) {
 });
 
 //User wants to update their own profile information, or an admin is trying to change a user's information.
-router.post("/:uId", requireAuth, async function (req, res) {
+router.post("/:userId", requireAuth, async function (req, res) {
   try {
-    const uId = req.params.uId;
-    if (!validUserId(uId)) {
+    const userId = req.params.userId;
+    if (!validUserId(userId)) {
       return sendError(res, 400, "Invalid user ID");
     }
     const currId = req.session.userId;
     const currUser = await req.models.Users.findById(currId);
-    if (currId == uId) {
+    if (currId == userId) {
       //If current user edits their own account
-    } else if (currId != uId && currUser.uType === "Admin") {
+    } else if (currId != userId && currUser.uType === "Admin") {
       //if admin edits user account
     } else {
       return sendError(res, 403, "Access denied");
@@ -236,4 +236,3 @@ router.post("/:uId", requireAuth, async function (req, res) {
 });
 
 export default router;
-

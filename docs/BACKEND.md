@@ -42,11 +42,14 @@ backend/
 │       │   ├── feedback.js       ← Feedback form CRUD
 │       │   ├── roles.js           ← Role catalog and role assignments
 │       │   ├── eventRequests.js   ← Event request workflow and operations
+│       │   ├── shop.js            ← Merch catalog browsing and checkout
 │       │   └── administration.js ← Unmounted officer/committee stubs
 │       └── utils/
 │           ├── auth.js        ← Authentication and permission middleware
 │           ├── csrf.js        ← Origin checks for session mutations
-│           └── rateLimit.js   ← Process-local request limits
+│           ├── rateLimit.js   ← Process-local request limits
+│           ├── shopCatalog.js ← Merch catalog source of truth and validation
+│           └── stripeClient.js ← Stripe client factory with fail-closed key validation
 ├── .env.example            ← Tracked runtime template
 ├── env/                    ← Ignored runtime environment files
 └── package.json            ← ES module ("type": "module")
@@ -150,6 +153,23 @@ Officer-only event operations use separate EventRequests records before publishi
 | `GET` | `/:id/reviews` | List post-event reviews. |
 | `POST` | `/:id/complete` | Close an approved request after all checkpoints and both reviews are complete. |
 Money is displayed as dollars and cents in the UI, then converted to an integer number of cents before the API call. For example, `$125.50` becomes `{ "allocatedCents": 12550 }`; the backend never stores floating-point currency.
+
+### Shop (`/api/v1/shop`)
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| `GET` | `/catalog` | No | Public catalog: `catalogId`, `catalogVersion`, currency, sale window, and each item's sku, name, allowed sizes, and `unitPriceCents`. |
+| `POST` | `/checkout` | Yes | Create a Stripe Checkout Session for the authenticated cart and return its hosted URL. |
+| `GET` | `/checkout/:sessionId` | Yes | Confirm a returning Checkout Session belongs to the signed-in buyer and reports paid by Stripe before the browser removes purchased items from its cart. |
+
+**Cart consolidation:** a cart is a list of entries, each naming a product (`sku`), a `size`, and a `quantity`. When the same `sku` and `size` appears more than once, the backend merges those entries into one and adds their quantities — two "hoodie / size M" entries become a single line with quantity 2. Adding the same product and size again therefore raises the quantity rather than creating a duplicate. This is what the backend calls a cart **line**: one product and size carrying a combined quantity.
+
+Required environment variables for Shop checkout:
+
+- `STRIPE_SECRET_KEY` — Stripe secret API key (`sk_test_...` in development). When unconfigured, `/checkout` fails closed with 503.
+- `SHOP_RETURN_BASE_URL` — Return base URL for redirecting buyers after completion or cancellation (e.g. `http://localhost:3000`, no trailing slash). When unconfigured, `/checkout` fails closed with 503.
+
+Checkout returns a session ID alongside the hosted URL. The success redirect includes that ID; the frontend keeps a per-session cart snapshot and only removes purchased lines after `/checkout/:sessionId` confirms payment. A canceled or unconfirmed return keeps the cart. Stripe does not automatically email payment receipts for sandbox purchases. Live-mode email receipts depend on Stripe's customer-email settings and an email address collected at checkout.
 
 ### Administration (`/api/v1/administration`) — *not currently wired*
 
@@ -328,6 +348,7 @@ ETags are disabled with `app.disable('etag')`, so responses do not use condition
 | `cors` | Cross-origin resource sharing |
 | `cookie-parser` | Cookie parsing |
 | `dotenv-cli` | Load environment files |
+| `stripe` | Stripe hosted checkout SDK |
 | Native `fetch` | HTTP requests to Microsoft Graph API |
 
 ---

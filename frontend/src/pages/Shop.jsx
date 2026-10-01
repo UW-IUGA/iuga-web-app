@@ -23,14 +23,13 @@ function ShopPage({ products = shopProducts }) {
 
                     <div className="shopPage__grid">
                         {products.map((product) => (
-                            <article className="shopCard" key={product.title}>
+                            <article className="shopCard" key={product.sku}>
                                 <div className="shopCard__imageWrap">
-                                    <img src={product.image} alt={`${product.title} product mockup`} />
+                                    <img src={product.image} alt={`${product.name} product mockup`} />
                                 </div>
                                 <div className="shopCard__details">
                                     <div>
-                                        <h3>{product.title}</h3>
-                                        <p>{product.description}</p>
+                                        <h3>{product.name}</h3>
                                     </div>
                                     <span className="shopCard__status">{shopAvailability}</span>
                                 </div>

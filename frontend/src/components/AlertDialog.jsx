@@ -14,10 +14,13 @@ function AlertDialog({ eyebrow, title, message, confirmLabel = "Okay", onConfirm
                 aria-labelledby="alert-dialog-title"
                 aria-describedby="alert-dialog-message"
             >
+                <span className="alert-dialog-icon" aria-hidden="true">
+                    !
+                </span>
                 {eyebrow ? <span className="alert-dialog-eyebrow">{eyebrow}</span> : null}
                 <h2 id="alert-dialog-title">{title}</h2>
                 <p id="alert-dialog-message">{message}</p>
-                <button type="button" className="alert-dialog-confirm primary-button" autoFocus onClick={onConfirm}>
+                <button type="button" className="alert-dialog-confirm" autoFocus onClick={onConfirm}>
                     {confirmLabel}
                 </button>
             </section>

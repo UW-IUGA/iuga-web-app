@@ -6,12 +6,16 @@
  */
 import React, { createContext, useState, useEffect, useContext, useRef } from 'react';
 import { useMsal } from '@azure/msal-react';
+import { toast } from 'react-toastify';
 import { loginRequest } from '../authConfig';
 import useAuth from '../hooks/useAuth';
 import { isProduction, apiBaseUrl } from '../runtime';
 import AlertDialog from '../components/AlertDialog';
 
-const LOCAL_BACKEND_MESSAGE = 'Local sign-in requires the Docker development environment. Start Docker and run npm run dev, then try again. Read docs/TROUBLESHOOTING.md#local-development-sign-in for help.';
+const LOCAL_BACKEND_DOCS_PATH = 'docs/TROUBLESHOOTING.md#local-development-sign-in';
+const LOCAL_BACKEND_MESSAGE = `Local sign-in requires the Docker development environment. Start Docker and run npm run dev, then try again. Read ${LOCAL_BACKEND_DOCS_PATH} for help.`;
+const TROUBLESHOOTING_URL =
+    'https://github.com/UW-IUGA/iuga-web-app/blob/main/docs/TROUBLESHOOTING.md#local-development-sign-in';
 const AuthContext = createContext();
 const ensureDevelopmentBackend = async () => {
   if (isProduction) return;
@@ -33,6 +37,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState({});
   const authGeneration = useRef(0);
   const syncMemo = useRef(new Map());
+  const signInInFlight = useRef(null);
 
   /*
    * @behavior: Synchronize an MSAL account with the IUGA backend session. Multiple calls for the
@@ -42,7 +47,7 @@ export const AuthProvider = ({ children }) => {
    * @param {boolean} [options.force=false] - When true, initiates a fresh sync unless one is already in flight.
    * @returns {Promise<Object|null>} Authenticated backend user or null when signed out.
    */
-  const authenticate = (account, { force = false } = {}) => {
+  const signInToBackend = (account, { force = false } = {}) => {
     const targetAccount = account || (accounts && accounts.length > 0 ? accounts[0] : null);
     const currentGen = ++authGeneration.current;
 
@@ -98,7 +103,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    authenticate();
+    signInToBackend();
   }, [accounts]);
 
   const isUserCancellation = (error) => {
@@ -112,43 +117,57 @@ export const AuthProvider = ({ children }) => {
 
   /*
    * @behavior: Initiate MSAL interactive login and establish the backend session before resolving.
-   *            Resolves the authenticated user on success, and null on cancellation or error. Never rejects.
+   *            A second call while one is pending shares the in-flight attempt instead of
+   *            opening another popup. Resolves the authenticated user on success, and null on
+   *            cancellation or error. Never rejects.
    * @returns {Promise<Object|null>} Authenticated backend user, or null if sign-in did not complete.
    */
-  const signIn = async () => {
-    try {
-      await ensureDevelopmentBackend();
-      let response;
-      try {
-        response = await instance.loginPopup(loginRequest);
-      } catch (popupError) {
-        if (
-          popupError?.errorCode === 'invalid_grant' ||
-          popupError?.errorCode === 'consent_required' ||
-          popupError?.code === 'invalid_grant' ||
-          popupError?.code === 'consent_required'
-        ) {
-          response = await instance.loginPopup({
-            ...loginRequest,
-            prompt: 'consent',
-          });
-        } else {
-          throw popupError;
-        }
-      }
-
-      const account = response?.account || (accounts && accounts.length > 0 ? accounts[0] : null);
-      const authenticatedUser = await authenticate(account, { force: true });
-      return authenticatedUser;
-    } catch (error) {
-      if (isUserCancellation(error)) {
-        return null;
-      }
-      setUser({});
-      setLoginState(false);
-      setAuthError(error);
-      return null;
+  const signIn = () => {
+    if (signInInFlight.current) {
+      return signInInFlight.current;
     }
+    const attempt = (async () => {
+      try {
+        await ensureDevelopmentBackend();
+        let response;
+        try {
+          response = await instance.loginPopup(loginRequest);
+        } catch (popupError) {
+          if (
+            popupError?.errorCode === 'invalid_grant' ||
+            popupError?.errorCode === 'consent_required' ||
+            popupError?.code === 'invalid_grant' ||
+            popupError?.code === 'consent_required'
+          ) {
+            toast.info(
+              'Student consent is required for the requested sign-in information. Approve it in the Microsoft window to continue.'
+            );
+            response = await instance.loginPopup({
+              ...loginRequest,
+              prompt: 'consent',
+            });
+          } else {
+            throw popupError;
+          }
+        }
+
+        const account = response?.account || (accounts && accounts.length > 0 ? accounts[0] : null);
+        const authenticatedUser = await signInToBackend(account, { force: true });
+        return authenticatedUser;
+      } catch (error) {
+        if (isUserCancellation(error)) {
+          return null;
+        }
+        setUser({});
+        setLoginState(false);
+        setAuthError(error);
+        return null;
+      } finally {
+        signInInFlight.current = null;
+      }
+    })();
+    signInInFlight.current = attempt;
+    return attempt;
   };
 
   /*
@@ -157,7 +176,7 @@ export const AuthProvider = ({ children }) => {
    * Authentication/Authorization Requirements: None; callable by authenticated or unauthenticated users.
    */
   const signOut = async () => {
-    // Invalidate any in-flight authenticate calls so they cannot resurrect signed-in state
+    // Invalidate any in-flight backend sign-in calls so they cannot resurrect signed-in state
     syncMemo.current.clear();
     authGeneration.current++;
     try {
@@ -189,13 +208,35 @@ export const AuthProvider = ({ children }) => {
   };
 
   const isAdmin = user?.uType === "Admin";
+
+  /*
+   * @behavior: Render the current auth error with the docs path as a hyperlink when it
+   *            is the known local-backend message; otherwise render the raw message.
+   * @returns {React.ReactNode} Message content for AlertDialog.
+   */
+  const renderAuthErrorMessage = () => {
+    if (authError?.message !== LOCAL_BACKEND_MESSAGE) {
+      return authError?.message;
+    }
+    const [lead, tail] = LOCAL_BACKEND_MESSAGE.split(LOCAL_BACKEND_DOCS_PATH);
+    return (
+      <>
+        {lead}
+        <a href={TROUBLESHOOTING_URL} target="_blank" rel="noreferrer">
+          {LOCAL_BACKEND_DOCS_PATH}
+        </a>
+        {tail}
+      </>
+    );
+  };
+
   return (
     <AuthContext.Provider value={{ user, isAuthenticated, isAdmin, authLoading, authError, signIn, signOut }}>
       {authError ? (
         <AlertDialog
           eyebrow="Local environment"
           title="Local sign-in unavailable"
-          message={authError.message}
+          message={renderAuthErrorMessage()}
           confirmLabel="I understand"
           onConfirm={() => setAuthError(null)}
         />

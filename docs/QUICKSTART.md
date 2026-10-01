@@ -125,11 +125,11 @@ When the frontend runs on Vite at `http://localhost:3000`, the browser sends tha
 The frontend switches between mock data and live API based on Vite's production mode:
 
 - **Development**: The frontend imports **mock data** from `src/assets/mock-data/`. No backend or database is needed. This is the default when running `npm start` (Vite dev server).
-- **Production build**: The frontend makes direct same-origin `fetch()` calls to `/api`. The public `VITE_API_URL` value configures the MSAL redirect URI at build time.
+- **Production build**: The frontend makes direct same-origin `fetch()` calls to `/api`. MSAL redirects back to the origin serving the frontend.
   ```js
   fetch(`/api/v1/events/upcoming`)
   ```
-  The public `VITE_API_URL` value is substituted at build time. In production builds the frontend is served as static files by the Express backend, and API requests go directly to the same origin.
+  In production builds the frontend is served as static files by the Express backend, and API requests go directly to the same origin.
 
 ---
 

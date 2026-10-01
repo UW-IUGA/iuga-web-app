@@ -129,7 +129,7 @@ In production, the frontend fetches from same-origin API routes:
 - `GET /api/v1/events` → calendar
 - `GET /api/v1/events/id/{eId}` → event details
 
-The public `VITE_API_URL` Docker build argument configures the MSAL redirect URI at build time.
+MSAL returns to the origin serving the frontend. `VITE_API_URL` is the backend address for development readiness checks, not the sign-in callback address.
 
 ---
 
@@ -139,13 +139,14 @@ Authentication uses **Microsoft Azure AD** via the `@azure/msal-browser` and `@a
 
 ### Auth flow in the frontend
 
-1. **User clicks "UW NetID Login"** → `signIn()` in `AuthContext.jsx` calls `instance.loginRedirect()`
-2. **Redirect to Azure AD** → user authenticates with UW credentials
-3. **Redirect back** → MSAL detects the auth code in the URL
-4. **`useAuth.jsx`**: acquires a token silently → sends it to `POST /api/v1/user/login`
-5. **Backend validates token** (via Microsoft Graph API) → creates server session → returns user data
-6. **`AuthContext`** stores user data and sets `isAuthenticated = true`
-7. **Navbar** shows user greeting + logout button instead of login button
+1. **User clicks "UW NetID Login"** → `signIn()` in `AuthContext.jsx` checks local backend readiness and opens `instance.loginPopup()`
+2. **Microsoft sign-in popup** → user authenticates with UW credentials and returns to the frontend origin (for example, `http://localhost:3000/` in Vite)
+3. **`useAuth.jsx`**: acquires a token silently (or opens a consent popup when needed) → sends it to `POST /api/v1/user/login`
+4. **Backend validates token** (via Microsoft Graph API) → creates server session → returns user data
+5. **`AuthContext`** stores user data and sets `isAuthenticated = true` once the backend session is ready
+6. **Navbar** shows user greeting + logout button instead of login button
+
+The frontend callback URL must also be registered as a SPA redirect URI in the Microsoft app registration (for Vite development, `http://localhost:3000/`).
 
 ### Key files
 

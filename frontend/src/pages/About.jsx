@@ -1,5 +1,5 @@
 import { useState } from "react";
-import GetInvolvedMemberCard from "../components/GetInvolvedMemberCard";
+import StudentProfileCard from "../components/StudentProfileCard";
 import { groupType } from "../assets/data/Enum";
 
 function AboutPage({ teams }) {
@@ -37,7 +37,7 @@ function AboutPage({ teams }) {
                     </div>
                     <div className="about__teamGrid">
                         {officers.map((member, index) => (
-                            <GetInvolvedMemberCard key={`${member.position}-${index}`} member={member} />
+                            <StudentProfileCard key={`${member.position}-${index}`} profile={member} />
                         ))}
                     </div>
                 </section>

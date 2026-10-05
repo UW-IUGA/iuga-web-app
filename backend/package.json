@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "dotenv -e ./env/.env.dev node ./bin/www.cjs",
-    "debug": "dotenv -e env/.env.debug node ./bin/www.cjs",
-    "deploy": "dotenv -e ./env/.env.prod node ./bin/www.cjs",
+    "start": "IUGA_LOCAL_DEV=1 dotenv -e ./env/.env.dev node ./bin/www.cjs",
+    "debug": "IUGA_LOCAL_DEV=1 dotenv -e env/.env.debug node ./bin/www.cjs",
+    "deploy": "IUGA_LOCAL_DEV=0 dotenv -e ./env/.env.prod node ./bin/www.cjs",
     "docker": "bash ../scripts/start-mongodb.sh",
     "test": "node --test test/*.test.js"
   },

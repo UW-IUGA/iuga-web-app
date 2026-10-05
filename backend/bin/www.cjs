@@ -1,5 +1,11 @@
 #!/usr/bin/env node
 
+/*
+Purpose: Start the Express API on its configured or selected HTTP port.
+Expected Request Information: Environment variables loaded by the selected backend npm script.
+Expected Response Information: The API listens on the configured port or the next available local port.
+*/
+
 /**
  * Module dependencies.
  */
@@ -11,7 +17,7 @@ const startupStartedAt = Date.now();
 
 (async () => {
   const app = await (await import('../app.js')).default;
-  const { listenWithAvailablePort } = await import('../serverPort.js');
+  const { listenWithAvailablePort, shouldAllowPortFallback } = await import('../serverPort.js');
 
   /**
    * Get port from environment and store in Express.
@@ -32,7 +38,12 @@ const startupStartedAt = Date.now();
    * Listen on provided port, on all network interfaces.
    */
 
-  listenWithAvailablePort(server, port, host, !configuredPort)
+  const allowPortFallback = shouldAllowPortFallback({
+    isLocalDevelopment: process.env.IUGA_LOCAL_DEV === '1',
+    hasConfiguredPort: Boolean(configuredPort),
+  });
+
+  listenWithAvailablePort(server, port, host, allowPortFallback)
     .then((actualPort) => {
       app.set('port', actualPort);
       onListening(actualPort, host);

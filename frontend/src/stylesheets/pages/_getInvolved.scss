@@ -1,118 +1,270 @@
 /*
-Purpose: Style the Get Involved page and its committee opportunities.
+Purpose: Style the Get Involved page: hero, committee lead profiles, committee
+         list, and the Creative application and contact actions.
 Expected Request Information: Classes emitted by the Get Involved page.
-Expected Response Information: Responsive styles for committee opportunities and page layout.
+Expected Response Information: Responsive styles for the hero, leader profile
+         grid, committee list, and application/contact actions.
 */
 .getInvolved {
     @extend %pageFrame;
-    padding: 48px 0 64px;
-}
-
-.getInvolved__summary {
-    display: flex;
-    align-items: center;
-    margin: 32px auto;
-    width: 100%;
     box-sizing: border-box;
+    padding: clamp(36px, 6vw, 76px) 0 96px;
+    color: $color-uw-purple;
 }
 
-.getInvolved__summaryText {
-    width: 100%;
-    max-width: 720px;
+.getInvolved__hero {
+    display: grid;
+    grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+    align-items: center;
+    gap: clamp(34px, 5vw, 72px);
+    margin-bottom: clamp(64px, 9vw, 112px);
+}
 
-    h1 {
-        font-size: 2.2rem;
+.getInvolved__intro {
+    max-width: 590px;
+}
+
+.getInvolved__introLabel {
+    @extend %pageKicker;
+    margin: 0 0 16px;
+}
+
+.getInvolved__title {
+    max-width: 11ch;
+    margin: 0;
+    font-family: $sans-serif;
+    font-size: clamp(3.2rem, 6vw, 5.5rem);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    line-height: 0.98;
+}
+
+.getInvolved__introDescription {
+    max-width: 48ch;
+    margin: 22px 0 0;
+    color: $color-dark-gray;
+    font-size: clamp(1rem, 1.5vw, 1.18rem);
+    line-height: 1.65;
+}
+
+.getInvolved__leaderProfileGrid {
+    display: grid;
+    min-width: 0;
+    height: clamp(370px, 42vw, 500px);
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.getInvolved__leaderProfile {
+    min-width: 0;
+    min-height: 0;
+
+    &--featured {
+        grid-row: 1 / span 2;
+    }
+
+    .studentProfileCard {
+        height: 100%;
+    }
+
+    .studentProfileCard__media {
+        height: 100%;
+        aspect-ratio: auto;
+        border-radius: $radius-card;
+    }
+
+    .studentProfileCard__body {
+        padding-right: 12px;
+    }
+
+    .studentProfileCard__socials {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    &:not(:first-child) .studentProfileCard__socials a {
+        width: 32px;
+        height: 32px;
     }
 }
 
 .getInvolved__committees {
-    display: flex;
-    flex-direction: column;
-    justify-content: left;
-    margin: 32px auto;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-@include media("screen", "<tablet") {
-
-    .getInvolved__summaryText,
-    .getInvolved__header {
-        text-align: center;
-    }
+    border-top: 1px solid rgba($color-uw-purple, 0.22);
+    padding-top: 30px;
 }
 
 .getInvolved__header {
-    margin-bottom: 24px;
-    padding: 0 0 16px;
-    border-bottom: 1px solid rgba($color-uw-purple, 0.12);
+    margin-bottom: 26px;
 
     h2 {
+        max-width: 22ch;
         margin: 0;
+        font-family: $sans-serif;
+        font-size: clamp(1.8rem, 3vw, 2.55rem);
+        letter-spacing: -0.035em;
+        line-height: 1.12;
     }
 }
 
-.getInvolved__kicker {
-    @extend %pageKicker;
-    display: block;
-    margin-bottom: 10px;
-}
-
-.getInvolved__committeeGrid {
+.getInvolved__committee {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 24px;
+    grid-template-columns: minmax(180px, 0.9fr) minmax(240px, 1.6fr) auto;
+    align-items: center;
+    gap: 20px;
+    padding: 24px 0;
+    border-top: 1px solid rgba($color-uw-purple, 0.15);
+
+    &:first-child {
+        border-top: 0;
+    }
 }
 
-.getInvolvedCommittee {
+.getInvolved__committeeTitle {
+    h3 {
+        margin: 0 0 7px;
+        font-family: $serif;
+        font-size: 1.35rem;
+        line-height: 1.2;
+    }
+
+    p {
+        margin: 0;
+        color: $color-dark-gray;
+        font-size: 0.82rem;
+    }
+}
+
+.getInvolved__description {
+    margin: 0;
+    color: $color-dark-gray;
+    font-size: 0.98rem;
+    line-height: 1.65;
+}
+
+.getInvolved__contactCell {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    box-sizing: border-box;
-    padding: 22px 24px 20px;
+    gap: 8px;
+    justify-self: end;
+}
 
-    h3 {
-        margin: 0 0 6px;
-        font-family: $serif;
-        font-size: 1.5rem;
+.getInvolved__contactCell--application {
+    align-items: flex-end;
+}
+
+.getInvolved__apply {
+    text-decoration: none;
+}
+
+.getInvolved__applicationDeadline {
+    max-width: 30ch;
+    margin: 0;
+    color: $color-dark-gray;
+    font-size: 0.76rem;
+    line-height: 1.4;
+    text-align: right;
+}
+
+@include media("<desktop") {
+    .getInvolved__hero {
+        grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+        gap: 32px;
     }
 
-    &__ledBy {
-        margin: 0 0 10px;
-        font-weight: 600;
-        font-size: 0.9rem;
-        color: $color-dark-gray;
+    .getInvolved__committee {
+        grid-template-columns: minmax(160px, 0.9fr) minmax(210px, 1.4fr);
+        gap: 16px;
     }
 
-    &__badge {
-        display: block;
-        margin: 0 0 14px;
-        padding: 0;
-        border: 0;
-        border-radius: 0;
-        background-color: transparent;
-        color: $color-dark-gray;
-        font-size: 0.72rem;
-        font-weight: 700;
-        letter-spacing: 0.12em;
-        line-height: 1.4;
-        text-transform: uppercase;
-    }
-
-    &__description {
-        margin: 0 0 16px;
-        line-height: 1.55;
-        color: $color-dark-gray;
-    }
-
-    .pill-button {
-        margin-top: auto;
+    .getInvolved__contactCell {
+        grid-column: 2 / -1;
     }
 }
 
-
-@include media(">=tablet") {
-    .getInvolved__committeeGrid {
-        grid-template-columns: repeat(2, 1fr);
+@include media("<tablet") {
+    .getInvolved {
+        padding-top: 34px;
     }
+
+    .getInvolved__hero {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+
+    .getInvolved__leaderProfileGrid {
+        height: 420px;
+    }
+
+    .getInvolved__leaderProfile .studentProfileCard__body {
+        gap: 8px;
+        padding: 40px 12px 12px;
+    }
+
+    .getInvolved__leaderProfile .studentProfileCard__socials {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .getInvolved__leaderProfile .studentProfileCard__socials a {
+        width: 32px;
+        height: 32px;
+    }
+
+    .getInvolved__committee {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 13px 16px;
+        padding: 22px 0;
+    }
+
+    .getInvolved__description,
+    .getInvolved__contactCell {
+        grid-column: 1;
+        justify-self: start;
+    }
+
+    .getInvolved__contactCell--application {
+        align-items: flex-start;
+    }
+
+    .getInvolved__applicationDeadline {
+        text-align: left;
+    }
+}
+
+@include media("screen", "<phone") {
+    .getInvolved__title {
+        font-size: clamp(2.8rem, 13vw, 4rem);
+    }
+
+    .getInvolved__leaderProfileGrid {
+        height: auto;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: 250px 170px;
+        gap: 9px;
+    }
+
+    .getInvolved__leaderProfile--featured {
+        grid-column: 1 / -1;
+        grid-row: auto;
+    }
+
+    .getInvolved__leaderProfile .studentProfileCard__body {
+        padding: 20px 8px 8px;
+    }
+
+    .getInvolved__leaderProfile .studentProfileCard__identity .studentProfileCard__position {
+        font-size: 0.62rem;
+    }
+
+    .getInvolved__leaderProfile .studentProfileCard__identity h3 {
+        font-size: 1rem;
+    }
+
+    .getInvolved__leaderProfile .studentProfileCard__socials a {
+        width: 28px;
+        height: 28px;
+    }
+
 }

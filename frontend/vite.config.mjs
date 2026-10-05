@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => {
         server: {
             port: 3000,
             proxy: {
-                "/api": "http://localhost:7777",
+                "/api": process.env.VITE_API_URL || env.VITE_API_URL || "http://localhost:7777",
             },
         },
         build: {

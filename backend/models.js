@@ -10,6 +10,7 @@ import {
   eventReviewsSchema,
   committeesSchema,
 } from "./schemas/schemas.js";
+import { committeeRecruitmentSchema } from "./committeeRecruitment.js";
 
 // Preserve the Mongoose 6 unknown-filter behavior during the staged upgrade.
 mongoose.set("strictQuery", true);
@@ -33,10 +34,10 @@ async function connectToDatabase(){
   models.EventRequests = mongoose.model("EventRequests", eventRequestsSchema);
   models.EventReviews = mongoose.model("EventReviews", eventReviewsSchema);
   models.Committees = mongoose.model("Committees", committeesSchema);
+  models.CommitteeRecruitment = mongoose.model("CommitteeRecruitment", committeeRecruitmentSchema);
 
   console.log(`[startup] mongoose models created after ${Date.now() - connectionStartedAt}ms`);
 }
 
 //Ship the models variable with all the schemas in it to be used externally.
 export { models, connectToDatabase };
-

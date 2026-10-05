@@ -6,6 +6,7 @@ import eventsRouter from "./controllers/events.js";
 import feedbackRouter from "./controllers/feedback.js";
 import rolesRouter from "./controllers/roles.js";
 import eventRequestsRouter from "./controllers/eventRequests.js";
+import recruitmentRouter from "./controllers/recruitment.js";
 import { createShopRouter } from "./controllers/shop.js";
 import { shopCatalog } from "./utils/shopCatalog.js";
 import { createStripeClient } from "./utils/stripeClient.js";
@@ -15,6 +16,7 @@ router.use("/events", eventsRouter);
 router.use("/feedback", feedbackRouter);
 router.use("/roles", rolesRouter);
 router.use("/event-requests", eventRequestsRouter);
+router.use("/recruitment", recruitmentRouter);
 router.use(
   "/shop",
   createShopRouter({
@@ -25,4 +27,3 @@ router.use(
 );
 
 export default router;
-

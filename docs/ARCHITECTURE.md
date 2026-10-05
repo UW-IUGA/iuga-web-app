@@ -45,7 +45,7 @@ Browser
    │                    ├── routes/api/v1/  (controller modules)
    │                    └── schemas/        (Mongoose schema definitions, submodule)
    │                         │
-   │                    MongoDB (Atlas dev / local prod)
+   │                    MongoDB (Atlas or local Docker in development; deployment database in staging/production)
    │
    └──[static asset]──→ Express serves frontend/build/
 ```
@@ -66,7 +66,7 @@ Browser
 
 ### Backend Responsibilities
 
-- Express.js HTTP server (default port **7777**)
+- Express.js HTTP server (local development prefers **7777** and selects the next port if occupied; deployments use their configured port)
 - Serve the built SPA as static files (`GET /`, `/events`, `/resources`, etc.)
 - Mount REST API at `/api/v1`
 - Apply explicit CORS, security headers, body-size, rate-limit, CSRF, and safe-error boundaries
@@ -83,7 +83,7 @@ Connection depends on `DEPLOY_ENV`:
 |---|---|---|
 | `production` | `mongodb://user:pass@mongo:27017/iuga` | Docker container |
 | `staging` | same as production | Docker container |
-| `development` | `mongodb+srv://user:pass@cluster0.mongodb.net/` | MongoDB Atlas |
+| `development` | Atlas URI from `DB_URI`, or a loopback URI printed by the local MongoDB helper | MongoDB Atlas or local Docker container |
 
 The **schemas** live in a separate GitHub repository (`UW-IUGA/iuga-web-schemas`) mounted as a submodule at `backend/schemas/`. The main repo imports `eventsSchema`, `participantsSchema`, and `usersSchema` from `./schemas/schemas.js`.
 

@@ -14,7 +14,7 @@
 
 | File | Role |
 |---|---|
-| `bin/www.cjs` | HTTP server bootstrap — imports `app.js`, listens on `PORT` (default 7777) |
+| `bin/www.cjs` | HTTP server bootstrap — imports `app.js`, prefers port 7777 when `PORT` is unset, and selects the next port on collision; an explicit `PORT` is fixed and fails if occupied |
 | `app.js` | Express application setup — middleware stack, static serving, API mount |
 | `models.js` | MongoDB connection + Mongoose model registration |
 
@@ -233,7 +233,7 @@ The application applies these checks before API handlers:
 - The session signing secret is supplied at startup from the deployment-matching variable (`SESSION_SECRET_DEV`, `SESSION_SECRET_STAGING`, or `SESSION_SECRET_PROD`, chosen by `DEPLOY_ENV`); there is no source-controlled fallback.
 - Session cookies are `httpOnly`, use `SameSite=Lax`, and are `secure` in staging and production.
 - Authenticated `POST`, `PUT`, `PATCH`, and `DELETE` requests must include an allowed browser `Origin`. Login is exempt because it uses a Microsoft Bearer token instead of a session cookie.
-- CORS allows only `http://localhost:3000`, `http://localhost:5173`, and the documented IUGA domains. Backend ports such as `7777` are not browser origins.
+- CORS and CSRF allow HTTP origins on the exact `localhost` hostname for local development (including dynamically selected Vite ports), plus the documented IUGA domains. Other hosts and protocols remain rejected.
 - CORS middleware runs before `GET /readyz`, so the local frontend can read the readiness response while setting up sign-in.
 - JSON and URL-encoded bodies are limited to 32 KB. API traffic is limited to 100 requests per 15 minutes, and login is limited to 10 requests per minute per client address.
 - Malformed JSON, oversized bodies, CORS failures, and unexpected server failures return the repository JSON error envelope rather than HTML or stack traces.
@@ -251,23 +251,20 @@ The current frontend uses React Router 6 with `BrowserRouter` and does not use S
 
 ### Local MongoDB helper
 
-Run `scripts/start-mongodb.sh` (or `npm run docker --prefix backend`) to create,
-start, or reuse `iuga-mongo` from `mongo:7`. New containers publish MongoDB only
-at `127.0.0.1:27017` using `-p 127.0.0.1:27017:27017`; this development database
-does not enable authentication. Use Docker Engine 28 or newer: older releases
+Run `npm run docker --prefix backend` to create an isolated `mongo:7` container.
+Docker selects an available host port and publishes it only on IPv4 loopback;
+the database itself listens on port `27017` inside each container. Each run uses
+the next available name (`iuga-mongo`, `iuga-mongo-2`, and so on), so local
+databases can run side by side. The helper does not stop Homebrew MongoDB, replace
+containers, or remove data volumes. Use Docker Engine 28 or newer: older releases
 can expose localhost-published ports to other hosts on the same network segment.
 
-Existing containers must already have only `127.0.0.1:27017` bindings for
-`27017/tcp`. Unsafe, missing, or unreadable bindings cause the helper to fail
-before stopping Homebrew MongoDB or starting the container. Rerunning the helper
-does not repair old wildcard bindings (`0.0.0.0` / `::`).
-
-To fix an existing container manually, first back up the database, identify and
-preserve its data volume or bind mount, and verify that the backup is restorable.
-Docker port bindings cannot be changed by restarting a container: replacement
-requires `-p 127.0.0.1:27017:27017` while retaining the existing data storage.
-Obtain the container owner's approval before stopping or replacing it; do not
-remove data volumes. The helper never removes or migrates existing containers.
+After MongoDB is ready, the helper prints a command such as
+`DB_URI=mongodb://127.0.0.1:49152/iuga npm start`. Run that command from
+`backend/` to connect the backend to the selected database. This overrides the
+usual `DB_URI` for that process only; it does not edit `.env.dev` or redirect
+other running backends. Containers without loopback-only port bindings are not
+modified by the helper.
 
 ### Connection
 

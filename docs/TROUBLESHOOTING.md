@@ -13,7 +13,7 @@ If clicking sign-in shows a backend/Docker reminder, start the Docker-based Mong
 npm run dev
 ```
 
-Development checks `http://localhost:7777/readyz` before redirecting to UW NetID. This prevents a missing local MongoDB/backend from leaving the developer on a blank or incomplete authentication flow. Production does not run this local Docker check.
+Development checks the backend's `GET /readyz` endpoint before redirecting to UW NetID. With `npm run dev`, use the backend URL printed in the terminal (normally `http://localhost:7777`); if `PORT` is set in `backend/env/.env.dev`, the backend keeps that fixed port and fails if it is occupied. Unset `PORT` there to allow automatic selection. Production does not run this local readiness check.
 
 ---
 

@@ -20,7 +20,7 @@ npm run setup
 npm start
 # npm run dev is an equivalent command
 ```
-`npm start` and `npm run dev` are equivalent. Both start the Vite frontend with hot reload at **http://localhost:3000** and the Express backend at **http://localhost:7777** concurrently. Neither command reinstalls dependencies; run `npm run setup` once first.
+`npm start` and `npm run dev` are equivalent. They start the Express backend first, then Vite with its `/api` proxy pointed at the backend's selected port. Vite normally uses port 3000 and chooses another port if it is occupied. The backend normally uses 7777 and can choose another port when `PORT` is unset. If your local `backend/env/.env.dev` sets `PORT`, remove or blank that setting to allow automatic selection. Neither command starts MongoDB or reinstalls dependencies; use `scripts/dev-up.sh` to start a local MongoDB container and backend, or run `npm run setup` once to install dependencies.
 
 ---
 
@@ -28,8 +28,8 @@ npm start
 
 | Command | What it does |
 |---|---|
-| `npm run frontend` | Start Vite dev server only on `:3000` |
-| `npm run backend`  | Start Express on `:7777` (dev env) |
+| `npm run frontend` | Start Vite only (usually `:3000`; Vite selects another port if occupied) |
+| `npm run backend`  | Start Express (usually `:7777`; fallback requires `PORT` to be unset) |
 | `npm run backend-debug` | Start backend with debug logging |
 | `npm run debug`    | Legacy frontend build + backend debug mode |
 
@@ -41,7 +41,7 @@ npm install
 npm start
 ```
 
-This starts the Vite dev server on `http://localhost:3000` with hot reload. It uses **mock data** (no backend calls) because Vite development mode is active.
+This starts Vite with hot reload, normally at `http://localhost:3000`; if that port is occupied, Vite prints the alternate URL it selected. Most pages use mock data. The Shop page reads its catalog from `/api`, so run a backend for that page.
 
 ### Backend-only development
 
@@ -60,7 +60,7 @@ npm run debug                # uses .env.debug + verbose logging (create it firs
 The backend requires:
 1. A built frontend at `../frontend/build/`
 2. An environment file loaded by the selected backend script
-3. A MongoDB connection (Atlas for development)
+3. A MongoDB connection (Atlas or the local Docker helper)
 
 ---
 
@@ -81,21 +81,21 @@ Required variables (see `backend/.env.example`):
 
 | Variable | Purpose |
 |---|---|
-| `PORT` | Server port (default 7777) |
+| `PORT` | Optional fixed server port. When set, startup uses that port and fails if it is occupied. When unset, startup prefers 7777 and selects the next port if occupied. Remove or blank `PORT` in local `backend/env/.env.dev` to enable fallback. |
 | `DEPLOY_ENV` | `development`, `staging`, or `production` |
 | `SESSION_SECRET_DEV` | Strong random string for session signing (development build reads this by `DEPLOY_ENV`) |
-| `DB_URI` | Full MongoDB connection string, e.g. `mongodb://<user>:<pass>@mongo:27017/iuga` (local dev: `mongodb://127.0.0.1:27017/iuga`) |
+| `DB_URI` | MongoDB connection string. For local Docker, use the `DB_URI=... npm start` command printed by `npm run docker --prefix backend`, or use `scripts/dev-up.sh` to pass it automatically. |
 
 Frontend environment files are local and should not be committed:
 
 | File | Variable | Value |
 |---|---|---|
-| `frontend/.env.development` | `VITE_API_URL` | `http://localhost:7777` |
+| `frontend/.env.development` | `VITE_API_URL` | `http://localhost:7777` fallback for standalone Vite; root `npm run dev` overrides it with the selected backend URL |
 | `frontend/.env.production` | `VITE_API_URL` | `https://dev.iuga.info` |
 
-In dev mode, the frontend uses **mock data** from `src/assets/mock-data/` instead of fetching from the API. In production builds (`npm run build`), it uses the live API.
+In Vite development mode, most pages use **mock data** from `src/assets/mock-data/`. The Shop page calls the API in development and production, so it requires the backend and the `/api` proxy. The root `npm run dev` command configures that proxy for the backend's selected port.
 
-When the frontend runs on Vite at `http://localhost:3000`, the browser sends that value as the `Origin` header on state-changing requests, so the backend CSRF check accepts them. An authenticated session request from another origin is rejected.
+The root `npm run dev` command passes the backend's selected URL to Vite. Development CORS and CSRF checks accept HTTP origins on `localhost`, including dynamically selected Vite ports; other origins are rejected.
 
 ---
 
@@ -274,10 +274,9 @@ The repository has a small but real test surface, although coverage is incomplet
   cd frontend
   npm test
   ```
-- **Backend:** two Node built-in test suites under `backend/test/` (`sendError` and `sendSuccess`), plus their test fixture. Run them with:
+- **Backend:** Node built-in tests under `backend/test/`. Run them with:
   ```bash
-  cd backend
-  node --test
+  npm test --prefix backend
   ```
 - **CI deploy helper:** regression tests for the health-gated deploy sequence in `ci/deploy.groovy`, under `ci/test/`. They stub `docker` and assert the invoke/rollback behavior, so no daemon is needed. Run them with:
   ```bash

@@ -183,13 +183,13 @@ Authentication uses **Microsoft Azure AD** via the `@azure/msal-browser` and `@a
 ### Auth flow in the frontend
 
 1. **User clicks "UW NetID Login"** → `signIn()` in `AuthContext.jsx` checks local backend readiness and opens `instance.loginPopup()`
-2. **Microsoft sign-in popup** → user authenticates with UW credentials and returns to the frontend origin (for example, `http://localhost:3000/` in Vite)
+2. **Microsoft sign-in popup** → user authenticates with UW credentials and returns to the Vite frontend origin (normally `http://localhost:3000/`; if Vite selects another port, it returns to that origin)
 3. **`useAuth.jsx`**: acquires a token silently (or opens a consent popup when needed) → sends it to `POST /api/v1/user/login`
 4. **Backend validates token** (via Microsoft Graph API) → creates server session → returns user data
 5. **`AuthContext`** stores user data and sets `isAuthenticated = true` once the backend session is ready
 6. **Navbar** shows user greeting + logout button instead of login button
 
-The frontend callback URL must also be registered as a SPA redirect URI in the Microsoft app registration (for Vite development, `http://localhost:3000/`).
+The Vite callback origin must be registered as a SPA redirect URI in the Microsoft app registration. Vite normally uses `http://localhost:3000/`; if another port is selected, register that origin as well.
 
 ### Key files
 

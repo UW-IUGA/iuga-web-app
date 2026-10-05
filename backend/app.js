@@ -13,7 +13,7 @@ import {
 } from "./routes/api/v1/utils/rateLimit.js";
 import { httpErrorHandler, sendSpaError } from "./http/errors.js";
 import {
-  ALLOWED_ORIGINS,
+  isAllowedOrigin,
   configureCorsAndReadiness,
   REQUEST_BODY_LIMIT,
 } from "./http/boundary.js";
@@ -111,7 +111,7 @@ Expected Response Information:
 - Requests receive session state only when a route uses it.
 */
 app.use(sessions(createSessionOptions(sessionSecret, process.env.DEPLOY_ENV)));
-app.use(createCsrfProtection({ allowedOrigins: ALLOWED_ORIGINS }));
+app.use(createCsrfProtection({ isAllowedOrigin }));
 
 /*
 Purpose: Attach the shared Mongoose model registry to each request for controllers.

@@ -32,6 +32,7 @@ backend/
 │   ├── session.js           ← Session signing secret and cookie policy
 │   └── spaRoutes.js         ← SPA shell routes served from the compiled frontend
 ├── models.js                ← Database connection + model registration
+├── committeeRecruitment.js  ← Local recruitment campaign schema and Creative seed
 ├── schemas/                 ← Git submodule → UW-IUGA/iuga-web-schemas
 ├── routes/
 │   └── api/v1/
@@ -42,6 +43,7 @@ backend/
 │       │   ├── feedback.js       ← Feedback form CRUD
 │       │   ├── roles.js           ← Role catalog and role assignments
 │       │   ├── eventRequests.js   ← Event request workflow and operations
+│       │   ├── recruitment.js     ← Public committee recruitment campaign status
 │       │   ├── shop.js            ← Merch catalog browsing and checkout
 │       │   └── administration.js ← Unmounted officer/committee stubs
 │       └── utils/
@@ -153,6 +155,14 @@ Officer-only event operations use separate EventRequests records before publishi
 | `GET` | `/:id/reviews` | List post-event reviews. |
 | `POST` | `/:id/complete` | Close an approved request after all checkpoints and both reviews are complete. |
 Money is displayed as dollars and cents in the UI, then converted to an integer number of cents before the API call. For example, `$125.50` becomes `{ "allocatedCents": 12550 }`; the backend never stores floating-point currency.
+
+### Recruitment (`/api/v1/recruitment`)
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `GET` | `/creative` | No | Report whether the Creative Committee application is open. Returns `{ application: { isOpen: true, formUrl, closesAt } }` while an open campaign exists, otherwise `{ application: { isOpen: false } }`. Responses set `Cache-Control: no-store`. |
+
+The campaign comes from the locally defined `CommitteeRecruitment` model (not the shared schemas submodule). Startup seeds one Creative record with `$setOnInsert`, so later database edits persist. The server decides openness (`closesAt > now`); the client falls back to the contact dialog on any error.
 
 ### Shop (`/api/v1/shop`)
 
@@ -291,8 +301,10 @@ Mongoose models are registered at startup:
 | `RoleAssignments` | `roleAssignmentsSchema` | `roleassignments` |
 | `EventRequests` | `eventRequestsSchema` | `eventrequests` |
 | `EventReviews` | `eventReviewsSchema` | `eventreviews` |
+| `Committees` | `committeesSchema` | `committees` |
+| `CommitteeRecruitment` | `committeeRecruitmentSchema` (local) | `committeerecruitments` |
 
-The schemas live in a **separate GitHub repository** (`UW-IUGA/iuga-web-schemas`) mounted as a submodule at `backend/schemas/`. If the submodule is not initialized, the backend will fail to start.
+The schemas live in a **separate GitHub repository** (`UW-IUGA/iuga-web-schemas`) mounted as a submodule at `backend/schemas/`. If the submodule is not initialized, the backend will fail to start. `CommitteeRecruitment` is the exception: its schema lives in `backend/committeeRecruitment.js` so the campaign model stays out of the shared submodule.
 
 ### Schema details (from submodule)
 
@@ -307,6 +319,10 @@ Based on controller usage, the schemas include these fields:
 **Roles**: `roleName`, `roleKey`, `roleDescription`, `permissions`, `isActive`, `createdBy`, `updatedBy`
 
 **RoleAssignments**: `userId`, `roleId`, optional `committeeId`, optional `reportsToUserId`, `assignedBy`, `assignedAt`, optional `expiresAt`, `deactivatedBy`, `deactivatedAt`, `isActive`
+
+**Committees**: `cmeName`, `cmeDescription`, `cmeYear`, `cmeMembers` (array of objects with `cmeUID` (ref → Users) and `memberPic`)
+
+**CommitteeRecruitment** (local, not the submodule): `committee` (unique), `formUrl`, `closesAt`
 
 **EventRequests**: session-derived requester/organizer, requesting group, event details, lifecycle status, ordered checkpoints, finance and booking data, selected slide template, external review link/receipt, published event link, and actor/timestamp audit fields.
 

@@ -8,8 +8,7 @@ const CSRF_ERROR_MESSAGE = "CSRF validation failed";
  * @param allowedOrigins — browser origins permitted to send cookie-authenticated mutations
  * @returns Express middleware that continues trusted requests and returns 403 otherwise
  */
-export function createCsrfProtection({ allowedOrigins }) {
-  const trustedOrigins = new Set(allowedOrigins);
+export function createCsrfProtection({ isAllowedOrigin }) {
 
   return function csrfProtection(req, res, next) {
     if (
@@ -20,7 +19,7 @@ export function createCsrfProtection({ allowedOrigins }) {
     }
 
     const origin = req.headers.origin;
-    if (!origin || !trustedOrigins.has(origin)) {
+    if (!origin || !isAllowedOrigin(origin)) {
       return sendError(res, 403, CSRF_ERROR_MESSAGE);
     }
 

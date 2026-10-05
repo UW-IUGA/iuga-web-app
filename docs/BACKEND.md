@@ -14,7 +14,7 @@
 
 | File | Role |
 |---|---|
-| `bin/www.cjs` | HTTP server bootstrap — imports `app.js`, prefers port 7777 when `PORT` is unset, and selects the next port on collision; an explicit `PORT` is fixed and fails if occupied |
+| `bin/www.cjs` | HTTP server bootstrap — imports `app.js`; local `start`/`debug` scripts use `PORT` as a preference and select the next port on collision, while deployment keeps an explicit `PORT` fixed |
 | `app.js` | Express application setup — middleware stack, static serving, API mount |
 | `models.js` | MongoDB connection + Mongoose model registration |
 

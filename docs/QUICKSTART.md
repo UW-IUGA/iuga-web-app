@@ -40,7 +40,7 @@ npm start
 # npm run dev is an equivalent command
 ```
 
-This starts Express first, then Vite with its `/api` proxy pointed at that backend. Vite normally uses port 3000 and automatically selects another if needed. The backend normally uses 7777 and selects another only when `PORT` is unset. If your local `backend/env/.env.dev` sets `PORT`, remove or blank it to enable fallback. MongoDB is not started by this command; use `scripts/dev-up.sh` to start a local MongoDB container and backend.
+This starts Express first, then Vite with its `/api` proxy pointed at that backend. Vite normally uses port 3000 and automatically selects another if needed. The backend uses `PORT` (normally 7777) as its preferred local port and selects the next available port if occupied, even when `backend/env/.env.dev` sets `PORT`. This lets parallel worktrees share copied environment settings while running separate app instances. The selected backend URL is passed to Vite. `npm run deploy` keeps an explicitly configured port fixed. MongoDB is not started by this command; use `scripts/dev-up.sh` to start a local MongoDB container and backend.
 
 ### Frontend only (hot reload)
 ```bash
@@ -57,7 +57,7 @@ npm run backend-dev
 or cd backend (from the root dir) && npm start
 ```
 
-The backend prefers **http://localhost:7777** and selects the next available port if `PORT` is unset. An explicit `PORT` is fixed and startup fails if it is occupied. Backend startup requires an environment file and MongoDB connection.
+Local backend startup prefers **http://localhost:7777** (or the configured `PORT`) and selects the next available port if it is occupied. Deployment startup keeps an explicitly configured `PORT` fixed. Backend startup requires an environment file and MongoDB connection.
 
 For an isolated local MongoDB, run `npm run docker` from `backend/`. The helper
 prints a `DB_URI=... npm start` command for the selected container; use that
@@ -95,7 +95,7 @@ Required variables (see `backend/.env.example`):
 
 | Variable | Purpose |
 |---|---|
-| `PORT` | Optional fixed port. When set, it does not fall back. When unset, local startup prefers 7777 and tries the next ports if occupied; remove or blank it in local `.env.dev` for parallel worktrees. |
+| `PORT` | Preferred port for local `npm start` and `npm run debug` (normally 7777); those commands select another port if it is occupied, including when `PORT` is set. `npm run deploy` treats an explicit value as fixed. |
 | `DEPLOY_ENV` | `development`, `staging`, or `production` |
 | `SESSION_SECRET_DEV` | Strong random string for session signing (development build reads this by `DEPLOY_ENV`) |
 | `DB_URI` | MongoDB connection string. `scripts/dev-up.sh` starts the local container and passes its selected URI to the backend; `npm run dev` uses the URI configured in `backend/env/.env.dev`. |

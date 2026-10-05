@@ -44,3 +44,12 @@ export function listenWithAvailablePort(server, preferredPort, host, allowFallba
     tryListen();
   });
 }
+
+/**
+ * @behavior Local development may move off a configured port; deployments keep an explicit port fixed.
+ * @param {{isLocalDevelopment: boolean, hasConfiguredPort: boolean}} options Port configuration and runtime mode.
+ * @returns {boolean} Whether an occupied port may be replaced by a later port.
+ */
+export function shouldAllowPortFallback({ isLocalDevelopment, hasConfiguredPort }) {
+  return isLocalDevelopment || !hasConfiguredPort;
+}

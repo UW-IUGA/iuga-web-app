@@ -11,14 +11,14 @@ This document describes the conventions used across the repository.
 **File headers.** Every source file starts with a short block comment
 explaining the file's purpose. For files that expose an API surface — routes,
 pipelines, shared helpers — the header also states who is allowed to call it
-and what it expects and returns.
+when authentication or authorization requirements apply, and what it expects
+and returns. Otherwise, omit the authentication/authorization line entirely;
+do not write `None`, `N/A`, or similar filler.
 
 ```js
 /*
 Purpose: Gate routes by session state so protected endpoints are only
          reachable by the right kind of user.
-
-Authentication/Authorization Requirements: N/A (helper module, not a route)
 
 Expected Request Information:
 - req.session.isAuthenticated (set at /user/login)

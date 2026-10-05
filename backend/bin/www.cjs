@@ -11,13 +11,14 @@ const startupStartedAt = Date.now();
 
 (async () => {
   const app = await (await import('../app.js')).default;
+  const { listenWithAvailablePort } = await import('../serverPort.js');
 
   /**
    * Get port from environment and store in Express.
    */
 
-  var port = normalizePort(process.env.PORT || DEFAULT_PORT);
-  app.set('port', port);
+  var configuredPort = process.env.PORT;
+  var port = normalizePort(configuredPort || DEFAULT_PORT);
 
   /**
    * Create HTTP server.
@@ -31,9 +32,12 @@ const startupStartedAt = Date.now();
    * Listen on provided port, on all network interfaces.
    */
 
-  server.listen(port, host);
-  server.on('error', onError);
-  server.on('listening', onListening);
+  listenWithAvailablePort(server, port, host, !configuredPort)
+    .then((actualPort) => {
+      app.set('port', actualPort);
+      onListening(actualPort, host);
+    })
+    .catch(onError);
 
   /**
    * Normalize a port into a number, string, or false.
@@ -60,42 +64,20 @@ const startupStartedAt = Date.now();
    */
 
   function onError(error) {
-    if (error.syscall !== 'listen') {
-      throw error;
-    }
-
-    var bind = typeof port === 'string'
-      ? 'Pipe ' + port
-      : 'Port ' + port;
-
-    // handle specific listen errors with friendly messages
-    switch (error.code) {
-      case 'EACCES':
-        console.error(bind + ' requires elevated privileges');
-        process.exit(1);
-        break;
-      case 'EADDRINUSE':
-        console.error(bind + ' is already in use');
-        process.exit(1);
-        break;
-      default:
-        throw error;
-    }
+    console.error(error.message);
+    process.exitCode = 1;
   }
 
   /**
    * Event listener for HTTP server "listening" event.
    */
 
-  function onListening() {
-    let host = process.env.DEPLOY_ENV === "production" || process.env.DEPLOY_ENV === "staging" || process.env.DEPLOY_ENV === "development" ? '0.0.0.0' : 'localhost';
-    let port = process.env.PORT ? process.env.PORT : DEFAULT_PORT;
-
+  function onListening(port, host) {
+    console.log(`[startup] Listening at ${host}:${port} after ${Date.now() - startupStartedAt}ms`);
     if (!process.env.DEBUG) {
-      console.log(`[startup] Listening at ${host}:${port} after ${Date.now() - startupStartedAt}ms`);
-    } else {
-      debug('Listening at ' + host + ":" + port);
+      return;
     }
+      debug('Listening at ' + host + ":" + port);
   }
 
 })().catch(err => console.error(err));

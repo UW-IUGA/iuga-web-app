@@ -30,11 +30,11 @@ frontend/src/
 │   ├── CharacterCard.jsx
 │   ├── Dropdown.jsx
 │   ├── ElectionFAQCard.jsx
+│   ├── EmailContactDialog.jsx ← Mail-provider compose dialog for committee contact
 │   ├── EventCard.jsx
 │   ├── EventDetailsCard.jsx
 │   ├── EventDetailsLoader.jsx
 │   ├── GradientLine.jsx
-│   ├── GetInvolvedMemberCard.jsx ← Member profile card (get-involved roster)
 │   ├── ResourceCard.jsx
 │   ├── RolePage.jsx
 │   └── Tag.jsx
@@ -50,7 +50,7 @@ frontend/src/
 │   ├── Events.jsx        ← Calendar view (desktop only; mobile shows "under construction")
 │   ├── Resources.jsx     ← Resource links list
 │   ├── About.jsx         ← Team member cards by year
-│   ├── GetInvolved.jsx   ← Team, committee, and idea-engagement page
+│   ├── GetInvolved.jsx   ← Committee leaders, committees, and the Creative application status
 │   ├── Elections.jsx     ← Candidate profiles for current election
 │   └── ElectionsFAQ.jsx  ← FAQ accordion about elections
 └── stylesheets/
@@ -119,7 +119,7 @@ Defined in `src/App.jsx`:
 | `/shop` | `ShopPage` | Static data from `assets/data/ShopData.js` and `GET /api/v1/shop/catalog` plus authenticated `POST /api/v1/shop/checkout` |
 | `/elections` | `ElectionPage` | Static data from `assets/data/CandidateData.js` |
 | `/electionfaq` | `ElectionsFAQPage` | Static data from `assets/data/ElectionFAQData.js` |
-| `/get-involved` | `GetInvolvedPage` | Static data from `frontend/src/assets/data/teams/2026.js` (2026 roster, no API) |
+| `/get-involved` | `GetInvolvedPage` | Static committee leaders from `frontend/src/assets/data/teams/2026.js`; Creative application status from public `GET /api/v1/recruitment/creative` |
 
 The backend also serves `index.html` for each of these paths to enable deep linking (see [BACKEND.md](./BACKEND.md#spa-routes)).
 

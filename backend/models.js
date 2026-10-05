@@ -8,6 +8,7 @@ import {
   roleAssignmentsSchema,
   eventRequestsSchema,
   eventReviewsSchema,
+  committeesSchema,
 } from "./schemas/schemas.js";
 
 // Preserve the Mongoose 6 unknown-filter behavior during the staged upgrade.
@@ -31,6 +32,7 @@ async function connectToDatabase(){
   models.RoleAssignments = mongoose.model("RoleAssignments", roleAssignmentsSchema);
   models.EventRequests = mongoose.model("EventRequests", eventRequestsSchema);
   models.EventReviews = mongoose.model("EventReviews", eventReviewsSchema);
+  models.Committees = mongoose.model("Committees", committeesSchema);
 
   console.log(`[startup] mongoose models created after ${Date.now() - connectionStartedAt}ms`);
 }

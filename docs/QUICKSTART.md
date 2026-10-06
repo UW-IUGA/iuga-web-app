@@ -8,7 +8,7 @@ Get the **Informatics Undergraduate Association (IUGA)** website running on your
 - **Node.js 22+** (matches the `node:22-alpine` Docker image used in production)
 - **npm** (bundled with Node.js)
 - **Git**
-- **MongoDB** — only needed if you are working on backend features. Frontend development uses mock data.
+- **Docker Desktop / Docker Engine** — local backend startup manages MongoDB automatically. Not needed for frontend-only pages that use mock data.
 
 ---
 
@@ -40,7 +40,13 @@ npm start
 # npm run dev is an equivalent command
 ```
 
-This starts Express first, then Vite with its `/api` proxy pointed at that backend. Vite normally uses port 3000 and automatically selects another if needed. The backend uses `PORT` (normally 7777) as its preferred local port and selects the next available port if occupied, even when `backend/env/.env.dev` sets `PORT`. This lets parallel worktrees share copied environment settings while running separate app instances. The selected backend URL is passed to Vite. `npm run deploy` keeps an explicitly configured port fixed. MongoDB is not started by this command; use `scripts/dev-up.sh` to start a local MongoDB container and backend.
+This starts this checkout's MongoDB, then Express, then Vite with its `/api` proxy pointed at that backend. Vite normally uses port 3000 and automatically selects another if needed. The backend uses `PORT` (normally 7777) as its preferred local port and selects the next available port if occupied, even when `backend/env/.env.dev` sets `PORT`. The selected backend URL is passed to Vite. `npm run deploy` keeps an explicitly configured port fixed and does not start Docker.
+
+### Parallel checkouts / worktrees
+
+Run `npm start` from each checkout's root; open the Vite URL each one prints. Each checkout gets its own MongoDB container on an available loopback port, so copied `.env.dev` files cannot accidentally point them all at `27017`. Restarting the same checkout reuses its database data. Ctrl+C stops that checkout's backend and frontend; MongoDB stays available for the next run. Existing containers are not removed or imported, and new databases start empty.
+
+Local `npm start` and backend `npm run debug` always use the managed database, ignoring `DB_URI` from both environment files and the shell. Identical copied or exported values cannot make different worktrees share a database. Deployment still uses its configured `DB_URI`. Starting Vite alone does not pair it with a dynamically selected backend; prefer root `npm start` for API-backed pages such as Shop.
 
 ### Frontend only (hot reload)
 ```bash
@@ -59,11 +65,7 @@ or cd backend (from the root dir) && npm start
 
 Local backend startup prefers **http://localhost:7777** (or the configured `PORT`) and selects the next available port if it is occupied. Deployment startup keeps an explicitly configured `PORT` fixed. Backend startup requires an environment file and MongoDB connection.
 
-For an isolated local MongoDB, run `npm run docker` from `backend/`. The helper
-prints a `DB_URI=... npm start` command for the selected container; use that
-command in place of `npm start` to connect this backend to that database.
-For a one-command local backend + isolated database, use `scripts/dev-up.sh`; it
-passes the selected MongoDB URI to the backend automatically.
+Backend `npm start` and `npm run debug` also start or reuse this checkout's MongoDB automatically. `npm run docker` from `backend/` starts just the database; `scripts/dev-up.sh` remains a backend-only shortcut.
 
 ---
 
@@ -98,7 +100,7 @@ Required variables (see `backend/.env.example`):
 | `PORT` | Preferred port for local `npm start` and `npm run debug` (normally 7777); those commands select another port if it is occupied, including when `PORT` is set. `npm run deploy` treats an explicit value as fixed. |
 | `DEPLOY_ENV` | `development`, `staging`, or `production` |
 | `SESSION_SECRET_DEV` | Strong random string for session signing (development build reads this by `DEPLOY_ENV`) |
-| `DB_URI` | MongoDB connection string. `scripts/dev-up.sh` starts the local container and passes its selected URI to the backend; `npm run dev` uses the URI configured in `backend/env/.env.dev`. |
+| `DB_URI` | Local startup supplies the checkout's managed MongoDB URI, ignoring copied and exported values. Deployment uses its configured URI unchanged. |
 
 ### Debug backend setup (optional)
 

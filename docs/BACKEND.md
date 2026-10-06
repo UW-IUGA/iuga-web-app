@@ -251,20 +251,22 @@ The current frontend uses React Router 6 with `BrowserRouter` and does not use S
 
 ### Local MongoDB helper
 
-Run `npm run docker --prefix backend` to create an isolated `mongo:7` container.
+Local backend `npm start` and `npm run debug` automatically start or reuse an isolated `mongo:7` container. Run `npm run docker --prefix backend` to start just the database.
 Docker selects an available host port and publishes it only on IPv4 loopback;
-the database itself listens on port `27017` inside each container. Each run uses
-the next available name (`iuga-mongo`, `iuga-mongo-2`, and so on), so local
-databases can run side by side. The helper does not stop Homebrew MongoDB, replace
+the database itself listens on port `27017` inside each container. A hash of the
+checkout's absolute path determines its stable `iuga-mongo-<hash>` name. Different
+worktrees have separate databases; restarting a checkout preserves its data, and
+new databases start empty. Moving a checkout changes its database identity; old
+containers are retained. The helper does not stop Homebrew MongoDB, replace
 containers, or remove data volumes. Use Docker Engine 28 or newer: older releases
 can expose localhost-published ports to other hosts on the same network segment.
 
-After MongoDB is ready, the helper prints a command such as
-`DB_URI=mongodb://127.0.0.1:49152/iuga npm start`. Run that command from
-`backend/` to connect the backend to the selected database. This overrides the
-usual `DB_URI` for that process only; it does not edit `.env.dev` or redirect
-other running backends. Containers without loopback-only port bindings are not
-modified by the helper.
+After MongoDB is ready, the helper prints its selected connection URI. Local
+startup passes this URI to the backend automatically, ignoring `DB_URI` in both
+the environment file and the shell so inherited settings cannot cause worktrees
+to share a database. It does not edit `.env.dev` or redirect other running
+backends. Deployment continues to use its configured URI without Docker startup.
+The helper rejects port bindings that are not IPv4 loopback-only.
 
 ### Connection
 

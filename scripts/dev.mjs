@@ -1,6 +1,6 @@
 /**
  * Purpose: Start the local API before Vite and point this frontend at that API's selected port.
- * Expected Request: `npm run dev` with project dependencies installed.
+ * Expected Request: `npm run dev` with project dependencies installed and Docker available.
  * Expected Response: Backend and frontend development servers run together until stopped.
  */
 import { spawn } from "node:child_process";
@@ -10,6 +10,7 @@ import { dirname, resolve } from "node:path";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const backend = spawn("npm", ["run", "backend-dev"], {
   cwd: root,
+  detached: true,
   stdio: ["inherit", "pipe", "inherit"],
 });
 let frontend;
@@ -25,6 +26,7 @@ backend.stdout.on("data", (chunk) => {
     console.log(`[dev] starting frontend with API ${apiUrl}`);
     frontend = spawn("npm", ["run", "frontend"], {
       cwd: root,
+      detached: true,
       env: { ...process.env, VITE_API_URL: apiUrl },
       stdio: "inherit",
     });
@@ -45,7 +47,14 @@ process.on("SIGTERM", () => stop(0));
 function stop(code) {
   if (stopping) return;
   stopping = true;
-  if (backend.exitCode === null) backend.kill("SIGTERM");
-  if (frontend && frontend.exitCode === null) frontend.kill("SIGTERM");
+  // npm starts shell and server children; stopping only npm leaves ports occupied.
+  for (const child of [backend, frontend]) {
+    if (!child?.pid) continue;
+    try {
+      process.kill(-child.pid, "SIGTERM");
+    } catch (error) {
+      if (error.code !== "ESRCH") throw error;
+    }
+  }
   process.exitCode = code;
 }

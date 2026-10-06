@@ -91,4 +91,7 @@ const startupStartedAt = Date.now();
       debug('Listening at ' + host + ":" + port);
   }
 
-})().catch(err => console.error(err));
+})().catch(err => {
+  console.error(err);
+  process.exitCode = 1;
+});

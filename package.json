@@ -9,7 +9,7 @@
     "test": "npm run test:backend && npm run test:frontend",
     "start": "npm run dev",
     "debug": "cd frontend && npm install && npm run build -- --mode development && cd ../backend && npm install && npm run debug",
-    "dev": "node scripts/dev.js",
+    "dev": "node scripts/dev.mjs",
     "frontend": "cd frontend && npm start",
     "backend": "cd backend && npm start",
     "backend-dev": "cd backend && npm start",

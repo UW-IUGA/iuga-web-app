@@ -7,13 +7,20 @@
 ---
 ## Local development sign-in
 
-If clicking sign-in shows a backend/Docker reminder, start the Docker-based MongoDB environment used for local development, then run:
+If clicking sign-in shows a backend/Docker reminder, run this from the checkout root. It starts or reuses that checkout's Docker MongoDB automatically:
 
 ```bash
 npm run dev
 ```
 
 Development checks the backend's `GET /readyz` endpoint before redirecting to UW NetID. With `npm run dev`, use the backend URL printed in the terminal (normally `http://localhost:7777`); local startup moves to the next available port if the configured port is occupied, including when `PORT` is set in `backend/env/.env.dev`. The root dev script passes the selected backend URL to Vite. Deployment keeps an explicitly configured port fixed. Production does not run this local readiness check.
+
+### Local MongoDB or Shop connection refused
+
+- `ECONNREFUSED 127.0.0.1:27017` means no database accepts connections at that address. Current local startup manages its own database port and ignores file and shell `DB_URI` values. Use root `npm start` or backend `npm start`, rather than launching `bin/www.cjs` directly, and check that this checkout includes the current startup scripts.
+- Vite proxy errors for `/api/v1/shop/catalog` mean its backend is unavailable. Start the full stack with root `npm start`, rather than starting Vite alone; this also pairs Vite with the correct backend when several versions run in parallel.
+- `vite: command not found` means dependencies are missing in that checkout. Run root `npm run setup` once.
+- Local managed databases require Docker. On macOS the helper opens Docker Desktop if needed; other systems must start their Docker daemon first. Existing databases are not imported into the new, isolated containers.
 
 ---
 

@@ -83,7 +83,7 @@ Connection depends on `DEPLOY_ENV`:
 |---|---|---|
 | `production` | `mongodb://user:pass@mongo:27017/iuga` | Docker container |
 | `staging` | same as production | Docker container |
-| `development` | Atlas URI from `DB_URI`, or a loopback URI printed by the local MongoDB helper | MongoDB Atlas or local Docker container |
+| `development` | Local startup supplies a per-checkout loopback MongoDB URI, ignoring file and shell `DB_URI` values. Deployment uses its injected URI. | Local Docker container; configured database for deployment |
 
 The **schemas** live in a separate GitHub repository (`UW-IUGA/iuga-web-schemas`) mounted as a submodule at `backend/schemas/`. The main repo imports `eventsSchema`, `participantsSchema`, and `usersSchema` from `./schemas/schemas.js`.
 

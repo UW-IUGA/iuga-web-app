@@ -350,6 +350,19 @@
 
     .nav-mobile-menu { color: $color-uw-purple; }
 
+    footer a:focus-visible { outline-color: $color-uw-purple; }
+
+    footer {
+        border-top: 1px solid $color-border-lavender;
+        background: white;
+        box-shadow: none;
+
+        &::before { background: none; }
+    }
+
+    .footerCopyright { color: $color-dark-gray; }
+    .footerSocials a:hover { background: $color-lavender; }
+
     @include media("screen", "<sm-desktop") {
         .nav-items-wrapper {
             background: white;

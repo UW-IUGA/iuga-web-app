@@ -325,6 +325,40 @@
 
 .homeCommunityLink:hover .homePhotoLabel h3 { color: white; text-underline-offset: 4px; }
 
+#rootContainer:has(.homePage) {
+    .site-navigation {
+        background: white;
+        color: $color-uw-purple;
+        border-color: $color-border-lavender;
+    }
+
+    .nav-primary-links > a:hover,
+    .nav-primary-links > a.active,
+    .nav-account-toggle:hover { color: $color-primary; }
+
+    .site-navigation a:focus-visible,
+    .site-navigation button:focus-visible { outline-color: $color-uw-purple; }
+
+    .nav-account-actions {
+        background: white;
+        color: #241a32;
+        border-color: $color-border-lavender;
+
+        span { color: $color-dark-gray; }
+        button:hover { background: $color-lavender; }
+    }
+
+    .nav-mobile-menu { color: $color-uw-purple; }
+
+    @include media("screen", "<sm-desktop") {
+        .nav-items-wrapper {
+            background: white;
+            border-color: $color-border-lavender;
+        }
+
+        .nav-primary-links > a { border-color: $color-border-lavender; }
+    }
+}
 
 %bodyCopy {
     margin: 0;

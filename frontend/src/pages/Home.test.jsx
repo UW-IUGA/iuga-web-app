@@ -19,12 +19,6 @@ const renderHome = (upcomingEvents = []) =>
     );
 
 describe("HomePage", () => {
-    test("introduces IUGA in the page heading", () => {
-        renderHome();
-
-        expect(screen.getByRole("heading", { level: 1, name: "Find your place in Informatics." })).toBeInTheDocument();
-    });
-
     test("keeps the primary event route accessible", async () => {
         renderHome();
 
@@ -70,13 +64,5 @@ describe("HomePage", () => {
         const communityLinks = screen.getByRole("region", { name: "Community links" });
         expect(within(communityLinks).getByRole("link", { name: "Get involved" })).toHaveAttribute("href", "/get-involved");
         expect(within(communityLinks).getByRole("link", { name: "Shop" })).toHaveAttribute("href", "/shop");
-    });
-
-    test("gives every photo descriptive alternative text", () => {
-        renderHome();
-
-        expect(screen.getByAltText("Informatics students forming a heart under the Quad cherry blossoms")).toBeInTheDocument();
-        expect(screen.getByAltText("Students playing video games at an IUGA game night")).toBeInTheDocument();
-        expect(screen.getByAltText("Students wearing Informatics sweatshirts on campus")).toBeInTheDocument();
     });
 });

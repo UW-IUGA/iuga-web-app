@@ -116,7 +116,7 @@ Defined in `src/App.jsx`:
 | `/` | `HomePage` | `upcomingEvents` (prop — mock or API) |
 | `/events` | `EventsPage` | Mock data or `GET /api/v1/events` |
 | `/resources` | `ResourcesPage` | Static data from `assets/data/ResourcesData.js` |
-| `/shop` | `ShopPage` | Static data from `assets/data/ShopData.js` and `GET /api/v1/shop/catalog` plus authenticated `POST /api/v1/shop/checkout` |
+| `/shop` | `ShopPage` | Static product presentation plus public `GET /api/v1/shop/catalog`; authenticated `POST /api/v1/shop/checkout` currently returns `503` after validation |
 | `/elections` | `ElectionPage` | Static data from `assets/data/CandidateData.js` |
 | `/electionfaq` | `ElectionsFAQPage` | Static data from `assets/data/ElectionFAQData.js` |
 | `/get-involved` | `GetInvolvedPage` | Static committee leaders from `frontend/src/assets/data/teams/2026.js`; Creative application status from public `GET /api/v1/recruitment/creative` |
@@ -125,23 +125,28 @@ The backend also serves `index.html` for each of these paths to enable deep link
 
 ### Cart checkout and payment returns
 
-`context/ShopCartContext.jsx` owns the site-wide cart and checkout handoff.
+`context/ShopCartContext.jsx` owns the site-wide cart and legacy Stripe return verification.
 The cart is stored in this tab's `sessionStorage` under `iuga_shop_cart`.
-Starting checkout saves the exact submitted quantities under
-`iuga_shop_checkout_<sessionId>` before leaving for Stripe.
 
-On `/shop?checkout=complete&session_id=<sessionId>`, signed-in shoppers wait for
-the authenticated, buyer-scoped `GET /api/v1/shop/checkout/<sessionId>` to verify
-payment. This read-only server check is the payment authority; neither the URL
-nor browser storage proves payment. Pending, failed, or unavailable verification
-leaves the cart intact and shows the unconfirmed-payment notice.
+New online checkout is paused. An authenticated checkout attempt validates the
+catalog version, sale window, and cart. A valid cart receives an unavailable
+message instead of a Stripe redirect; the cart stays open and unchanged. No new
+Stripe session or cart snapshot is created.
 
-After a paid response, the saved handoff quantities are subtracted once from the
-current cart, preserving items added since checkout began. The handoff key then
-holds `processed` for the rest of the tab's session. After a reload, the same
-return URL still requires fresh server verification, but does not subtract again
-or show a false cart-mismatch warning. A never-processed missing or corrupt
-handoff instead keeps the cart and shows the paid-but-unmatched warning.
+The return flow remains only for Stripe sessions created before checkout was
+paused. On `/shop?checkout=complete&session_id=<sessionId>`, signed-in shoppers
+wait for the authenticated, buyer-scoped `GET /api/v1/shop/checkout/<sessionId>`
+to verify payment. This read-only server check is the payment authority; neither
+the URL nor browser storage proves payment. Pending, failed, or unavailable
+verification leaves the cart intact and shows the unconfirmed-payment notice.
+
+For those older sessions, after a paid response, the saved quantities are
+subtracted once from the current cart, preserving items added since checkout
+began. The session key then holds `processed` for the rest of the tab's session.
+After a reload, the same return URL still requires fresh server verification,
+but does not subtract again or show a false cart-mismatch warning. A
+never-processed missing or corrupt snapshot instead keeps the cart and shows the
+paid-but-unmatched warning.
 
 The processed marker is written before the remaining cart, so a storage failure
 cannot leave a consumable handoff that would subtract again on reload. Storage

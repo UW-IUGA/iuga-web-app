@@ -207,7 +207,7 @@ router.get("/id/:eId", async function (req, res) {
 });
 
 /*
-Purpose: For the homepage's 3 displayed latest events
+Purpose: For the homepage's 3 nearest future events, ordered by start time
 Authentication/Authorization Requirements: None
 
 Expected Request Information (<r> indicates a required field to include in the call):
@@ -231,6 +231,17 @@ router.get("/upcoming", async function (req, res) {
   try {
     const events = await req.models.Events.aggregate([
       {
+        $match: {
+          eStartDate: { $gt: new Date() },
+        },
+      },
+      {
+        $sort: { eStartDate: 1 },
+      },
+      {
+        $limit: 3,
+      },
+      {
         $project: {
           eId: "$_id",
           eName: 1,
@@ -239,14 +250,8 @@ router.get("/upcoming", async function (req, res) {
           eLabels: 1,
           eStartDate: 1,
           eThumbnailPath: 1,
-          _id: 0, // Exclude the original _id field
+          _id: 0,
         },
-      },
-      {
-        $sort: { eStartDate: -1 },
-      },
-      {
-        $limit: 3,
       },
     ]);
 

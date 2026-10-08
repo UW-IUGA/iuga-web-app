@@ -67,6 +67,17 @@ describe("ResourcesPage", () => {
         expect(screen.getByText("iSchool Career Services")).toBeInTheDocument();
     });
 
+    test("opens filtered to the category named in the link", () => {
+        render(
+            <MemoryRouter initialEntries={[`/resources?category=${resourceTags.ACADEMIC}`]}>
+                <ResourcesPage resources={resources} />
+            </MemoryRouter>
+        );
+
+        expect(screen.getByRole("button", { name: resourceTags.ACADEMIC })).toHaveAttribute("aria-pressed", "true");
+        expect(screen.queryByRole("button", { name: `Show ${resourceTags.CAREER}` })).not.toBeInTheDocument();
+    });
+
     test("allows filtered categories to be collapsed and reopened", () => {
         renderResourcesPage();
 

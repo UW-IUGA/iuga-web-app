@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import ResourceCard from "../components/ResourceCard";
 import { resourceTags } from "../assets/data/Enum";
 
@@ -11,14 +11,33 @@ const categoryId = (category) =>
 
 function ResourcesPage({ resources }) {
     const { pathname } = useLocation();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const requestedCategory = searchParams.get("category");
+    const initialCategory = categories.includes(requestedCategory) ? requestedCategory : ALL_RESOURCES;
     const [searchTerm, setSearchTerm] = useState("");
-    const [selectedCategory, setSelectedCategory] = useState(ALL_RESOURCES);
+    const [selectedCategory, setSelectedCategory] = useState(initialCategory);
     const [expandedCategories, setExpandedCategories] = useState(new Set());
     const [collapsedFilteredCategories, setCollapsedFilteredCategories] = useState(new Set());
 
     useEffect(() => {
         window.scrollTo(0, 0);
     }, [pathname]);
+    useEffect(() => {
+        setSelectedCategory(initialCategory);
+    }, [initialCategory]);
+
+    const selectCategory = (category) => {
+        setSelectedCategory(category);
+        setSearchParams((currentParams) => {
+            const nextParams = new URLSearchParams(currentParams);
+            if (category === ALL_RESOURCES) {
+                nextParams.delete("category");
+            } else {
+                nextParams.set("category", category);
+            }
+            return nextParams;
+        }, { replace: true });
+    };
 
     const visibleCategories = useMemo(() => {
         const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -107,7 +126,7 @@ function ResourcesPage({ resources }) {
                                     className="pill-button"
                                     type="button"
                                     aria-pressed={selectedCategory === category}
-                                    onClick={() => setSelectedCategory(category)}
+                                    onClick={() => selectCategory(category)}
                                 >
                                     {category}
                                 </button>

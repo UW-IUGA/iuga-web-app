@@ -46,7 +46,7 @@ frontend/src/
 │   ├── Navbar.jsx        ← Shared top navigation and temporary mobile menu
 │   └── Footer.jsx
 ├── pages/
-│   ├── Home.jsx          ← Landing page: hero, WHO WE ARE cards, upcoming events
+│   ├── Home.jsx          ← Homepage hero, upcoming events, support destinations, and community links
 │   ├── Events.jsx        ← Calendar view (desktop only; mobile shows "under construction")
 │   ├── Resources.jsx     ← Resource links list
 │   ├── About.jsx         ← Team member cards by year

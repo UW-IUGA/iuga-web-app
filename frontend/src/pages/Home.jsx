@@ -1,38 +1,103 @@
 import { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import formalImage from "../assets/iFormal-2026.jpeg";
-import bowling from "../assets/gallery/bowling.jpeg";
-import groups from "../assets/gallery/groups.jpg";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCalendarDays } from "@fortawesome/free-solid-svg-icons";
 import heart from "../assets/gallery/heart.jpeg";
-import officers from "../assets/gallery/officers-22.png";
-import panelists from "../assets/gallery/panelists.jpg";
+import gameNight from "../assets/gallery/gamenight.jpg";
 import merch from "../assets/gallery/merch.jpeg";
 
-const HERO_CATEGORIES = [
-    { className: "heroCategoryCareer", label: "Career" },
-    { className: "heroCategoryAcademic", label: "Academic" },
-    { className: "heroCategorySocial", label: "Social" },
+const INFORMATICS_DESTINATIONS = [
+    {
+        label: "Student organizations",
+        description: "Find clubs and communities across the iSchool.",
+        to: "/resources?category=Community",
+    },
+    {
+        label: "Resources",
+        description: "Academic, career, community, and well-being support.",
+        to: "/resources",
+    },
+    {
+        label: "Student Voice",
+        description: "Share feedback that informs IUGA advocacy.",
+        to: "/student-voice",
+    },
+    {
+        label: "About IUGA",
+        description: "Meet the students and teams behind IUGA.",
+        to: "/about",
+    },
 ];
-function formatEventDate(value) {
-    if (!value) return "New details coming soon";
 
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "New details coming soon";
+const eventMonthFormatter = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    timeZone: "America/Los_Angeles",
+});
+const eventDayFormatter = new Intl.DateTimeFormat("en-US", {
+    day: "numeric",
+    timeZone: "America/Los_Angeles",
+});
+const eventTimeFormatter = new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "America/Los_Angeles",
+});
 
-    return new Intl.DateTimeFormat("en-US", {
-        weekday: "long",
-        month: "short",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-    }).format(date);
+function getUpcomingHomeEvents(upcomingEvents) {
+    const now = Date.now();
+    return (Array.isArray(upcomingEvents) ? upcomingEvents : [])
+        .map((event) => ({ event, start: Date.parse(event?.eStartDate) }))
+        .filter(({ start }) => Number.isFinite(start) && start > now)
+        .sort((first, second) => first.start - second.start)
+        .slice(0, 3)
+        .map(({ event }) => event);
 }
 
-function HomePage({ upcomingEvents }) {
+function UpcomingEvents({ events }) {
+    return (
+        <section className="homeEvents" aria-labelledby="homeUpcomingEventsHeading">
+            <div className="homeEventsHeader">
+                <h2 id="homeUpcomingEventsHeading">Upcoming events</h2>
+            </div>
+            {events.length > 0 ? (
+                <ul className="homeEventList">
+                    {events.map((event) => {
+                        const start = new Date(event.eStartDate);
+                        return (
+                            <li key={`${event.eName}-${event.eStartDate}`}>
+                                <Link className="homeEventLink" to="/events">
+                                    <time className="homeEventDate" dateTime={event.eStartDate}>
+                                        <span>{eventMonthFormatter.format(start)}</span>
+                                        <strong>{eventDayFormatter.format(start)}</strong>
+                                    </time>
+                                    <div className="homeEventDetails">
+                                        <h3>{event.eName}</h3>
+                                        <p>{eventTimeFormatter.format(start)} Pacific</p>
+                                    </div>
+                                </Link>
+                            </li>
+                        );
+                    })}
+                </ul>
+            ) : (
+                <Link className="homeEmptyEventCard" to="/events">
+                    <span className="homeEventIcon" aria-hidden="true">
+                        <FontAwesomeIcon icon={faCalendarDays} />
+                    </span>
+                    <div>
+                        <h3>New dates are on the way.</h3>
+                        <p>Check the calendar for the next IUGA gathering.</p>
+                    </div>
+                </Link>
+            )}
+        </section>
+    );
+}
+
+function HomePage({ upcomingEvents = [] }) {
     const { pathname } = useLocation();
-    const featuredEvent = upcomingEvents?.[0];
-    const featuredEventName = featuredEvent?.eName || "The next IUGA gathering";
-    const featuredEventDate = formatEventDate(featuredEvent?.eStartDate);
+    const events = getUpcomingHomeEvents(upcomingEvents);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -40,55 +105,78 @@ function HomePage({ upcomingEvents }) {
 
     return (
         <main className="baseContainer homePage">
-            <section className="homeRegion heroSection" aria-labelledby="heroHeading">
-                <div className="heroCopy">
-                    <div className="heroCenterpiece">
-                        <h1 id="heroHeading">Informatics Undergraduate Association</h1>
-                        <p>Events, resources, opportunities, and community for Informatics students.</p>
-                        <nav className="heroActions" aria-label="Homepage shortcuts">
-                            <Link className="pill-button homePrimaryLink" to="/events">Explore Events <span aria-hidden="true">→</span></Link>
-                        </nav>
-                    </div>
-                    <nav className="heroCategories" aria-label="Explore events by interest tags">
-                        {HERO_CATEGORIES.map(({ className, label }) => (
-                            <Link className={`heroCategory ${className}`} to="/events" aria-label={`${label} tag`} key={className}>
-                                <span className="heroTagMark" aria-hidden="true" />
-                                <span className="heroCategoryLabel">{label}</span>
-                            </Link>
-                        ))}
+            <div className="homeOpening">
+                <header className="homeIntro">
+                    <p className="homeAffiliation">University of Washington / Information School</p>
+                    <h1>Find your place in Informatics.</h1>
+                    <p className="homeSummary">
+                        IUGA is the undergraduate student government for UW Informatics. Find your community, support, and a say in what happens next.
+                    </p>
+                    <nav className="homeActions" aria-label="Homepage shortcuts">
+                        <Link className="pill-button homePrimaryLink" to="/events">Explore events</Link>
+                        <Link className="pill-button homeSecondaryLink" to="/get-involved">Get involved</Link>
                     </nav>
+                </header>
+
+                <div className="homeHeroPhotoSlot">
+                    <div className="homeHeroPhotos">
+                        <img
+                            className="homeHeartPhoto"
+                            src={heart}
+                            alt="Informatics students forming a heart under the Quad cherry blossoms"
+                            width="1066"
+                            height="1600"
+                        />
+                    </div>
                 </div>
-                <div className="heroWorld" aria-label="IUGA student community">
-                    <Link
-                        className="collageGlassCard"
-                        to="/events"
-                        aria-label={`Happening this week: ${featuredEventName}`}
-                    >
-                        <span className="collageGlassEyebrow">
-                            <span className="collageGlassStatus" aria-hidden="true">●</span>
-                            Happening this week
-                        </span>
-                        <strong className="collageGlassTitle">{featuredEventName}</strong>
-                        <span className="collageGlassMeta">{featuredEventDate}</span>
-                        <div className="collageGlassPeople" aria-label="Students are part of the IUGA community">
-                            <img src={groups} alt="" />
-                            <img src={officers} alt="" />
-                            <img src={panelists} alt="" />
-                            <span>Students welcome</span>
+
+                <UpcomingEvents events={events} />
+            </div>
+
+            <section className="homeExplore" aria-labelledby="homeExploreHeading">
+                <div className="homeSectionHeading">
+                    <h2 id="homeExploreHeading">Explore Informatics</h2>
+                    <p>Find your people, get support, and make your voice heard.</p>
+                </div>
+                <nav className="homeDestinations" aria-label="Informatics support and community">
+                    {INFORMATICS_DESTINATIONS.map((destination) => (
+                        <Link className="homeDestination" to={destination.to} key={destination.to}>
+                            <h3>{destination.label}</h3>
+                            <p>{destination.description}</p>
+                        </Link>
+                    ))}
+                </nav>
+            </section>
+
+            <section className="homeCommunity" aria-label="Community links">
+                <div className="homeCommunityLinks">
+                    <Link className="homeCommunityLink homeInvolvedLink" to="/get-involved" aria-labelledby="homeInvolvedLabel">
+                        <div className="homeCommunityPhoto">
+                            <img
+                                src={gameNight}
+                                alt="Students playing video games at an IUGA game night"
+                                width="1066"
+                                height="1600"
+                                loading="lazy"
+                            />
+                            <div className="homePhotoLabel">
+                                <h3 id="homeInvolvedLabel">Get involved</h3>
+                            </div>
                         </div>
-                        <span className="collageGlassLink">View event <span aria-hidden="true">→</span></span>
                     </Link>
-                    <img className="heroPhoto heroPhotoMain" src={formalImage} alt="IUGA members at iFormal 2026" />
-                    <img className="heroPhoto heroPhotoTop" src={heart} alt="IUGA members forming a heart" />
-                    <img className="heroPhoto heroPhotoBottom" src={bowling} alt="IUGA bowling night" />
-                    <Link className="heroJoin glassObject" to="/get-involved">
-                        <span className="glassObjectKicker"><span aria-hidden="true">●</span> Get involved</span>
-                        <strong>Join IUGA</strong>
-                        <span>Help build what's next. <b aria-hidden="true">→</b></span>
-                    </Link>
-                    <Link className="heroMerch glassObject" to="/get-involved">
-                        <img src={merch} alt="IUGA branded merchandise arranged for students" />
-                        <span><strong>Rep Informatics</strong><br />Shop merch <b aria-hidden="true">→</b></span>
+                    <Link className="homeCommunityLink homeShopLink" to="/shop" aria-labelledby="homeShopLabel">
+                        <div className="homeCommunityPhoto">
+                            <img
+                                src={merch}
+                                alt="Students wearing Informatics sweatshirts on campus"
+                                width="1066"
+                                height="1600"
+                                loading="lazy"
+                            />
+                            <div className="homePhotoLabel">
+                                <h3 id="homeShopLabel">Shop</h3>
+                            </div>
+                        </div>
                     </Link>
                 </div>
             </section>

@@ -1,473 +1,335 @@
+#rootContainer:has(.homePage),
+.homePage {
+    color-scheme: light;
+    background: #fff;
+}
+
 .homePage {
     box-sizing: border-box;
-    padding: 0 $padding-content;
+    flex: none;
+    padding: 32px 0 $section-divider-gap;
+    color: #241a32;
+    font: 400 16px/1.65 $sans-serif;
+
+    *,
+    *::before,
+    *::after { box-sizing: border-box; }
+
+    :where(h1, h2, h3, p) { margin: 0; }
+    h1, h2, h3 { font-family: inherit; font-weight: 700; }
+    :where(p) { color: $color-dark-gray; }
+    :where(a) { color: inherit; text-decoration: none; }
+    img { display: block; width: 100%; height: auto; object-fit: cover; }
+    svg { flex: none; width: 16px; height: 16px; }
+
+    a:focus-visible {
+        outline: 3px solid $color-uw-purple;
+        outline-offset: 5px;
+    }
 }
 
-.homeRegion {
-    margin-top: 96px;
+@include media(">=tablet") {
+    .baseContainer.homePage {
+        width: min(1440px, calc(100% - $page-margin * 2));
+    }
 }
 
-// The page's three type voices, defined once so sections don't restate them.
-%homeEyebrow {
-    margin: 0 0 12px;
-    font-size: 0.78rem;
-    font-weight: bold;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: $color-primary;
+.homeOpening {
+    display: grid;
+    grid-template-columns: minmax(0, 1.28fr) minmax(0, 0.72fr);
+    grid-template-areas: 'intro photos' 'events photos';
+    gap: 24px 72px;
 }
 
-%sectionTitle {
-    margin: 0 0 16px;
-    font-size: 3rem;
-    line-height: 1.1;
+.homeIntro {
+    grid-area: intro;
+    align-self: start;
+    min-width: 0;
+    padding-top: 12px;
 }
+
+.homeAffiliation {
+    margin-bottom: 18px;
+    color: $color-uw-purple;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.homeIntro h1 {
+    max-width: 18ch;
+    color: $color-uw-purple;
+    font-size: clamp(40px, 4vw, 52px);
+    letter-spacing: -0.04em;
+    line-height: 1.08;
+}
+
+.homeSummary {
+    max-width: 52ch;
+    margin-top: 18px !important;
+    font-size: 16px;
+}
+
+.homeActions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-top: 22px;
+}
+
+.homePrimaryLink,
+.homeSecondaryLink {
+    display: inline-flex;
+    min-height: $pill-height + 4px;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 12px 22px;
+    border: 1px solid $color-uw-purple;
+    border-radius: $radius-pill;
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.homePrimaryLink {
+    background: $color-uw-purple;
+    color: white !important;
+
+    &:hover {
+        border-color: $color-primary;
+        background: $color-primary;
+    }
+}
+
+.homeSecondaryLink {
+    background: white;
+    color: $color-uw-purple !important;
+
+    &:hover { background: $color-lavender; }
+}
+
+.homeHeroPhotoSlot {
+    position: relative;
+    grid-area: photos;
+    min-width: 0;
+    min-height: 0;
+}
+
+.homeHeroPhotos {
+    position: absolute;
+    z-index: 1;
+    inset: 0 0 -18px;
+    display: grid;
+    min-width: 0;
+    grid-template-rows: minmax(0, 1fr);
+}
+
+.homeHeroPhotos > img {
+    height: 100%;
+    min-height: 0;
+}
+
+.homeHeartPhoto {
+    min-width: 0;
+    border-radius: $radius-card-media;
+    object-position: 50% 30%;
+}
+.homeEvents {
+    grid-area: events;
+    min-width: 0;
+    align-self: start;
+    padding-top: 12px;
+}
+
+.homeEventsHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 4px;
+
+    h2 { font-size: 20px; }
+}
+
+.homeEventList {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li { min-width: 0; }
+    li + li { border-top: 1px solid $color-border-lavender; }
+}
+
+.homeEventLink {
+    display: flex;
+    min-height: 84px;
+    align-items: center;
+    gap: 18px;
+    padding: 12px 0;
+
+    &:hover h3 {
+        color: $color-uw-purple;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+    }
+}
+
+.homeEventDate {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    min-height: 60px;
+    border-radius: $radius;
+    background: $color-lavender;
+    color: $color-uw-purple;
+    line-height: 1;
+
+    span { font-size: 11px; font-weight: 700; text-transform: uppercase; }
+    strong { margin-top: 6px; font-size: 26px; font-variant-numeric: tabular-nums; }
+}
+
+.homeEventDetails {
+    min-width: 0;
+
+    h3 { font-size: 16px; }
+    p { margin-top: 5px; font-size: 12px; }
+}
+
+.homeEmptyEventCard {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 48px;
+    padding: 18px 20px;
+    border-radius: $radius-card-media;
+    background: white;
+    box-shadow: 0 6px 18px rgba($color-shadow, 0.12);
+
+    h3 { font-size: 17px; }
+    p { margin-top: 4px; font-size: 14px; }
+
+    &:hover h3 { color: $color-primary; }
+}
+
+.homeEventIcon {
+    display: grid;
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    color: $color-uw-purple;
+
+    svg { width: 28px; height: 28px; }
+}
+
+.homeExplore {
+    margin-top: 42px;
+    padding-top: 28px;
+    border-top: 1px solid $color-border-lavender;
+}
+
+.homeSectionHeading {
+    margin-bottom: 16px;
+
+    h2 { font-size: 24px; }
+    p { max-width: none; margin-top: 8px; font-size: 14px; }
+}
+
+.homeDestinations {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.homeDestination {
+    display: block;
+    min-height: 100%;
+    padding: 20px;
+    border: 1px solid transparent;
+    border-radius: $radius-card-media;
+    background: white;
+    box-shadow: 0 6px 18px rgba($color-shadow, 0.12);
+
+    h3 {
+        font-size: 17px;
+        text-decoration-line: underline;
+        text-decoration-thickness: 1px;
+        text-underline-offset: 0.22em;
+    }
+
+    p { margin-top: 7px; font-size: 13px; }
+
+    &:hover {
+        border-color: $color-primary;
+        box-shadow: 0 9px 22px rgba($color-shadow, 0.16);
+
+        h3 { color: $color-primary; }
+    }
+}
+
+.homeCommunity {
+    margin-top: 42px;
+    padding-top: 28px;
+    border-top: 1px solid $color-border-lavender;
+}
+
+.homeCommunityLinks {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: 36px;
+}
+
+.homeCommunityLink { min-width: 0; }
+
+.homeCommunityPhoto {
+    position: relative;
+    height: 360px;
+    overflow: hidden;
+    border-radius: $radius-card-media;
+
+    img { height: 100%; object-position: 50% 55%; }
+}
+
+.homeInvolvedLink img { object-position: 50% 22%; }
+.homeShopLink img { object-position: 50% 0%; }
+
+.homeCommunityPhoto::after {
+    position: absolute;
+    inset: 38% 0 0;
+    background: linear-gradient(to top, rgba(15, 15, 15, 0.82), rgba(15, 15, 15, 0.4) 64%, transparent);
+    content: "";
+    pointer-events: none;
+}
+
+.homePhotoLabel {
+    position: absolute;
+    z-index: 1;
+    inset: auto 0 0;
+    padding: 18px 20px;
+
+    h3 {
+        color: white;
+        font-size: 24px;
+        line-height: 1.15;
+        text-decoration-line: underline;
+        text-decoration-thickness: 1px;
+        text-underline-offset: 0.22em;
+    }
+}
+
+.homeCommunityLink:hover .homePhotoLabel h3 { color: white; text-underline-offset: 4px; }
+
 
 %bodyCopy {
     margin: 0;
     line-height: 1.65;
     color: $color-dark-gray;
-}
-
-.heroSection {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-    gap: 64px;
-    align-items: center;
-    margin-top: 72px;
-
-    .heroCopy {
-        max-width: 620px;
-
-        h1 {
-            max-width: 560px;
-            margin: 0 0 20px;
-            font-size: 4.4rem;
-            line-height: 1.04;
-        }
-
-        >p:not(.homeEyebrow) {
-            @extend %bodyCopy;
-            max-width: 520px;
-            margin-bottom: 32px;
-            font-size: 1.15rem;
-        }
-    }
-}
-
-.homeEyebrow,
-.functionKicker {
-    @extend %homeEyebrow;
-}
-
-// Primary CTA is the only bold action in the hero; everything else stays quiet.
-.heroActions {
-    margin: 0 0 40px;
-}
-
-.homePrimaryLink {
-    display: inline-flex;
-    align-items: center;
-    min-height: $pill-height;
-    gap: 8px;
-    padding-right: 28px;
-    background-color: $color-primary;
-    border-color: $color-primary;
-    color: white;
-
-    &:hover,
-    &:focus-visible {
-        background-color: $color-uw-purple;
-        border-color: $color-uw-purple;
-    }
-}
-
-// Secondary paths are previews, not a repeated card grid. Their varied shapes
-// make the copy feel attached to the image-led hero instead of a dashboard.
-.heroPaths {
-    position: relative;
-    z-index: 2;
-    display: grid;
-    grid-template-columns: 1.15fr 0.85fr;
-    gap: 12px;
-    width: calc(100% + 72px);
-    max-width: 632px;
-}
-
-.glassPath {
-    position: relative;
-    display: flex;
-    min-height: 132px;
-    flex-direction: column;
-    gap: 5px;
-    overflow: hidden;
-    padding: 16px 18px;
-    border: 1px solid rgba(255, 255, 255, 0.68);
-    border-radius: $radius-card;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(247, 239, 255, 0.42));
-    backdrop-filter: blur(18px) saturate(120%);
-    -webkit-backdrop-filter: blur(18px) saturate(120%);
-    box-shadow: 0 18px 42px rgba($color-uw-purple, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.82);
-    color: $color-dark-gray;
-    text-decoration: none;
-    transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
-    @include focus-ring;
-
-    &::after {
-        position: absolute;
-        top: 0;
-        right: 18px;
-        left: 18px;
-        height: 1px;
-        content: "";
-        background: rgba(255, 255, 255, 0.8);
-    }
-
-    &:hover,
-    &:focus-visible {
-        transform: translateY(-4px);
-        border-color: rgba($color-primary, 0.5);
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.84), rgba(247, 239, 255, 0.58));
-        box-shadow: 0 22px 48px rgba($color-uw-purple, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.92);
-    }
-
-    .glassPathImage {
-        position: absolute;
-        right: 0;
-        bottom: 0;
-        width: 42%;
-        height: 100%;
-        object-fit: cover;
-        opacity: 0.82;
-        mix-blend-mode: multiply;
-        transition: transform 240ms ease;
-    }
-
-    &:hover .glassPathImage,
-    &:focus-visible .glassPathImage {
-        transform: scale(1.06);
-    }
-
-    .glassPathContent {
-        position: relative;
-        z-index: 1;
-        display: flex;
-        max-width: 70%;
-        flex-direction: column;
-        gap: 4px;
-    }
-
-    .glassPathTag,
-    .glassPathStatus {
-        color: $color-primary;
-        font-size: 0.68rem;
-        font-weight: 700;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-    }
-
-    .glassPathLabel {
-        color: $color-uw-purple;
-        font-weight: 700;
-    }
-
-    .glassPathHint {
-        font-size: 0.82rem;
-        line-height: 1.35;
-    }
-
-    .glassPathArrow {
-        position: relative;
-        z-index: 1;
-        margin-top: auto;
-        color: $color-uw-purple;
-        font-size: 0.8rem;
-        font-weight: 700;
-    }
-}
-
-.glassPathCommunity {
-    grid-row: span 2;
-    min-height: 166px;
-}
-
-.glassPathInvolvement {
-    min-height: 132px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.66), rgba(255, 247, 225, 0.52));
-
-    .glassPathStatus {
-        color: $color-academic-capsule;
-
-        span {
-            font-size: 0.8rem;
-        }
-    }
-}
-
-.glassPathMerch {
-    min-height: 112px;
-
-    .glassPathContent {
-        max-width: 62%;
-    }
-}
-
-.heroCollage {
-    position: relative;
-    padding: 48px 0 0 48px;
-
-    .collageAnchor {
-        display: block;
-        width: 100%;
-        aspect-ratio: 4 / 5;
-        object-fit: cover;
-        border-radius: $radius-media;
-        box-shadow: 0 28px 60px rgba($color-uw-purple, 0.18);
-    }
-
-    .collageTile {
-        position: absolute;
-        width: 46%;
-        aspect-ratio: 4 / 3;
-        object-fit: cover;
-        border: 5px solid white;
-        border-radius: $radius-card-media;
-        box-shadow: 0 16px 40px rgba($color-uw-purple, 0.2);
-    }
-
-    .collageTileTop {
-        top: 0;
-        right: -10px;
-    }
-
-    .collageTileBottom {
-        bottom: 0;
-        left: -10px;
-    }
-
-    .collageGlassCard {
-        position: absolute;
-        top: 50%;
-        left: -30px;
-        z-index: 2;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        width: min(270px, 58%);
-        margin: 0;
-        padding: 18px 20px;
-        border: 1px solid rgba(255, 255, 255, 0.72);
-        border-radius: $radius-card;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(239, 231, 255, 0.46));
-        backdrop-filter: blur(18px) saturate(120%);
-        -webkit-backdrop-filter: blur(18px) saturate(120%);
-        box-shadow: 0 20px 48px rgba($color-uw-purple, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.86);
-        transform: translateY(-50%);
-
-        .collageGlassEyebrow {
-            @extend %homeEyebrow;
-            margin: 0;
-            font-size: 0.68rem;
-            letter-spacing: 0.1em;
-        }
-
-        .collageGlassTitle {
-            font-family: $serif;
-            font-size: 1.08rem;
-            line-height: 1.25;
-            color: $color-uw-purple;
-        }
-
-        .collageGlassMeta {
-            font-size: 0.78rem;
-            color: $color-dark-gray;
-        }
-
-        .collageGlassPeople {
-            display: flex;
-            align-items: center;
-            margin-top: 2px;
-
-            img {
-                width: 26px;
-                height: 26px;
-                margin-right: -7px;
-                object-fit: cover;
-                border: 2px solid rgba(255, 255, 255, 0.9);
-                border-radius: 50%;
-            }
-
-            span {
-                margin-left: 14px;
-                font-size: 0.72rem;
-                color: $color-dark-gray;
-            }
-        }
-
-        .collageGlassLink {
-            align-self: flex-start;
-            margin-top: 2px;
-            color: $color-uw-purple;
-            font-size: 0.8rem;
-            font-weight: 700;
-            text-decoration: none;
-            @include focus-ring;
-
-            span {
-                display: inline-block;
-                transition: transform 180ms ease;
-            }
-
-            &:hover span,
-            &:focus-visible span {
-                transform: translateX(4px);
-            }
-        }
-    }
-}
-
-// One orchestrated entrance: copy first, then CTA, then paths and collage tiles
-// stagger in so the sequence reads down the hierarchy, never all at once.
-// The rising animation shares one easing/duration shape; only delay varies.
-@mixin hero-rise($duration: 520ms, $delay: 0ms) {
-    animation: heroRise $duration cubic-bezier(0.19, 1, 0.22, 1) $delay both;
-}
-
-@keyframes heroRise {
-    from {
-        opacity: 0;
-        transform: translateY(18px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes heroFade {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-.heroCopy .homeEyebrow {
-    @include hero-rise(480ms);
-}
-
-.heroCopy h1 {
-    @include hero-rise(520ms, 60ms);
-}
-
-.heroCopy>p:not(.homeEyebrow) {
-    @include hero-rise(520ms, 140ms);
-}
-
-.heroActions {
-    @include hero-rise(520ms, 220ms);
-}
-
-.heroPaths .glassPath {
-    @include hero-rise(520ms);
-}
-
-.heroPaths .glassPath:nth-child(1) {
-    animation-delay: 300ms;
-}
-
-.heroPaths .glassPath:nth-child(2) {
-    animation-delay: 360ms;
-}
-
-.heroPaths .glassPath:nth-child(3) {
-    animation-delay: 420ms;
-}
-
-.heroCollage .collageAnchor {
-    @include hero-rise(640ms, 120ms);
-}
-
-.heroCollage .collageTileTop {
-    @include hero-rise(640ms, 260ms);
-}
-
-.heroCollage .collageTileBottom {
-    @include hero-rise(640ms, 360ms);
-}
-
-// Fade only: the glass card is vertically centered with a transform, so it skips
-// the rising keyframes to avoid clobbering its own position.
-.heroCollage .collageGlassCard {
-    animation: heroFade 640ms ease-out 460ms both;
-}
-
-@media (prefers-reduced-motion: reduce) {
-
-    .heroCopy *,
-    .heroCollage * {
-        animation: none;
-    }
-}
-
-.homeSectionHeader {
-    max-width: 720px;
-    margin-bottom: 48px;
-
-    h2 {
-        @extend %sectionTitle;
-    }
-
-    >p:last-child {
-        @extend %bodyCopy;
-        max-width: 600px;
-    }
-}
-
-.eventStreams {
-    display: grid;
-    gap: 56px;
-}
-
-.functionGroup {
-    display: grid;
-    grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.7fr);
-    gap: 40px;
-    align-items: start;
-
-    .functionCopy {
-        h3 {
-            margin: 0 0 12px;
-            font-size: 1.8rem;
-            line-height: 1.15;
-        }
-
-        >p:last-child {
-            @extend %bodyCopy;
-        }
-    }
-
-    .eventStream {
-        margin-top: 0;
-
-        .streamHeader {
-            margin-bottom: 20px;
-
-            h1 {
-                margin: 0;
-                font-size: 1.4rem;
-            }
-        }
-    }
-}
-
-.viewAllEvents {
-    display: flex;
-    justify-content: flex-start;
-    margin-top: 48px;
 }
 
 .upcomingEventsCardContainer {
@@ -508,725 +370,146 @@
     }
 }
 
-.contentRegion {
-    display: grid;
-    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
-    gap: 64px;
-    align-items: center;
-    padding-top: 40px;
-    border-top: 1px solid rgba($color-uw-purple, 0.2);
-
-    .contentRegionCopy {
-        max-width: 520px;
-
-        h2 {
-            @extend %sectionTitle;
-        }
-
-        >p:not(.homeEyebrow) {
-            @extend %bodyCopy;
-            margin-bottom: 28px;
-        }
-    }
+@include media("screen", "<sm-desktop") {
+    .upcomingEventsCardContainer { grid-template-columns: 1fr; }
 }
 
-.imageGrid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: $grid-gap;
-
-    img,
-    .featureImage {
-        display: block;
-        width: 100%;
-        aspect-ratio: 4 / 3;
-        object-fit: cover;
-        border-radius: $radius-card-media;
+@media (min-width: 768px) and (max-width: 1100px) {
+    .homeOpening {
+        grid-template-columns: minmax(0, 1.12fr) minmax(250px, 0.88fr);
+        gap: 24px 36px;
     }
+
+    .homeDestinations { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .homeCommunityLinks { gap: 24px; }
+    .homeCommunityPhoto { height: 320px; }
 }
 
-.featureImage {
-    display: block;
-    width: 100%;
-    max-height: 480px;
-    object-fit: cover;
-    border-radius: $radius-media;
-}
+@media (min-width: 1500px) {
+    .homePage { padding-top: 44px; padding-bottom: $section-divider-gap; }
 
-.merchSection {
-    margin-bottom: 120px;
-}
-
-@include media(">=tablet", "<sm-desktop") {
-    .heroSection {
-        grid-template-columns: 1fr;
-
-        .heroCopy {
-            max-width: 700px;
-        }
+    .homeOpening {
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+        gap: 32px 88px;
     }
 
-    .heroCollage {
-        max-width: 560px;
-        margin: 0 auto;
-    }
+    .homeIntro { padding-top: 20px; }
+    .homeIntro h1 { font-size: clamp(52px, 3vw, 64px); }
+    .homeSummary { font-size: 18px; }
 
-    .functionGroup,
-    .contentRegion {
-        grid-template-columns: 1fr;
-        gap: 32px;
-    }
-
-    .upcomingEventsCardContainer {
-        grid-template-columns: 1fr;
-    }
+    .homeDestinations { gap: 20px; }
+    .homeDestination { padding: 24px; }
+    .homeCommunityLinks { gap: 44px; }
+    .homeCommunityPhoto { height: 420px; }
 }
 
 @include media("screen", "<tablet") {
-    .homePage {
-        padding: 0 $padding-content;
+    .homePage { padding: 28px 0 $grid-gap; }
+
+    .homeOpening {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas: 'intro' 'photos' 'events';
+        gap: 28px;
     }
 
-    .homeRegion,
-    .heroSection {
-        margin-top: 64px;
-    }
-
-    .heroSection {
-        display: block;
-
-        .heroCopy {
-            margin-bottom: 32px;
-
-            h1 {
-                font-size: 2.8rem;
-            }
-
-            >p:not(.homeEyebrow) {
-                font-size: 1rem;
-            }
-        }
-    }
-
-    .heroCollage {
+    .homeIntro {
         padding: 0;
 
-        .collageAnchor {
-            aspect-ratio: 4 / 3;
-        }
-
-        // Decorative overlap tiles drop so the collage simplifies instead of
-        // overflowing on phones.
-        .collageTile {
-            display: none;
-        }
-
-        .collageGlassCard {
-            position: static;
-            width: auto;
-            transform: none;
-            max-width: none;
-            margin-top: 16px;
-        }
+        h1 { max-width: 18ch; font-size: clamp(34px, 8.5vw, 48px); }
     }
 
-    .heroPaths {
-        width: 100%;
-        grid-template-columns: 1fr;
-        max-width: none;
-    }
+    .homeAffiliation { margin-bottom: 18px; font-size: 11px; }
+    .homeSummary { margin-top: 18px !important; font-size: 15px; line-height: 1.7; }
+    .homeActions { flex-wrap: wrap; gap: 10px; margin-top: 22px; }
 
-    .glassPathCommunity {
-        grid-row: auto;
-    }
+    .homePrimaryLink,
+    .homeSecondaryLink { min-height: 46px; padding: 11px 18px; font-size: 13px; }
 
-    .homeSectionHeader,
-    .contentRegion {
+    .homeHeroPhotoSlot { position: static; }
 
-        h2,
-        .contentRegionCopy h2 {
-            font-size: 2.3rem;
-        }
-    }
-
-    .functionGroup,
-    .contentRegion {
-        display: block;
-
-        .eventStream,
-        .imageGrid,
-        .featureImage {
-            margin-top: 28px;
-        }
-    }
-
-    .upcomingEventsCardContainer {
-        grid-template-columns: 1fr;
-    }
-
-    .imageGrid {
-        gap: $margin-content;
-    }
-
-    .heroActions {
-        align-items: center;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .merchSection {
-        margin-bottom: 72px;
-    }
-}
-
-// Prototype hub composition: the center owns the message; photos and small
-// actions orbit it instead of forming another card grid.
-.heroSection {
-    position: relative;
-    display: block;
-    min-height: 820px;
-    margin-top: 36px;
-}
-
-.heroCopy {
-    position: relative;
-    z-index: 4;
-    display: grid;
-    min-height: 720px;
-    place-items: center;
-    max-width: none !important;
-    text-align: center;
-}
-
-.heroCopy>.homeEyebrow {
-    position: absolute;
-    top: 28px;
-    left: 0;
-    margin: 0;
-}
-
-.heroCenterpiece {
-    position: relative;
-    z-index: 3;
-    width: min(700px, 58vw);
-    margin-top: 0;
-}
-
-.heroCenterpiece h1 {
-    max-width: none !important;
-    margin: 0 0 22px !important;
-    font-size: clamp(2.5rem, 4.2vw, 4.2rem) !important;
-    line-height: 0.98 !important;
-    letter-spacing: -0.045em;
-    text-transform: uppercase;
-    color: $color-uw-purple;
-}
-
-.heroCenterpiece h1 span {
-    color: $color-primary;
-}
-
-.heroCenterpiece>p {
-    max-width: 520px !important;
-    margin: 0 auto 28px !important;
-    font-size: clamp(1.25rem, 1.7vw, 1.5rem) !important;
-    line-height: 1.5;
-}
-
-.heroActions {
-    display: flex;
-    justify-content: center;
-    margin: 0;
-}
-
-.homePrimaryLink {
-    min-height: 50px;
-    padding: 0 24px;
-    border-radius: 999px;
-}
-
-.heroCategories {
-    position: absolute;
-    inset: 0;
-    z-index: 5;
-    pointer-events: none;
-}
-
-@mixin activeAppearance($background, $shadow) {
-    background: $background;
-    box-shadow: $shadow;
-}
-
-.heroCategory {
-    @extend %category-pill-surface;
-    position: absolute;
-    pointer-events: auto;
-    animation: heroCategoryFloat 5.8s ease-in-out infinite;
-    transition: transform 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
-    @include focus-ring;
-
-    .heroTagMark {
-        position: absolute;
-        top: 50%;
-        left: -18px;
-        width: 8px;
-        height: 8px;
-        border: 2px solid currentColor;
-        border-radius: 50%;
-        color: $color-primary;
-        transform: translateY(-50%);
-        transition: transform 180ms ease, background-color 180ms ease;
-    }
-
-    &:focus-visible {
-        @include activeAppearance(rgba(255, 255, 255, 0.84), 0 18px 34px rgba($color-uw-purple, 0.18));
-        animation: none;
-        transform: translateY(-4px);
-
-        .heroTagMark {
-            background: currentColor;
-            transform: translate(2px, -50%);
-        }
-    }
-
-    @media (hover: hover) {
-        &:hover {
-            @include activeAppearance(rgba(255, 255, 255, 0.84), 0 18px 34px rgba($color-uw-purple, 0.18));
-            animation: none;
-            transform: translateY(-4px) scale(1.02);
-        }
-    }
-}
-
-@keyframes heroCategoryFloat {
-
-    0%,
-    100% {
-        transform: rotate(var(--hero-cat-rotate, 0deg)) translateY(0);
-    }
-
-    50% {
-        transform: rotate(var(--hero-cat-rotate, 0deg)) translateY(var(--hero-cat-float, -3px));
-    }
-}
-
-.heroCategoryCareer {
-    top: 36%;
-    left: 16%;
-}
-
-.heroCategoryAcademic {
-    top: 19%;
-    right: 13%;
-}
-
-.heroCategorySocial {
-    top: 56%;
-    right: 10%;
-}
-
-.heroWorld {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
-}
-
-.heroPhoto {
-    position: absolute;
-    display: block;
-    object-fit: cover;
-    border-radius: $radius-media;
-    box-shadow: 0 24px 50px rgba($color-uw-purple, 0.2);
-}
-
-.heroPhotoMain {
-    top: 26%;
-    right: 1%;
-    width: 21%;
-    height: 36%;
-    object-position: center;
-    @include photo-frame($radius-media);
-}
-
-.heroPhotoTop {
-    top: 2%;
-    right: 40%;
-    width: 12%;
-    height: 16%;
-    @include photo-frame;
-}
-
-.heroPhotoBottom {
-    bottom: 15%;
-    left: 8%;
-    width: 24%;
-    height: 25%;
-    @include photo-frame;
-}
-
-.collageGlassCard {
-    position: absolute;
-    top: 9%;
-    left: 1%;
-    z-index: 3;
-    display: flex;
-    width: min(260px, 24%);
-    flex-direction: column;
-    gap: 8px;
-    padding: 19px 20px;
-    border: 1px solid rgba(255, 255, 255, 0.72);
-    border-radius: $radius-card;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(239, 231, 255, 0.48));
-    backdrop-filter: blur(18px) saturate(120%);
-    -webkit-backdrop-filter: blur(18px) saturate(120%);
-    box-shadow: 0 20px 48px rgba($color-uw-purple, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.86);
-    color: inherit;
-    text-decoration: none;
-    pointer-events: auto;
-    transition: transform 180ms ease, background 180ms ease, box-shadow 180ms ease;
-    @include focus-ring;
-
-    &:focus-visible {
-        @include activeAppearance(linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(239, 231, 255, 0.62)),
-            (0 24px 54px rgba($color-uw-purple, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.9)));
-        transform: translateY(-3px);
-    }
-
-    @media (hover: hover) {
-        &:hover {
-            @include activeAppearance(linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(239, 231, 255, 0.62)),
-                (0 24px 54px rgba($color-uw-purple, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.9)));
-            transform: translateY(-4px) scale(1.015);
-        }
-    }
-}
-
-.collageGlassEyebrow,
-.glassObjectKicker {
-    @extend %homeEyebrow;
-    margin: 0;
-    font-size: 0.67rem;
-    letter-spacing: 0.1em;
-}
-
-.collageGlassStatus {
-    margin-right: 5px;
-    color: $color-academic-capsule;
-    font-size: 0.55rem;
-    vertical-align: 1px;
-}
-
-.collageGlassTitle {
-    font-family: $serif;
-    font-size: 1.08rem;
-    line-height: 1.25;
-    color: $color-uw-purple;
-}
-
-.collageGlassMeta {
-    font-size: 0.78rem;
-}
-
-.collageGlassPeople {
-    display: flex;
-    align-items: center;
-    margin-top: 2px;
-
-    img {
-        width: 26px;
-        height: 26px;
-        margin-right: -7px;
-        object-fit: cover;
-        border: 2px solid rgba(255, 255, 255, 0.9);
-        border-radius: 50%;
-    }
-
-    span {
-        margin-left: 14px;
-        font-size: 0.72rem;
-    }
-}
-
-.collageGlassLink {
-    align-self: flex-start;
-    margin-top: 2px;
-    color: $color-uw-purple;
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-decoration: none;
-    @include focus-ring;
-}
-
-.glassObject {
-    position: absolute;
-    z-index: 4;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 15px 17px;
-    border: 1px solid rgba(255, 255, 255, 0.72);
-    border-radius: $radius-card;
-    background: rgba(255, 255, 255, 0.5);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    box-shadow: 0 16px 34px rgba($color-uw-purple, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.86);
-    color: $color-uw-purple;
-    text-decoration: none;
-    pointer-events: auto;
-    transition: transform 180ms ease, background-color 180ms ease;
-    @include focus-ring;
-
-    &:hover,
-    &:focus-visible {
-        background: rgba(255, 255, 255, 0.8);
-        transform: translateY(-4px);
-    }
-
-    strong {
-        font-size: 1rem;
-    }
-
-    >span:last-child {
-        color: $color-dark-gray;
-        font-size: 0.78rem;
-    }
-
-    b {
-        color: $color-primary;
-    }
-}
-
-.heroJoin {
-    right: 8%;
-    bottom: 19%;
-    width: 174px;
-}
-
-.heroJoin .glassObjectKicker {
-    color: $color-academic-capsule;
-}
-
-.heroMerch {
-    right: 27%;
-    bottom: 12%;
-    width: 210px;
-    flex-direction: row;
-    align-items: end;
-    gap: 12px;
-}
-
-.heroMerch img {
-    width: 62px;
-    height: 62px;
-    object-fit: cover;
-    border-radius: 10px;
-}
-
-.heroMerch span {
-    font-size: 0.8rem;
-    line-height: 1.35;
-}
-
-.heroMerch strong {
-    font-size: 0.78rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .heroSection * {
-        transition: none !important;
-        animation: none !important;
-        transform: none !important;
-    }
-
-    @include media(">=tablet") {
-        .heroCategory .heroTagMark {
-            transform: translateY(-50%) !important;
-        }
-    }
-}
-
-@include media("screen", "<tablet") {
-    .heroSection {
-        min-height: 0;
-        margin-top: 24px;
-    }
-
-    .heroCopy {
-        display: block;
-        min-height: 0;
-        padding-top: 42px;
-        text-align: center;
-    }
-
-    .heroCopy>.homeEyebrow {
-        top: 0;
-        left: 0;
-    }
-
-    .heroCenterpiece {
-        width: auto;
-        margin-top: 0;
-    }
-
-    .heroCenterpiece h1 {
-        font-size: clamp(2.65rem, 12vw, 4.1rem) !important;
-        line-height: 0.96 !important;
-    }
-
-    .heroCenterpiece>p {
-        font-size: 1.15rem !important;
-        line-height: 1.45;
-    }
-
-    .heroCategories {
+    .homeHeroPhotos {
         position: static;
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 6px;
-        margin: 30px 0 34px;
-    }
-
-    .heroCategory {
-        position: relative;
         inset: auto;
-        width: 100%;
-        height: 50px;
-        min-width: 0;
-        box-sizing: border-box;
-        justify-content: center;
-        gap: 8px;
-        padding: 0 8px;
-        border-radius: $radius-pill;
-        font-size: 0.76rem;
-        white-space: nowrap;
+        z-index: auto;
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: clamp(220px, 68vw, 320px);
+        height: auto;
+
+        img { height: 100%; border-radius: $radius-card-media; }
     }
 
-    .heroCategoryCareer {
-        --hero-cat-float: -6px;
-        animation-duration: 4.8s;
+
+    .homeEvents {
+        padding: 20px 0 0;
+        border-top: 1px solid $color-border-lavender;
     }
 
-    .heroCategoryAcademic {
-        --hero-cat-float: -5px;
-        animation-duration: 5.6s;
-    }
-
-    .heroCategorySocial {
-        --hero-cat-float: -7px;
-        animation-duration: 4.3s;
-    }
-
-    .heroWorld {
-        position: relative;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
+    .homeEventsHeader {
+        flex-direction: row;
+        align-items: center;
         gap: 12px;
-        padding-top: 0;
+
+        h2 { font-size: 18px; }
     }
 
-    .heroPhoto {
-        position: static;
-        width: 100%;
-        height: auto;
-        min-height: 145px;
+    .homeEventList { grid-template-columns: 1fr; }
+    .homeEventLink { min-height: 86px; }
+    .homeEventDetails h3 { font-size: 15px; }
+    .homeEventDetails p { font-size: 12px; }
+
+    .homeEmptyEventCard {
+        gap: 16px;
+        padding: 18px;
+
+        h3 { font-size: 16px; }
+        p { font-size: 13px; }
     }
 
-    .heroPhotoMain {
-        grid-column: 1 / -1;
-        height: auto;
-        min-height: 250px;
-        aspect-ratio: 4 / 3;
+    .homeExplore {
+        margin-top: 36px;
+        padding-top: 24px;
     }
 
-    .heroPhotoTop {
-        grid-column: 1;
+    .homeSectionHeading {
+        margin-bottom: 8px;
+
+        h2 { font-size: 26px; }
+        p { max-width: 40ch; margin-top: 10px; font-size: 14px; }
     }
 
-    .heroPhotoBottom {
-        grid-column: 2;
+    .homeDestinations {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
     }
 
-    .collageGlassCard {
-        position: static;
-        grid-column: 1 / -1;
-        width: auto;
-        padding: 17px;
+    .homeDestination { padding: 16px; }
+    .homeDestination h3 { font-size: 17px; }
+    .homeDestination p { font-size: 13px; }
+
+    .homeCommunity {
+        margin-top: 40px;
+        padding-top: 24px;
     }
 
-    .heroJoin {
-        position: static;
-        grid-column: 1 / -1;
-        width: auto;
+    .homeCommunityLinks {
+        grid-template-columns: 1fr;
+        gap: 30px;
     }
 
-    .heroMerch {
-        position: static;
-        grid-column: 1 / -1;
-        width: auto;
-    }
+    .homeCommunityPhoto { height: clamp(300px, 86vw, 360px); }
+    .homePhotoLabel { padding: 16px 18px; }
 
-    .heroTagMark {
-        display: none;
-    }
-
-    .heroCategoryCareer {
-        border-color: $color-career;
-    }
-
-    .heroCategoryAcademic {
-        border-color: $color-academic;
-    }
-
-    .heroCategorySocial {
-        border-color: $color-social;
-    }
+    .upcomingEventsCardContainer { grid-template-columns: 1fr; }
 }
 
-@include media(">=tablet") {
-    .heroCategory {
-        border-radius: $radius-pill;
-        background: rgba(255, 255, 255, 0.78);
-        box-shadow: 0 12px 26px rgba($color-uw-purple, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.92);
-
-    }
-
-    .heroCategoryCareer {
-        top: 50%;
-        left: 22%;
-        transform: rotate(-5deg);
-        --hero-cat-rotate: -5deg;
-
-    }
-
-    .heroCategoryAcademic {
-        top: 20%;
-        right: 25%;
-        transform: rotate(5deg);
-        --hero-cat-rotate: 5deg;
-        --hero-cat-float: -2px;
-
-    }
-
-    .heroCategorySocial {
-        top: 54%;
-        right: 24%;
-        transform: rotate(4deg);
-        --hero-cat-rotate: 4deg;
-
-    }
+@include media("screen", "<phone") {
+    .homeDestinations { grid-template-columns: minmax(0, 1fr); }
 }
 
-.heroCategoryCareer .heroTagMark {
-    color: $color-career;
-}
+@media (prefers-reduced-motion: no-preference) {
+    .homePage a {
+        transition: color 160ms ease, background-color 160ms ease, transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
 
-.heroCategoryAcademic .heroTagMark {
-    color: $color-academic;
-}
-
-.heroCategorySocial .heroTagMark {
-    color: $color-social;
+        &:active { transform: scale(0.985); }
+    }
 }

@@ -1,19 +1,17 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import HomePage from "./Home";
 
-// EventCard formats dates with the ESM-only "dateformat" package, which jest
-// cannot transform inside node_modules; a factory mock keeps the card's
-// rendering path exercised without parsing that module.
-vi.mock("dateformat", () => ({ default: () => "Mar 01" }));
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
+const daysFromNow = (days) => new Date(Date.now() + days * DAY_IN_MS).toISOString();
 
-const renderHome = () =>
+const renderHome = (upcomingEvents = []) =>
     render(
         <MemoryRouter initialEntries={["/"]}>
             <Routes>
-                <Route path="/" element={<HomePage upcomingEvents={[]} />} />
+                <Route path="/" element={<HomePage upcomingEvents={upcomingEvents} />} />
                 <Route path="/get-involved" element={<div>Get Involved Page</div>} />
                 <Route path="/events" element={<div>Events Page</div>} />
             </Routes>
@@ -21,71 +19,50 @@ const renderHome = () =>
     );
 
 describe("HomePage", () => {
-    test("renders the landing-page hero region", () => {
-        renderHome();
-
-        expect(screen.getByRole("region", { name: /Informatics Undergraduate Association/i })).toBeInTheDocument();
-    });
-
-    test("explains the student gateway in the hero subheadline", () => {
-        renderHome();
-
-        expect(screen.getByText(/events, resources, opportunities, and community/i)).toBeInTheDocument();
-    });
-
     test("keeps the primary event route accessible", async () => {
         renderHome();
 
-        await userEvent.click(screen.getByRole("link", { name: /Explore Events/ }));
+        await userEvent.click(screen.getByRole("link", { name: "Explore events" }));
         expect(screen.getByText("Events Page")).toBeInTheDocument();
     });
 
-    test("exposes category paths and homepage shortcuts", () => {
-        renderHome();
+    test("lists the three soonest future events in date order", () => {
+        renderHome([
+            { eName: "Later event", eStartDate: daysFromNow(9) },
+            { eName: "Past event", eStartDate: daysFromNow(-2) },
+            { eName: "Soonest event", eStartDate: daysFromNow(1) },
+            { eName: "Middle event", eStartDate: daysFromNow(4) },
+            { eName: "Fourth event", eStartDate: daysFromNow(12) },
+        ]);
 
-        expect(screen.getByRole("navigation", { name: /interest tags/i })).toBeInTheDocument();
-        expect(screen.getByRole("link", { name: /Career tag/i })).toHaveAttribute("href", "/events");
-        expect(screen.getByRole("link", { name: /Academic tag/i })).toHaveAttribute("href", "/events");
-        expect(screen.getByRole("link", { name: /Social tag/i })).toHaveAttribute("href", "/events");
-        expect(screen.getByRole("link", { name: /Join IUGA/ })).toHaveAttribute("href", "/get-involved");
-        expect(screen.getByRole("link", { name: /Shop merch/ })).toHaveAttribute("href", "/get-involved");
+        const eventTitles = within(screen.getByRole("list"))
+            .getAllByRole("heading", { level: 3 })
+            .map((heading) => heading.textContent);
+
+        expect(eventTitles).toEqual(["Soonest event", "Middle event", "Later event"]);
     });
 
-    test("presents all three interest tags as equal-priority destinations", () => {
-        renderHome();
+    test("points to the calendar when no future events are scheduled", () => {
+        renderHome([{ eName: "Past event", eStartDate: daysFromNow(-2) }]);
 
-        const tagLinks = screen.getByRole("navigation", { name: /interest tags/i }).querySelectorAll("a");
-
-        expect(tagLinks).toHaveLength(3);
-        expect([...tagLinks].map((link) => link.textContent)).toEqual(["Career", "Academic", "Social"]);
+        expect(screen.queryByRole("list")).not.toBeInTheDocument();
+        expect(screen.getByRole("link", { name: /New dates are on the way/ })).toHaveAttribute("href", "/events");
     });
 
-    test("makes Happening This Week a direct event destination", () => {
+    test("links each informatics destination to its page", () => {
         renderHome();
 
-        expect(screen.getByRole("link", { name: /Happening this week/i })).toHaveAttribute("href", "/events");
+        expect(screen.getByRole("link", { name: /Student organizations/ })).toHaveAttribute("href", "/resources?category=Community");
+        expect(screen.getByRole("link", { name: /^Resources/ })).toHaveAttribute("href", "/resources");
+        expect(screen.getByRole("link", { name: /^Student Voice/ })).toHaveAttribute("href", "/student-voice");
+        expect(screen.getByRole("link", { name: /^About IUGA/ })).toHaveAttribute("href", "/about");
     });
 
-    test("prioritizes the event destination before the group photo", () => {
+    test("sends the community photos to get involved and shop", () => {
         renderHome();
 
-        const eventCard = screen.getByRole("link", { name: /Happening this week/i });
-        const groupPhoto = screen.getByAltText("IUGA members at iFormal 2026");
-
-        expect(eventCard.compareDocumentPosition(groupPhoto) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    });
-
-    test("has no form inputs and no disabled Coming Soon submit", () => {
-        renderHome();
-        expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
-        expect(screen.queryByText(/send.*coming soon/i)).not.toBeInTheDocument();
-    });
-
-    test("uses descriptive alternatives for hero images", () => {
-        renderHome();
-
-        expect(screen.getByAltText("IUGA members at iFormal 2026")).toBeInTheDocument();
-        expect(screen.getByAltText("IUGA members forming a heart")).toBeInTheDocument();
-        expect(screen.getByAltText("IUGA bowling night")).toBeInTheDocument();
+        const communityLinks = screen.getByRole("region", { name: "Community links" });
+        expect(within(communityLinks).getByRole("link", { name: "Get involved" })).toHaveAttribute("href", "/get-involved");
+        expect(within(communityLinks).getByRole("link", { name: "Shop" })).toHaveAttribute("href", "/shop");
     });
 });

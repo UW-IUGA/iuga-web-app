@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
-  expiresAtSeconds,
   publicCatalog,
   resolveCartLines,
   saleStateAt,
@@ -108,22 +107,6 @@ describe("publicCatalog", () => {
         unitPriceCents: source.unitPriceCents,
       });
     }
-  });
-});
-
-describe("expiresAtSeconds", () => {
-  const closesMs = Date.parse(shopCatalog.closesAt);
-
-  it("caps checkout expiration at 23 hours or 30 minutes after sale closes", () => {
-    // When far from sale close, expires in exactly 23 hours
-    const earlyNowMs = Date.parse(shopCatalog.opensAt) + 24 * 3600 * 1000;
-    const expectedEarly = Math.floor((earlyNowMs + 23 * 3600 * 1000) / 1000);
-    assert.equal(expiresAtSeconds(shopCatalog, earlyNowMs), expectedEarly);
-
-    // When near sale close (e.g. 10 minutes before close), 23h would overshoot close+30m
-    const lateNowMs = closesMs - 10 * 60 * 1000;
-    const expectedLate = Math.floor((closesMs + 30 * 60 * 1000) / 1000);
-    assert.equal(expiresAtSeconds(shopCatalog, lateNowMs), expectedLate);
   });
 });
 

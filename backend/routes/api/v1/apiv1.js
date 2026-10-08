@@ -22,7 +22,6 @@ router.use(
   createShopRouter({
     stripe: createStripeClient(),
     catalog: shopCatalog,
-    returnBaseUrl: process.env.SHOP_RETURN_BASE_URL,
   }),
 );
 

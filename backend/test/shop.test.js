@@ -169,10 +169,7 @@ describe("Shop HTTP Controller (GET /api/v1/shop/checkout/:sessionId)", () => {
 });
 
 describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
-  function makeFakeStripe({
-    sessionUrl = "https://checkout.stripe.com/c/pay/cs_test_123",
-    shouldThrow = false,
-  } = {}) {
+  function makeFakeStripe() {
     const calls = [];
     return {
       calls,
@@ -180,14 +177,6 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
         sessions: {
           create: async (params) => {
             calls.push(params);
-            if (shouldThrow) {
-              const err = new Error("Stripe network error");
-              err.type = "api_error";
-              err.code = "network_failure";
-              err.requestId = "req_test_123";
-              throw err;
-            }
-            return { id: "cs_test_session_123", url: sessionUrl };
           },
         },
       },
@@ -199,7 +188,6 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
     const router = createShopRouter({
       stripe: fakeStripe,
       catalog: shopCatalog,
-      returnBaseUrl: "http://localhost:3000",
     });
     const api = await makeTestApi({
       router,
@@ -227,7 +215,6 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
     const router = createShopRouter({
       stripe: fakeStripe,
       catalog: shopCatalog,
-      returnBaseUrl: "http://localhost:3000",
     });
     const api = await makeTestApi({
       router,
@@ -281,7 +268,6 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
       stripe: fakeStripe,
       catalog: shopCatalog,
       now: () => currentTime,
-      returnBaseUrl: "http://localhost:3000",
     });
     const api = await makeTestApi({
       router,
@@ -333,7 +319,6 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
       stripe: fakeStripe,
       catalog: shopCatalog,
       now: () => openTime,
-      returnBaseUrl: "http://localhost:3000",
     });
     const api = await makeTestApi({
       router,
@@ -357,276 +342,13 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
     }
   });
 
-  it("returns 503 when provider or return URL is not configured, provider throws, or url is missing", async () => {
-    const openTime = Date.parse(shopCatalog.opensAt) + 3600 * 1000;
-    const validPayload = {
-      catalogVersion: shopCatalog.catalogVersion,
-      items: [{ sku: "info-hoodie", size: "L", quantity: 1 }],
-    };
-
-    // 1. Provider not configured
-    const routerNoProvider = createShopRouter({
-      stripe: null,
-      catalog: shopCatalog,
-      now: () => openTime,
-      returnBaseUrl: "http://localhost:3000",
-    });
-    const apiNoProvider = await makeTestApi({
-      router: routerNoProvider,
-      mountPath: "/api/v1/shop",
-      models: {},
-      session: { isAuthenticated: true, userId: "user_123", email: "user@uw.edu" },
-    });
-    try {
-      const res = await apiNoProvider.request("POST", "/api/v1/shop/checkout", validPayload);
-      assert.equal(res.status, 503);
-      assert.equal(res.body.status, "error");
-    } finally {
-      await apiNoProvider.close();
-    }
-
-    // 2. Return URL not configured
+  it("returns a checkout-unavailable response for a valid cart without creating a Stripe session", async () => {
     const fakeStripe = makeFakeStripe();
-    const routerNoUrl = createShopRouter({
-      stripe: fakeStripe,
-      catalog: shopCatalog,
-      now: () => openTime,
-      returnBaseUrl: "",
-    });
-    const apiNoUrl = await makeTestApi({
-      router: routerNoUrl,
-      mountPath: "/api/v1/shop",
-      models: {},
-      session: { isAuthenticated: true, userId: "user_123", email: "user@uw.edu" },
-    });
-    try {
-      const res = await apiNoUrl.request("POST", "/api/v1/shop/checkout", validPayload);
-      assert.equal(res.status, 503);
-      assert.equal(res.body.status, "error");
-      assert.equal(fakeStripe.calls.length, 0);
-    } finally {
-      await apiNoUrl.close();
-    }
-
-    // 3. Provider throws
-    const throwingStripe = makeFakeStripe({ shouldThrow: true });
-    const routerThrow = createShopRouter({
-      stripe: throwingStripe,
-      catalog: shopCatalog,
-      now: () => openTime,
-      returnBaseUrl: "http://localhost:3000",
-    });
-    const apiThrow = await makeTestApi({
-      router: routerThrow,
-      mountPath: "/api/v1/shop",
-      models: {},
-      session: { isAuthenticated: true, userId: "user_123", email: "user@uw.edu" },
-    });
-    try {
-      const res = await apiThrow.request("POST", "/api/v1/shop/checkout", validPayload);
-      assert.equal(res.status, 503);
-      assert.equal(res.body.status, "error");
-      assert.ok(!res.body.message.includes("Stripe network error"));
-    } finally {
-      await apiThrow.close();
-    }
-
-    // 4. Provider returns session without url
-    const noUrlStripe = makeFakeStripe({ sessionUrl: null });
-    const routerNullUrl = createShopRouter({
-      stripe: noUrlStripe,
-      catalog: shopCatalog,
-      now: () => openTime,
-      returnBaseUrl: "http://localhost:3000",
-    });
-    const apiNullUrl = await makeTestApi({
-      router: routerNullUrl,
-      mountPath: "/api/v1/shop",
-      models: {},
-      session: { isAuthenticated: true, userId: "user_123", email: "user@uw.edu" },
-    });
-    try {
-      const res = await apiNullUrl.request("POST", "/api/v1/shop/checkout", validPayload);
-      assert.equal(res.status, 503);
-      assert.equal(res.body.status, "error");
-    } finally {
-      await apiNullUrl.close();
-    }
-  });
-
-  it("creates a payment session bound to the user with catalog prices and return urls", async () => {
-    const fakeStripe = makeFakeStripe({
-      sessionUrl: "https://checkout.stripe.com/c/pay/cs_test_session_123",
-    });
-    const openTime = Date.parse(shopCatalog.opensAt) + 7200 * 1000;
-
+    const openTime = Date.parse(shopCatalog.opensAt) + 3600 * 1000;
     const router = createShopRouter({
       stripe: fakeStripe,
       catalog: shopCatalog,
       now: () => openTime,
-      returnBaseUrl: "http://localhost:3000",
-    });
-    const api = await makeTestApi({
-      router,
-      mountPath: "/api/v1/shop",
-      models: {},
-      session: {
-        isAuthenticated: true,
-        userId: "user_789",
-        email: "student@uw.edu",
-      },
-    });
-
-    try {
-      const res = await api.request("POST", "/api/v1/shop/checkout", {
-        catalogVersion: shopCatalog.catalogVersion,
-        items: [
-          { sku: "info-hoodie", size: "L", quantity: 2 },
-          { sku: "info-tote-bag", size: "One Size", quantity: 1 },
-        ],
-      });
-
-      assert.equal(res.status, 200);
-      assert.equal(res.body.status, "success");
-      assert.equal(res.body.url, "https://checkout.stripe.com/c/pay/cs_test_session_123");
-      assert.equal(res.body.sessionId, "cs_test_session_123");
-
-      assert.equal(fakeStripe.calls.length, 1);
-      const params = fakeStripe.calls[0];
-
-      assert.equal(params.mode, "payment");
-      assert.equal(params.client_reference_id, "user_789");
-      assert.equal(params.customer_email, "student@uw.edu");
-
-      const expectedMetadata = {
-        source: "iuga_shop",
-        drop_id: shopCatalog.catalogId,
-        catalog_version: shopCatalog.catalogVersion,
-        user_id: "user_789",
-      };
-      assert.deepEqual(params.metadata, expectedMetadata);
-
-      assert.equal(params.success_url, "http://localhost:3000/shop?checkout=complete&session_id={CHECKOUT_SESSION_ID}");
-      assert.equal(params.cancel_url, "http://localhost:3000/shop?checkout=canceled");
-
-      // Line items carry catalog prices and quantities, keyed by sku
-      assert.equal(params.line_items.length, 2);
-      assert.equal(params.line_items[0].price_data.unit_amount, 4500);
-      assert.equal(params.line_items[0].quantity, 2);
-      assert.equal(params.line_items[0].price_data.product_data.metadata.sku, "info-hoodie");
-      assert.equal(params.line_items[1].price_data.unit_amount, 2000);
-      assert.equal(params.line_items[1].quantity, 1);
-      assert.equal(params.line_items[1].price_data.product_data.metadata.sku, "info-tote-bag");
-    } finally {
-      await api.close();
-    }
-  });
-
-  it("ignores client-supplied identity, prices, and totals in request body", async () => {
-    const fakeStripe = makeFakeStripe();
-    const openTime = Date.parse(shopCatalog.opensAt) + 3600 * 1000;
-
-    const router = createShopRouter({
-      stripe: fakeStripe,
-      catalog: shopCatalog,
-      now: () => openTime,
-      returnBaseUrl: "http://localhost:3000",
-    });
-    const api = await makeTestApi({
-      router,
-      mountPath: "/api/v1/shop",
-      models: {},
-      session: {
-        isAuthenticated: true,
-        userId: "trusted_server_user_id",
-        email: "trusted_student@uw.edu",
-      },
-    });
-
-    try {
-      // Malicious attempt to spoof identity and discount price
-      const res = await api.request("POST", "/api/v1/shop/checkout", {
-        catalogVersion: shopCatalog.catalogVersion,
-        items: [
-          {
-            sku: "info-hoodie",
-            size: "L",
-            quantity: 1,
-            unitPriceCents: 1, // Attacker tries $0.01 instead of $45.00
-            price: 1,
-          },
-        ],
-        userId: "attacker_user_id",
-        email: "attacker@spoofed.com",
-        total: 1,
-        success_url: "https://evil.com/steal-creds",
-      });
-
-      assert.equal(res.status, 200);
-      assert.equal(fakeStripe.calls.length, 1);
-      const params = fakeStripe.calls[0];
-
-      // Identity from session, NOT body
-      assert.equal(params.client_reference_id, "trusted_server_user_id");
-      assert.equal(params.customer_email, "trusted_student@uw.edu");
-      assert.equal(params.metadata.user_id, "trusted_server_user_id");
-      assert.equal(params.payment_intent_data.metadata.user_id, "trusted_server_user_id");
-
-      // Price from catalog, NOT body
-      assert.equal(params.line_items[0].price_data.unit_amount, 4500);
-
-      // Return URLs from server config, NOT body
-      assert.equal(params.success_url, "http://localhost:3000/shop?checkout=complete&session_id={CHECKOUT_SESSION_ID}");
-      assert.equal(params.cancel_url, "http://localhost:3000/shop?checkout=canceled");
-    } finally {
-      await api.close();
-    }
-  });
-
-  it("omits customer_email when session email is not a non-empty string", async () => {
-    const fakeStripe = makeFakeStripe();
-    const openTime = Date.parse(shopCatalog.opensAt) + 3600 * 1000;
-
-    const router = createShopRouter({
-      stripe: fakeStripe,
-      catalog: shopCatalog,
-      now: () => openTime,
-      returnBaseUrl: "http://localhost:3000",
-    });
-    const api = await makeTestApi({
-      router,
-      mountPath: "/api/v1/shop",
-      models: {},
-      session: {
-        isAuthenticated: true,
-        userId: "user_no_email",
-        email: "", // empty email in session
-      },
-    });
-
-    try {
-      const res = await api.request("POST", "/api/v1/shop/checkout", {
-        catalogVersion: shopCatalog.catalogVersion,
-        items: [{ sku: "info-hoodie", size: "L", quantity: 1 }],
-      });
-
-      assert.equal(res.status, 200);
-      assert.equal(fakeStripe.calls.length, 1);
-      assert.equal(fakeStripe.calls[0].customer_email, undefined);
-    } finally {
-      await api.close();
-    }
-  });
-
-  it("consolidates duplicate sku+size rows into a single line with summed quantity", async () => {
-    const fakeStripe = makeFakeStripe();
-    const openTime = Date.parse(shopCatalog.opensAt) + 3600 * 1000;
-
-    const router = createShopRouter({
-      stripe: fakeStripe,
-      catalog: shopCatalog,
-      now: () => openTime,
-      returnBaseUrl: "http://localhost:3000",
     });
     const api = await makeTestApi({
       router,
@@ -636,21 +358,15 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
     });
 
     try {
-      const res = await api.request("POST", "/api/v1/shop/checkout", {
+      const response = await api.request("POST", "/api/v1/shop/checkout", {
         catalogVersion: shopCatalog.catalogVersion,
-        items: [
-          { sku: "info-hoodie", size: "L", quantity: 2 },
-          { sku: "info-hoodie", size: "L", quantity: 3 },
-        ],
+        items: [{ sku: "info-hoodie", size: "L", quantity: 1 }],
       });
 
-      assert.equal(res.status, 200);
-      assert.equal(fakeStripe.calls.length, 1);
-      const lineItems = fakeStripe.calls[0].line_items;
-      assert.equal(lineItems.length, 1);
-      assert.equal(lineItems[0].quantity, 5);
-      assert.equal(lineItems[0].price_data.product_data.metadata.sku, "info-hoodie");
-      assert.equal(lineItems[0].price_data.product_data.metadata.size, "L");
+      assert.equal(response.status, 503);
+      assert.equal(response.body.status, "error");
+      assert.equal(response.body.message, "Online checkout is temporarily unavailable. Your cart has not changed; please check back later.");
+      assert.equal(fakeStripe.calls.length, 0);
     } finally {
       await api.close();
     }
@@ -686,10 +402,10 @@ describe("Stripe Client Factory (createStripeClient)", () => {
     assert.equal(createStripeClient({ STRIPE_SECRET_KEY: 12345 }), null);
   });
 
-  it("returns configured Stripe client instance when STRIPE_SECRET_KEY is valid", () => {
+  it("returns a Stripe client for verifying legacy sessions when the key is valid", () => {
     const client = createStripeClient({ STRIPE_SECRET_KEY: "sk_test_mock_secret_key" });
     assert.ok(client);
-    assert.equal(typeof client.checkout?.sessions?.create, "function");
+    assert.equal(typeof client.checkout?.sessions?.retrieve, "function");
   });
 
   it("defaults env to process.env and does not throw at import or construction", () => {

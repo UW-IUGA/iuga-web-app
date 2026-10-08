@@ -1,7 +1,7 @@
 /*
 Purpose: Define the merchandise catalog for IUGA apparel drops and provide pure
          helpers for sale state calculation, public catalog projection, cart validation,
-         and checkout session expiration.
+         and cart line resolution.
 
 Authentication/Authorization Requirements: N/A (pure utility module, not a route)
 
@@ -93,20 +93,6 @@ export function publicCatalog(catalog, nowMs) {
       unitPriceCents: item.unitPriceCents,
     })),
   };
-}
-
-/*
- * @behavior Calculate checkout session expiration time in Unix seconds.
- *           Caps at 23 hours from current time or 30 minutes after sale close,
- *           whichever is sooner.
- * @param catalog — catalog definition containing closesAt ISO string
- * @param nowMs — current timestamp in milliseconds
- * @returns integer Unix timestamp in seconds
- */
-export function expiresAtSeconds(catalog, nowMs) {
-  const twentyThreeHoursMs = nowMs + 23 * 3600 * 1000;
-  const closeGraceMs = Date.parse(catalog.closesAt) + 30 * 60 * 1000;
-  return Math.floor(Math.min(twentyThreeHoursMs, closeGraceMs) / 1000);
 }
 
 /*

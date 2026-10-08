@@ -86,7 +86,7 @@ Express also serves:
 | Method | Path | Auth | Description |
 |---|---|---|---|
 | `GET` | `/` | No | All events for the calendar. Authenticated callers also receive `hasRSVPd`; anonymous callers receive `false`. |
-| `GET` | `/upcoming` | No | Latest 3 events (sorted by start date descending). Used by the homepage. |
+| `GET` | `/upcoming` | No | Nearest 3 future events (ascending start time). Used by the homepage. |
 | `GET` | `/id/:eId` | No | Single event details. Includes RSVP questions, participant count, thumbnail, and the caller's RSVP answers when authenticated. |
 | `POST` | `/rsvp` | Yes | RSVP to an event. Requires a valid event ID and an array of string answers; also checks event state and duplicate participation. |
 | `DELETE` | `/withdraw/:eId/:pId` | Yes | Withdraw only the caller's participant from the matching event. Admins may withdraw any participant. |

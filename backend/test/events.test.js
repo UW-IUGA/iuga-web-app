@@ -81,6 +81,40 @@ describe("event Mongoose boundaries", () => {
       },
     ]);
   });
+  it("queries the nearest three future events in chronological order", async () => {
+    let pipeline;
+    const upcomingEvents = [
+      { eId: "soonest", eName: "Soonest event" },
+      { eId: "next", eName: "Next event" },
+      { eId: "third", eName: "Third event" },
+    ];
+    const result = await api.request(
+      "GET",
+      "/api/v1/events/upcoming",
+      undefined,
+      {
+        models: {
+          Events: {
+            async aggregate(stages) {
+              pipeline = stages;
+              return upcomingEvents;
+            },
+          },
+        },
+      },
+    );
+
+    const matchStage = pipeline.find((stage) => stage.$match);
+    const sortStage = pipeline.find((stage) => stage.$sort);
+    const limitStage = pipeline.find((stage) => stage.$limit);
+
+    assert.equal(result.status, 200);
+    assert.ok(matchStage.$match.eStartDate.$gt instanceof Date);
+    assert.ok(Math.abs(Date.now() - matchStage.$match.eStartDate.$gt.getTime()) < 5000);
+    assert.deepEqual(sortStage, { $sort: { eStartDate: 1 } });
+    assert.equal(limitStage.$limit, 3);
+    assert.deepEqual(result.body, upcomingEvents);
+  });
 
   it("rejects an event lookup with a malformed id", async () => {
     const result = await api.request("GET", "/api/v1/events/id/not-an-id");

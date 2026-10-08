@@ -8,10 +8,8 @@ Authentication/Authorization Requirements: N/A (pure utility module, not a route
 Expected Request Information: N/A
 Expected Response Information: N/A
 
-Note on Pricing & Sale Window:
-Prices and the sale window dates defined in this catalog are placeholders pending
-final confirmation by the product owner. This module is the single source of truth
-for pricing and allowed sizes; callers must never re-derive or accept client-supplied prices.
+The catalog is the single source of truth for prices, sale dates, and allowed sizes.
+Callers must never re-derive or accept client-supplied prices.
 */
 
 export const shopCatalog = Object.freeze({
@@ -25,25 +23,25 @@ export const shopCatalog = Object.freeze({
       sku: "info-hoodie",
       name: "Hoodie",
       sizes: Object.freeze(["S", "M", "L", "XL", "2XL"]),
-      unitPriceCents: 4500,
+      unitPriceCents: 3200,
     }),
     Object.freeze({
       sku: "info-crewneck",
       name: "Crewneck",
       sizes: Object.freeze(["S", "M", "L", "XL", "2XL"]),
-      unitPriceCents: 4000,
+      unitPriceCents: 3000,
     }),
     Object.freeze({
       sku: "info-baseball-tee",
       name: "Baseball Tee",
       sizes: Object.freeze(["S", "M", "L", "XL", "2XL"]),
-      unitPriceCents: 3000,
+      unitPriceCents: 2200,
     }),
     Object.freeze({
       sku: "info-t-shirt",
       name: "T-Shirt",
       sizes: Object.freeze(["S", "M", "L", "XL", "2XL"]),
-      unitPriceCents: 2500,
+      unitPriceCents: 2400,
     }),
     Object.freeze({
       sku: "info-tote-bag",

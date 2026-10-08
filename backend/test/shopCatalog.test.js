@@ -125,7 +125,7 @@ describe("resolveCartLines - valid cart resolution", () => {
         name: "Hoodie",
         size: "L",
         quantity: 2,
-        unitPriceCents: 4500,
+        unitPriceCents: 3200,
       },
       {
         sku: "info-tote-bag",
@@ -264,14 +264,14 @@ describe("resolveCartLines - duplicate consolidation and quantity safety", () =>
       name: "Hoodie",
       size: "M",
       quantity: 5,
-      unitPriceCents: 4500,
+      unitPriceCents: 3200,
     });
     assert.deepEqual(res.lines[1], {
       sku: "info-t-shirt",
       name: "T-Shirt",
       size: "S",
       quantity: 1,
-      unitPriceCents: 2500,
+      unitPriceCents: 2400,
     });
   });
 
@@ -303,11 +303,16 @@ describe("resolveCartLines - provider limits and amount integrity", () => {
   });
 
   it("rejects when the overall cart total exceeds provider maximum of 99999999 cents", () => {
-    // One line just under the per-line limit, plus a second line that pushes the sum over.
+    const providerLimitCents = 99999999;
     const priceOf = (sku) => shopCatalog.items.find((i) => i.sku === sku).unitPriceCents;
+    const hoodieQuantity = Math.floor(providerLimitCents / priceOf("info-hoodie"));
+    const hoodieTotal = hoodieQuantity * priceOf("info-hoodie");
+    const crewneckQuantity = Math.floor(
+      (providerLimitCents - hoodieTotal) / priceOf("info-crewneck"),
+    ) + 1;
     const cart = [
-      { sku: "info-hoodie", size: "M", quantity: Math.floor(99999999 / priceOf("info-hoodie")) },
-      { sku: "info-crewneck", size: "M", quantity: 1 },
+      { sku: "info-hoodie", size: "M", quantity: hoodieQuantity },
+      { sku: "info-crewneck", size: "M", quantity: crewneckQuantity },
     ];
     const res = resolveCartLines(shopCatalog, cart);
     assert.equal(res.ok, false);
@@ -327,7 +332,7 @@ describe("resolveCartLines - provider limits and amount integrity", () => {
     ];
     const res = resolveCartLines(shopCatalog, spoofedCart);
     assert.equal(res.ok, true);
-    assert.equal(res.lines[0].unitPriceCents, 4500);
+    assert.equal(res.lines[0].unitPriceCents, 3200);
     assert.equal(Object.hasOwn(res.lines[0], "unitAmount"), false);
     assert.equal(res.lines[0].price, undefined);
     assert.equal(res.lines[0].amount, undefined);

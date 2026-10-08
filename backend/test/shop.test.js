@@ -28,9 +28,19 @@ describe("Shop HTTP Controller (GET /api/v1/shop/catalog)", () => {
       assert.equal(response.body.catalog.catalogId, shopCatalog.catalogId);
       assert.equal(Object.hasOwn(response.body.catalog, "dropId"), false);
       assert.equal(response.body.catalog.catalogVersion, shopCatalog.catalogVersion);
+      assert.equal(response.body.catalog.catalogVersion, "fall-2026-v1");
       assert.equal(response.body.catalog.currency, "usd");
       assert.equal(response.body.catalog.saleState, "open");
       assert.ok(response.body.catalog.items.length > 0);
+      assert.deepEqual(Object.fromEntries(
+        response.body.catalog.items.map(({ sku, unitPriceCents }) => [sku, unitPriceCents]),
+      ), {
+        "info-hoodie": 3200,
+        "info-crewneck": 3000,
+        "info-baseball-tee": 2200,
+        "info-t-shirt": 2400,
+        "info-tote-bag": 2000,
+      });
       for (const item of response.body.catalog.items) {
         assert.equal(typeof item.sku, "string");
         assert.ok(item.sku.length > 0);

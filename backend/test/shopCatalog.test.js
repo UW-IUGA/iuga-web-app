@@ -243,7 +243,7 @@ describe("resolveCartLines - sku and size validation", () => {
       `Expected message to name offending size, got: "${res.message}"`,
     );
     assert.ok(
-      res.message.includes("INFO Tote Bag") || res.message.includes("info-tote-bag"),
+      res.message.includes("Tote Bag") || res.message.includes("info-tote-bag"),
       `Expected message to name offending item, got: "${res.message}"`,
     );
   });

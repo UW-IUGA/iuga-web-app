@@ -3,9 +3,9 @@
  *          site-wide shop cart; cart state, drawer, and checkout live in ShopCartContext
  *          so the cart is available on every page.
  * Authentication/Authorization Requirements: Browsing the catalog and building a cart are public.
- *          Checkout requires an authenticated session via useAuthContext().signIn() before dispatching to Stripe.
+ *          New checkout is unavailable; signed-in buyers can still verify legacy Stripe returns.
  * Expected Request Information: Catalog and cart state from useShopCart().
- * Expected Response Information: Hero, collection grid, and Stripe return banners.
+ * Expected Response Information: Hero, collection grid, and legacy Stripe return banners.
  */
 
 import { useState, useEffect, useMemo } from "react";

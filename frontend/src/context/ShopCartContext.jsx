@@ -1,6 +1,6 @@
 /*
  * Purpose: Site-wide merchandise cart state. Owns the cart, catalog fetching with
- *          session cache, Stripe checkout handoff, and the navbar trigger + cart
+ *          session cache, legacy Stripe return verification, and navbar cart
  *          dropdown portals so the cart is available on every page, not just /shop.
  * Authentication/Authorization Requirements: Browsing and building a cart are public.
  *          Checkout requires an authenticated session via useAuthContext().signIn().
@@ -26,12 +26,13 @@ const CART_STORAGE_KEY = "iuga_shop_cart";
 const CATALOG_CACHE_KEY = "iuga_shop_catalog";
 const CATALOG_CACHE_TTL_MS = 5 * 60 * 1000;
 const PROCESSED_CHECKOUT_CART = "processed";
+const CHECKOUT_UNAVAILABLE_MESSAGE =
+    "Online checkout is temporarily unavailable. Your cart has not changed; please check back later.";
 
 /**
- * @behavior Builds the sessionStorage key holding the cart handed to Stripe
- *           for one checkout session, so the paid-return verifier reads back
- *           the exact cart the handoff wrote. After processing, this key holds
- *           a sentinel preventing repeat subtraction across reloads in this tab.
+ * @behavior Builds the sessionStorage key for a cart snapshot written by the
+ *           previous Stripe checkout flow. The legacy paid-return verifier uses
+ *           it to reconcile that purchase and stores a sentinel after processing.
  */
 export function checkoutCartKey(sessionId) {
     return `iuga_shop_checkout_${sessionId}`;
@@ -357,24 +358,6 @@ export function ShopCartProvider({ children }) {
                 }
             }
 
-            if (response.status === 200) {
-                const data = await response.json();
-                if (data.url && data.sessionId) {
-                    window.sessionStorage.setItem(checkoutCartKey(data.sessionId), JSON.stringify(currentCart));
-                    // The bag stays open on every failure so its notice is visible;
-                    // it closes only here, on the way out to Stripe.
-                    closeCart();
-                    if (typeof window.location.assign === "function") {
-                        window.location.assign(data.url);
-                    } else {
-                        window.location.href = data.url;
-                    }
-                    return;
-                }
-                setCheckoutNotice("Unable to start checkout. Please try again later.");
-                return;
-            }
-
             if (response.status === 409) {
                 await fetchCatalog(true, true);
                 setCheckoutNotice(
@@ -389,6 +372,18 @@ export function ShopCartProvider({ children }) {
                 return;
             }
 
+            if (response.status === 503) {
+                // The status alone means checkout is unavailable, so a 503 body
+                // that is missing or unreadable still gets the specific message.
+                const data = await response.json().catch(() => null);
+                setCheckoutNotice(
+                    typeof data?.message === "string" && data.message.trim()
+                        ? data.message
+                        : CHECKOUT_UNAVAILABLE_MESSAGE
+                );
+                return;
+            }
+
             setCheckoutNotice("Unable to start checkout. Please try again later.");
         } catch {
             setCheckoutNotice("Unable to start checkout. Please try again later.");
@@ -396,7 +391,7 @@ export function ShopCartProvider({ children }) {
             submittingRef.current = false;
             setIsSubmitting(false);
         }
-    }, [closeCart, fetchCatalog, isAuthenticated, isSubmitting, signIn]);
+    }, [fetchCatalog, isAuthenticated, isSubmitting, signIn]);
 
     const totalQuantity = cart.reduce((sum, line) => sum + line.quantity, 0);
 

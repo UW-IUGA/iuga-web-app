@@ -189,7 +189,7 @@ describe("starting checkout from the cart", () => {
         renderShop();
         fireEvent.click(await openCart());
 
-        expect(await screen.findByText(/unable to start checkout/i)).toBeInTheDocument();
+        expect(await screen.findByText(/temporarily unavailable/i)).toBeInTheDocument();
         expect(screen.getByRole("dialog")).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "Checkout" })).toBeEnabled();
         expect(assign).not.toHaveBeenCalled();
@@ -198,6 +198,19 @@ describe("starting checkout from the cart", () => {
         await waitFor(() => expect(assign).toHaveBeenCalledWith(stripeUrl));
         expect(checkout).toHaveBeenCalledTimes(2);
         expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+
+    test("a 503 from checkout shows the server's message and keeps the bag open without redirecting", async () => {
+        storeCart([bag]);
+        const checkout = vi.fn(() => response({ status: "error", message: "Checkout is paused for maintenance." }, 503));
+        mockApi({ checkout });
+        const assign = mockRedirect();
+        renderShop();
+        fireEvent.click(await openCart());
+
+        expect(await screen.findByText("Checkout is paused for maintenance.")).toBeInTheDocument();
+        expect(screen.getByRole("dialog")).toBeInTheDocument();
+        expect(assign).not.toHaveBeenCalled();
     });
 
     test("a stale-catalog 409 forces a fresh catalog even just after loading and requires another confirmation", async () => {

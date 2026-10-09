@@ -26,6 +26,7 @@ const CART_STORAGE_KEY = "iuga_shop_cart";
 const CATALOG_CACHE_KEY = "iuga_shop_catalog";
 const CATALOG_CACHE_TTL_MS = 5 * 60 * 1000;
 const PROCESSED_CHECKOUT_CART = "processed";
+const CHECKOUT_UNAVAILABLE_MESSAGE = "Online checkout is temporarily unavailable. Your cart has not changed; please check back later.";
 
 /**
  * @behavior Builds the sessionStorage key holding the cart handed to Stripe
@@ -372,6 +373,14 @@ export function ShopCartProvider({ children }) {
                     return;
                 }
                 setCheckoutNotice("Unable to start checkout. Please try again later.");
+                return;
+            }
+
+            if (response.status === 503) {
+                // The server explains why checkout is closed; use the fixed notice when it sends no message.
+                const body = await response.json().catch(() => null);
+                const hasServerMessage = typeof body?.message === "string" && body.message.trim() !== "";
+                setCheckoutNotice(hasServerMessage ? body.message : CHECKOUT_UNAVAILABLE_MESSAGE);
                 return;
             }
 

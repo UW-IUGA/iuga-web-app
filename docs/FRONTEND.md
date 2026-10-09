@@ -130,6 +130,8 @@ The cart is stored in this tab's `sessionStorage` under `iuga_shop_cart`.
 Starting checkout saves the exact submitted quantities under
 `iuga_shop_checkout_<sessionId>` before leaving for Stripe.
 
+While online checkout is not exposed in production, a 503 from `POST /api/v1/shop/checkout` keeps the bag open and shows the server's unavailable message, or a fixed notice when the response has none. The page does not redirect.
+
 On `/shop?checkout=complete&session_id=<sessionId>`, signed-in shoppers wait for
 the authenticated, buyer-scoped `GET /api/v1/shop/checkout/<sessionId>` to verify
 payment. This read-only server check is the payment authority; neither the URL

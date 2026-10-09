@@ -224,17 +224,30 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
     };
   }
 
-  it("returns 401 for an unauthenticated request and makes no provider call", async () => {
-    const fakeStripe = makeFakeStripe();
+  function makeCheckoutApi({
+    stripe,
+    now,
+    returnBaseUrl = "http://localhost:3000",
+    session = { isAuthenticated: true, userId: "user_123", email: "user@uw.edu" },
+  }) {
     const router = createShopRouter({
-      stripe: fakeStripe,
+      stripe,
       catalog: shopCatalog,
-      returnBaseUrl: "http://localhost:3000",
+      now,
+      returnBaseUrl,
     });
-    const api = await makeTestApi({
+    return makeTestApi({
       router,
       mountPath: "/api/v1/shop",
       models: {},
+      session,
+    });
+  }
+
+  it("returns 401 for an unauthenticated request and makes no provider call", async () => {
+    const fakeStripe = makeFakeStripe();
+    const api = await makeCheckoutApi({
+      stripe: fakeStripe,
       session: { isAuthenticated: false },
     });
 
@@ -254,17 +267,7 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
 
   it("returns 400 for malformed bodies, missing/invalid catalogVersion, and invalid cart items", async () => {
     const fakeStripe = makeFakeStripe();
-    const router = createShopRouter({
-      stripe: fakeStripe,
-      catalog: shopCatalog,
-      returnBaseUrl: "http://localhost:3000",
-    });
-    const api = await makeTestApi({
-      router,
-      mountPath: "/api/v1/shop",
-      models: {},
-      session: { isAuthenticated: true, userId: "user_123", email: "user@uw.edu" },
-    });
+    const api = await makeCheckoutApi({ stripe: fakeStripe });
 
     const invalidBodies = [
       // missing catalogVersion
@@ -307,17 +310,9 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
     const openTime = Date.parse(shopCatalog.opensAt) + 3600 * 1000;
     let currentTime = openTime;
 
-    const router = createShopRouter({
+    const api = await makeCheckoutApi({
       stripe: fakeStripe,
-      catalog: shopCatalog,
       now: () => currentTime,
-      returnBaseUrl: "http://localhost:3000",
-    });
-    const api = await makeTestApi({
-      router,
-      mountPath: "/api/v1/shop",
-      models: {},
-      session: { isAuthenticated: true, userId: "user_123", email: "user@uw.edu" },
     });
 
     try {
@@ -359,17 +354,9 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
     const fakeStripe = makeFakeStripe();
     const openTime = Date.parse(shopCatalog.opensAt) + 3600 * 1000;
 
-    const router = createShopRouter({
+    const api = await makeCheckoutApi({
       stripe: fakeStripe,
-      catalog: shopCatalog,
       now: () => openTime,
-      returnBaseUrl: "http://localhost:3000",
-    });
-    const api = await makeTestApi({
-      router,
-      mountPath: "/api/v1/shop",
-      models: {},
-      session: { isAuthenticated: true, userId: "user_123", email: "user@uw.edu" },
     });
 
     try {
@@ -395,17 +382,9 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
     };
 
     // 1. Provider not configured
-    const routerNoProvider = createShopRouter({
+    const apiNoProvider = await makeCheckoutApi({
       stripe: null,
-      catalog: shopCatalog,
       now: () => openTime,
-      returnBaseUrl: "http://localhost:3000",
-    });
-    const apiNoProvider = await makeTestApi({
-      router: routerNoProvider,
-      mountPath: "/api/v1/shop",
-      models: {},
-      session: { isAuthenticated: true, userId: "user_123", email: "user@uw.edu" },
     });
     try {
       const res = await apiNoProvider.request("POST", "/api/v1/shop/checkout", validPayload);
@@ -417,17 +396,10 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
 
     // 2. Return URL not configured
     const fakeStripe = makeFakeStripe();
-    const routerNoUrl = createShopRouter({
+    const apiNoUrl = await makeCheckoutApi({
       stripe: fakeStripe,
-      catalog: shopCatalog,
       now: () => openTime,
       returnBaseUrl: "",
-    });
-    const apiNoUrl = await makeTestApi({
-      router: routerNoUrl,
-      mountPath: "/api/v1/shop",
-      models: {},
-      session: { isAuthenticated: true, userId: "user_123", email: "user@uw.edu" },
     });
     try {
       const res = await apiNoUrl.request("POST", "/api/v1/shop/checkout", validPayload);
@@ -440,17 +412,9 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
 
     // 3. Provider throws
     const throwingStripe = makeFakeStripe({ shouldThrow: true });
-    const routerThrow = createShopRouter({
+    const apiThrow = await makeCheckoutApi({
       stripe: throwingStripe,
-      catalog: shopCatalog,
       now: () => openTime,
-      returnBaseUrl: "http://localhost:3000",
-    });
-    const apiThrow = await makeTestApi({
-      router: routerThrow,
-      mountPath: "/api/v1/shop",
-      models: {},
-      session: { isAuthenticated: true, userId: "user_123", email: "user@uw.edu" },
     });
     try {
       const res = await apiThrow.request("POST", "/api/v1/shop/checkout", validPayload);
@@ -463,17 +427,9 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
 
     // 4. Provider returns session without url
     const noUrlStripe = makeFakeStripe({ sessionUrl: null });
-    const routerNullUrl = createShopRouter({
+    const apiNullUrl = await makeCheckoutApi({
       stripe: noUrlStripe,
-      catalog: shopCatalog,
       now: () => openTime,
-      returnBaseUrl: "http://localhost:3000",
-    });
-    const apiNullUrl = await makeTestApi({
-      router: routerNullUrl,
-      mountPath: "/api/v1/shop",
-      models: {},
-      session: { isAuthenticated: true, userId: "user_123", email: "user@uw.edu" },
     });
     try {
       const res = await apiNullUrl.request("POST", "/api/v1/shop/checkout", validPayload);
@@ -490,16 +446,9 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
     });
     const openTime = Date.parse(shopCatalog.opensAt) + 7200 * 1000;
 
-    const router = createShopRouter({
+    const api = await makeCheckoutApi({
       stripe: fakeStripe,
-      catalog: shopCatalog,
       now: () => openTime,
-      returnBaseUrl: "http://localhost:3000",
-    });
-    const api = await makeTestApi({
-      router,
-      mountPath: "/api/v1/shop",
-      models: {},
       session: {
         isAuthenticated: true,
         userId: "user_789",
@@ -556,16 +505,9 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
     const fakeStripe = makeFakeStripe();
     const openTime = Date.parse(shopCatalog.opensAt) + 3600 * 1000;
 
-    const router = createShopRouter({
+    const api = await makeCheckoutApi({
       stripe: fakeStripe,
-      catalog: shopCatalog,
       now: () => openTime,
-      returnBaseUrl: "http://localhost:3000",
-    });
-    const api = await makeTestApi({
-      router,
-      mountPath: "/api/v1/shop",
-      models: {},
       session: {
         isAuthenticated: true,
         userId: "trusted_server_user_id",
@@ -617,16 +559,9 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
     const fakeStripe = makeFakeStripe();
     const openTime = Date.parse(shopCatalog.opensAt) + 3600 * 1000;
 
-    const router = createShopRouter({
+    const api = await makeCheckoutApi({
       stripe: fakeStripe,
-      catalog: shopCatalog,
       now: () => openTime,
-      returnBaseUrl: "http://localhost:3000",
-    });
-    const api = await makeTestApi({
-      router,
-      mountPath: "/api/v1/shop",
-      models: {},
       session: {
         isAuthenticated: true,
         userId: "user_no_email",
@@ -652,16 +587,9 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
     const fakeStripe = makeFakeStripe();
     const openTime = Date.parse(shopCatalog.opensAt) + 3600 * 1000;
 
-    const router = createShopRouter({
+    const api = await makeCheckoutApi({
       stripe: fakeStripe,
-      catalog: shopCatalog,
       now: () => openTime,
-      returnBaseUrl: "http://localhost:3000",
-    });
-    const api = await makeTestApi({
-      router,
-      mountPath: "/api/v1/shop",
-      models: {},
       session: { isAuthenticated: true, userId: "user_123" },
     });
 

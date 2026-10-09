@@ -42,6 +42,36 @@ describe("Shop HTTP Controller (GET /api/v1/shop/catalog)", () => {
     }
   });
 
+  it("reports the confirmed student amounts for each product", async () => {
+    const fixedNow = Date.parse(shopCatalog.opensAt) + 3600 * 1000;
+    const router = createShopRouter({
+      catalog: shopCatalog,
+      now: () => fixedNow,
+    });
+    const api = await makeTestApi({
+      router,
+      mountPath: "/api/v1/shop",
+      models: {},
+      session: { isAuthenticated: false },
+    });
+
+    try {
+      const response = await api.request("GET", "/api/v1/shop/catalog");
+      const amounts = Object.fromEntries(
+        response.body.catalog.items.map((item) => [item.sku, item.unitPriceCents])
+      );
+      assert.deepEqual(amounts, {
+        "info-baseball-tee": 2200,
+        "info-crewneck": 3000,
+        "info-hoodie": 3200,
+        "info-t-shirt": 2400,
+        "info-tote-bag": 2000,
+      });
+    } finally {
+      await api.close();
+    }
+  });
+
   it("reflects saleState using the injected clock function", async () => {
     const opensMs = Date.parse(shopCatalog.opensAt);
     let mockTime = opensMs - 1000;
@@ -511,7 +541,7 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
 
       // Line items carry catalog prices and quantities, keyed by sku
       assert.equal(params.line_items.length, 2);
-      assert.equal(params.line_items[0].price_data.unit_amount, 4500);
+      assert.equal(params.line_items[0].price_data.unit_amount, 3200);
       assert.equal(params.line_items[0].quantity, 2);
       assert.equal(params.line_items[0].price_data.product_data.metadata.sku, "info-hoodie");
       assert.equal(params.line_items[1].price_data.unit_amount, 2000);
@@ -573,7 +603,7 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
       assert.equal(params.payment_intent_data.metadata.user_id, "trusted_server_user_id");
 
       // Price from catalog, NOT body
-      assert.equal(params.line_items[0].price_data.unit_amount, 4500);
+      assert.equal(params.line_items[0].price_data.unit_amount, 3200);
 
       // Return URLs from server config, NOT body
       assert.equal(params.success_url, "http://localhost:3000/shop?checkout=complete&session_id={CHECKOUT_SESSION_ID}");

@@ -37,6 +37,7 @@ import { requireAuth } from "../utils/auth.js";
  * @param options.catalog — catalog definition containing catalogId, version, currency, dates, and items
  * @param options.now — clock function returning current timestamp in milliseconds (defaults to Date.now)
  * @param options.returnBaseUrl — origin for client return redirects (e.g., http://localhost:3000)
+ * @param options.stripeCheckoutExposed — when false (default), POST /checkout returns 503 before any Stripe call
  * @returns Express router instance
  */
 export function createShopRouter({
@@ -44,6 +45,7 @@ export function createShopRouter({
   catalog,
   now = Date.now,
   returnBaseUrl,
+  stripeCheckoutExposed = false,
 }) {
   const router = express.Router();
 
@@ -105,7 +107,7 @@ export function createShopRouter({
   - 400 Malformed body, invalid cart items, or missing catalogVersion
   - 401 Not authenticated
   - 409 Stale catalogVersion, sale scheduled, or sale closed
-  - 503 Stripe unconfigured, missing return URL, or provider error
+  - 503 Checkout not exposed, Stripe unconfigured, missing return URL, or provider error
   */
   router.post("/checkout", requireAuth, async (req, res) => {
     const body = req.body;
@@ -133,6 +135,14 @@ export function createShopRouter({
     const cartResult = resolveCartLines(catalog, body.items);
     if (!cartResult.ok) {
       return sendError(res, 400, cartResult.message);
+    }
+
+    if (stripeCheckoutExposed !== true) {
+      return sendError(
+        res,
+        503,
+        "Online checkout is temporarily unavailable. Your cart has not changed; please check back later."
+      );
     }
 
     if (!stripe || typeof stripe.checkout?.sessions?.create !== "function") {
@@ -186,6 +196,7 @@ export function createShopRouter({
       sessionParams.customer_email = req.session.email;
     }
 
+    // Not in production: this Stripe Checkout Session path runs only when stripeCheckoutExposed is enabled.
     let session;
     try {
       session = await stripe.checkout.sessions.create(sessionParams);

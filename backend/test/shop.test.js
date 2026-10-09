@@ -224,14 +224,18 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
     };
   }
 
+  // Omitting stripeCheckoutExposed keeps checkout closed, as in production;
+  // tests that exercise the provider path must opt in explicitly.
   function makeCheckoutApi({
     stripe,
     now,
     returnBaseUrl = "http://localhost:3000",
+    stripeCheckoutExposed,
     session = { isAuthenticated: true, userId: "user_123", email: "user@uw.edu" },
   }) {
     const router = createShopRouter({
       stripe,
+      stripeCheckoutExposed,
       catalog: shopCatalog,
       now,
       returnBaseUrl,
@@ -384,6 +388,7 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
     // 1. Provider not configured
     const apiNoProvider = await makeCheckoutApi({
       stripe: null,
+      stripeCheckoutExposed: true,
       now: () => openTime,
     });
     try {
@@ -398,6 +403,7 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
     const fakeStripe = makeFakeStripe();
     const apiNoUrl = await makeCheckoutApi({
       stripe: fakeStripe,
+      stripeCheckoutExposed: true,
       now: () => openTime,
       returnBaseUrl: "",
     });
@@ -414,6 +420,7 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
     const throwingStripe = makeFakeStripe({ shouldThrow: true });
     const apiThrow = await makeCheckoutApi({
       stripe: throwingStripe,
+      stripeCheckoutExposed: true,
       now: () => openTime,
     });
     try {
@@ -429,6 +436,7 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
     const noUrlStripe = makeFakeStripe({ sessionUrl: null });
     const apiNullUrl = await makeCheckoutApi({
       stripe: noUrlStripe,
+      stripeCheckoutExposed: true,
       now: () => openTime,
     });
     try {
@@ -440,6 +448,54 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
     }
   });
 
+  it("returns 503 and makes no provider call by default, even for a valid authenticated cart", async () => {
+    const fakeStripe = makeFakeStripe();
+    const openTime = Date.parse(shopCatalog.opensAt) + 3600 * 1000;
+    const api = await makeCheckoutApi({
+      stripe: fakeStripe,
+      now: () => openTime,
+    });
+
+    try {
+      const response = await api.request("POST", "/api/v1/shop/checkout", {
+        catalogVersion: shopCatalog.catalogVersion,
+        items: [{ sku: "info-hoodie", size: "L", quantity: 1 }],
+      });
+      assert.equal(response.status, 503);
+      assert.equal(response.body.status, "error");
+      assert.equal(
+        response.body.message,
+        "Online checkout is temporarily unavailable. Your cart has not changed; please check back later."
+      );
+      assert.equal(fakeStripe.calls.length, 0);
+    } finally {
+      await api.close();
+    }
+  });
+
+  it("keeps checkout closed unless stripeCheckoutExposed is exactly true, so config strings like \"false\" or \"0\" cannot reopen it", async () => {
+    const openTime = Date.parse(shopCatalog.opensAt) + 3600 * 1000;
+    for (const stripeCheckoutExposed of ["false", "0", null]) {
+      const fakeStripe = makeFakeStripe();
+      const api = await makeCheckoutApi({
+        stripe: fakeStripe,
+        stripeCheckoutExposed,
+        now: () => openTime,
+      });
+
+      try {
+        const response = await api.request("POST", "/api/v1/shop/checkout", {
+          catalogVersion: shopCatalog.catalogVersion,
+          items: [{ sku: "info-hoodie", size: "L", quantity: 1 }],
+        });
+        assert.equal(response.status, 503, `Expected 503 for stripeCheckoutExposed=${JSON.stringify(stripeCheckoutExposed)}`);
+        assert.equal(fakeStripe.calls.length, 0, `No provider call for stripeCheckoutExposed=${JSON.stringify(stripeCheckoutExposed)}`);
+      } finally {
+        await api.close();
+      }
+    }
+  });
+
   it("creates a payment session bound to the user with catalog prices and return urls", async () => {
     const fakeStripe = makeFakeStripe({
       sessionUrl: "https://checkout.stripe.com/c/pay/cs_test_session_123",
@@ -448,6 +504,7 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
 
     const api = await makeCheckoutApi({
       stripe: fakeStripe,
+      stripeCheckoutExposed: true,
       now: () => openTime,
       session: {
         isAuthenticated: true,
@@ -507,6 +564,7 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
 
     const api = await makeCheckoutApi({
       stripe: fakeStripe,
+      stripeCheckoutExposed: true,
       now: () => openTime,
       session: {
         isAuthenticated: true,
@@ -561,6 +619,7 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
 
     const api = await makeCheckoutApi({
       stripe: fakeStripe,
+      stripeCheckoutExposed: true,
       now: () => openTime,
       session: {
         isAuthenticated: true,
@@ -589,6 +648,7 @@ describe("Shop HTTP Controller (POST /api/v1/shop/checkout)", () => {
 
     const api = await makeCheckoutApi({
       stripe: fakeStripe,
+      stripeCheckoutExposed: true,
       now: () => openTime,
       session: { isAuthenticated: true, userId: "user_123" },
     });

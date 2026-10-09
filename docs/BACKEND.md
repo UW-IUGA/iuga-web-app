@@ -169,7 +169,7 @@ The campaign comes from the locally defined `CommitteeRecruitment` model (not th
 | Method | Path | Auth | Notes |
 |---|---|---|---|
 | `GET` | `/catalog` | No | Public catalog: `catalogId`, `catalogVersion`, currency, sale window, and each item's sku, name, allowed sizes, and `unitPriceCents`. |
-| `POST` | `/checkout` | Yes | Create a Stripe Checkout Session for the authenticated cart and return its hosted URL. |
+| `POST` | `/checkout` | Yes | Returns 503 for a valid cart while online checkout is not exposed in production. When `stripeCheckoutExposed` is enabled, creates a Stripe Checkout Session for the authenticated cart and returns its hosted URL. |
 | `GET` | `/checkout/:sessionId` | Yes | Confirm a returning Checkout Session belongs to the signed-in buyer and reports paid by Stripe before the browser removes purchased items from its cart. |
 
 **Cart consolidation:** a cart is a list of entries, each naming a product (`sku`), a `size`, and a `quantity`. When the same `sku` and `size` appears more than once, the backend merges those entries into one and adds their quantities — two "hoodie / size M" entries become a single line with quantity 2. Adding the same product and size again therefore raises the quantity rather than creating a duplicate. This is what the backend calls a cart **line**: one product and size carrying a combined quantity.
@@ -179,7 +179,7 @@ Required environment variables for Shop checkout:
 - `STRIPE_SECRET_KEY` — Stripe secret API key (`sk_test_...` in development). When unconfigured, `/checkout` fails closed with 503.
 - `SHOP_RETURN_BASE_URL` — Return base URL for redirecting buyers after completion or cancellation (e.g. `http://localhost:3000`, no trailing slash). When unconfigured, `/checkout` fails closed with 503.
 
-Checkout returns a session ID alongside the hosted URL. The success redirect includes that ID; the frontend keeps a per-session cart snapshot and only removes purchased lines after `/checkout/:sessionId` confirms payment. A canceled or unconfirmed return keeps the cart. Stripe does not automatically email payment receipts for sandbox purchases. Live-mode email receipts depend on Stripe's customer-email settings and an email address collected at checkout.
+Online checkout is not exposed in production: `POST /checkout` returns 503 for a valid cart unless `createShopRouter()` receives `stripeCheckoutExposed: true`, and production wiring does not set it. The Stripe path is kept in the repository. Checkout returns a session ID alongside the hosted URL. The success redirect includes that ID; the frontend keeps a per-session cart snapshot and only removes purchased lines after `/checkout/:sessionId` confirms payment. A canceled or unconfirmed return keeps the cart. Stripe does not automatically email payment receipts for sandbox purchases. Live-mode email receipts depend on Stripe's customer-email settings and an email address collected at checkout.
 
 ### Administration (`/api/v1/administration`) — *not currently wired*
 

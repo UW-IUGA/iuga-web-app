@@ -117,11 +117,16 @@ Defined in `src/App.jsx`:
 | `/events` | `EventsPage` | Mock data or `GET /api/v1/events` |
 | `/resources` | `ResourcesPage` | Static data from `assets/data/ResourcesData.js` |
 | `/shop` | `ShopPage` | Static data from `assets/data/ShopData.js` and `GET /api/v1/shop/catalog` plus authenticated `POST /api/v1/shop/checkout` |
+| `/shop/checkout/:holdId` | `ShopCheckoutPage` | Authenticated `GET`, `PATCH`, and `DELETE /api/v1/shop/holds/:holdId` and `POST /api/v1/shop/holds/:holdId/confirm`. Shows the IUGA-UW Venmo handle, each line, the exact total, a 15-minute countdown, and the username entry. |
 | `/elections` | `ElectionPage` | Static data from `assets/data/CandidateData.js` |
 | `/electionfaq` | `ElectionsFAQPage` | Static data from `assets/data/ElectionFAQData.js` |
 | `/get-involved` | `GetInvolvedPage` | Static committee leaders from `frontend/src/assets/data/teams/2026.js`; Creative application status from public `GET /api/v1/recruitment/creative` |
 
 The backend also serves `index.html` for each of these paths to enable deep linking (see [BACKEND.md](./BACKEND.md#spa-routes)).
+
+### Venmo checkout hold
+
+Checkout from the bag calls `POST /api/v1/shop/holds` and navigates to `/shop/checkout/<holdId>`. The bag stays open on every failure and is kept until a purchase is confirmed. Removing a line on the checkout page also removes it from the bag. Cancelling returns to `/shop` with the bag unchanged.
 
 ### Cart checkout and payment returns
 

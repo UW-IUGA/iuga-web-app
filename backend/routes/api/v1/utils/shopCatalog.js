@@ -41,12 +41,6 @@ export const shopCatalog = Object.freeze({
       unitPriceCents: 2200,
     }),
     Object.freeze({
-      sku: "info-t-shirt",
-      name: "T-Shirt",
-      sizes: Object.freeze(["S", "M", "L", "XL", "2XL"]),
-      unitPriceCents: 2400,
-    }),
-    Object.freeze({
       sku: "info-tote-bag",
       name: "Tote Bag",
       sizes: Object.freeze(["One Size"]),

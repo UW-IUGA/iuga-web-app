@@ -408,6 +408,8 @@ export function ShopCartProvider({ children }) {
         }
     }, [closeCart, fetchCatalog, isAuthenticated, isSubmitting, navigate, signIn]);
 
+    const clearCart = useCallback(() => updateCart([]), [updateCart]);
+
     const totalQuantity = cart.reduce((sum, line) => sum + line.quantity, 0);
 
     const value = useMemo(() => ({
@@ -421,6 +423,7 @@ export function ShopCartProvider({ children }) {
         addItem,
         setItemQuantity,
         removeItem,
+        clearCart,
         isCartOpen,
         setIsCartOpen,
         checkoutParam,
@@ -432,7 +435,7 @@ export function ShopCartProvider({ children }) {
         handleCheckout,
     }), [
         cart, totalQuantity, catalog, loading, error, fetchCatalog, ensureCatalog,
-        addItem, setItemQuantity, removeItem, isCartOpen, checkoutParam,
+        addItem, setItemQuantity, removeItem, clearCart, isCartOpen, checkoutParam,
         checkoutSessionId, returnStatus, reconcileNotice, checkoutNotice,
         isSubmitting, handleCheckout,
     ]);

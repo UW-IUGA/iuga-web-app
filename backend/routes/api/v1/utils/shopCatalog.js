@@ -106,6 +106,7 @@ export function expiresAtSeconds(catalog, nowMs) {
 
 /*
  * @behavior Validate the client's cart and resolve it into priced order lines.
+ *           A line is one product in one size with a quantity, for example 2 Hoodies in size M.
  *           The client sends one entry per product + size it wants. When the same sku and size
  *           arrives more than once (for example, two separate "hoodie, size M" entries), those
  *           entries are merged into a single line whose quantity is their sum. So a cart never

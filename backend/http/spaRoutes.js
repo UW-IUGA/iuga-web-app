@@ -19,6 +19,8 @@ export const SPA_ROUTES = [
   "/about",
   "/get-involved",
   "/contact",
+  // Hold ids are MongoDB ObjectIds: 24 hex characters.
+  "/shop/checkout/:holdId([a-f0-9]{24})",
 ];
 
 export function createSpaRouter({ indexPath }) {

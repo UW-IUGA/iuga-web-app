@@ -6,7 +6,7 @@
  */
 import { StrictMode } from "react";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useLocation } from "react-router-dom";
 import { ShopCartProvider } from "./ShopCartContext";
 import ShopPage from "../pages/Shop";
 
@@ -28,6 +28,12 @@ const catalog = {
 const sessionId = "cs_test_paid_return";
 const returnUrl = `/shop?checkout=complete&session_id=${sessionId}`;
 const handoffKey = `iuga_shop_checkout_${sessionId}`;
+let currentPath = "/shop";
+
+function LocationProbe() {
+    currentPath = useLocation().pathname;
+    return null;
+}
 
 function response(body, status = 200) {
     return { ok: status >= 200 && status < 300, status, json: async () => body };
@@ -37,7 +43,7 @@ function mockApi({ verify = () => response({ paymentStatus: "paid" }), checkout 
     return vi.spyOn(globalThis, "fetch").mockImplementation(async (url, options = {}) => {
         if (url === "/api/v1/shop/catalog") return response({ status: "success", catalog });
         if (url.startsWith("/api/v1/shop/checkout/")) return verify(url);
-        if (url === "/api/v1/shop/checkout" && options.method === "POST" && checkout) return checkout(options);
+        if (url === "/api/v1/shop/holds" && options.method === "POST" && checkout) return checkout(options);
         throw new Error(`Unexpected API request: ${options.method || "GET"} ${url}`);
     });
 }
@@ -53,6 +59,7 @@ function renderShop(url = "/shop") {
         <StrictMode>
             <MemoryRouter initialEntries={[url]}>
                 <div id="shop-cart-slot" />
+                <LocationProbe />
                 <ShopCartProvider><ShopPage /></ShopCartProvider>
             </MemoryRouter>
         </StrictMode>
@@ -68,15 +75,14 @@ async function openCart() {
     return screen.getByRole("button", { name: /^(Checkout|Sign in to checkout)$/ });
 }
 
-function mockRedirect() {
-    const assign = vi.fn();
-    vi.stubGlobal("location", { assign });
-    return assign;
+function currentPathname() {
+    return currentPath;
 }
 
 beforeEach(() => {
     auth.isAuthenticated = true;
     auth.signIn.mockReset();
+    currentPath = "/shop";
     vi.spyOn(window, "scrollTo").mockImplementation(() => {});
 });
 
@@ -88,17 +94,17 @@ afterEach(() => {
 });
 
 describe("starting checkout from the cart", () => {
-    const stripeUrl = "https://checkout.stripe.com/c/pay/cs_test_paid_return";
-    const checkoutStarted = () => response({ url: stripeUrl, sessionId });
+    const holdId = "64b000000000000000000001";
+    const checkoutPath = `/shop/checkout/${holdId}`;
+    const checkoutStarted = () => response({ hold: { id: holdId, status: "active" } });
 
-    test("one successful sign-in starts checkout and its saved snapshot preserves additions made before returning", async () => {
+    test("one successful sign-in starts a hold, keeps the bag, and opens the checkout page", async () => {
         auth.isAuthenticated = false;
         let resolveSignIn;
         auth.signIn.mockImplementation(() => new Promise((resolve) => { resolveSignIn = resolve; }));
         storeCart([bag]);
         const checkout = vi.fn(checkoutStarted);
         mockApi({ checkout });
-        const assign = mockRedirect();
         const firstVisit = renderShop();
         const button = await openCart();
 
@@ -113,16 +119,13 @@ describe("starting checkout from the cart", () => {
             catalogVersion: "fall-2026-v1",
             items: [{ sku: "info-tote-bag", size: "One Size", quantity: 1 }],
         });
-        expect(assign).toHaveBeenCalledWith(stripeUrl);
+        expect(currentPathname()).toBe(checkoutPath);
         expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
         firstVisit.unmount();
 
-        auth.isAuthenticated = true;
-        storeCart([{ ...bag, quantity: 3 }, hoodie]);
-        renderShop(returnUrl);
-        await waitFor(() => expect(bagQuantity()).toHaveValue("2"));
-        expect(screen.getByRole("textbox", { name: "Hoodie L quantity. Type a number from 1 to 100." })).toHaveValue("1");
-        expect(screen.getByRole("button", { name: "Cart, 3 items" })).toBeInTheDocument();
+        // The bag is kept until a purchase is confirmed, so the checkout page opens with the same cart.
+        renderShop(checkoutPath);
+        expect(await screen.findByRole("button", { name: "Cart, 1 item" })).toBeInTheDocument();
     });
 
     test("canceling sign-in unlocks checkout, keeps the bag open, and allows a successful retry", async () => {
@@ -131,18 +134,17 @@ describe("starting checkout from the cart", () => {
         storeCart([bag]);
         const checkout = vi.fn(checkoutStarted);
         mockApi({ checkout });
-        const assign = mockRedirect();
         renderShop();
         fireEvent.click(await openCart());
 
         await waitFor(() => expect(screen.getByRole("button", { name: "Sign in to checkout" })).toBeEnabled());
         expect(screen.getByRole("dialog")).toBeInTheDocument();
         expect(checkout).not.toHaveBeenCalled();
-        expect(assign).not.toHaveBeenCalled();
+        expect(currentPathname()).toBe("/shop");
         expect(screen.getByRole("button", { name: "Cart, 1 item" })).toBeInTheDocument();
 
         fireEvent.click(screen.getByRole("button", { name: "Sign in to checkout" }));
-        await waitFor(() => expect(assign).toHaveBeenCalledWith(stripeUrl));
+        await waitFor(() => expect(currentPathname()).toBe(checkoutPath));
         expect(checkout).toHaveBeenCalledTimes(1);
         expect(auth.signIn).toHaveBeenCalledTimes(2);
     });
@@ -152,11 +154,10 @@ describe("starting checkout from the cart", () => {
         storeCart([bag]);
         const checkout = vi.fn().mockImplementationOnce(() => response({}, 401)).mockImplementationOnce(checkoutStarted);
         mockApi({ checkout });
-        const assign = mockRedirect();
         renderShop();
         fireEvent.click(await openCart());
 
-        await waitFor(() => expect(assign).toHaveBeenCalledWith(stripeUrl));
+        await waitFor(() => expect(currentPathname()).toBe(checkoutPath));
         expect(auth.signIn).toHaveBeenCalledTimes(1);
         expect(checkout).toHaveBeenCalledTimes(2);
         expect(checkout.mock.calls[1][0].body).toBe(checkout.mock.calls[0][0].body);
@@ -168,14 +169,13 @@ describe("starting checkout from the cart", () => {
         storeCart([bag]);
         const checkout = vi.fn(() => response({}, 401));
         mockApi({ checkout });
-        const assign = mockRedirect();
         renderShop();
         fireEvent.click(await openCart());
 
         expect(await screen.findByText(/your session expired/i)).toBeInTheDocument();
         expect(auth.signIn).toHaveBeenCalledTimes(1);
         expect(checkout).toHaveBeenCalledTimes(2);
-        expect(assign).not.toHaveBeenCalled();
+        expect(currentPathname()).toBe("/shop");
         expect(screen.getByRole("dialog")).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "Checkout" })).toBeEnabled();
         expect(screen.getByRole("button", { name: "Cart, 1 item" })).toBeInTheDocument();
@@ -185,17 +185,16 @@ describe("starting checkout from the cart", () => {
         storeCart([bag]);
         const checkout = vi.fn().mockImplementationOnce(() => response({}, 503)).mockImplementationOnce(checkoutStarted);
         mockApi({ checkout });
-        const assign = mockRedirect();
         renderShop();
         fireEvent.click(await openCart());
 
         expect(await screen.findByText(/temporarily unavailable/i)).toBeInTheDocument();
         expect(screen.getByRole("dialog")).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "Checkout" })).toBeEnabled();
-        expect(assign).not.toHaveBeenCalled();
+        expect(currentPathname()).toBe("/shop");
         fireEvent.click(screen.getByRole("button", { name: "Checkout" }));
 
-        await waitFor(() => expect(assign).toHaveBeenCalledWith(stripeUrl));
+        await waitFor(() => expect(currentPathname()).toBe(checkoutPath));
         expect(checkout).toHaveBeenCalledTimes(2);
         expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
@@ -204,20 +203,18 @@ describe("starting checkout from the cart", () => {
         storeCart([bag]);
         const checkout = vi.fn(() => response({ status: "error", message: "Checkout is paused for maintenance." }, 503));
         mockApi({ checkout });
-        const assign = mockRedirect();
         renderShop();
         fireEvent.click(await openCart());
 
         expect(await screen.findByText("Checkout is paused for maintenance.")).toBeInTheDocument();
         expect(screen.getByRole("dialog")).toBeInTheDocument();
-        expect(assign).not.toHaveBeenCalled();
+        expect(currentPathname()).toBe("/shop");
     });
 
     test("a stale-catalog 409 forces a fresh catalog even just after loading and requires another confirmation", async () => {
         storeCart([bag]);
         const checkout = vi.fn(() => response({}, 409));
         const api = mockApi({ checkout });
-        const assign = mockRedirect();
         renderShop();
         await act(async () => {});
         const initialCatalogRequests = api.mock.calls.filter(([url]) => url === "/api/v1/shop/catalog").length;
@@ -228,7 +225,7 @@ describe("starting checkout from the cart", () => {
                 saleState: "closed",
                 closesAt: "2026-10-01T00:00:00.000Z",
             } });
-            if (url === "/api/v1/shop/checkout" && options.method === "POST") return checkout(options);
+            if (url === "/api/v1/shop/holds" && options.method === "POST") return checkout(options);
             throw new Error(`Unexpected API request: ${url}`);
         });
         fireEvent.click(await openCart());
@@ -238,7 +235,7 @@ describe("starting checkout from the cart", () => {
         expect(screen.getByRole("button", { name: "Checkout" })).toBeDisabled();
         expect(screen.getByRole("dialog")).toBeInTheDocument();
         expect(checkout).toHaveBeenCalledTimes(1);
-        expect(assign).not.toHaveBeenCalled();
+        expect(currentPathname()).toBe("/shop");
         expect(screen.getByRole("button", { name: "Cart, 1 item" })).toBeInTheDocument();
     });
 

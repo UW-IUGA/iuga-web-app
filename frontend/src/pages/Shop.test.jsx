@@ -7,7 +7,6 @@ import { publicCatalog, shopCatalog } from "../../../backend/routes/api/v1/utils
 import infoHoodie from "../assets/shop/info-hoodie.png";
 import infoCrewneck from "../assets/shop/info-crewneck.png";
 import infoBaseballTee from "../assets/shop/info-baseball-tee.png";
-import infoTshirt from "../assets/shop/info-t-shirt.png";
 import infoToteBag from "../assets/shop/info-tote-bag.png";
 
 beforeEach(() => {
@@ -32,7 +31,6 @@ test("loads the shop with canonical catalog products and their real images", asy
         "info-hoodie": infoHoodie,
         "info-crewneck": infoCrewneck,
         "info-baseball-tee": infoBaseballTee,
-        "info-t-shirt": infoTshirt,
         "info-tote-bag": infoToteBag,
     };
 

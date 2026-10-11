@@ -381,9 +381,14 @@ export function ShopCartProvider({ children }) {
             }
 
             if (response.status === 409) {
+                // Stock and per-student limits send the reason; use the catalog notice when the body has none.
+                const body = await response.json().catch(() => null);
                 await fetchCatalog(true, true);
+                const hasServerMessage = typeof body?.message === "string" && body.message.trim() !== "";
                 setCheckoutNotice(
-                    "The catalog has updated or the sale status changed. Please review your cart and confirm your order again."
+                    hasServerMessage
+                        ? body.message
+                        : "The catalog has updated or the sale status changed. Please review your cart and confirm your order again."
                 );
                 return;
             }

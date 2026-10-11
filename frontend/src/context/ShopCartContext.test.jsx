@@ -239,6 +239,18 @@ describe("starting checkout from the cart", () => {
         expect(screen.getByRole("button", { name: "Cart, 1 item" })).toBeInTheDocument();
     });
 
+    test("a 409 from a hold request shows the server's reason instead of the catalog notice", async () => {
+        storeCart([bag]);
+        const checkout = vi.fn(() => response({ status: "error", message: "Hoodie is limited to 1 per student." }, 409));
+        mockApi({ checkout });
+        renderShop();
+        fireEvent.click(await openCart());
+
+        expect(await screen.findByText("Hoodie is limited to 1 per student.")).toBeInTheDocument();
+        expect(screen.queryByText(/catalog has updated/i)).not.toBeInTheDocument();
+        expect(screen.getByRole("dialog")).toBeInTheDocument();
+    });
+
     test("both product and bag quantity controls stop at 100", async () => {
         storeCart([{ ...bag, quantity: 100 }]);
         mockApi();

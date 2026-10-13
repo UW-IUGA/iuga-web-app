@@ -6,7 +6,7 @@ Authentication/Authorization Requirements: N/A (called by the shop controller af
 Expected Request Information: req.models, the signed-in user's id, validated cart lines, and nowMs.
 Expected Response Information: hold or purchase documents, or throws ShopHoldError with an HTTP status.
 
-Requires a MongoDB replica set. Transactions are unavailable on a standalone server (ADR-0006).
+Requires a MongoDB replica set. Transactions are unavailable on a standalone server.
 Expired holds are released in their own committed transaction before the error is thrown, because
 throwing inside a transaction would roll the release back.
 */

@@ -22,7 +22,7 @@ import {
 } from "../routes/api/v1/utils/shopHoldStore.js";
 import { invalidateLimits } from "../routes/api/v1/utils/shopLimits.js";
 
-// Runs only against a real replica set (ADR-0006 Gate B). Start one with
+// Runs only against a real replica set. Start one with
 // scripts/start-replica-set-mongodb.sh and pass SHOP_REPLSET_URI.
 const uri = process.env.SHOP_REPLSET_URI;
 const run = uri ? describe : describe.skip;

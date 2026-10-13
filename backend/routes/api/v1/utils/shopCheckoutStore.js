@@ -1,12 +1,13 @@
 /*
 Purpose: Persist manual Venmo shop holds and purchases in MongoDB transactions. Stock and per-student
          counts change only through conditional updates on counter documents, so two holds cannot both
-         take the last units of a product.
+         take the last units of a product. Also reads what checkout needs alongside a hold: the
+         per-student limits and the Venmo username saved by an earlier purchase.
 Authentication/Authorization Requirements: N/A (called by the shop controller after its session checks)
 Expected Request Information: req.models, the signed-in user's id, validated cart lines, and nowMs.
 Expected Response Information: hold or purchase documents, or throws ShopHoldError with an HTTP status.
 
-Requires a MongoDB replica set. Transactions are unavailable on a standalone server (ADR-0006).
+Requires a MongoDB replica set. Transactions are unavailable on a standalone server.
 Expired holds are released in their own committed transaction before the error is thrown, because
 throwing inside a transaction would roll the release back.
 */
@@ -59,10 +60,10 @@ async function ensureCounter(Model, filter, defaults) {
   }
 }
 
-async function reserveLine(models, session, { userId, catalogVersion, line }) {
+async function reserveLine(models, session, { userId, catalogId, line }) {
   const { sku, quantity } = line;
   const stock = await models.ShopCapacity.updateOne(
-    { catalogVersion, sku, reservedUnits: { $lte: DROP_UNIT_CAP - quantity } },
+    { catalogId, sku, reservedUnits: { $lte: DROP_UNIT_CAP - quantity } },
     { $inc: { reservedUnits: quantity } },
     { session },
   );
@@ -81,10 +82,10 @@ async function reserveLine(models, session, { userId, catalogVersion, line }) {
   }
 }
 
-async function releaseLines(models, session, { userId, catalogVersion, lines }) {
+async function releaseLines(models, session, { userId, catalogId, lines }) {
   for (const line of lines) {
     await models.ShopCapacity.updateOne(
-      { catalogVersion, sku: line.sku },
+      { catalogId, sku: line.sku },
       { $inc: { reservedUnits: -line.quantity } },
       { session },
     );
@@ -158,18 +159,19 @@ export async function sweepExpiredHolds(models, nowMs) {
  *           a new hold cancels the student's earlier active hold in the same transaction, so a student
  *           who left the checkout page can check out again. A refused hold leaves the earlier one active.
  * @param userId — signed-in student's user id
- * @param catalogVersion — current catalog version
+ * @param catalogId — the drop; stock is counted per drop, so it carries over a catalog version change
+ * @param catalogVersion — current catalog version, recorded on the hold
  * @param lines — validated lines: { sku, name, size, quantity, unitPriceCents }
  * @param nowMs — current timestamp in milliseconds
  * @returns the created hold document
  * @throws ShopHoldError 409 when any line exceeds stock or the per-student limit
  */
-export async function createHold(models, { userId, catalogVersion, lines, nowMs }) {
+export async function createHold(models, { userId, catalogId, catalogVersion, lines, nowMs }) {
   await sweepExpiredHolds(models, nowMs);
   await ensureCounter(models.ShopStudentCheckouts, { _id: userId }, { revision: 0 });
 
   for (const line of lines) {
-    await ensureCounter(models.ShopCapacity, { catalogVersion, sku: line.sku }, { reservedUnits: 0 });
+    await ensureCounter(models.ShopCapacity, { catalogId, sku: line.sku }, { reservedUnits: 0 });
     await ensureCounter(models.ShopStudentUnits, { userId, sku: line.sku }, { units: 0 });
   }
 
@@ -184,11 +186,12 @@ export async function createHold(models, { userId, catalogVersion, lines, nowMs 
       }
     }
     for (const line of lines) {
-      await reserveLine(models, session, { userId, catalogVersion, line });
+      await reserveLine(models, session, { userId, catalogId, line });
     }
     const [hold] = await models.ShopHolds.create(
       [{
         userId,
+        catalogId,
         catalogVersion,
         lines,
         status: "active",
@@ -261,7 +264,7 @@ export async function removeLineFromHold(models, { holdId, userId, sku, size, no
 
     await releaseLines(models, session, {
       userId: hold.userId,
-      catalogVersion: hold.catalogVersion,
+      catalogId: hold.catalogId,
       lines: [removed],
     });
 
@@ -317,6 +320,7 @@ export async function confirmHold(models, { holdId, userId, venmoUsername, phone
       [{
         holdId,
         userId,
+        catalogId: hold.catalogId,
         catalogVersion: hold.catalogVersion,
         venmoUsername,
         lines: hold.lines,
@@ -347,4 +351,15 @@ export async function confirmHold(models, { holdId, userId, venmoUsername, phone
  */
 export async function findLimits(models) {
   return currentLimits(models);
+}
+
+/*
+ * @behavior Whether an officer has paused new checkouts in the database, for example before an update.
+ *           Read on every new hold, so the switch takes effect at once and needs no deploy. Holds that
+ *           already exist are not affected.
+ * @returns {Promise<boolean>} false when the settings document is missing
+ */
+export async function isNewCheckoutPaused(models) {
+  const settings = await models.ShopSettings.findOne({ key: "shop" }, { _id: 0, newCheckoutsPaused: 1 }).lean();
+  return settings?.newCheckoutsPaused === true;
 }

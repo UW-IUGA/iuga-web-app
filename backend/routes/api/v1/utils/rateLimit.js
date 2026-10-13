@@ -2,11 +2,37 @@ import { sendError } from "../helpers/sendError.js";
 
 const RATE_LIMIT_MESSAGE = "Too many requests, please try again later";
 
+function networkAddress(req) {
+  return req.ip ?? req.socket?.remoteAddress ?? "unknown";
+}
+
+/*
+ * @behavior Limits a signed-in student by their account and everyone else by network address, so
+ *           students who share one address, such as campus Wi-Fi, do not use up each other's requests.
+ * @param signedIn — limiter for requests with a signed-in session, keyed by user id
+ * @param anonymous — limiter for all other requests, keyed by network address
+ */
+export function createApiRateLimiter({ signedIn, anonymous }) {
+  const signedInLimiter = createRateLimiter({ ...signedIn, keyFor: (req) => String(req.session.userId) });
+  const anonymousLimiter = createRateLimiter(anonymous);
+  return function apiRateLimiter(req, res, next) {
+    const limiter = req.session?.isAuthenticated && req.session.userId ? signedInLimiter : anonymousLimiter;
+    return limiter(req, res, next);
+  };
+}
+
 export function configureTrustedProxy(app) {
   app.set("trust proxy", 1);
 }
 
-export function createRateLimiter({ limit, windowMs, maxClients = 10_000 }) {
+/*
+ * @behavior Counts requests per client in a fixed window and answers 429 past the limit.
+ * @param limit — requests allowed per client per window
+ * @param windowMs — window length in milliseconds
+ * @param maxClients — most clients remembered at once; the oldest is dropped when full
+ * @param keyFor — names the client a request counts against; defaults to the network address
+ */
+export function createRateLimiter({ limit, windowMs, maxClients = 10_000, keyFor = networkAddress }) {
   if (!Number.isInteger(limit) || limit < 1) {
     throw new TypeError("Rate-limit limit must be a positive integer");
   }
@@ -29,7 +55,7 @@ export function createRateLimiter({ limit, windowMs, maxClients = 10_000 }) {
       lastPrunedAt = now;
     }
 
-    const key = req.ip ?? req.socket?.remoteAddress ?? "unknown";
+    const key = keyFor(req);
     const current = clients.get(key);
     if (!current && clients.size >= maxClients) {
       const oldestKey = clients.keys().next().value;

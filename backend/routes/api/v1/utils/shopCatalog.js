@@ -10,9 +10,9 @@ Expected Response Information: N/A
 
 Note on Pricing & Sale Window:
 Unit prices are the confirmed full amounts due from students, with no added tax. The sale
-window dates defined in this catalog are placeholders pending final confirmation by the
-product owner. This module is the single source of truth for pricing and allowed sizes;
-callers must never re-derive or accept client-supplied prices.
+closes at the end of December 31, 2026, Pacific time. This module is the single source of
+truth for pricing and allowed sizes; callers must never re-derive or accept client-supplied
+prices.
 */
 
 import { DEFAULT_PER_STUDENT_LIMIT } from "./shopHolds.js";
@@ -23,7 +23,8 @@ export const shopCatalog = Object.freeze({
   catalogVersion: "fall-2026-v1",
   currency: "usd",
   opensAt: "2026-09-01T00:00:00.000Z",
-  closesAt: "2026-12-01T00:00:00.000Z",
+  // 11:59:59 PM Pacific on December 31, 2026.
+  closesAt: "2027-01-01T07:59:59.000Z",
   items: Object.freeze([
     Object.freeze({
       sku: "info-hoodie",

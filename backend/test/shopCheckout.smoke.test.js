@@ -2,7 +2,7 @@
 Purpose: Smoke-test manual Venmo shop checkout end to end. The suite starts the real backend as a child
          process against a MongoDB replica set, signs in test students through the Graph stub, drives the
          /api/v1/shop/holds routes over HTTP, and reads MongoDB directly after every action.
-Run with: cd backend && SHOP_REPLSET_URI='<value printed by scripts/start-replica-set-mongodb.sh>' node --test test/shopGateB.smoke.test.js
+Run with: cd backend && SHOP_REPLSET_URI='<value printed by scripts/start-replica-set-mongodb.sh>' node --test test/shopCheckout.smoke.test.js
 Skipped unless SHOP_REPLSET_URI is set, because holds use transactions, which need a replica set.
 */
 
@@ -26,7 +26,7 @@ const uri = process.env.SHOP_REPLSET_URI;
 const run = uri ? describe : describe.skip;
 
 const BACKEND_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const STUB_PATH = path.join(BACKEND_DIR, "test", "gateBGraphStub.js");
+const STUB_PATH = path.join(BACKEND_DIR, "test", "shopSmokeGraphStub.js");
 const LISTENING_PATTERN = /\[startup\] Listening at [^\s:]+:(\d+)/;
 const SESSION_SECRET = "shop-smoke-session-secret";
 const SUITE_CLIENT_IP = "10.77.255.1";
@@ -48,7 +48,7 @@ const EXPIRED_MESSAGE = "This hold has expired. Its items have been released.";
 
 const SHOP_MODEL_NAMES = ["ShopHolds", "ShopPurchases", "ShopCapacity", "ShopStudentUnits", "ShopStudentCheckouts", "ShopProductLimits"];
 const REQUIRED_UNIQUE_INDEXES = [
-  { model: "ShopCapacity", key: { catalogVersion: 1, sku: 1 } },
+  { model: "ShopCapacity", key: { catalogId: 1, sku: 1 } },
   { model: "ShopStudentUnits", key: { userId: 1, sku: 1 } },
   { model: "ShopProductLimits", key: { sku: 1 } },
   { model: "ShopPurchases", key: { holdId: 1 } },
@@ -199,6 +199,7 @@ run("shop manual Venmo checkout against the real backend", () => {
   let connection;
   let models;
   let dbName;
+  let catalogId;
   let catalogVersion;
   let primary;
   let seededUnits = new Map();
@@ -207,7 +208,7 @@ run("shop manual Venmo checkout against the real backend", () => {
   const liveServers = new Set();
 
   before(async () => {
-    dbName = `shop_gate_b_${Date.now()}`;
+    dbName = `shop_smoke_${Date.now()}`;
     connection = await mongoose
       .createConnection(uri, { dbName, autoIndex: false, autoCreate: false })
       .asPromise();
@@ -231,6 +232,7 @@ run("shop manual Venmo checkout against the real backend", () => {
           `(opensAt ${catalog.opensAt}, closesAt ${catalog.closesAt}).`,
       );
     }
+    catalogId = catalog.catalogId;
     catalogVersion = catalog.catalogVersion;
   });
 
@@ -331,7 +333,7 @@ run("shop manual Venmo checkout against the real backend", () => {
       DB_URI: databaseUriForRun(),
       SESSION_SECRET,
       IUGA_LOCAL_DEV: "1",
-      IUGA_GATE_B: "1",
+      IUGA_SHOP_SMOKE: "1",
       // Limit changes made by the test must reach the running server at once, so the cache is off here.
       SHOP_LIMIT_CACHE_SECONDS: "0",
     };
@@ -357,8 +359,8 @@ run("shop manual Venmo checkout against the real backend", () => {
     const slug = `s${runTag}${studentCount}`;
     return {
       slug,
-      token: `gate-b:${slug}`,
-      email: `${slug}@gate-b.test`,
+      token: `smoke:${slug}`,
+      email: `${slug}@smoke.test`,
       forwardedFor: `10.77.${Math.floor(studentCount / 250)}.${(studentCount % 250) + 1}`,
       cookie: null,
       userId: null,
@@ -402,7 +404,7 @@ run("shop manual Venmo checkout against the real backend", () => {
    * @behavior Write a stock counter for this run and remember the amount, so the ledger check can account for it.
    */
   async function seedCapacity(sku, reservedUnits) {
-    await models.ShopCapacity.create({ catalogVersion, sku, reservedUnits });
+    await models.ShopCapacity.create({ catalogId, sku, reservedUnits });
     seededUnits.set(sku, reservedUnits);
   }
 
@@ -411,7 +413,7 @@ run("shop manual Venmo checkout against the real backend", () => {
   }
 
   async function reservedUnits(sku) {
-    const doc = await models.ShopCapacity.findOne({ catalogVersion, sku }).lean();
+    const doc = await models.ShopCapacity.findOne({ catalogId, sku }).lean();
     return doc?.reservedUnits ?? 0;
   }
 
@@ -550,8 +552,8 @@ run("shop manual Venmo checkout against the real backend", () => {
     expectResponse(profile, 200);
     assert.deepEqual(profile.body, {
       firstName: student.slug,
-      lastName: "GateB",
-      displayName: `Gate B ${student.slug}`,
+      lastName: "Smoke",
+      displayName: `Smoke ${student.slug}`,
       email: student.email,
       memberType: "Member",
     });
@@ -566,7 +568,7 @@ run("shop manual Venmo checkout against the real backend", () => {
       401,
       "Not authenticated",
     );
-    expectResponse(await login(primary, student, "not-a-gate-b-token"), 401);
+    expectResponse(await login(primary, student, "not-a-smoke-token"), 401);
     await assertLedgerBalanced();
   });
 
@@ -840,7 +842,7 @@ run("shop manual Venmo checkout against the real backend", () => {
         body: { catalogVersion: "stale", items: [item("info-hoodie", "M")] },
       }),
       409,
-      "Catalog version is out of date.",
+      "The shop was updated. Please review your cart and check out again.",
     );
     expectResponse(await requestGetHold(student, held.id.slice(0, 23)), 404, "Hold not found.");
     expectResponse(

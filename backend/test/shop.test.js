@@ -12,7 +12,7 @@ describe("Shop HTTP Controller (GET /api/v1/shop/catalog)", () => {
     const router = createShopRouter({
       catalog: shopCatalog,
       now: () => fixedNow,
-      holdStore: { findLimits: async () => ({ defaultLimit: 5, perSku: new Map() }) },
+      checkoutStore: { findLimits: async () => ({ defaultLimit: 5, perSku: new Map() }) },
     });
     const api = await makeTestApi({
       router,
@@ -48,7 +48,7 @@ describe("Shop HTTP Controller (GET /api/v1/shop/catalog)", () => {
     const router = createShopRouter({
       catalog: shopCatalog,
       now: () => fixedNow,
-      holdStore: { findLimits: async () => ({ defaultLimit: 5, perSku: new Map([["info-crewneck", 2]]) }) },
+      checkoutStore: { findLimits: async () => ({ defaultLimit: 5, perSku: new Map([["info-crewneck", 2]]) }) },
     });
     const api = await makeTestApi({
       router,
@@ -74,7 +74,7 @@ describe("Shop HTTP Controller (GET /api/v1/shop/catalog)", () => {
     const router = createShopRouter({
       catalog: shopCatalog,
       now: () => fixedNow,
-      holdStore: { findLimits: async () => ({ defaultLimit: 5, perSku: new Map() }) },
+      checkoutStore: { findLimits: async () => ({ defaultLimit: 5, perSku: new Map() }) },
     });
     const api = await makeTestApi({
       router,
@@ -106,7 +106,7 @@ describe("Shop HTTP Controller (GET /api/v1/shop/catalog)", () => {
     const router = createShopRouter({
       catalog: shopCatalog,
       now: () => mockTime,
-      holdStore: { findLimits: async () => ({ defaultLimit: 5, perSku: new Map() }) },
+      checkoutStore: { findLimits: async () => ({ defaultLimit: 5, perSku: new Map() }) },
     });
 
     const api = await makeTestApi({

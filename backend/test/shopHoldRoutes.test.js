@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
 import { createShopRouter } from "../routes/api/v1/controllers/shop.js";
-import { ShopHoldError } from "../routes/api/v1/utils/shopHoldStore.js";
+import { ShopHoldError } from "../routes/api/v1/utils/shopCheckoutStore.js";
 import { shopCatalog } from "../routes/api/v1/utils/shopCatalog.js";
 import { makeTestApi } from "./testApi.js";
 
@@ -16,6 +16,7 @@ function storedHold(overrides = {}) {
   return {
     _id: HOLD_ID,
     userId: USER_ID,
+    catalogId: shopCatalog.catalogId,
     catalogVersion: shopCatalog.catalogVersion,
     status: "active",
     expiresAt: new Date(DEADLINE_MS),
@@ -45,6 +46,7 @@ function fakeStore(results = {}) {
     removeLineFromHold: storedHold(),
     confirmHold: storedPurchase(),
     findSavedVenmoUsername: null,
+    isNewCheckoutPaused: false,
   };
   const merged = { ...defaults, ...results };
   const method = (name) => async (_models, args) => {
@@ -63,6 +65,7 @@ function fakeStore(results = {}) {
     removeLineFromHold: method("removeLineFromHold"),
     confirmHold: method("confirmHold"),
     findSavedVenmoUsername: method("findSavedVenmoUsername"),
+    isNewCheckoutPaused: async () => merged.isNewCheckoutPaused,
   };
 }
 
@@ -76,7 +79,7 @@ async function setup({
     catalog: shopCatalog,
     now: () => nowMs,
     manualCheckoutExposed,
-    holdStore: store,
+    checkoutStore: store,
   });
   const api = await makeTestApi({
     router,
@@ -107,6 +110,28 @@ describe("manual checkout gate", () => {
         assert.equal(response.status, 503, `${method} ${path}`);
       }
       assert.equal(store.calls.length, 0);
+    } finally {
+      await api.close();
+    }
+  });
+
+  it("refuses a new hold while checkouts are paused, and still lets an existing hold be confirmed", async () => {
+    const { api, store } = await setup({ store: fakeStore({ isNewCheckoutPaused: true }) });
+    try {
+      const refused = await api.request("POST", "/api/v1/shop/holds", {
+        catalogVersion: shopCatalog.catalogVersion,
+        items: CART,
+      });
+      assert.equal(refused.status, 503);
+      assert.match(refused.body.message, /Checkout is paused for a few minutes/);
+      assert.equal(store.calls.length, 0, "a paused checkout must not reserve anything");
+
+      const confirmed = await api.request("POST", `/api/v1/shop/holds/${HOLD_ID}/confirm`, {
+        venmoUsername: "jane.doe",
+        phoneNumber: "2065550123",
+      });
+      assert.equal(confirmed.status, 200);
+      assert.equal(store.calls[0].name, "confirmHold");
     } finally {
       await api.close();
     }
@@ -159,6 +184,7 @@ describe("POST /api/v1/shop/holds", () => {
       assert.equal(store.calls.length, 1);
       assert.equal(store.calls[0].name, "createHold");
       assert.equal(store.calls[0].args.userId, USER_ID);
+      assert.equal(store.calls[0].args.catalogId, shopCatalog.catalogId);
       assert.equal(store.calls[0].args.catalogVersion, shopCatalog.catalogVersion);
       assert.equal(store.calls[0].args.nowMs, OPEN_MS);
       assert.deepEqual(store.calls[0].args.lines, [

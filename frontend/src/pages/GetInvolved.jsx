@@ -194,6 +194,7 @@ function GetInvolvedPage() {
                                         ) : (
                                             <EmailContactDialog
                                                 draft={getContactDraft(committee)}
+                                                contextLabel="Contact the committee"
                                                 title={`Interested in ${committee.name}?`}
                                                 triggerLabel="Contact"
                                             />

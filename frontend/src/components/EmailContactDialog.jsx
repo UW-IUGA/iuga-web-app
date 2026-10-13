@@ -1,12 +1,13 @@
 /*
-Purpose: Offer a committee contact action that opens the visitor's mail provider
-         with a prefilled message, so they can reach a committee lead directly.
+Purpose: Offer a contact action that opens the visitor's mail provider with a
+         prefilled message, so they can reach the right IUGA contact directly.
 
 Authentication/Authorization Requirements: None; the component only builds
          compose links and never sends mail itself.
 
 Expected Request Information:
 - draft: { recipient, subject, body } used to prefill the message.
+- contextLabel: short line above the heading naming who or what the message is about.
 - title: dialog heading text.
 - triggerLabel: label for the button that opens the dialog.
 
@@ -26,7 +27,7 @@ const getOutlookComposeHref = ({ recipient, subject, body }) => {
     return `https://outlook.office.com/mail/deeplink/compose?${params}`;
 };
 
-function EmailContactDialog({ draft, title, triggerLabel }) {
+function EmailContactDialog({ draft, contextLabel, title, triggerLabel }) {
     const dialogRef = useRef(null);
     const titleId = useId();
     const messageId = useId();
@@ -48,7 +49,7 @@ function EmailContactDialog({ draft, title, triggerLabel }) {
             >
                 <div className="emailContactDialog__header">
                     <div>
-                        <p className="emailContactDialog__label">Contact the committee</p>
+                        <p className="emailContactDialog__label">{contextLabel}</p>
                         <h2 id={titleId}>{title}</h2>
                     </div>
                     <button

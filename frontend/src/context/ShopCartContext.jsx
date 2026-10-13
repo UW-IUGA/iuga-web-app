@@ -444,12 +444,6 @@ export function ShopCartProvider({ children }) {
         setIsCartOpen((open) => !open);
     }, []);
 
-    // Stable checkout callback so the transient fade timer isn't reset by renders.
-    // The bag stays open while checkout runs so failure notices render in place.
-    const startCheckout = useCallback(() => {
-        handleCheckout();
-    }, [handleCheckout]);
-
     return (
         <ShopCartContext.Provider value={value}>
             {cartHost && createPortal(
@@ -469,11 +463,7 @@ export function ShopCartProvider({ children }) {
                     catalogLoading={loading}
                     catalogError={error}
                     totalQuantity={totalQuantity}
-                    checkoutParam={checkoutParam}
                     checkoutNotice={checkoutNotice}
-                    isAuthenticated={isAuthenticated}
-                    isSubmitting={isSubmitting}
-                    onCheckout={startCheckout}
                     onQuantityChange={setItemQuantity}
                     onRemove={removeItem}
                     onClose={closeCart}

@@ -146,4 +146,3 @@ router.delete("/", requireAdmin, async (req, res) => {
 });
 
 export default router;
-

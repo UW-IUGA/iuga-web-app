@@ -2,6 +2,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
+import { EventEmitter } from "node:events";
+import { runInNewContext } from "node:vm";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -18,8 +20,42 @@ test("frontend uses Vite for development, builds, and tests", () => {
     assert.ok(frontendPackage.devDependencies.vitest);
 });
 
-test("local full-stack scripts build the frontend in development mode", () => {
-    assert.match(rootPackage.scripts.dev, /npm run build -- --mode development/);
+test("local development starts Vite after the backend is ready with its selected API port", () => {
+    assert.equal(rootPackage.scripts.dev, "node scripts/dev.mjs");
+    assert.equal(rootPackage.scripts.frontend, "cd frontend && npm start");
+    assert.equal(rootPackage.scripts["backend-dev"], "cd backend && npm start");
+    const calls = [];
+    const backend = new EventEmitter();
+    backend.stdout = new EventEmitter();
+    const runner = readFileSync(path.join(repoRoot, "scripts/dev.mjs"), "utf8")
+        .replace(/^import .*;$/gm, "")
+        .replace("import.meta.url", JSON.stringify(new URL("../../scripts/dev.mjs", import.meta.url).href));
+    runInNewContext(runner, {
+        spawn(command, args, options) {
+            calls.push({ command, args: Array.from(args), options });
+            return calls.length === 1 ? backend : new EventEmitter();
+        },
+        fileURLToPath,
+        dirname: path.dirname,
+        resolve: path.resolve,
+        process: { env: { VITE_API_URL: "http://stale-api:7777" }, stdout: { write() {} }, on() {} },
+        console: { log() {} },
+    });
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].command, "npm");
+    assert.deepEqual(calls[0].args, ["run", "backend-dev"]);
+    backend.stdout.emit("data", Buffer.from("[startup] Connecting to database\n"));
+    assert.equal(calls.length, 1);
+    backend.stdout.emit("data", Buffer.from("[startup] Listening at localhost:8123\n"));
+    assert.equal(calls.length, 2);
+    assert.equal(calls[1].command, "npm");
+    assert.deepEqual(calls[1].args, ["run", "frontend"]);
+    assert.equal(calls[1].options.env.VITE_API_URL, "http://localhost:8123");
+    backend.stdout.emit("data", Buffer.from("[startup] Listening at localhost:8123\n"));
+    assert.equal(calls.length, 2);
+});
+
+test("local debugging builds the frontend in development mode", () => {
     assert.match(rootPackage.scripts.debug, /npm run build -- --mode development/);
 });
 

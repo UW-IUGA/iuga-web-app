@@ -7,7 +7,7 @@
 import { StrictMode } from "react";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { ShopCartProvider } from "./ShopCartContext";
+import { ShopCartProvider, useShopCart } from "./ShopCartContext";
 import ShopPage from "../pages/Shop";
 
 const auth = vi.hoisted(() => ({ isAuthenticated: true, signIn: vi.fn() }));
@@ -48,12 +48,28 @@ function storeCart(cart, purchased) {
     if (purchased) sessionStorage.setItem(handoffKey, JSON.stringify(purchased));
 }
 
-function renderShop(url = "/shop") {
+// Exercise the retained provider contract without exposing checkout in the real bag.
+function ProviderCheckoutControl() {
+    const { handleCheckout, isSubmitting, catalog, checkoutParam, cart } = useShopCart();
+    return (
+        <button
+            disabled={!catalog || cart.length === 0 || isSubmitting || catalog.saleState !== "open" || checkoutParam === "complete"}
+            onClick={handleCheckout}
+        >
+            {isSubmitting ? "Processing checkout..." : !auth.isAuthenticated ? "Sign in to checkout" : "Checkout"}
+        </button>
+    );
+}
+
+function renderShop(url = "/shop", checkoutControl = false) {
     return render(
         <StrictMode>
             <MemoryRouter initialEntries={[url]}>
                 <div id="shop-cart-slot" />
-                <ShopCartProvider><ShopPage /></ShopCartProvider>
+                <ShopCartProvider>
+                    <ShopPage />
+                    {checkoutControl && <ProviderCheckoutControl />}
+                </ShopCartProvider>
             </MemoryRouter>
         </StrictMode>
     );
@@ -65,6 +81,11 @@ function bagQuantity() {
 
 async function openCart() {
     fireEvent.click(await screen.findByRole("button", { name: /Cart, \d+ items?/ }));
+    return screen.getByRole("button", { name: "Checkout coming soon" });
+}
+
+async function openProviderCheckout() {
+    await openCart();
     return screen.getByRole("button", { name: /^(Checkout|Sign in to checkout)$/ });
 }
 
@@ -87,7 +108,33 @@ afterEach(() => {
     sessionStorage.clear();
 });
 
-describe("starting checkout from the cart", () => {
+describe("cart preview", () => {
+    test.each([true, false])("checkout never starts with authentication=%s while the bag remains editable", async (isAuthenticated) => {
+        auth.isAuthenticated = isAuthenticated;
+        storeCart([bag]);
+        const checkout = vi.fn();
+        mockApi({ checkout });
+        const assign = mockRedirect();
+        renderShop();
+
+        const button = await openCart();
+        expect(button).toBeDisabled();
+        fireEvent.click(button);
+        expect(auth.signIn).not.toHaveBeenCalled();
+        expect(checkout).not.toHaveBeenCalled();
+        expect(assign).not.toHaveBeenCalled();
+        expect(screen.queryByRole("button", { name: "Sign in to checkout" })).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole("button", { name: "Increase INFO Tote Bag One Size" }));
+        expect(screen.getByText("Subtotal: $40.00")).toBeInTheDocument();
+        expect(bagQuantity()).toHaveValue("2");
+        fireEvent.click(screen.getByRole("button", { name: "Remove INFO Tote Bag from bag" }));
+        expect(screen.getByRole("link", { name: "Continue shopping" })).toHaveAttribute("href", "/shop");
+        expect(screen.getByRole("button", { name: "Shopping cart, empty" })).toBeInTheDocument();
+    });
+});
+
+describe("retained provider checkout contract", () => {
     const stripeUrl = "https://checkout.stripe.com/c/pay/cs_test_paid_return";
     const checkoutStarted = () => response({ url: stripeUrl, sessionId });
 
@@ -99,8 +146,8 @@ describe("starting checkout from the cart", () => {
         const checkout = vi.fn(checkoutStarted);
         mockApi({ checkout });
         const assign = mockRedirect();
-        const firstVisit = renderShop();
-        const button = await openCart();
+        const firstVisit = renderShop("/shop", true);
+        const button = await openProviderCheckout();
 
         fireEvent.click(button);
         expect(screen.getByRole("button", { name: "Processing checkout..." })).toBeDisabled();
@@ -132,8 +179,8 @@ describe("starting checkout from the cart", () => {
         const checkout = vi.fn(checkoutStarted);
         mockApi({ checkout });
         const assign = mockRedirect();
-        renderShop();
-        fireEvent.click(await openCart());
+        renderShop("/shop", true);
+        fireEvent.click(await openProviderCheckout());
 
         await waitFor(() => expect(screen.getByRole("button", { name: "Sign in to checkout" })).toBeEnabled());
         expect(screen.getByRole("dialog")).toBeInTheDocument();
@@ -153,8 +200,8 @@ describe("starting checkout from the cart", () => {
         const checkout = vi.fn().mockImplementationOnce(() => response({}, 401)).mockImplementationOnce(checkoutStarted);
         mockApi({ checkout });
         const assign = mockRedirect();
-        renderShop();
-        fireEvent.click(await openCart());
+        renderShop("/shop", true);
+        fireEvent.click(await openProviderCheckout());
 
         await waitFor(() => expect(assign).toHaveBeenCalledWith(stripeUrl));
         expect(auth.signIn).toHaveBeenCalledTimes(1);
@@ -169,8 +216,8 @@ describe("starting checkout from the cart", () => {
         const checkout = vi.fn(() => response({}, 401));
         mockApi({ checkout });
         const assign = mockRedirect();
-        renderShop();
-        fireEvent.click(await openCart());
+        renderShop("/shop", true);
+        fireEvent.click(await openProviderCheckout());
 
         expect(await screen.findByText(/your session expired/i)).toBeInTheDocument();
         expect(auth.signIn).toHaveBeenCalledTimes(1);
@@ -186,8 +233,8 @@ describe("starting checkout from the cart", () => {
         const checkout = vi.fn().mockImplementationOnce(() => response({}, 503)).mockImplementationOnce(checkoutStarted);
         mockApi({ checkout });
         const assign = mockRedirect();
-        renderShop();
-        fireEvent.click(await openCart());
+        renderShop("/shop", true);
+        fireEvent.click(await openProviderCheckout());
 
         expect(await screen.findByText(/temporarily unavailable/i)).toBeInTheDocument();
         expect(screen.getByRole("dialog")).toBeInTheDocument();
@@ -205,8 +252,8 @@ describe("starting checkout from the cart", () => {
         const checkout = vi.fn(() => response({ status: "error", message: "Checkout is paused for maintenance." }, 503));
         mockApi({ checkout });
         const assign = mockRedirect();
-        renderShop();
-        fireEvent.click(await openCart());
+        renderShop("/shop", true);
+        fireEvent.click(await openProviderCheckout());
 
         expect(await screen.findByText("Checkout is paused for maintenance.")).toBeInTheDocument();
         expect(screen.getByRole("dialog")).toBeInTheDocument();
@@ -218,7 +265,7 @@ describe("starting checkout from the cart", () => {
         const checkout = vi.fn(() => response({}, 409));
         const api = mockApi({ checkout });
         const assign = mockRedirect();
-        renderShop();
+        renderShop("/shop", true);
         await act(async () => {});
         const initialCatalogRequests = api.mock.calls.filter(([url]) => url === "/api/v1/shop/catalog").length;
         api.mockImplementation(async (url, options = {}) => {
@@ -231,7 +278,7 @@ describe("starting checkout from the cart", () => {
             if (url === "/api/v1/shop/checkout" && options.method === "POST") return checkout(options);
             throw new Error(`Unexpected API request: ${url}`);
         });
-        fireEvent.click(await openCart());
+        fireEvent.click(await openProviderCheckout());
 
         expect(await screen.findByText(/catalog has updated or the sale status changed/i)).toBeInTheDocument();
         expect(api.mock.calls.filter(([url]) => url === "/api/v1/shop/catalog").length).toBe(initialCatalogRequests + 1);

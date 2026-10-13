@@ -106,7 +106,7 @@ export function CartTrigger({ totalQuantity, isCartOpen, onToggle }) {
  * top and bottom borders that stay pinned across closes. The header always shows the
  * plain cart summary; a fresh add is confirmed to screen readers through a
  * visually hidden live region instead. An empty cart shows a shop CTA with
- * no $0 subtotal. Checkout reuses the cart checkout handler.
+ * no $0 subtotal. Checkout is coming soon; browsing and cart editing remain available.
  * @param {object|null} lastAdded
  * @param {boolean} freshAdd
  * @param {Array} cart
@@ -114,11 +114,7 @@ export function CartTrigger({ totalQuantity, isCartOpen, onToggle }) {
  * @param {boolean} catalogLoading
  * @param {string|null} catalogError
  * @param {number} totalQuantity
- * @param {string|null} checkoutParam
  * @param {string|null} checkoutNotice
- * @param {boolean} isSubmitting
- * @param {boolean} isAuthenticated
- * @param {Function} onCheckout
  * @param {Function} onQuantityChange
  * @param {Function} onRemove
  * @param {Function} onClose
@@ -131,11 +127,7 @@ export function ShopCartDropdown({
     catalogLoading,
     catalogError,
     totalQuantity,
-    checkoutParam,
     checkoutNotice,
-    isSubmitting,
-    isAuthenticated,
-    onCheckout,
     onQuantityChange,
     onRemove,
     onClose,
@@ -176,9 +168,6 @@ export function ShopCartDropdown({
     const addedName = addedLine
         ? (catalogItemBySku.get(addedLine.sku)?.name || productBySku.get(addedLine.sku)?.name || addedLine.sku)
         : null;
-    const checkoutDisabled =
-        !catalog || cart.length === 0 || isSubmitting ||
-        catalog.saleState !== "open" || checkoutParam === "complete";
 
     return (
         <div
@@ -274,7 +263,7 @@ export function ShopCartDropdown({
                         )}
                         {!catalog && (
                             <p className="shopCartDropdown__notice" role="status">
-                                {catalogError ?? (catalogLoading ? "Loading catalog..." : "Catalog unavailable. Prices and checkout are unavailable until the catalog loads.")}
+                                {catalogError ?? (catalogLoading ? "Loading catalog..." : "Catalog unavailable. Prices are unavailable until the catalog loads.")}
                             </p>
                         )}
                         {catalog?.saleState === "scheduled" && (
@@ -293,10 +282,9 @@ export function ShopCartDropdown({
                                 type="button"
                                 className="shopCard__addToCart shopCartDropdown__checkout"
                                 data-testid="shop-cart-checkout"
-                                disabled={checkoutDisabled}
-                                onClick={onCheckout}
+                                disabled
                             >
-                                {isSubmitting ? "Processing checkout..." : !isAuthenticated ? "Sign in to checkout" : "Checkout"}
+                                Checkout coming soon
                             </button>
                         </div>
                     </>

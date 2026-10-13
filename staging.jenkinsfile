@@ -28,7 +28,7 @@ def cfg = [
     deployEnv: 'staging',
     apiUrl:    'https://staging.iuga.info',
     container: 'iuga-web-staging',
-    tempPort:  7778,
+    tempPort:  7779,
     realPort:  7777,
     uploadsDir: '/var/lib/iuga-web-app/uploads/staging',
     network:   true,   // staging joins the shared docker network

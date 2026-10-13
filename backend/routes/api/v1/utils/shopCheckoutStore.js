@@ -1,7 +1,8 @@
 /*
 Purpose: Persist manual Venmo shop holds and purchases in MongoDB transactions. Stock and per-student
          counts change only through conditional updates on counter documents, so two holds cannot both
-         take the last units of a product.
+         take the last units of a product. Also reads what checkout needs alongside a hold: the
+         per-student limits and the Venmo username saved by an earlier purchase.
 Authentication/Authorization Requirements: N/A (called by the shop controller after its session checks)
 Expected Request Information: req.models, the signed-in user's id, validated cart lines, and nowMs.
 Expected Response Information: hold or purchase documents, or throws ShopHoldError with an HTTP status.

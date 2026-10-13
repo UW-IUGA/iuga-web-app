@@ -32,8 +32,8 @@ import {
   saleStateAt,
 } from "../utils/shopCatalog.js";
 import { requireAuth } from "../utils/auth.js";
-import * as defaultHoldStore from "../utils/shopHoldStore.js";
-import { ShopHoldError } from "../utils/shopHoldStore.js";
+import * as defaultCheckoutStore from "../utils/shopCheckoutStore.js";
+import { ShopHoldError } from "../utils/shopCheckoutStore.js";
 import { holdTotalCents, normalizePhoneNumber, normalizeVenmoUsername } from "../utils/shopHolds.js";
 
 const OBJECT_ID_PATTERN = /^[a-f0-9]{24}$/i;
@@ -80,7 +80,7 @@ function sendHoldFailure(res, error) {
  * @param options.returnBaseUrl — origin for client return redirects (e.g., http://localhost:3000)
  * @param options.stripeCheckoutExposed — when false (default), POST /checkout returns 503 before any Stripe call
  * @param options.manualCheckoutExposed — when false (default), every /holds route returns 503 before any database call
- * @param options.holdStore — hold persistence functions; defaults to the MongoDB-backed store
+ * @param options.checkoutStore — checkout persistence functions (holds, limits, saved Venmo username); defaults to the MongoDB-backed store
  * @returns Express router instance
  */
 export function createShopRouter({
@@ -90,7 +90,7 @@ export function createShopRouter({
   returnBaseUrl,
   stripeCheckoutExposed = false,
   manualCheckoutExposed = false,
-  holdStore = defaultHoldStore,
+  checkoutStore = defaultCheckoutStore,
 }) {
   const router = express.Router();
 
@@ -106,7 +106,7 @@ export function createShopRouter({
     const currentMs = now();
     let limits;
     try {
-      limits = await holdStore.findLimits(req.models);
+      limits = await checkoutStore.findLimits(req.models);
     } catch (error) {
       console.error("Shop catalog limits failed:", error);
       return sendError(res, 500, "Unable to load the shop catalog right now. Please try again.");
@@ -325,7 +325,7 @@ export function createShopRouter({
     }
 
     try {
-      const hold = await holdStore.createHold(req.models, {
+      const hold = await checkoutStore.createHold(req.models, {
         userId: req.session.userId,
         catalogVersion: catalog.catalogVersion,
         lines: cartResult.lines,
@@ -355,12 +355,12 @@ export function createShopRouter({
     }
 
     try {
-      const hold = await holdStore.getHold(req.models, {
+      const hold = await checkoutStore.getHold(req.models, {
         holdId: req.params.holdId,
         userId: req.session.userId,
         nowMs: now(),
       });
-      const savedVenmoUsername = await holdStore.findSavedVenmoUsername(req.models, req.session.userId);
+      const savedVenmoUsername = await checkoutStore.findSavedVenmoUsername(req.models, req.session.userId);
       return sendSuccess(res, { hold: publicHold(hold), savedVenmoUsername });
     } catch (error) {
       return sendHoldFailure(res, error);
@@ -385,7 +385,7 @@ export function createShopRouter({
     }
 
     try {
-      const hold = await holdStore.cancelHold(req.models, {
+      const hold = await checkoutStore.cancelHold(req.models, {
         holdId: req.params.holdId,
         userId: req.session.userId,
         nowMs: now(),
@@ -423,7 +423,7 @@ export function createShopRouter({
     }
 
     try {
-      const hold = await holdStore.removeLineFromHold(req.models, {
+      const hold = await checkoutStore.removeLineFromHold(req.models, {
         holdId: req.params.holdId,
         userId: req.session.userId,
         sku: body.sku,
@@ -472,7 +472,7 @@ export function createShopRouter({
     }
 
     try {
-      const purchase = await holdStore.confirmHold(req.models, {
+      const purchase = await checkoutStore.confirmHold(req.models, {
         holdId: req.params.holdId,
         userId: req.session.userId,
         venmoUsername,

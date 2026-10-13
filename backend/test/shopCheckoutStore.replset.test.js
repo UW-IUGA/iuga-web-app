@@ -19,7 +19,7 @@ import {
   removeLineFromHold,
   ShopHoldError,
   sweepExpiredHolds,
-} from "../routes/api/v1/utils/shopHoldStore.js";
+} from "../routes/api/v1/utils/shopCheckoutStore.js";
 import { invalidateLimits } from "../routes/api/v1/utils/shopLimits.js";
 
 // Runs only against a real replica set. Start one with
@@ -30,7 +30,7 @@ const run = uri ? describe : describe.skip;
 const HOUR_MS = 60 * 60 * 1000;
 const FIFTEEN_MIN_MS = 15 * 60 * 1000;
 
-run("shop hold store on a replica set", () => {
+run("shop checkout store on a replica set", () => {
   let connection;
   let models;
 

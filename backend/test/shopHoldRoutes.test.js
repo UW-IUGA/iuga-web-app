@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
 import { createShopRouter } from "../routes/api/v1/controllers/shop.js";
-import { ShopHoldError } from "../routes/api/v1/utils/shopHoldStore.js";
+import { ShopHoldError } from "../routes/api/v1/utils/shopCheckoutStore.js";
 import { shopCatalog } from "../routes/api/v1/utils/shopCatalog.js";
 import { makeTestApi } from "./testApi.js";
 
@@ -76,7 +76,7 @@ async function setup({
     catalog: shopCatalog,
     now: () => nowMs,
     manualCheckoutExposed,
-    holdStore: store,
+    checkoutStore: store,
   });
   const api = await makeTestApi({
     router,

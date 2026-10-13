@@ -269,6 +269,12 @@
         text-transform: uppercase;
     }
 
+    &__material {
+        margin: 0;
+        font-size: 0.94rem;
+        line-height: 1.5;
+    }
+
     &__info h3 {
         font-size: 1.3rem;
         letter-spacing: -0.02em;

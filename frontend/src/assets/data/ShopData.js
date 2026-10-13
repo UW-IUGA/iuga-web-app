@@ -8,20 +8,26 @@ export const shopProducts = [
         sku: "info-hoodie",
         name: "Hoodie",
         image: infoHoodie,
+        material: "50/50 cotton/polyester",
     },
     {
         sku: "info-crewneck",
         name: "Crewneck",
         image: infoCrewneck,
+        // Light Heather Grey; the supplier's Heather colors are 60/40 rather than the standard 65/35.
+        material: "60/40 cotton/polyester",
     },
     {
         sku: "info-baseball-tee",
         name: "Baseball Tee",
         image: infoBaseballTee,
+        // Sport Gray/Black; the supplier's Sport Gray colors are 90/10 rather than all cotton.
+        material: "90/10 cotton/polyester",
     },
     {
         sku: "info-tote-bag",
         name: "Tote Bag",
         image: infoToteBag,
+        material: "60/40 recycled cotton/polyester",
     },
 ];

@@ -29,19 +29,19 @@ export const shopCatalog = Object.freeze({
     Object.freeze({
       sku: "info-hoodie",
       name: "Hoodie",
-      sizes: Object.freeze(["S", "M", "L", "XL", "2XL"]),
+      sizes: Object.freeze(["XS", "S", "M", "L", "XL", "2XL"]),
       unitPriceCents: 3200,
     }),
     Object.freeze({
       sku: "info-crewneck",
       name: "Crewneck",
-      sizes: Object.freeze(["S", "M", "L", "XL", "2XL"]),
+      sizes: Object.freeze(["XS", "S", "M", "L", "XL", "2XL"]),
       unitPriceCents: 3000,
     }),
     Object.freeze({
       sku: "info-baseball-tee",
       name: "Baseball Tee",
-      sizes: Object.freeze(["S", "M", "L", "XL", "2XL"]),
+      sizes: Object.freeze(["XS", "S", "M", "L", "XL", "2XL"]),
       unitPriceCents: 2200,
     }),
     Object.freeze({

@@ -207,6 +207,12 @@ function ShopPage() {
                                                 </div>
 
                                                 <div className="shopCard__controls">
+                                                    {product?.material && (
+                                                        <div className="shopCard__controlGroup">
+                                                            <span className="shopCard__label">Material</span>
+                                                            <p className="shopCard__material">{product.material}</p>
+                                                        </div>
+                                                    )}
                                                     {!oneSize && (
                                                         <div className="shopCard__controlGroup">
                                                             <span className="shopCard__label" id={`sizes-${item.sku}`}>Choose size</span>

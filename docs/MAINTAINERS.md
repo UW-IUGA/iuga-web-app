@@ -140,6 +140,31 @@ docker exec iuga-web-<env> node --input-type=commonjs -e "
 
 > **Note:** The backend is ES modules, so the `--input-type=commonjs` flag is required to use `require()` in this snippet. Replace the connection string with the actual URI (prod uses `mongo:27017`, dev uses Atlas). Run this only during incident response.
 
+### 2.5 List pending shop purchases
+
+Read-only. Lists each pending Venmo purchase with the student's name, email, Venmo username, items, and total. Run in `mongosh` against the environment's database:
+
+```js
+db.shoppurchases.aggregate([
+  { $match: { status: "pending" } },
+  { $sort: { confirmedAt: 1 } },
+  { $lookup: { from: "users", localField: "userId", foreignField: "_id", as: "student" } },
+  { $unwind: "$student" },
+  { $project: {
+      _id: 0,
+      purchaseId: "$_id",
+      confirmedAt: 1,
+      name: "$student.uDisplayName",
+      email: "$student.uEmail",
+      venmoUsername: 1,
+      items: { $map: { input: "$lines", in: { $concat: [{ $toString: "$$this.quantity" }, " x ", "$$this.name", " (", "$$this.size", ")"] } } },
+      totalDollars: { $divide: ["$totalCents", 100] },
+  } },
+])
+```
+
+No route or screen records paid, not paid, or refunded yet; every purchase stays `pending`.
+
 ---
 
 ## 3. Observation Points (what to watch for)

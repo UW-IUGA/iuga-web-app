@@ -211,13 +211,15 @@ export const AuthProvider = ({ children }) => {
 
   const isAdmin = user?.uType === "Admin";
 
+  const isLocalBackendError = authError?.message === LOCAL_BACKEND_MESSAGE;
+
   /*
    * @behavior: Render the current auth error with the docs path as a hyperlink when it
    *            is the known local-backend message; otherwise render the raw message.
    * @returns {React.ReactNode} Message content for AlertDialog.
    */
   const renderAuthErrorMessage = () => {
-    if (authError?.message !== LOCAL_BACKEND_MESSAGE) {
+    if (!isLocalBackendError) {
       return authError?.message;
     }
     const [lead, tail] = LOCAL_BACKEND_MESSAGE.split(LOCAL_BACKEND_DOCS_PATH);
@@ -236,8 +238,8 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider value={{ user, isAuthenticated, isAdmin, authLoading, authError, signIn, signOut }}>
       {authError ? (
         <AlertDialog
-          eyebrow="Local environment"
-          title="Local sign-in unavailable"
+          eyebrow={isLocalBackendError ? "Local environment" : "Sign-in"}
+          title={isLocalBackendError ? "Local sign-in unavailable" : "We couldn't sign you in"}
           message={renderAuthErrorMessage()}
           confirmLabel="I understand"
           onConfirm={() => setAuthError(null)}

@@ -6,6 +6,7 @@ Purpose: Serve merchandise shop catalog information to prospective buyers.
 Authentication/Authorization Requirements:
 - GET /catalog: None (public browsing, unauthenticated)
 - POST /checkout, GET /checkout/:sessionId: Logged in (authenticated session required)
+- /holds routes (manual Venmo checkout): Logged in; every route returns 503 unless manualCheckoutExposed is true
 
 Expected Request Information:
 - GET /catalog: None
@@ -31,6 +32,46 @@ import {
   saleStateAt,
 } from "../utils/shopCatalog.js";
 import { requireAuth } from "../utils/auth.js";
+import * as defaultHoldStore from "../utils/shopHoldStore.js";
+import { ShopHoldError } from "../utils/shopHoldStore.js";
+import { holdTotalCents, normalizeVenmoUsername } from "../utils/shopHolds.js";
+
+const OBJECT_ID_PATTERN = /^[a-f0-9]{24}$/i;
+
+function publicHold(hold) {
+  return {
+    id: String(hold._id),
+    status: hold.status,
+    expiresAt: new Date(hold.expiresAt).toISOString(),
+    lines: hold.lines.map((line) => ({
+      sku: line.sku,
+      name: line.name,
+      size: line.size,
+      quantity: line.quantity,
+      unitPriceCents: line.unitPriceCents,
+    })),
+    totalCents: holdTotalCents(hold.lines),
+  };
+}
+
+function publicPurchase(purchase) {
+  return {
+    id: String(purchase._id),
+    status: purchase.status,
+    venmoUsername: purchase.venmoUsername,
+    totalCents: purchase.totalCents,
+    confirmedAt: new Date(purchase.confirmedAt).toISOString(),
+  };
+}
+
+function sendHoldFailure(res, error) {
+  if (error instanceof ShopHoldError) {
+    return sendError(res, error.status, error.message);
+  }
+  console.error("Shop hold request failed:", error);
+  return sendError(res, 500, "Unable to update your hold right now. Please try again.");
+}
+
 /*
  * @behavior Factory creating an Express router for shop endpoints with dependency injection.
  * @param options.stripe — Stripe SDK client instance with checkout session capabilities
@@ -38,6 +79,8 @@ import { requireAuth } from "../utils/auth.js";
  * @param options.now — clock function returning current timestamp in milliseconds (defaults to Date.now)
  * @param options.returnBaseUrl — origin for client return redirects (e.g., http://localhost:3000)
  * @param options.stripeCheckoutExposed — when false (default), POST /checkout returns 503 before any Stripe call
+ * @param options.manualCheckoutExposed — when false (default), every /holds route returns 503 before any database call
+ * @param options.holdStore — hold persistence functions; defaults to the MongoDB-backed store
  * @returns Express router instance
  */
 export function createShopRouter({
@@ -46,6 +89,8 @@ export function createShopRouter({
   now = Date.now,
   returnBaseUrl,
   stripeCheckoutExposed = false,
+  manualCheckoutExposed = false,
+  holdStore = defaultHoldStore,
 }) {
   const router = express.Router();
 
@@ -215,6 +260,212 @@ export function createShopRouter({
     }
 
     return sendSuccess(res, { url: session.url, sessionId: session.id });
+  });
+
+  // Checked before any hold route reads or writes the database. Production leaves
+  // manualCheckoutExposed off until ADR-0006 Gate B passes.
+  function manualCheckoutClosed(res) {
+    if (manualCheckoutExposed !== true) {
+      sendError(
+        res,
+        503,
+        "Online checkout is temporarily unavailable. Your cart has not changed; please check back later."
+      );
+      return true;
+    }
+    return false;
+  }
+
+  /*
+  Purpose: Hold the signed-in student's whole cart for 15 minutes, or none of it.
+  Authentication/Authorization Requirements: Logged in.
+  Expected Request Information:
+  - req.body: { items: [{ sku, size, quantity }], catalogVersion: string }
+  Expected Response Information:
+  - 200 { status: "success", hold: { id, status, expiresAt, lines, totalCents } }
+  - 400 Malformed body or invalid cart items
+  - 401 Not authenticated
+  - 409 Stale catalogVersion, sale not open, or a line exceeds stock or the per-student limit
+  - 503 Manual checkout not exposed
+  */
+  router.post("/holds", requireAuth, async (req, res) => {
+    if (manualCheckoutClosed(res)) return;
+
+    const body = req.body;
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return sendError(res, 400, "Request body must be an object.");
+    }
+    if (typeof body.catalogVersion !== "string" || body.catalogVersion.trim() === "") {
+      return sendError(res, 400, "catalogVersion must be a non-empty string.");
+    }
+    if (body.catalogVersion !== catalog.catalogVersion) {
+      return sendError(res, 409, "Catalog version is out of date.");
+    }
+
+    const currentMs = now();
+    const saleState = saleStateAt(catalog, currentMs);
+    if (saleState === "scheduled") {
+      return sendError(res, 409, "Sale has not opened yet.");
+    }
+    if (saleState === "closed") {
+      return sendError(res, 409, "Sale is closed.");
+    }
+
+    const cartResult = resolveCartLines(catalog, body.items);
+    if (!cartResult.ok) {
+      return sendError(res, 400, cartResult.message);
+    }
+
+    try {
+      const hold = await holdStore.createHold(req.models, {
+        userId: req.session.userId,
+        catalogVersion: catalog.catalogVersion,
+        lines: cartResult.lines,
+        nowMs: currentMs,
+      });
+      return sendSuccess(res, { hold: publicHold(hold) });
+    } catch (error) {
+      return sendHoldFailure(res, error);
+    }
+  });
+
+  /*
+  Purpose: Load one of the student's holds for the checkout page.
+  Authentication/Authorization Requirements: Logged in; the hold must belong to the signed-in student.
+  Expected Request Information: URL parameter holdId.
+  Expected Response Information:
+  - 200 { status: "success", hold } (status "expired" when the deadline has passed)
+  - 401 Not authenticated
+  - 404 Hold not found
+  - 503 Manual checkout not exposed
+  */
+  router.get("/holds/:holdId", requireAuth, async (req, res) => {
+    if (manualCheckoutClosed(res)) return;
+    if (!OBJECT_ID_PATTERN.test(req.params.holdId)) {
+      return sendError(res, 404, "Hold not found.");
+    }
+
+    try {
+      const hold = await holdStore.getHold(req.models, {
+        holdId: req.params.holdId,
+        userId: req.session.userId,
+        nowMs: now(),
+      });
+      return sendSuccess(res, { hold: publicHold(hold) });
+    } catch (error) {
+      return sendHoldFailure(res, error);
+    }
+  });
+
+  /*
+  Purpose: Cancel an active hold and release its units.
+  Authentication/Authorization Requirements: Logged in; the hold must belong to the signed-in student.
+  Expected Request Information: URL parameter holdId.
+  Expected Response Information:
+  - 200 { status: "success", hold } with status "cancelled"
+  - 401 Not authenticated
+  - 404 Hold not found
+  - 409 Hold is not active or has expired
+  - 503 Manual checkout not exposed
+  */
+  router.delete("/holds/:holdId", requireAuth, async (req, res) => {
+    if (manualCheckoutClosed(res)) return;
+    if (!OBJECT_ID_PATTERN.test(req.params.holdId)) {
+      return sendError(res, 404, "Hold not found.");
+    }
+
+    try {
+      const hold = await holdStore.cancelHold(req.models, {
+        holdId: req.params.holdId,
+        userId: req.session.userId,
+        nowMs: now(),
+      });
+      return sendSuccess(res, { hold: publicHold(hold) });
+    } catch (error) {
+      return sendHoldFailure(res, error);
+    }
+  });
+
+  /*
+  Purpose: Remove one line from an active hold. The deadline does not change. Removing the last line cancels the hold.
+  Authentication/Authorization Requirements: Logged in; the hold must belong to the signed-in student.
+  Expected Request Information:
+  - URL parameter holdId
+  - req.body: { sku: string, size: string }
+  Expected Response Information:
+  - 200 { status: "success", hold }
+  - 400 Missing sku or size
+  - 401 Not authenticated
+  - 404 Hold or line not found
+  - 409 Hold is not active or has expired
+  - 503 Manual checkout not exposed
+  */
+  router.patch("/holds/:holdId/lines", requireAuth, async (req, res) => {
+    if (manualCheckoutClosed(res)) return;
+    if (!OBJECT_ID_PATTERN.test(req.params.holdId)) {
+      return sendError(res, 404, "Hold not found.");
+    }
+
+    const body = req.body;
+    if (!body || typeof body !== "object" || Array.isArray(body) ||
+        typeof body.sku !== "string" || typeof body.size !== "string") {
+      return sendError(res, 400, "sku and size must be strings.");
+    }
+
+    try {
+      const hold = await holdStore.removeLineFromHold(req.models, {
+        holdId: req.params.holdId,
+        userId: req.session.userId,
+        sku: body.sku,
+        size: body.size,
+        nowMs: now(),
+      });
+      return sendSuccess(res, { hold: publicHold(hold) });
+    } catch (error) {
+      return sendHoldFailure(res, error);
+    }
+  });
+
+  /*
+  Purpose: Confirm an active hold before its deadline. Creates a pending purchase and saves the Venmo username to the profile.
+  Authentication/Authorization Requirements: Logged in; the hold must belong to the signed-in student.
+  Expected Request Information:
+  - URL parameter holdId
+  - req.body: { venmoUsername: string }
+  Expected Response Information:
+  - 200 { status: "success", purchase: { id, status, venmoUsername, totalCents, confirmedAt } }
+  - 400 Missing or invalid Venmo username
+  - 401 Not authenticated
+  - 404 Hold not found
+  - 409 Hold is not active, or its deadline has passed (its items are released)
+  - 503 Manual checkout not exposed
+  */
+  router.post("/holds/:holdId/confirm", requireAuth, async (req, res) => {
+    if (manualCheckoutClosed(res)) return;
+    if (!OBJECT_ID_PATTERN.test(req.params.holdId)) {
+      return sendError(res, 404, "Hold not found.");
+    }
+
+    const venmoUsername = normalizeVenmoUsername(req.body?.venmoUsername);
+    if (venmoUsername === null) {
+      return sendError(
+        res,
+        400,
+        "Enter your Venmo username: 1 to 30 letters, numbers, periods, hyphens, or underscores."
+      );
+    }
+
+    try {
+      const purchase = await holdStore.confirmHold(req.models, {
+        holdId: req.params.holdId,
+        userId: req.session.userId,
+        venmoUsername,
+        nowMs: now(),
+      });
+      return sendSuccess(res, { purchase: publicPurchase(purchase) });
+    } catch (error) {
+      return sendHoldFailure(res, error);
+    }
   });
 
   return router;

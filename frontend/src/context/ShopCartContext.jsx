@@ -10,7 +10,7 @@
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuthContext } from "./AuthContext";
 import {
     addToCart,
@@ -117,6 +117,7 @@ export function ShopCartProvider({ children }) {
     const verifiedSessionsRef = useRef(new Set());
 
     const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
     const checkoutParam = searchParams.get("checkout");
     const checkoutSessionId = searchParams.get("session_id");
     // Last-added line pinning the cart dropdown's top and bottom borders. The borders
@@ -323,7 +324,7 @@ export function ShopCartProvider({ children }) {
         }
 
         const postCheckout = async () => {
-            return fetch("/api/v1/shop/checkout", {
+            return fetch("/api/v1/shop/holds", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -360,16 +361,11 @@ export function ShopCartProvider({ children }) {
 
             if (response.status === 200) {
                 const data = await response.json();
-                if (data.url && data.sessionId) {
-                    window.sessionStorage.setItem(checkoutCartKey(data.sessionId), JSON.stringify(currentCart));
-                    // The bag stays open on every failure so its notice is visible;
-                    // it closes only here, on the way out to Stripe.
+                if (data.hold?.id) {
+                    // The bag stays open on every failure so its notice is visible; it closes only
+                    // here, on the way to the checkout page. The cart is kept until a purchase is confirmed.
                     closeCart();
-                    if (typeof window.location.assign === "function") {
-                        window.location.assign(data.url);
-                    } else {
-                        window.location.href = data.url;
-                    }
+                    navigate(`/shop/checkout/${encodeURIComponent(data.hold.id)}`);
                     return;
                 }
                 setCheckoutNotice("Unable to start checkout. Please try again later.");
@@ -385,9 +381,14 @@ export function ShopCartProvider({ children }) {
             }
 
             if (response.status === 409) {
+                // Stock and per-student limits send the reason; use the catalog notice when the body has none.
+                const body = await response.json().catch(() => null);
                 await fetchCatalog(true, true);
+                const hasServerMessage = typeof body?.message === "string" && body.message.trim() !== "";
                 setCheckoutNotice(
-                    "The catalog has updated or the sale status changed. Please review your cart and confirm your order again."
+                    hasServerMessage
+                        ? body.message
+                        : "The catalog has updated or the sale status changed. Please review your cart and confirm your order again."
                 );
                 return;
             }
@@ -405,7 +406,9 @@ export function ShopCartProvider({ children }) {
             submittingRef.current = false;
             setIsSubmitting(false);
         }
-    }, [closeCart, fetchCatalog, isAuthenticated, isSubmitting, signIn]);
+    }, [closeCart, fetchCatalog, isAuthenticated, isSubmitting, navigate, signIn]);
+
+    const clearCart = useCallback(() => updateCart([]), [updateCart]);
 
     const totalQuantity = cart.reduce((sum, line) => sum + line.quantity, 0);
 
@@ -420,6 +423,7 @@ export function ShopCartProvider({ children }) {
         addItem,
         setItemQuantity,
         removeItem,
+        clearCart,
         isCartOpen,
         setIsCartOpen,
         checkoutParam,
@@ -431,7 +435,7 @@ export function ShopCartProvider({ children }) {
         handleCheckout,
     }), [
         cart, totalQuantity, catalog, loading, error, fetchCatalog, ensureCatalog,
-        addItem, setItemQuantity, removeItem, isCartOpen, checkoutParam,
+        addItem, setItemQuantity, removeItem, clearCart, isCartOpen, checkoutParam,
         checkoutSessionId, returnStatus, reconcileNotice, checkoutNotice,
         isSubmitting, handleCheckout,
     ]);

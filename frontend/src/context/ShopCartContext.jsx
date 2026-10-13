@@ -19,6 +19,10 @@ import {
     reconcileCart,
     parseCart,
     MAX_QUANTITY,
+    findOverLimitProduct,
+    limitForSku,
+    isSkuAtLimit,
+    capLineQuantity,
 } from "../utils/shopCart";
 import { CartTrigger, ShopCartDropdown } from "../components/ShopCart";
 
@@ -281,7 +285,10 @@ export function ShopCartProvider({ children }) {
     // Adding shows the cart dropdown as a transient confirmation instead of
     // auto-opening a persistent panel.
     const addItem = useCallback((item, size) => {
-        updateCart(addToCart(readStoredCart(), { sku: item.sku, size, quantity: 1 }));
+        const cart = readStoredCart();
+        // The card disables Add at the limit; this guard stops a stale click from going over it.
+        if (isSkuAtLimit(cart, item.sku, limitForSku(catalogRef.current, item.sku))) return;
+        updateCart(addToCart(cart, { sku: item.sku, size, quantity: 1 }));
         setLastAdded({ sku: item.sku, size });
         setFreshAdd(true);
         setIsCartOpen(true);
@@ -289,8 +296,13 @@ export function ShopCartProvider({ children }) {
 
     const setItemQuantity = useCallback((sku, size, quantity) => {
         // The bag and card steppers share this path, so the 100 ceiling the quantity
-        // field advertises holds for the +/- buttons too.
-        updateCart(setCartQuantity(readStoredCart(), sku, size, Math.min(quantity, MAX_QUANTITY)));
+        // field advertises holds for the +/- buttons too, and the product's per-student
+        // limit caps them across sizes.
+        const cart = readStoredCart();
+        const limit = limitForSku(catalogRef.current, sku);
+        const capped = Math.min(quantity, MAX_QUANTITY);
+        const allowed = limit === null ? capped : capLineQuantity(cart, sku, size, capped, limit);
+        updateCart(setCartQuantity(cart, sku, size, allowed));
     }, [updateCart]);
 
     const removeItem = useCallback((sku, size) => {
@@ -302,6 +314,13 @@ export function ShopCartProvider({ children }) {
         const currentCart = readStoredCart();
         const currentCatalog = catalogRef.current;
         if (!currentCatalog || currentCatalog.saleState !== "open" || currentCart.length === 0) return;
+
+        // Checked before sign-in or any request, so the student can lower the quantity in the open bag.
+        const overLimit = findOverLimitProduct(currentCart, currentCatalog.items);
+        if (overLimit) {
+            setCheckoutNotice(`${overLimit.name} is limited to ${overLimit.perStudentLimit} per student. Lower the quantity in your cart.`);
+            return;
+        }
 
         setCheckoutNotice(null);
         submittingRef.current = true;
@@ -399,7 +418,10 @@ export function ShopCartProvider({ children }) {
                 return;
             }
 
-            setCheckoutNotice("Unable to start checkout. Please try again later.");
+            // Other failures, such as 400 or 500, send the reason; use the fixed notice when they send none.
+            const body = await response.json().catch(() => null);
+            const hasServerMessage = typeof body?.message === "string" && body.message.trim() !== "";
+            setCheckoutNotice(hasServerMessage ? body.message : "Unable to start checkout. Please try again later.");
         } catch {
             setCheckoutNotice("Unable to start checkout. Please try again later.");
         } finally {

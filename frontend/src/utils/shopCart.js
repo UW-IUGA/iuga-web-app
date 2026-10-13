@@ -112,6 +112,74 @@ export function cartTotal(cart, catalog) {
 }
 
 /**
+ * @behavior Finds the first product whose units across all sizes in the bag exceed its per-student limit.
+ *           Items without a numeric limit, such as a catalog cached before limits existed, are not checked.
+ * @param {Array<{sku: string, size: string, quantity: number}>} cart
+ * @param {Array<{sku: string, name: string, perStudentLimit?: number}>} items
+ * @returns {{name: string, perStudentLimit: number} | null}
+ */
+export function findOverLimitProduct(cart, items) {
+    for (const item of items) {
+        if (typeof item.perStudentLimit !== "number") continue;
+        if (unitsForSku(cart, item.sku) > item.perStudentLimit) {
+            return { name: item.name, perStudentLimit: item.perStudentLimit };
+        }
+    }
+    return null;
+}
+
+/**
+ * @behavior Units of one product across every size in the bag.
+ * @param {Array<{sku: string, size: string, quantity: number}>} cart
+ * @param {string} sku
+ * @returns {number}
+ */
+export function unitsForSku(cart, sku) {
+    return cart
+        .filter((entry) => entry.sku === sku)
+        .reduce((sum, entry) => sum + entry.quantity, 0);
+}
+
+/**
+ * @behavior The catalog's per-student limit for one product, or null when the catalog gives none.
+ * @param {{items?: Array<{sku: string, perStudentLimit?: number}>} | null} catalog
+ * @param {string} sku
+ * @returns {number | null}
+ */
+export function limitForSku(catalog, sku) {
+    const item = catalog?.items?.find((entry) => entry.sku === sku);
+    return typeof item?.perStudentLimit === "number" ? item.perStudentLimit : null;
+}
+
+/**
+ * @behavior True when the bag already holds a product's full per-student limit, so no more units of it can be added.
+ * @param {Array<{sku: string, size: string, quantity: number}>} cart
+ * @param {string} sku
+ * @param {number | null} limit
+ * @returns {boolean}
+ */
+export function isSkuAtLimit(cart, sku, limit) {
+    return limit !== null && unitsForSku(cart, sku) >= limit;
+}
+
+/**
+ * @behavior Caps a requested quantity for one sku+size line so the product's units across sizes stay within its limit.
+ *           A line keeps the units it already has, so keeping or lowering its quantity is never blocked.
+ * @param {Array<{sku: string, size: string, quantity: number}>} cart
+ * @param {string} sku
+ * @param {string} size
+ * @param {number} quantity
+ * @param {number} limit
+ * @returns {number}
+ */
+export function capLineQuantity(cart, sku, size, quantity, limit) {
+    const lineQuantity = cart.find((entry) => entry.sku === sku && entry.size === size)?.quantity || 0;
+    const otherSizeUnits = unitsForSku(cart, sku) - lineQuantity;
+    const ceiling = Math.max(limit - otherSizeUnits, lineQuantity);
+    return Math.min(quantity, ceiling);
+}
+
+/**
  * @behavior Drops cart entries whose SKU or size no longer exists in the catalog.
  * @param {Array<{sku: string, size: string, quantity: number}>} cart
  * @param {Object} catalog

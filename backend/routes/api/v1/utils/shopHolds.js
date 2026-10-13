@@ -36,12 +36,27 @@ const VENMO_USERNAME_PATTERN = /^[A-Za-z0-9._-]{1,30}$/;
 const PHONE_NUMBER_PATTERN = /^\+?\d{7,15}$/;
 
 /*
- * @behavior Compute the deadline for a hold created at nowMs.
+ * @behavior Compute the deadline for a hold created at nowMs. A hold never runs past an announced
+ *           maintenance time, so no student is still paying when the update starts.
  * @param nowMs — current timestamp in milliseconds
+ * @param maintenanceAtMs — announced maintenance time in milliseconds, or null when none is planned
  * @returns deadline timestamp in milliseconds
  */
-export function holdExpiresAtMs(nowMs) {
-  return nowMs + HOLD_DURATION_MS;
+export function holdExpiresAtMs(nowMs, maintenanceAtMs = null) {
+  const fullLength = nowMs + HOLD_DURATION_MS;
+  return maintenanceAtMs !== null && maintenanceAtMs < fullLength ? maintenanceAtMs : fullLength;
+}
+
+/*
+ * @behavior Decide whether new checkouts are open right now. They are closed while an officer has paused
+ *           them, and from an announced maintenance time onward.
+ * @param settings — { newCheckoutsPaused, maintenanceAtMs } from the checkout store
+ * @param nowMs — current timestamp in milliseconds
+ * @returns { checkoutPaused: boolean, maintenanceAtMs: number | null }
+ */
+export function checkoutStatusAt({ newCheckoutsPaused, maintenanceAtMs }, nowMs) {
+  const maintenanceStarted = maintenanceAtMs !== null && nowMs >= maintenanceAtMs;
+  return { checkoutPaused: newCheckoutsPaused || maintenanceStarted, maintenanceAtMs };
 }
 
 /*

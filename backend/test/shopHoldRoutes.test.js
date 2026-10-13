@@ -46,7 +46,7 @@ function fakeStore(results = {}) {
     removeLineFromHold: storedHold(),
     confirmHold: storedPurchase(),
     findSavedVenmoUsername: null,
-    isNewCheckoutPaused: false,
+    findCheckoutSettings: { newCheckoutsPaused: false, maintenanceAtMs: null },
   };
   const merged = { ...defaults, ...results };
   const method = (name) => async (_models, args) => {
@@ -65,7 +65,7 @@ function fakeStore(results = {}) {
     removeLineFromHold: method("removeLineFromHold"),
     confirmHold: method("confirmHold"),
     findSavedVenmoUsername: method("findSavedVenmoUsername"),
-    isNewCheckoutPaused: async () => merged.isNewCheckoutPaused,
+    findCheckoutSettings: async () => merged.findCheckoutSettings,
   };
 }
 
@@ -116,7 +116,9 @@ describe("manual checkout gate", () => {
   });
 
   it("refuses a new hold while checkouts are paused, and still lets an existing hold be confirmed", async () => {
-    const { api, store } = await setup({ store: fakeStore({ isNewCheckoutPaused: true }) });
+    const { api, store } = await setup({
+      store: fakeStore({ findCheckoutSettings: { newCheckoutsPaused: true, maintenanceAtMs: null } }),
+    });
     try {
       const refused = await api.request("POST", "/api/v1/shop/holds", {
         catalogVersion: shopCatalog.catalogVersion,
@@ -132,6 +134,65 @@ describe("manual checkout gate", () => {
       });
       assert.equal(confirmed.status, 200);
       assert.equal(store.calls[0].name, "confirmHold");
+    } finally {
+      await api.close();
+    }
+  });
+
+  it("announces an upcoming maintenance time and ends new holds no later than it", async () => {
+    const maintenanceAtMs = OPEN_MS + 5 * 60 * 1000;
+    const { api, store } = await setup({
+      store: fakeStore({ findCheckoutSettings: { newCheckoutsPaused: false, maintenanceAtMs } }),
+    });
+    try {
+      const status = await api.request("GET", "/api/v1/shop/status");
+      assert.equal(status.status, 200);
+      assert.deepEqual(status.body.shop, {
+        checkoutPaused: false,
+        maintenanceAt: new Date(maintenanceAtMs).toISOString(),
+      });
+
+      const created = await api.request("POST", "/api/v1/shop/holds", {
+        catalogVersion: shopCatalog.catalogVersion,
+        items: CART,
+      });
+      assert.equal(created.status, 200);
+      assert.equal(store.calls[0].name, "createHold");
+      assert.equal(store.calls[0].args.maintenanceAtMs, maintenanceAtMs);
+    } finally {
+      await api.close();
+    }
+  });
+
+  it("stops new holds once the maintenance time arrives", async () => {
+    const { api, store } = await setup({
+      store: fakeStore({ findCheckoutSettings: { newCheckoutsPaused: false, maintenanceAtMs: OPEN_MS } }),
+    });
+    try {
+      const status = await api.request("GET", "/api/v1/shop/status");
+      assert.deepEqual(status.body.shop, { checkoutPaused: true, maintenanceAt: null });
+
+      const refused = await api.request("POST", "/api/v1/shop/holds", {
+        catalogVersion: shopCatalog.catalogVersion,
+        items: CART,
+      });
+      assert.equal(refused.status, 503);
+      assert.match(refused.body.message, /Checkout is paused for a few minutes/);
+      assert.equal(store.calls.length, 0);
+    } finally {
+      await api.close();
+    }
+  });
+
+  it("reports nothing to warn about where checkout is not offered", async () => {
+    const { api } = await setup({
+      manualCheckoutExposed: false,
+      store: fakeStore({ findCheckoutSettings: { newCheckoutsPaused: true, maintenanceAtMs: OPEN_MS + 60_000 } }),
+    });
+    try {
+      const status = await api.request("GET", "/api/v1/shop/status");
+      assert.equal(status.status, 200);
+      assert.deepEqual(status.body.shop, { checkoutPaused: false, maintenanceAt: null });
     } finally {
       await api.close();
     }

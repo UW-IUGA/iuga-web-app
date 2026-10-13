@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  checkoutStatusAt,
   HOLD_DURATION_MS,
   holdDurationMs,
   holdExpiresAtMs,
@@ -32,6 +33,15 @@ describe("hold deadline", () => {
     const createdAt = Date.parse("2026-10-10T12:00:00.000Z");
     assert.equal(holdExpiresAtMs(createdAt), createdAt + 15 * 60 * 1000);
     assert.equal(HOLD_DURATION_MS, 15 * 60 * 1000);
+  });
+
+  it("ends a hold at an announced maintenance time when that comes first", () => {
+    const createdAt = Date.parse("2026-10-10T12:00:00.000Z");
+    const inFiveMinutes = createdAt + 5 * 60 * 1000;
+    const inAnHour = createdAt + 60 * 60 * 1000;
+    assert.equal(holdExpiresAtMs(createdAt, inFiveMinutes), inFiveMinutes);
+    assert.equal(holdExpiresAtMs(createdAt, inAnHour), createdAt + 15 * 60 * 1000);
+    assert.equal(holdExpiresAtMs(createdAt, null), createdAt + 15 * 60 * 1000);
   });
 
   it("treats the deadline instant itself as passed, so a confirmation at the deadline is rejected", () => {
@@ -130,5 +140,26 @@ describe("Venmo username normalization", () => {
     assert.equal(normalizeVenmoUsername(undefined), null);
     assert.equal(normalizeVenmoUsername(42), null);
     assert.equal(normalizeVenmoUsername({ name: "jane" }), null);
+  });
+});
+
+describe("checkout status", () => {
+  const now = Date.parse("2026-10-10T12:00:00.000Z");
+
+  it("is open with no pause and no maintenance planned", () => {
+    assert.deepEqual(checkoutStatusAt({ newCheckoutsPaused: false, maintenanceAtMs: null }, now), {
+      checkoutPaused: false,
+      maintenanceAtMs: null,
+    });
+  });
+
+  it("stays open until an announced maintenance time, then closes", () => {
+    const settings = { newCheckoutsPaused: false, maintenanceAtMs: now + 60_000 };
+    assert.equal(checkoutStatusAt(settings, now).checkoutPaused, false);
+    assert.equal(checkoutStatusAt(settings, now + 60_000).checkoutPaused, true);
+  });
+
+  it("is closed while an officer has paused it, whatever the maintenance time", () => {
+    assert.equal(checkoutStatusAt({ newCheckoutsPaused: true, maintenanceAtMs: null }, now).checkoutPaused, true);
   });
 });

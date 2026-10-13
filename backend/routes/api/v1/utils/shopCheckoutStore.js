@@ -163,10 +163,11 @@ export async function sweepExpiredHolds(models, nowMs) {
  * @param catalogVersion — current catalog version, recorded on the hold
  * @param lines — validated lines: { sku, name, size, quantity, unitPriceCents }
  * @param nowMs — current timestamp in milliseconds
+ * @param maintenanceAtMs — announced maintenance time, or null; the hold ends no later than it
  * @returns the created hold document
  * @throws ShopHoldError 409 when any line exceeds stock or the per-student limit
  */
-export async function createHold(models, { userId, catalogId, catalogVersion, lines, nowMs }) {
+export async function createHold(models, { userId, catalogId, catalogVersion, lines, nowMs, maintenanceAtMs = null }) {
   await sweepExpiredHolds(models, nowMs);
   await ensureCounter(models.ShopStudentCheckouts, { _id: userId }, { revision: 0 });
 
@@ -195,7 +196,7 @@ export async function createHold(models, { userId, catalogId, catalogVersion, li
         catalogVersion,
         lines,
         status: "active",
-        expiresAt: new Date(holdExpiresAtMs(nowMs)),
+        expiresAt: new Date(holdExpiresAtMs(nowMs, maintenanceAtMs)),
       }],
       { session },
     );
@@ -354,12 +355,18 @@ export async function findLimits(models) {
 }
 
 /*
- * @behavior Whether an officer has paused new checkouts in the database, for example before an update.
- *           Read on every new hold, so the switch takes effect at once and needs no deploy. Holds that
- *           already exist are not affected.
- * @returns {Promise<boolean>} false when the settings document is missing
+ * @behavior The switches an officer can change in the database, for example before an update: whether new
+ *           checkouts are paused, and an announced maintenance time. Read on every new hold, so a change
+ *           takes effect at once and needs no deploy.
+ * @returns {Promise<{ newCheckoutsPaused: boolean, maintenanceAtMs: number | null }>} not paused and no
+ *          maintenance when the settings document is missing
  */
-export async function isNewCheckoutPaused(models) {
-  const settings = await models.ShopSettings.findOne({ key: "shop" }, { _id: 0, newCheckoutsPaused: 1 }).lean();
-  return settings?.newCheckoutsPaused === true;
+export async function findCheckoutSettings(models) {
+  const settings = await models.ShopSettings
+    .findOne({ key: "shop" }, { _id: 0, newCheckoutsPaused: 1, maintenanceAt: 1 })
+    .lean();
+  return {
+    newCheckoutsPaused: settings?.newCheckoutsPaused === true,
+    maintenanceAtMs: settings?.maintenanceAt ? new Date(settings.maintenanceAt).getTime() : null,
+  };
 }

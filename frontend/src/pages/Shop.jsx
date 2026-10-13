@@ -204,10 +204,15 @@ function ShopPage() {
                                                 <div className="shopCard__info">
                                                     <h3>{item.name}</h3>
                                                     <p className="shopCard__price">{formattedPrice}</p>
-                                                    {product?.material && <p className="shopCard__spec">{product.material}</p>}
                                                 </div>
 
                                                 <div className="shopCard__controls">
+                                                    {product?.material && (
+                                                        <div className="shopCard__controlGroup">
+                                                            <span className="shopCard__label">Material</span>
+                                                            <p className="shopCard__material">{product.material}</p>
+                                                        </div>
+                                                    )}
                                                     {!oneSize && (
                                                         <div className="shopCard__controlGroup">
                                                             <span className="shopCard__label" id={`sizes-${item.sku}`}>Choose size</span>

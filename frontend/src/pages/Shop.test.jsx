@@ -52,19 +52,22 @@ test("loads the shop with canonical catalog products and their real images", asy
     }
 });
 
-test("shows the confirmed material on each product card", async () => {
+test("shows each product's material on its card", async () => {
     render(
         <MemoryRouter initialEntries={["/shop"]}>
             <ShopCartProvider><ShopPage /></ShopCartProvider>
         </MemoryRouter>,
     );
 
-    const cardFor = async (name) => (await screen.findByRole("heading", { name, exact: true })).closest("article");
+    const materialOf = async (name) => {
+        const card = (await screen.findByRole("heading", { name, exact: true })).closest("article");
+        return within(card).getByText("Material").nextElementSibling.textContent;
+    };
 
-    expect(within(await cardFor("Hoodie")).getByText("50/50 cotton/polyester")).toBeInTheDocument();
-    expect(within(await cardFor("Crewneck")).getByText("60/40 cotton/polyester")).toBeInTheDocument();
-    expect(within(await cardFor("Baseball Tee")).getByText("90/10 cotton/polyester")).toBeInTheDocument();
-    expect(within(await cardFor("Tote Bag")).getByText("60/40 recycled cotton/polyester")).toBeInTheDocument();
+    expect(await materialOf("Hoodie")).toBe("50/50 cotton/polyester");
+    expect(await materialOf("Crewneck")).toBe("60/40 cotton/polyester");
+    expect(await materialOf("Baseball Tee")).toBe("90/10 cotton/polyester");
+    expect(await materialOf("Tote Bag")).toBe("60/40 recycled cotton/polyester");
 });
 
 test("offers XS through 2XL on the apparel cards and no size choice on the tote bag", async () => {
@@ -82,20 +85,4 @@ test("offers XS through 2XL on the apparel cards and no size choice on the tote 
         expect(within(sizeGroup).getAllByRole("button").map((button) => button.textContent)).toEqual(["XS", "S", "M", "L", "XL", "2XL"]);
     }
     expect(sizeGroupOf(await cardFor("Tote Bag"))).toBeNull();
-});
-
-test("shows one material line on each product card", async () => {
-    render(
-        <MemoryRouter initialEntries={["/shop"]}>
-            <ShopCartProvider><ShopPage /></ShopCartProvider>
-        </MemoryRouter>,
-    );
-
-    const cardFor = async (name) => (await screen.findByRole("heading", { name, exact: true })).closest("article");
-    const specLines = (card) => Array.from(card.querySelectorAll(".shopCard__spec"), (line) => line.textContent);
-
-    expect(specLines(await cardFor("Hoodie"))).toEqual(["50/50 cotton/polyester"]);
-    expect(specLines(await cardFor("Crewneck"))).toEqual(["60/40 cotton/polyester"]);
-    expect(specLines(await cardFor("Baseball Tee"))).toEqual(["90/10 cotton/polyester"]);
-    expect(specLines(await cardFor("Tote Bag"))).toEqual(["60/40 recycled cotton/polyester"]);
 });

@@ -64,7 +64,6 @@ describe("Shop HTTP Controller (GET /api/v1/shop/catalog)", () => {
         "info-baseball-tee": 2200,
         "info-crewneck": 3000,
         "info-hoodie": 3200,
-        "info-t-shirt": 2400,
         "info-tote-bag": 2000,
       });
     } finally {

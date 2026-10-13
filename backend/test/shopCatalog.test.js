@@ -270,7 +270,7 @@ describe("resolveCartLines - duplicate consolidation and quantity safety", () =>
   it("consolidates duplicate sku+size entries by summing their quantities", () => {
     const cart = [
       { sku: "info-hoodie", size: "M", quantity: 2 },
-      { sku: "info-t-shirt", size: "S", quantity: 1 },
+      { sku: "info-tote-bag", size: "One Size", quantity: 1 },
       { sku: "info-hoodie", size: "M", quantity: 3 },
     ];
     const res = resolveCartLines(shopCatalog, cart);
@@ -284,11 +284,11 @@ describe("resolveCartLines - duplicate consolidation and quantity safety", () =>
       unitPriceCents: 3200,
     });
     assert.deepEqual(res.lines[1], {
-      sku: "info-t-shirt",
-      name: "T-Shirt",
-      size: "S",
+      sku: "info-tote-bag",
+      name: "Tote Bag",
+      size: "One Size",
       quantity: 1,
-      unitPriceCents: 2400,
+      unitPriceCents: 2000,
     });
   });
 

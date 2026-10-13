@@ -173,7 +173,7 @@ export function createShopRouter({
     }
 
     if (body.catalogVersion !== catalog.catalogVersion) {
-      return sendError(res, 409, "Catalog version is out of date.");
+      return sendError(res, 409, "The shop was updated. Please review your cart and check out again.");
     }
 
     const currentMs = now();
@@ -307,7 +307,7 @@ export function createShopRouter({
       return sendError(res, 400, "catalogVersion must be a non-empty string.");
     }
     if (body.catalogVersion !== catalog.catalogVersion) {
-      return sendError(res, 409, "Catalog version is out of date.");
+      return sendError(res, 409, "The shop was updated. Please review your cart and check out again.");
     }
 
     const currentMs = now();

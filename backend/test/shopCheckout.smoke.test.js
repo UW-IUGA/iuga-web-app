@@ -840,7 +840,7 @@ run("shop manual Venmo checkout against the real backend", () => {
         body: { catalogVersion: "stale", items: [item("info-hoodie", "M")] },
       }),
       409,
-      "Catalog version is out of date.",
+      "The shop was updated. Please review your cart and check out again.",
     );
     expectResponse(await requestGetHold(student, held.id.slice(0, 23)), 404, "Hold not found.");
     expectResponse(

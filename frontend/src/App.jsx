@@ -13,6 +13,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { Route, Routes } from "react-router-dom";
 import Navbar from "./layouts/Navbar";
 import { ShopCartProvider } from "./context/ShopCartContext";
+import ShopMaintenanceBanner from "./components/ShopMaintenanceBanner";
 import { useState, useEffect } from "react";
 import { mockCalendarData } from "./assets/mock-data/MockCalendarData";
 import { enrichWithDevThumbnails } from "./utils/devThumbnails";
@@ -63,6 +64,7 @@ function App() {
             />
             <Navbar signIn={signIn} signOut={signOut} />
             <ShopCartProvider>
+            <ShopMaintenanceBanner />
             <Routes>
                 <Route path="/" element={<HomePage upcomingEvents={upcomingEvents} />} />
                 <Route path="/events" element={<EventsPage />} />

@@ -37,6 +37,7 @@ frontend/src/
 │   ├── GradientLine.jsx
 │   ├── ResourceCard.jsx
 │   ├── RolePage.jsx
+│   ├── ShopMaintenanceBanner.jsx ← Site-wide maintenance countdown for students with items in their cart
 │   └── Tag.jsx
 ├── context/
 │   └── AuthContext.jsx   ← Authentication state (React Context)
@@ -127,6 +128,10 @@ The backend also serves `index.html` for each of these paths to enable deep link
 ### Venmo checkout hold
 
 Checkout from the bag calls `POST /api/v1/shop/holds` and navigates to `/shop/checkout/<holdId>`. The bag stays open on every failure and is kept until a purchase is confirmed. Removing a line on the checkout page also removes it from the bag. Cancelling returns to `/shop` with the bag unchanged. A student who leaves the checkout page can press Checkout again: the server cancels their earlier hold and starts a new one. In the bag, the steppers and typed quantities stop at a product's `perStudentLimit` from the catalog, counted across sizes; the `+` button and the product's Add button are disabled at the limit, and each bag line shows the limit. Lines keep the units they already hold, so lowering a quantity is never blocked. Before calling the hold route, checkout is still blocked when a product's units across sizes exceed the limit, which covers a limit lowered after items were added. The bag names the product and its limit, and the server enforces the same limit against the student's existing holds and purchases. An expired hold shows an email option that opens a prefilled message to `iuga@uw.edu` for students who already paid on Venmo but could not confirm; IUGA verifies those payments by hand.
+
+### Maintenance banner
+
+`ShopMaintenanceBanner` sits under the navigation on every page, inside `ShopCartProvider`. It shows only to a student with items in their cart: it reads `GET /api/v1/shop/status` on load and once a minute, and makes no request for an empty cart. With a maintenance time announced it shows that time and a countdown; once the time arrives, or while an officer has paused checkout, it says checkout is paused and the cart is saved. The checkout page's own timer already reflects the shorter hold.
 
 ### Cart checkout and payment returns
 

@@ -30,7 +30,7 @@ frontend/src/
 │   ├── CharacterCard.jsx
 │   ├── Dropdown.jsx
 │   ├── ElectionFAQCard.jsx
-│   ├── EmailContactDialog.jsx ← Mail-provider compose dialog for committee contact
+│   ├── EmailContactDialog.jsx ← Mail-provider compose dialog for committee and shop contact
 │   ├── EventCard.jsx
 │   ├── EventDetailsCard.jsx
 │   ├── EventDetailsLoader.jsx
@@ -117,7 +117,7 @@ Defined in `src/App.jsx`:
 | `/events` | `EventsPage` | Mock data or `GET /api/v1/events` |
 | `/resources` | `ResourcesPage` | Static data from `assets/data/ResourcesData.js` |
 | `/shop` | `ShopPage` | Static data from `assets/data/ShopData.js` and `GET /api/v1/shop/catalog` plus authenticated `POST /api/v1/shop/checkout` |
-| `/shop/checkout/:holdId` | `ShopCheckoutPage` | Authenticated `GET`, `PATCH`, and `DELETE /api/v1/shop/holds/:holdId` and `POST /api/v1/shop/holds/:holdId/confirm`. Shows the IUGA-UW Venmo handle, each line, the exact total, a 15-minute countdown, and the username entry. |
+| `/shop/checkout/:holdId` | `ShopCheckoutPage` | Authenticated `GET` and `DELETE` `/api/v1/shop/holds/:holdId`, `PATCH` `/api/v1/shop/holds/:holdId/lines`, and `POST` `/api/v1/shop/holds/:holdId/confirm`. Shows the Venmo QR code (`assets/shop/venmo-qr.webp`) beside the exact amount due and the IUGA-UW handle, each line, the total, a countdown, and the required Venmo username and phone number entries. The Venmo username is prefilled from the student's earlier purchase; entering a different one blocks Confirm and offers a prefilled email to `iuga@uw.edu`. |
 | `/elections` | `ElectionPage` | Static data from `assets/data/CandidateData.js` |
 | `/electionfaq` | `ElectionsFAQPage` | Static data from `assets/data/ElectionFAQData.js` |
 | `/get-involved` | `GetInvolvedPage` | Static committee leaders from `frontend/src/assets/data/teams/2026.js`; Creative application status from public `GET /api/v1/recruitment/creative` |
@@ -126,7 +126,7 @@ The backend also serves `index.html` for each of these paths to enable deep link
 
 ### Venmo checkout hold
 
-Checkout from the bag calls `POST /api/v1/shop/holds` and navigates to `/shop/checkout/<holdId>`. The bag stays open on every failure and is kept until a purchase is confirmed. Removing a line on the checkout page also removes it from the bag. Cancelling returns to `/shop` with the bag unchanged.
+Checkout from the bag calls `POST /api/v1/shop/holds` and navigates to `/shop/checkout/<holdId>`. The bag stays open on every failure and is kept until a purchase is confirmed. Removing a line on the checkout page also removes it from the bag. Cancelling returns to `/shop` with the bag unchanged. A student who leaves the checkout page can press Checkout again: the server cancels their earlier hold and starts a new one. In the bag, the steppers and typed quantities stop at a product's `perStudentLimit` from the catalog, counted across sizes; the `+` button and the product's Add button are disabled at the limit, and each bag line shows the limit. Lines keep the units they already hold, so lowering a quantity is never blocked. Before calling the hold route, checkout is still blocked when a product's units across sizes exceed the limit, which covers a limit lowered after items were added. The bag names the product and its limit, and the server enforces the same limit against the student's existing holds and purchases. An expired hold shows an email option that opens a prefilled message to `iuga@uw.edu` for students who already paid on Venmo but could not confirm; IUGA verifies those payments by hand.
 
 ### Cart checkout and payment returns
 

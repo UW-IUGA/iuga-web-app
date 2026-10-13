@@ -11,7 +11,7 @@ export const shopProducts = [
         sku: "info-hoodie",
         name: "Hoodie",
         image: infoHoodie,
-        material: "50/50 cotton/polyester fleece",
+        material: "50/50 cotton/polyester",
     },
     {
         sku: "info-crewneck",
@@ -25,7 +25,7 @@ export const shopProducts = [
         name: "Baseball Tee",
         image: infoBaseballTee,
         // Sport Gray/Black; the supplier's Sport Gray colors are 90/10 rather than all cotton.
-        material: "90/10 cotton/polyester jersey",
+        material: "90/10 cotton/polyester",
     },
     {
         sku: "info-tote-bag",

@@ -61,9 +61,9 @@ test("shows the confirmed material and dimensions on each product card", async (
 
     const cardFor = async (name) => (await screen.findByRole("heading", { name, exact: true })).closest("article");
 
-    expect(within(await cardFor("Hoodie")).getByText("50/50 cotton/polyester fleece")).toBeInTheDocument();
+    expect(within(await cardFor("Hoodie")).getByText("50/50 cotton/polyester")).toBeInTheDocument();
     expect(within(await cardFor("Crewneck")).getByText("60/40 cotton/polyester")).toBeInTheDocument();
-    expect(within(await cardFor("Baseball Tee")).getByText("90/10 cotton/polyester jersey")).toBeInTheDocument();
+    expect(within(await cardFor("Baseball Tee")).getByText("90/10 cotton/polyester")).toBeInTheDocument();
     const tote = within(await cardFor("Tote Bag"));
     expect(tote.getByText("60/40 recycled cotton/polyester")).toBeInTheDocument();
     expect(tote.getByText("14 in H x 24 in W x 7 in D")).toBeInTheDocument();
@@ -96,8 +96,8 @@ test("shows one material line on each apparel card and the tote bag's dimensions
     const cardFor = async (name) => (await screen.findByRole("heading", { name, exact: true })).closest("article");
     const specLines = (card) => Array.from(card.querySelectorAll(".shopCard__spec"), (line) => line.textContent);
 
-    expect(specLines(await cardFor("Hoodie"))).toEqual(["50/50 cotton/polyester fleece"]);
+    expect(specLines(await cardFor("Hoodie"))).toEqual(["50/50 cotton/polyester"]);
     expect(specLines(await cardFor("Crewneck"))).toEqual(["60/40 cotton/polyester"]);
-    expect(specLines(await cardFor("Baseball Tee"))).toEqual(["90/10 cotton/polyester jersey"]);
+    expect(specLines(await cardFor("Baseball Tee"))).toEqual(["90/10 cotton/polyester"]);
     expect(specLines(await cardFor("Tote Bag"))).toEqual(["60/40 recycled cotton/polyester", "14 in H x 24 in W x 7 in D"]);
 });

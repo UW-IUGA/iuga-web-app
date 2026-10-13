@@ -10,7 +10,7 @@
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuthContext } from "./AuthContext";
 import {
     addToCart,
@@ -19,6 +19,10 @@ import {
     reconcileCart,
     parseCart,
     MAX_QUANTITY,
+    findOverLimitProduct,
+    limitForSku,
+    isSkuAtLimit,
+    capLineQuantity,
 } from "../utils/shopCart";
 import { CartTrigger, ShopCartDropdown } from "../components/ShopCart";
 
@@ -117,6 +121,7 @@ export function ShopCartProvider({ children }) {
     const verifiedSessionsRef = useRef(new Set());
 
     const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
     const checkoutParam = searchParams.get("checkout");
     const checkoutSessionId = searchParams.get("session_id");
     // Last-added line pinning the cart dropdown's top and bottom borders. The borders
@@ -280,7 +285,10 @@ export function ShopCartProvider({ children }) {
     // Adding shows the cart dropdown as a transient confirmation instead of
     // auto-opening a persistent panel.
     const addItem = useCallback((item, size) => {
-        updateCart(addToCart(readStoredCart(), { sku: item.sku, size, quantity: 1 }));
+        const cart = readStoredCart();
+        // The card disables Add at the limit; this guard stops a stale click from going over it.
+        if (isSkuAtLimit(cart, item.sku, limitForSku(catalogRef.current, item.sku))) return;
+        updateCart(addToCart(cart, { sku: item.sku, size, quantity: 1 }));
         setLastAdded({ sku: item.sku, size });
         setFreshAdd(true);
         setIsCartOpen(true);
@@ -288,8 +296,13 @@ export function ShopCartProvider({ children }) {
 
     const setItemQuantity = useCallback((sku, size, quantity) => {
         // The bag and card steppers share this path, so the 100 ceiling the quantity
-        // field advertises holds for the +/- buttons too.
-        updateCart(setCartQuantity(readStoredCart(), sku, size, Math.min(quantity, MAX_QUANTITY)));
+        // field advertises holds for the +/- buttons too, and the product's per-student
+        // limit caps them across sizes.
+        const cart = readStoredCart();
+        const limit = limitForSku(catalogRef.current, sku);
+        const capped = Math.min(quantity, MAX_QUANTITY);
+        const allowed = limit === null ? capped : capLineQuantity(cart, sku, size, capped, limit);
+        updateCart(setCartQuantity(cart, sku, size, allowed));
     }, [updateCart]);
 
     const removeItem = useCallback((sku, size) => {
@@ -301,6 +314,13 @@ export function ShopCartProvider({ children }) {
         const currentCart = readStoredCart();
         const currentCatalog = catalogRef.current;
         if (!currentCatalog || currentCatalog.saleState !== "open" || currentCart.length === 0) return;
+
+        // Checked before sign-in or any request, so the student can lower the quantity in the open bag.
+        const overLimit = findOverLimitProduct(currentCart, currentCatalog.items);
+        if (overLimit) {
+            setCheckoutNotice(`${overLimit.name} is limited to ${overLimit.perStudentLimit} per student. Lower the quantity in your cart.`);
+            return;
+        }
 
         setCheckoutNotice(null);
         submittingRef.current = true;
@@ -323,7 +343,7 @@ export function ShopCartProvider({ children }) {
         }
 
         const postCheckout = async () => {
-            return fetch("/api/v1/shop/checkout", {
+            return fetch("/api/v1/shop/holds", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -360,16 +380,11 @@ export function ShopCartProvider({ children }) {
 
             if (response.status === 200) {
                 const data = await response.json();
-                if (data.url && data.sessionId) {
-                    window.sessionStorage.setItem(checkoutCartKey(data.sessionId), JSON.stringify(currentCart));
-                    // The bag stays open on every failure so its notice is visible;
-                    // it closes only here, on the way out to Stripe.
+                if (data.hold?.id) {
+                    // The bag stays open on every failure so its notice is visible; it closes only
+                    // here, on the way to the checkout page. The cart is kept until a purchase is confirmed.
                     closeCart();
-                    if (typeof window.location.assign === "function") {
-                        window.location.assign(data.url);
-                    } else {
-                        window.location.href = data.url;
-                    }
+                    navigate(`/shop/checkout/${encodeURIComponent(data.hold.id)}`);
                     return;
                 }
                 setCheckoutNotice("Unable to start checkout. Please try again later.");
@@ -385,9 +400,14 @@ export function ShopCartProvider({ children }) {
             }
 
             if (response.status === 409) {
+                // Stock and per-student limits send the reason; use the catalog notice when the body has none.
+                const body = await response.json().catch(() => null);
                 await fetchCatalog(true, true);
+                const hasServerMessage = typeof body?.message === "string" && body.message.trim() !== "";
                 setCheckoutNotice(
-                    "The catalog has updated or the sale status changed. Please review your cart and confirm your order again."
+                    hasServerMessage
+                        ? body.message
+                        : "The catalog has updated or the sale status changed. Please review your cart and confirm your order again."
                 );
                 return;
             }
@@ -398,14 +418,19 @@ export function ShopCartProvider({ children }) {
                 return;
             }
 
-            setCheckoutNotice("Unable to start checkout. Please try again later.");
+            // Other failures, such as 400 or 500, send the reason; use the fixed notice when they send none.
+            const body = await response.json().catch(() => null);
+            const hasServerMessage = typeof body?.message === "string" && body.message.trim() !== "";
+            setCheckoutNotice(hasServerMessage ? body.message : "Unable to start checkout. Please try again later.");
         } catch {
             setCheckoutNotice("Unable to start checkout. Please try again later.");
         } finally {
             submittingRef.current = false;
             setIsSubmitting(false);
         }
-    }, [closeCart, fetchCatalog, isAuthenticated, isSubmitting, signIn]);
+    }, [closeCart, fetchCatalog, isAuthenticated, isSubmitting, navigate, signIn]);
+
+    const clearCart = useCallback(() => updateCart([]), [updateCart]);
 
     const totalQuantity = cart.reduce((sum, line) => sum + line.quantity, 0);
 
@@ -420,6 +445,7 @@ export function ShopCartProvider({ children }) {
         addItem,
         setItemQuantity,
         removeItem,
+        clearCart,
         isCartOpen,
         setIsCartOpen,
         checkoutParam,
@@ -431,7 +457,7 @@ export function ShopCartProvider({ children }) {
         handleCheckout,
     }), [
         cart, totalQuantity, catalog, loading, error, fetchCatalog, ensureCatalog,
-        addItem, setItemQuantity, removeItem, isCartOpen, checkoutParam,
+        addItem, setItemQuantity, removeItem, clearCart, isCartOpen, checkoutParam,
         checkoutSessionId, returnStatus, reconcileNotice, checkoutNotice,
         isSubmitting, handleCheckout,
     ]);

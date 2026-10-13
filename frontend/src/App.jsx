@@ -7,11 +7,13 @@ import AboutPage from "./pages/About";
 import GetInvolvedPage from "./pages/GetInvolved";
 import StudentVoicePage from "./pages/StudentVoice";
 import ShopPage from "./pages/Shop";
+import ShopCheckoutPage from "./pages/ShopCheckout";
 import { ToastContainer, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Route, Routes } from "react-router-dom";
 import Navbar from "./layouts/Navbar";
 import { ShopCartProvider } from "./context/ShopCartContext";
+import ShopMaintenanceBanner from "./components/ShopMaintenanceBanner";
 import { useState, useEffect } from "react";
 import { mockCalendarData } from "./assets/mock-data/MockCalendarData";
 import { enrichWithDevThumbnails } from "./utils/devThumbnails";
@@ -62,6 +64,7 @@ function App() {
             />
             <Navbar signIn={signIn} signOut={signOut} />
             <ShopCartProvider>
+            <ShopMaintenanceBanner />
             <Routes>
                 <Route path="/" element={<HomePage upcomingEvents={upcomingEvents} />} />
                 <Route path="/events" element={<EventsPage />} />
@@ -75,6 +78,7 @@ function App() {
                     }
                 />
                 <Route path="/shop" element={<ShopPage />} />
+                <Route path="/shop/checkout/:holdId" element={<ShopCheckoutPage />} />
                 <Route path="/elections" element={<ElectionPage candidates={iugaCandidates} />} />
                 <Route path="/electionfaq" element={<ElectionsFAQPage electionFAQ={electionFAQ} />} />
                 <Route path="/about" element={<AboutPage teams={iugaTeams} />} />

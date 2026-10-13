@@ -55,17 +55,17 @@ function renderNavigation(path = "/events", signOut = vi.fn()) {
 test.each(["/", "/events", "/resources", "/shop"])("the navbar opens the real bag on %s and keeps it usable after navigation", async (path) => {
     renderNavigation(path);
     fireEvent.click(await screen.findByRole("button", { name: "Cart, 2 items" }));
-    const bag = screen.getByRole("dialog", { name: "Your bag (2)" });
+    const bag = screen.getByRole("dialog", { name: "Your cart (2)" });
     expect(await within(bag).findByText("Campus shirt")).toBeInTheDocument();
     expect(within(bag).getByText("Subtotal: $50.00")).toBeInTheDocument();
-    fireEvent.click(within(bag).getByRole("button", { name: "Close bag" }));
+    fireEvent.click(within(bag).getByRole("button", { name: "Close cart" }));
 
     fireEvent.click(screen.getByRole("link", { name: "About" }));
     expect(screen.getByRole("heading", { name: "About page" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Cart, 2 items" }));
-    fireEvent.click(within(screen.getByRole("dialog", { name: "Your bag (2)" })).getByRole("button", { name: "Increase Campus shirt M" }));
+    fireEvent.click(within(screen.getByRole("dialog", { name: "Your cart (2)" })).getByRole("button", { name: "Increase Campus shirt M" }));
     expect(screen.getByRole("button", { name: "Cart, 3 items" })).toBeInTheDocument();
-    expect(within(screen.getByRole("dialog", { name: "Your bag (3)" })).getByText("Subtotal: $75.00")).toBeInTheDocument();
+    expect(within(screen.getByRole("dialog", { name: "Your cart (3)" })).getByText("Subtotal: $75.00")).toBeInTheDocument();
 });
 
 test("mobile menu and account controls still work while the global bag survives route changes", async () => {
@@ -85,7 +85,7 @@ test("mobile menu and account controls still work while the global bag survives 
     expect(screen.queryByRole("button", { name: "Sign out" })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Cart, 2 items" }));
-    expect(await within(screen.getByRole("dialog", { name: "Your bag (2)" })).findByText("Campus shirt")).toBeInTheDocument();
+    expect(await within(screen.getByRole("dialog", { name: "Your cart (2)" })).findByText("Campus shirt")).toBeInTheDocument();
     fireEvent.keyDown(window, { key: "Escape" });
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
@@ -100,12 +100,12 @@ test("an empty bag on a non-shop route takes the student to the shop without los
     window.sessionStorage.clear();
     renderNavigation("/about");
     fireEvent.click(await screen.findByRole("button", { name: "Shopping cart, empty" }));
-    const bag = screen.getByRole("dialog", { name: "Your bag" });
-    expect(within(bag).getByRole("heading", { name: "Your bag is empty." })).toBeInTheDocument();
+    const bag = screen.getByRole("dialog", { name: "Your cart" });
+    expect(within(bag).getByRole("heading", { name: "Your cart is empty." })).toBeInTheDocument();
     fireEvent.click(within(bag).getByRole("link", { name: "Continue shopping" }));
     expect(screen.getByRole("heading", { name: "Shop page" })).toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Shopping cart, empty" }));
-    expect(screen.getByRole("dialog", { name: "Your bag" })).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "Your cart" })).toBeInTheDocument();
 });

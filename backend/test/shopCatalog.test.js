@@ -82,6 +82,15 @@ describe("saleStateAt", () => {
 });
 
 describe("publicCatalog", () => {
+  it("gives each item its per-student limit, defaulting to 5 when none is stored", () => {
+    const nowMs = Date.parse(shopCatalog.opensAt) + 10000;
+    const pub = publicCatalog(shopCatalog, nowMs, { defaultLimit: 5, perSku: new Map([["info-crewneck", 2]]) });
+
+    for (const item of pub.items) {
+      assert.equal(item.perStudentLimit, item.sku === "info-crewneck" ? 2 : 5);
+    }
+  });
+
   it("projects public catalog with sale state and preserves item ordering", () => {
     const nowMs = Date.parse(shopCatalog.opensAt) + 10000;
     const pub = publicCatalog(shopCatalog, nowMs);
@@ -106,6 +115,7 @@ describe("publicCatalog", () => {
         name: source.name,
         sizes: source.sizes,
         unitPriceCents: source.unitPriceCents,
+        perStudentLimit: 5,
       });
     }
   });
@@ -270,7 +280,7 @@ describe("resolveCartLines - duplicate consolidation and quantity safety", () =>
   it("consolidates duplicate sku+size entries by summing their quantities", () => {
     const cart = [
       { sku: "info-hoodie", size: "M", quantity: 2 },
-      { sku: "info-t-shirt", size: "S", quantity: 1 },
+      { sku: "info-tote-bag", size: "One Size", quantity: 1 },
       { sku: "info-hoodie", size: "M", quantity: 3 },
     ];
     const res = resolveCartLines(shopCatalog, cart);
@@ -284,11 +294,11 @@ describe("resolveCartLines - duplicate consolidation and quantity safety", () =>
       unitPriceCents: 3200,
     });
     assert.deepEqual(res.lines[1], {
-      sku: "info-t-shirt",
-      name: "T-Shirt",
-      size: "S",
+      sku: "info-tote-bag",
+      name: "Tote Bag",
+      size: "One Size",
       quantity: 1,
-      unitPriceCents: 2400,
+      unitPriceCents: 2000,
     });
   });
 

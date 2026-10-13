@@ -140,6 +140,65 @@ docker exec iuga-web-<env> node --input-type=commonjs -e "
 
 > **Note:** The backend is ES modules, so the `--input-type=commonjs` flag is required to use `require()` in this snippet. Replace the connection string with the actual URI (prod uses `mongo:27017`, dev uses Atlas). Run this only during incident response.
 
+### 2.5 List pending shop purchases
+
+Read-only. Lists each pending Venmo purchase with the student's name, email, Venmo username, items, and total. Run in `mongosh` against the environment's database:
+
+```js
+db.shoppurchases.aggregate([
+  { $match: { status: "pending" } },
+  { $sort: { confirmedAt: 1 } },
+  { $lookup: { from: "users", localField: "userId", foreignField: "_id", as: "student" } },
+  { $unwind: "$student" },
+  { $project: {
+      _id: 0,
+      purchaseId: "$_id",
+      confirmedAt: 1,
+      name: "$student.uDisplayName",
+      email: "$student.uEmail",
+      venmoUsername: 1,
+      items: { $map: { input: "$lines", in: { $concat: [{ $toString: "$$this.quantity" }, " x ", "$$this.name", " (", "$$this.size", ")"] } } },
+      totalDollars: { $divide: ["$totalCents", 100] },
+  } },
+])
+```
+
+No route or screen records paid, not paid, or refunded yet; every purchase stays `pending`.
+
+### 2.6 Pause new shop checkouts before an update
+
+A deploy signs every student out, because sign-in sessions live in the app's memory. Holds and purchases are in the database and are not lost. To avoid interrupting students who are paying, pause new checkouts first, wait for the active holds to finish, deploy, then turn checkout back on. Run in `mongosh` against the environment's database.
+
+**With a warning (preferred).** Announce a maintenance time, here 15 minutes from now. Students with items in their cart see a countdown banner on every page, checkout keeps working until then, and holds started in the meantime end at that time. When it arrives, new checkouts stop on their own:
+
+```js
+db.shopsettings.updateOne({ key: "shop" }, { $set: { maintenanceAt: new Date(Date.now() + 15 * 60 * 1000) } }, { upsert: true })
+```
+
+After the update, clear it so checkout opens again and the banner goes away:
+
+```js
+db.shopsettings.updateOne({ key: "shop" }, { $set: { maintenanceAt: null } })
+```
+
+**Right away.** Pause new checkouts now. Students with a hold can still confirm it; everyone else sees "Checkout is paused for a few minutes":
+
+```js
+db.shopsettings.updateOne({ key: "shop" }, { $set: { newCheckoutsPaused: true } }, { upsert: true })
+```
+
+Count the holds still in progress. Deploy when this reaches 0, which takes at most one hold duration (15 minutes by default):
+
+```js
+db.shopholds.countDocuments({ status: "active", expiresAt: { $gt: new Date() } })
+```
+
+Turn checkout back on:
+
+```js
+db.shopsettings.updateOne({ key: "shop" }, { $set: { newCheckoutsPaused: false } })
+```
+
 ---
 
 ## 3. Observation Points (what to watch for)

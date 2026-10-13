@@ -10,17 +10,21 @@ Expected Response Information: N/A
 
 Note on Pricing & Sale Window:
 Unit prices are the confirmed full amounts due from students, with no added tax. The sale
-window dates defined in this catalog are placeholders pending final confirmation by the
-product owner. This module is the single source of truth for pricing and allowed sizes;
-callers must never re-derive or accept client-supplied prices.
+closes at the end of December 31, 2026, Pacific time. This module is the single source of
+truth for pricing and allowed sizes; callers must never re-derive or accept client-supplied
+prices.
 */
+
+import { DEFAULT_PER_STUDENT_LIMIT } from "./shopHolds.js";
+import { limitFor } from "./shopLimits.js";
 
 export const shopCatalog = Object.freeze({
   catalogId: "fall-2026",
   catalogVersion: "fall-2026-v1",
   currency: "usd",
   opensAt: "2026-09-01T00:00:00.000Z",
-  closesAt: "2026-12-01T00:00:00.000Z",
+  // 11:59:59 PM Pacific on December 31, 2026.
+  closesAt: "2027-01-01T07:59:59.000Z",
   items: Object.freeze([
     Object.freeze({
       sku: "info-hoodie",
@@ -39,12 +43,6 @@ export const shopCatalog = Object.freeze({
       name: "Baseball Tee",
       sizes: Object.freeze(["S", "M", "L", "XL", "2XL"]),
       unitPriceCents: 2200,
-    }),
-    Object.freeze({
-      sku: "info-t-shirt",
-      name: "T-Shirt",
-      sizes: Object.freeze(["S", "M", "L", "XL", "2XL"]),
-      unitPriceCents: 2400,
     }),
     Object.freeze({
       sku: "info-tote-bag",
@@ -77,9 +75,10 @@ export function saleStateAt(catalog, nowMs) {
  * @behavior Project the catalog into its public representation including current sale state.
  * @param catalog — catalog definition
  * @param nowMs — current timestamp in milliseconds
+ * @param limits — limits snapshot from currentLimits ({ defaultLimit, perSku }); defaults to the code default
  * @returns public catalog object with catalogId, catalogVersion, currency, opensAt, closesAt, saleState, and items
  */
-export function publicCatalog(catalog, nowMs) {
+export function publicCatalog(catalog, nowMs, limits = { defaultLimit: DEFAULT_PER_STUDENT_LIMIT, perSku: new Map() }) {
   return {
     catalogId: catalog.catalogId,
     catalogVersion: catalog.catalogVersion,
@@ -92,6 +91,7 @@ export function publicCatalog(catalog, nowMs) {
       name: item.name,
       sizes: [...item.sizes],
       unitPriceCents: item.unitPriceCents,
+      perStudentLimit: limitFor(limits, item.sku),
     })),
   };
 }
@@ -112,6 +112,7 @@ export function expiresAtSeconds(catalog, nowMs) {
 
 /*
  * @behavior Validate the client's cart and resolve it into priced order lines.
+ *           A line is one product in one size with a quantity, for example 2 Hoodies in size M.
  *           The client sends one entry per product + size it wants. When the same sku and size
  *           arrives more than once (for example, two separate "hoodie, size M" entries), those
  *           entries are merged into a single line whose quantity is their sum. So a cart never

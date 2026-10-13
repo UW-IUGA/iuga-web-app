@@ -23,6 +23,9 @@ router.use(
     stripe: createStripeClient(),
     catalog: shopCatalog,
     returnBaseUrl: process.env.SHOP_RETURN_BASE_URL,
+    // Keep off in production until the production database is a replica set and its
+    // replica-set tests pass. Holds use transactions, so enable this only where one is running.
+    manualCheckoutExposed: process.env.SHOP_MANUAL_CHECKOUT_EXPOSED === "true",
   }),
 );
 

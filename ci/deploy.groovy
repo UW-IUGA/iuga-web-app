@@ -53,6 +53,7 @@ void healthGatedDeploy(Map cfg) {
         -e DEPLOY_ENV=${cfg.deployEnv} \\
         -e DB_URI="\$DB_URI" \\
         -e ${secretEnv}="\$${secretEnv}" \\
+        -e SHOP_MANUAL_CHECKOUT_EXPOSED=${cfg.shopManualCheckout ? 'true' : 'false'} \\
         -v ${cfg.uploadsDir}:/app/backend/public/uploads \\
         ${netFlag}\\
         "\$3"

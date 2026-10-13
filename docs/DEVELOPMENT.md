@@ -84,7 +84,7 @@ Required variables (see `backend/.env.example`):
 | `PORT` | Preferred local server port (normally 7777). Local `npm start` and `npm run debug` select the next available port if it is occupied, even when this value is set. `npm run deploy` treats an explicit value as fixed. |
 | `DEPLOY_ENV` | `development`, `staging`, or `production` |
 | `SESSION_SECRET_DEV` | Strong random string for session signing (development build reads this by `DEPLOY_ENV`) |
-| `DB_URI` | Local startup supplies the checkout's managed MongoDB URI, ignoring values in `.env.dev` / `.env.debug` and the shell. Deployment uses its configured URI unchanged. |
+| `DB_URI` | Local startup chooses the database and ignores `DB_URI` in `.env.dev` / `.env.debug` and the shell. By default it uses the standalone container from `scripts/start-mongodb.sh`. After loading dotenv once (inherited settings take precedence), a resolved `SHOP_MANUAL_CHECKOUT_EXPOSED=true` selects `scripts/start-replica-set-mongodb.sh` because Venmo holds use transactions. Both scripts provision checkout-specific containers on Docker-selected loopback ports and reuse them across restarts. Deployment uses its configured URI unchanged. |
 
 Frontend environment files are local and should not be committed:
 

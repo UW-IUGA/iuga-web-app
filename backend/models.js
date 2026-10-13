@@ -9,6 +9,14 @@ import {
   eventRequestsSchema,
   eventReviewsSchema,
   committeesSchema,
+  shopHoldsSchema,
+  shopPurchasesSchema,
+  shopCapacitySchema,
+  shopStudentUnitsSchema,
+  shopStudentCheckoutsSchema,
+  shopProductLimitsSchema,
+  shopLimitDefaultSchema,
+  shopSettingsSchema,
 } from "./schemas/schemas.js";
 import { committeeRecruitmentSchema } from "./committeeRecruitment.js";
 
@@ -31,6 +39,14 @@ async function connectToDatabase(){
   models.Feedback = mongoose.model("Feedback", feedbackSchema);
   models.Roles = mongoose.model("Roles", rolesSchema);
   models.RoleAssignments = mongoose.model("RoleAssignments", roleAssignmentsSchema);
+  models.ShopHolds = mongoose.model("ShopHolds", shopHoldsSchema);
+  models.ShopPurchases = mongoose.model("ShopPurchases", shopPurchasesSchema);
+  models.ShopCapacity = mongoose.model("ShopCapacity", shopCapacitySchema);
+  models.ShopStudentUnits = mongoose.model("ShopStudentUnits", shopStudentUnitsSchema);
+  models.ShopStudentCheckouts = mongoose.model("ShopStudentCheckouts", shopStudentCheckoutsSchema);
+  models.ShopProductLimits = mongoose.model("ShopProductLimits", shopProductLimitsSchema);
+  models.ShopLimitDefault = mongoose.model("ShopLimitDefault", shopLimitDefaultSchema);
+  models.ShopSettings = mongoose.model("ShopSettings", shopSettingsSchema);
   models.EventRequests = mongoose.model("EventRequests", eventRequestsSchema);
   models.EventReviews = mongoose.model("EventReviews", eventReviewsSchema);
   models.Committees = mongoose.model("Committees", committeesSchema);

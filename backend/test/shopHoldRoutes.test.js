@@ -46,6 +46,7 @@ function fakeStore(results = {}) {
     removeLineFromHold: storedHold(),
     confirmHold: storedPurchase(),
     findSavedVenmoUsername: null,
+    isNewCheckoutPaused: false,
   };
   const merged = { ...defaults, ...results };
   const method = (name) => async (_models, args) => {
@@ -64,6 +65,7 @@ function fakeStore(results = {}) {
     removeLineFromHold: method("removeLineFromHold"),
     confirmHold: method("confirmHold"),
     findSavedVenmoUsername: method("findSavedVenmoUsername"),
+    isNewCheckoutPaused: async () => merged.isNewCheckoutPaused,
   };
 }
 
@@ -108,6 +110,28 @@ describe("manual checkout gate", () => {
         assert.equal(response.status, 503, `${method} ${path}`);
       }
       assert.equal(store.calls.length, 0);
+    } finally {
+      await api.close();
+    }
+  });
+
+  it("refuses a new hold while checkouts are paused, and still lets an existing hold be confirmed", async () => {
+    const { api, store } = await setup({ store: fakeStore({ isNewCheckoutPaused: true }) });
+    try {
+      const refused = await api.request("POST", "/api/v1/shop/holds", {
+        catalogVersion: shopCatalog.catalogVersion,
+        items: CART,
+      });
+      assert.equal(refused.status, 503);
+      assert.match(refused.body.message, /Checkout is paused for a few minutes/);
+      assert.equal(store.calls.length, 0, "a paused checkout must not reserve anything");
+
+      const confirmed = await api.request("POST", `/api/v1/shop/holds/${HOLD_ID}/confirm`, {
+        venmoUsername: "jane.doe",
+        phoneNumber: "2065550123",
+      });
+      assert.equal(confirmed.status, 200);
+      assert.equal(store.calls[0].name, "confirmHold");
     } finally {
       await api.close();
     }

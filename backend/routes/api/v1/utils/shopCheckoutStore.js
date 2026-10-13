@@ -352,3 +352,14 @@ export async function confirmHold(models, { holdId, userId, venmoUsername, phone
 export async function findLimits(models) {
   return currentLimits(models);
 }
+
+/*
+ * @behavior Whether an officer has paused new checkouts in the database, for example before an update.
+ *           Read on every new hold, so the switch takes effect at once and needs no deploy. Holds that
+ *           already exist are not affected.
+ * @returns {Promise<boolean>} false when the settings document is missing
+ */
+export async function isNewCheckoutPaused(models) {
+  const settings = await models.ShopSettings.findOne({ key: "shop" }, { _id: 0, newCheckoutsPaused: 1 }).lean();
+  return settings?.newCheckoutsPaused === true;
+}

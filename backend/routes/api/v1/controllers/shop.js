@@ -37,6 +37,8 @@ import { ShopHoldError } from "../utils/shopCheckoutStore.js";
 import { holdTotalCents, normalizePhoneNumber, normalizeVenmoUsername } from "../utils/shopHolds.js";
 
 const OBJECT_ID_PATTERN = /^[a-f0-9]{24}$/i;
+const CHECKOUT_PAUSED_MESSAGE =
+  "Checkout is paused for a few minutes while we update the shop. Your cart is saved. Please try again shortly.";
 
 function publicHold(hold) {
   return {
@@ -294,7 +296,7 @@ export function createShopRouter({
   - 400 Malformed body or invalid cart items
   - 401 Not authenticated
   - 409 Stale catalogVersion, sale not open, or a line exceeds stock or the per-student limit
-  - 503 Manual checkout not exposed
+  - 503 Manual checkout not exposed, or new checkouts are paused by an officer
   */
   router.post("/holds", requireAuth, async (req, res) => {
     if (manualCheckoutClosed(res)) return;
@@ -325,6 +327,10 @@ export function createShopRouter({
     }
 
     try {
+      // Only new holds are paused. A student who already has a hold can still confirm or cancel it.
+      if (await checkoutStore.isNewCheckoutPaused(req.models)) {
+        return sendError(res, 503, CHECKOUT_PAUSED_MESSAGE);
+      }
       const hold = await checkoutStore.createHold(req.models, {
         userId: req.session.userId,
         catalogId: catalog.catalogId,

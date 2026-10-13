@@ -7,6 +7,7 @@ import {
   shopLimitDefaultSchema,
   shopProductLimitsSchema,
   shopPurchasesSchema,
+  shopSettingsSchema,
   shopStudentUnitsSchema,
   shopStudentCheckoutsSchema,
   usersSchema,
@@ -16,6 +17,7 @@ import {
   confirmHold,
   createHold,
   getHold,
+  isNewCheckoutPaused,
   removeLineFromHold,
   ShopHoldError,
   sweepExpiredHolds,
@@ -46,6 +48,7 @@ run("shop checkout store on a replica set", () => {
       ShopStudentCheckouts: connection.model("ShopStudentCheckouts", shopStudentCheckoutsSchema),
       ShopProductLimits: connection.model("ShopProductLimits", shopProductLimitsSchema),
       ShopLimitDefault: connection.model("ShopLimitDefault", shopLimitDefaultSchema),
+      ShopSettings: connection.model("ShopSettings", shopSettingsSchema),
       Users: connection.model("Users", usersSchema),
     };
   });
@@ -170,6 +173,16 @@ run("shop checkout store on a replica set", () => {
     // A hold made before the edit still returns its units to the same drop.
     await cancelHold(models, { holdId: held._id, userId: firstBuyer, nowMs });
     assert.equal(await counter(catalogId, "info-hoodie"), 23);
+  });
+
+  it("reports new checkouts as paused only while the setting is on", async () => {
+    assert.equal(await isNewCheckoutPaused(models), false, "a missing settings document means not paused");
+
+    await models.ShopSettings.updateOne({ key: "shop" }, { $set: { newCheckoutsPaused: true } }, { upsert: true });
+    assert.equal(await isNewCheckoutPaused(models), true);
+
+    await models.ShopSettings.updateOne({ key: "shop" }, { $set: { newCheckoutsPaused: false } });
+    assert.equal(await isNewCheckoutPaused(models), false);
   });
 
   it("rejects a cart over the default limit of 5 per student", async () => {

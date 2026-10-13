@@ -16,6 +16,7 @@ import {
   shopStudentCheckoutsSchema,
   shopProductLimitsSchema,
   shopLimitDefaultSchema,
+  shopSettingsSchema,
 } from "./schemas/schemas.js";
 import { committeeRecruitmentSchema } from "./committeeRecruitment.js";
 
@@ -45,6 +46,7 @@ async function connectToDatabase(){
   models.ShopStudentCheckouts = mongoose.model("ShopStudentCheckouts", shopStudentCheckoutsSchema);
   models.ShopProductLimits = mongoose.model("ShopProductLimits", shopProductLimitsSchema);
   models.ShopLimitDefault = mongoose.model("ShopLimitDefault", shopLimitDefaultSchema);
+  models.ShopSettings = mongoose.model("ShopSettings", shopSettingsSchema);
   models.EventRequests = mongoose.model("EventRequests", eventRequestsSchema);
   models.EventReviews = mongoose.model("EventReviews", eventReviewsSchema);
   models.Committees = mongoose.model("Committees", committeesSchema);

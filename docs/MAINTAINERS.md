@@ -165,6 +165,28 @@ db.shoppurchases.aggregate([
 
 No route or screen records paid, not paid, or refunded yet; every purchase stays `pending`.
 
+### 2.6 Pause new shop checkouts before an update
+
+A deploy signs every student out, because sign-in sessions live in the app's memory. Holds and purchases are in the database and are not lost. To avoid interrupting students who are paying, pause new checkouts first, wait for the active holds to finish, deploy, then turn checkout back on. Run in `mongosh` against the environment's database.
+
+Pause new checkouts. Students with a hold can still confirm it; everyone else sees "Checkout is paused for a few minutes":
+
+```js
+db.shopsettings.updateOne({ key: "shop" }, { $set: { newCheckoutsPaused: true } }, { upsert: true })
+```
+
+Count the holds still in progress. Deploy when this reaches 0, which takes at most one hold duration (15 minutes by default):
+
+```js
+db.shopholds.countDocuments({ status: "active", expiresAt: { $gt: new Date() } })
+```
+
+Turn checkout back on:
+
+```js
+db.shopsettings.updateOne({ key: "shop" }, { $set: { newCheckoutsPaused: false } })
+```
+
 ---
 
 ## 3. Observation Points (what to watch for)

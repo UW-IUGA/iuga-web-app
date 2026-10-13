@@ -3,9 +3,6 @@ import infoCrewneck from "../shop/info-crewneck.png";
 import infoBaseballTee from "../shop/info-baseball-tee.png";
 import infoToteBag from "../shop/info-tote-bag.png";
 
-// What each card says about the product, kept to what helps a student decide:
-// material is the fabric blend of the color we sell (no fabric weight or construction terms).
-// Leave it out until it is confirmed.
 export const shopProducts = [
     {
         sku: "info-hoodie",

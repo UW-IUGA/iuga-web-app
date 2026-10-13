@@ -5,7 +5,7 @@
  * Expected Request Information: Student actions on the held cart and the hold API responses.
  * Expected Response Information: Visible amounts, notices, and the cart contents left in the session.
  */
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { ShopCartProvider } from "../context/ShopCartContext";
 import ShopCheckoutPage from "./ShopCheckout";
@@ -93,28 +93,110 @@ afterEach(() => {
 });
 
 describe("ShopCheckoutPage", () => {
-    it("shows the IUGA Venmo handle, each line, and the exact total with no tax", async () => {
+    it("shows each line and the exact total with no tax", async () => {
         mockApi({ [`GET /api/v1/shop/holds/${holdId}`]: response({ status: "success", hold: hold() }) });
         renderCheckout();
 
-        expect(await screen.findByText(/Pay \$72\.00 to/)).toBeInTheDocument();
-        expect(screen.getByText("IUGA-UW")).toBeInTheDocument();
-        expect(screen.getByText("1 × Hoodie, size M")).toBeInTheDocument();
+        expect(await screen.findByText("1 × Hoodie, size M")).toBeInTheDocument();
         expect(screen.getByText("2 × Tote Bag, size One Size")).toBeInTheDocument();
-        expect(screen.getByText("$72.00")).toBeInTheDocument();
-        expect(screen.getByText(/Your items are held for/)).toBeInTheDocument();
+        expect(screen.getByText(/Total due:/)).toHaveTextContent("$72.00");
+        expect(screen.getByText("Time remaining")).toBeInTheDocument();
     });
 
-    it("rejects an invalid Venmo username without sending a request", async () => {
+    it("shows the Venmo QR code and payment handle while the hold is open", async () => {
+        mockApi({ [`GET /api/v1/shop/holds/${holdId}`]: response({ status: "success", hold: hold() }) });
+        renderCheckout();
+
+        const payment = await screen.findByRole("region", { name: "Pay with Venmo" });
+        expect(within(payment).getByRole("img", { name: "Venmo QR code for IUGA UW, @iuga-uw" })).toBeInTheDocument();
+        expect(within(payment).getByText("@IUGA-UW")).toBeInTheDocument();
+    });
+
+    it("marks both fields required and keeps Confirm locked until both are valid", async () => {
+        const api = mockApi({ [`GET /api/v1/shop/holds/${holdId}`]: response({ status: "success", hold: hold() }) });
+        renderCheckout();
+        const confirmButton = await screen.findByRole("button", { name: "Confirm purchase" });
+
+        expect(confirmButton).toBeDisabled();
+        expect(screen.getByLabelText("Venmo username")).toBeRequired();
+        expect(screen.getByLabelText("Phone number")).toBeRequired();
+        expect(screen.queryByText("Enter your Venmo username.")).not.toBeInTheDocument();
+
+        fireEvent.change(screen.getByLabelText("Venmo username"), { target: { value: "jane.doe" } });
+        expect(confirmButton).toBeDisabled();
+
+        fireEvent.change(screen.getByLabelText("Phone number"), { target: { value: "(206) 555-0123" } });
+        expect(confirmButton).toBeEnabled();
+        expect(api.mock.calls.filter(([, options]) => options?.method === "POST")).toHaveLength(0);
+    });
+
+    it("prefills the Venmo username saved by an earlier purchase", async () => {
+        mockApi({
+            [`GET /api/v1/shop/holds/${holdId}`]: response({ status: "success", hold: hold(), savedVenmoUsername: "jane.doe" }),
+        });
+        renderCheckout();
+        await screen.findByRole("button", { name: "Confirm purchase" });
+
+        expect(screen.getByLabelText("Venmo username")).toHaveValue("jane.doe");
+    });
+
+    it("blocks a different Venmo username than the saved one and offers an email to IUGA", async () => {
+        const api = mockApi({
+            [`GET /api/v1/shop/holds/${holdId}`]: response({ status: "success", hold: hold(), savedVenmoUsername: "jane.doe" }),
+        });
+        renderCheckout();
+        const confirmButton = await screen.findByRole("button", { name: "Confirm purchase" });
+        fireEvent.change(screen.getByLabelText("Phone number"), { target: { value: "2065550123" } });
+        expect(confirmButton).toBeEnabled();
+
+        fireEvent.change(screen.getByLabelText("Venmo username"), { target: { value: "someone.else" } });
+
+        expect(screen.getByRole("alert")).toHaveTextContent("This doesn’t match the Venmo username on your account.");
+        expect(confirmButton).toBeDisabled();
+        const gmail = screen.getByRole("link", { name: "Open in Gmail", hidden: true });
+        const body = new URL(gmail.getAttribute("href")).searchParams.get("body");
+        expect(body).toContain("Current Venmo username: jane.doe");
+        expect(body).toContain("New Venmo username: someone.else");
+
+        // The same account in different letter case is not a mismatch.
+        fireEvent.change(screen.getByLabelText("Venmo username"), { target: { value: "@Jane.Doe" } });
+        expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+        expect(confirmButton).toBeEnabled();
+        expect(api.mock.calls.filter(([, options]) => options?.method === "POST")).toHaveLength(0);
+    });
+
+    it("explains an invalid Venmo username once the field is left, and keeps Confirm locked", async () => {
         const api = mockApi({ [`GET /api/v1/shop/holds/${holdId}`]: response({ status: "success", hold: hold() }) });
         renderCheckout();
         await screen.findByRole("button", { name: "Confirm purchase" });
 
-        fireEvent.change(screen.getByLabelText("Your Venmo username"), { target: { value: "jane doe" } });
-        fireEvent.click(screen.getByRole("button", { name: "Confirm purchase" }));
+        const username = screen.getByLabelText("Venmo username");
+        fireEvent.change(username, { target: { value: "jane doe" } });
+        fireEvent.blur(username);
 
-        expect(await screen.findByText(/Enter your Venmo username/)).toBeInTheDocument();
+        expect(await screen.findByText("Use 1 to 30 letters, numbers, periods, hyphens, or underscores.")).toBeInTheDocument();
+        expect(username).toHaveAttribute("aria-invalid", "true");
+        expect(screen.getByRole("button", { name: "Confirm purchase" })).toBeDisabled();
         expect(api.mock.calls.filter(([, options]) => options?.method === "POST")).toHaveLength(0);
+    });
+
+    it("explains a phone number that is too short once the field is left, and accepts an international one", async () => {
+        mockApi({ [`GET /api/v1/shop/holds/${holdId}`]: response({ status: "success", hold: hold() }) });
+        renderCheckout();
+        await screen.findByRole("button", { name: "Confirm purchase" });
+
+        fireEvent.change(screen.getByLabelText("Venmo username"), { target: { value: "jane.doe" } });
+        const phone = screen.getByLabelText("Phone number");
+        fireEvent.change(phone, { target: { value: "555-01" } });
+        fireEvent.blur(phone);
+
+        expect(await screen.findByText("Use 7 to 15 digits. Add your country code if it isn’t a US number.")).toBeInTheDocument();
+        expect(phone).toHaveAttribute("aria-invalid", "true");
+        expect(screen.getByRole("button", { name: "Confirm purchase" })).toBeDisabled();
+
+        fireEvent.change(phone, { target: { value: "+44 20 7946 0958" } });
+        expect(phone).not.toHaveAttribute("aria-invalid");
+        expect(screen.getByRole("button", { name: "Confirm purchase" })).toBeEnabled();
     });
 
     it("confirms with the normalized username, shows the pending purchase, and empties the bag", async () => {
@@ -135,12 +217,13 @@ describe("ShopCheckoutPage", () => {
         renderCheckout();
         await screen.findByRole("button", { name: "Confirm purchase" });
 
-        fireEvent.change(screen.getByLabelText("Your Venmo username"), { target: { value: " @jane.doe " } });
+        fireEvent.change(screen.getByLabelText("Venmo username"), { target: { value: " @jane.doe " } });
+        fireEvent.change(screen.getByLabelText("Phone number"), { target: { value: "(206) 555-0123" } });
         fireEvent.click(screen.getByRole("button", { name: "Confirm purchase" }));
 
-        expect(await screen.findByRole("heading", { name: "Purchase submitted" })).toBeInTheDocument();
-        expect(screen.getByText(/pending review/)).toBeInTheDocument();
-        expect(JSON.parse(confirm.mock.calls[0][0].body)).toEqual({ venmoUsername: "jane.doe" });
+        expect(await screen.findByRole("heading", { name: "Your purchase is submitted" })).toBeInTheDocument();
+        expect(screen.getByText(/contact you when your merch is ready for pickup/)).toBeInTheDocument();
+        expect(JSON.parse(confirm.mock.calls[0][0].body)).toEqual({ venmoUsername: "jane.doe", phoneNumber: "2065550123" });
         expect(storedCart()).toEqual([]);
     });
 
@@ -156,11 +239,12 @@ describe("ShopCheckoutPage", () => {
         renderCheckout();
         await screen.findByRole("button", { name: "Confirm purchase" });
 
-        fireEvent.change(screen.getByLabelText("Your Venmo username"), { target: { value: "jane.doe" } });
+        fireEvent.change(screen.getByLabelText("Venmo username"), { target: { value: "jane.doe" } });
+        fireEvent.change(screen.getByLabelText("Phone number"), { target: { value: "2065550123" } });
         fireEvent.click(screen.getByRole("button", { name: "Confirm purchase" }));
 
         expect(await screen.findByText("This hold has expired. Its items have been released.")).toBeInTheDocument();
-        expect(await screen.findByRole("alert")).toHaveTextContent("This hold has expired");
+        expect(await screen.findByRole("alert")).toHaveTextContent("Your checkout timed out");
         expect(screen.queryByRole("button", { name: "Confirm purchase" })).not.toBeInTheDocument();
         expect(storedCart()).toHaveLength(2);
     });
@@ -183,7 +267,7 @@ describe("ShopCheckoutPage", () => {
         expect(screen.getByText(/Total due:/)).toHaveTextContent("$40.00");
     });
 
-    it("shows an expired hold without a form and points back to the shop", async () => {
+    it("shows an expired hold without a form, with an email option and a way back to the shop", async () => {
         mockApi({
             [`GET /api/v1/shop/holds/${holdId}`]: response({
                 status: "success",
@@ -192,9 +276,30 @@ describe("ShopCheckoutPage", () => {
         });
         renderCheckout();
 
-        expect(await screen.findByRole("alert")).toHaveTextContent("This hold has expired");
-        expect(screen.queryByLabelText("Your Venmo username")).not.toBeInTheDocument();
-        expect(screen.getByRole("link", { name: "Return to the shop" })).toBeInTheDocument();
+        expect(await screen.findByRole("alert")).toHaveTextContent("Your checkout timed out");
+        expect(screen.queryByLabelText("Venmo username")).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Email IUGA" })).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "Start again from the shop" })).toBeInTheDocument();
+    });
+
+    it("prefills the email to IUGA with the hold ID, its items, and the total", async () => {
+        mockApi({
+            [`GET /api/v1/shop/holds/${holdId}`]: response({
+                status: "success",
+                hold: hold({ expiresAt: new Date(Date.now() - 1000).toISOString() }),
+            }),
+        });
+        renderCheckout();
+
+        const gmail = await screen.findByRole("link", { name: "Open in Gmail", hidden: true });
+        expect(screen.getByText("IUGA Shop")).toBeInTheDocument();
+        expect(screen.queryByText("Contact the committee")).not.toBeInTheDocument();
+        const compose = new URL(gmail.getAttribute("href"));
+        expect(compose.searchParams.get("to")).toBe("iuga@uw.edu");
+        expect(compose.searchParams.get("su")).toBe("I paid on Venmo but my checkout timed out");
+        expect(compose.searchParams.get("body")).toContain(`Hold ID: ${holdId}`);
+        expect(compose.searchParams.get("body")).toContain("Total: $72.00");
+        expect(compose.searchParams.get("body")).toContain("2 × Tote Bag, size One Size");
     });
 
     it.each([
@@ -205,9 +310,9 @@ describe("ShopCheckoutPage", () => {
         renderCheckout();
 
         expect(await screen.findByText(statusText)).toBeInTheDocument();
-        expect(screen.queryByText(/Your items are held for/)).not.toBeInTheDocument();
-        expect(screen.queryByText(/Pay \$72\.00 to/)).not.toBeInTheDocument();
-        expect(screen.queryByLabelText("Your Venmo username")).not.toBeInTheDocument();
+        expect(screen.queryByText("Time remaining")).not.toBeInTheDocument();
+        expect(screen.queryByRole("region", { name: "Pay with Venmo" })).not.toBeInTheDocument();
+        expect(screen.queryByLabelText("Venmo username")).not.toBeInTheDocument();
     });
 
     it("asks a signed-out student to sign in before showing the hold", async () => {

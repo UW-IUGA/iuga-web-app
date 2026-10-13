@@ -5,6 +5,12 @@
     max-width: 640px;
     color: $color-uw-purple;
 
+    // The base container's side margin only applies from tablet up, so phones need the gutter here.
+    @include media("<tablet") {
+        padding-right: $page-margin;
+        padding-left: $page-margin;
+    }
+
     h1 {
         margin: 0 0 20px;
         font-family: $sans-serif;
@@ -18,7 +24,8 @@
         line-height: 1.5;
     }
 
-    a {
+    // Plain text links only: classed links (pill buttons, the email dialog's actions) keep their own colours.
+    a:not([class]) {
         color: inherit;
         text-decoration: underline;
     }
@@ -47,6 +54,215 @@
         font-size: 1.1rem;
     }
 
+    // Title row: the page heading with the hold countdown beside it.
+    &__header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 8px 24px;
+        margin: 0 0 20px;
+
+        h1 {
+            margin: 0;
+        }
+    }
+
+    // Hold countdown: a small label over large digits, red in the final minute.
+    .shopCheckout__timer {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 2px;
+        margin: 0;
+
+        span {
+            @extend %pageKicker;
+        }
+
+        strong {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 900;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.035em;
+            line-height: 1;
+        }
+
+        &--urgent strong {
+            color: $color-error;
+        }
+    }
+
+    // The email trigger as the shop's outlined pill (.shopCard__cartPill), so it reads as the secondary action.
+    .emailContactDialog__trigger {
+        min-height: 48px;
+        min-width: 190px;
+        padding: 0 24px;
+        background: white;
+        color: $color-uw-purple;
+        font-size: 1rem;
+
+        &:hover {
+            border-color: $color-uw-purple;
+            background: $color-uw-purple;
+            color: white;
+            transform: none;
+        }
+    }
+
+    // Expired hold: what happened, a way back to the shop, and an email option for students who already paid.
+    // Submitted purchase: the thank-you, what happens next, and a way back to the shop.
+    &__expired,
+    &__submitted {
+        margin: 0 0 28px;
+        padding: 28px;
+        border: 1px solid $color-border-lavender;
+        border-radius: $radius-card;
+        background: $color-lavender;
+
+        h2 {
+            margin: 0 0 12px;
+            font-family: $sans-serif;
+            font-size: 1.35rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        // The shop's filled pill (.shopCard__addToCart). Two classes: the page link rule (.shopCheckout a)
+        // outranks a single class.
+        .shopCheckout__pillLink {
+            display: inline-flex;
+            width: auto;
+            min-width: 190px;
+            padding: 0 24px;
+            color: white;
+            text-decoration: none;
+        }
+
+        @include media("<tablet") {
+            padding: 20px;
+
+            .shopCheckout__pillLink,
+            .emailContactDialog__trigger {
+                display: flex;
+                width: 100%;
+            }
+        }
+    }
+
+    // Payment reminder under the thank-you, set apart by the bag's subtotal hairline.
+    &__submitted .shopCheckout__submittedNote {
+        margin: 20px 0;
+        padding-top: 20px;
+        border-top: 1px solid rgba($color-uw-purple, 0.14);
+    }
+
+    // Already-paid path, set apart by the same hairline.
+    &__expiredPaid {
+        margin-top: 24px;
+        padding-top: 20px;
+        border-top: 1px solid rgba($color-uw-purple, 0.14);
+
+        p {
+            margin-bottom: 12px;
+        }
+
+        .shopCheckout__expiredQuestion {
+            margin-bottom: 4px;
+            font-weight: 700;
+        }
+    }
+
+    // Venmo payment panel: the QR card beside the amount due and the three steps.
+    &__pay {
+        margin: 28px 0 8px;
+        padding: 28px;
+        border: 1px solid $color-border-lavender;
+        border-radius: $radius-card;
+        background: $color-lavender;
+
+        h2 {
+            margin: 0 0 20px;
+            font-family: $sans-serif;
+            font-size: 1.35rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        // Two classes: the shared paragraph rule (.shopCheckout p) outranks a single class.
+        .shopCheckout__payTo {
+            margin: 0;
+        }
+
+        @include media("<tablet") {
+            padding: 20px;
+        }
+    }
+
+    &__payBody {
+        display: grid;
+        grid-template-columns: minmax(0, 240px) minmax(0, 1fr);
+        gap: 28px;
+        align-items: center;
+
+        @include media("<tablet") {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+
+    &__qr {
+        width: 100%;
+        max-width: 240px;
+        margin: 0 auto;
+        overflow: hidden;
+        border-radius: $radius-card-media;
+        background: #fff;
+        box-shadow: 0 14px 30px rgba($color-shadow, 0.13);
+
+        img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+    }
+
+    &__payTo {
+        font-size: 1.05rem;
+    }
+
+    &__steps {
+        display: grid;
+        gap: 12px;
+        margin: 20px 0 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: shop-checkout-step;
+
+        li {
+            position: relative;
+            min-height: 26px;
+            padding-left: 40px;
+            line-height: 1.45;
+            counter-increment: shop-checkout-step;
+
+            &::before {
+                content: counter(shop-checkout-step);
+                position: absolute;
+                top: 0;
+                left: 0;
+                display: grid;
+                place-items: center;
+                width: 26px;
+                height: 26px;
+                border-radius: $radius-pill;
+                background: $color-primary;
+                color: #fff;
+                font-size: 0.85rem;
+                font-weight: 700;
+            }
+        }
+    }
+
     form {
         display: flex;
         flex-direction: column;
@@ -64,11 +280,72 @@
         border-radius: $radius-card;
         font: inherit;
         color: inherit;
+
+        &[aria-invalid="true"] {
+            border-color: $color-error;
+        }
     }
 
     &__error {
-        color: #b00020;
+        color: $color-error-dark;
         font-weight: 600;
+    }
+
+    // Field message under an input: a red marker beside the reason.
+    // Two classes so the shared paragraph rule (.shopCheckout p) does not reset the spacing.
+    .shopCheckout__fieldError {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        margin: -4px 0 0;
+        color: $color-error-dark;
+        font-size: 0.95rem;
+        font-weight: 600;
+        line-height: 1.4;
+    }
+
+    .shopCheckout__errorIcon {
+        display: inline-grid;
+        flex: 0 0 18px;
+        place-items: center;
+        width: 18px;
+        height: 18px;
+        margin-top: 1px;
+        border-radius: $radius-pill;
+        background: $color-error;
+        color: #fff;
+        font-size: 0.75rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    // Required fields: a red asterisk after the label, explained once on the first label's row.
+    .shopCheckout__required::after {
+        content: " *";
+        color: $color-error;
+        font-size: 1.2em;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .shopCheckout__fieldHeader {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .shopCheckout__requiredNote {
+        margin: 0;
+        color: $color-dark-gray;
+        font-size: 0.9rem;
+
+        span {
+            color: $color-error;
+            font-size: 1.2em;
+            font-weight: 800;
+            line-height: 1;
+        }
     }
 
     &__actions {
@@ -79,8 +356,10 @@
     }
 
     &__button {
+        display: inline-block;
         padding: 12px 20px;
         border: 0;
+        text-decoration: none;
         border-radius: $radius-card;
         background: $color-primary;
         color: #fff;
@@ -90,7 +369,7 @@
 
         &:disabled {
             opacity: 0.55;
-            cursor: default;
+            cursor: not-allowed;
         }
 
         &--quiet {

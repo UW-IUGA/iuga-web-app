@@ -52,7 +52,7 @@ Every environment (dev, staging, production) follows the same five-stage pipelin
 - **Volume:** `/var/lib/iuga-web-app/uploads/staging:/app/backend/public/uploads`
 - **DB credentials:** `DB_URI` (Jenkins Secret text credential, injected as `DB_URI` env var), `SESSION_SECRET_STAGING` (injected as runtime `SESSION_SECRET_STAGING`)
 - **Database:** MongoDB container at `mongo:27017` (via `iuga-server-config_default` network)
-- **Deploy pattern:** health-gated candidate swap; temp port `7778` → live port `7777`; tags images `:${BUILD_NUMBER}` and `:last-good`
+- **Deploy pattern:** health-gated candidate swap; temp port `7779` → live port `7777`; tags images `:${BUILD_NUMBER}` and `:last-good`
 - **Commit status context:** `iuga/jenkins/cicd/staging`
 
 ### `prod.jenkinsfile` (Production)
@@ -64,7 +64,7 @@ Every environment (dev, staging, production) follows the same five-stage pipelin
 - **Volume:** `/var/lib/iuga-web-app/uploads/prod:/app/backend/public/uploads`
 - **DB credentials:** `DB_URI` (Jenkins Secret text credential, injected as `DB_URI` env var), `SESSION_SECRET_PROD` (injected as runtime `SESSION_SECRET_PROD`)
 - **Database:** MongoDB container at `mongo:27017` (via `iuga-server-config_default` network)
-- **Deploy pattern:** health-gated candidate swap; temp port `8889` → live port `8888`; tags images `:${BUILD_NUMBER}` and `:last-good`
+- **Deploy pattern:** health-gated candidate swap; temp port `8890` → live port `8888`; tags images `:${BUILD_NUMBER}` and `:last-good`
 - **Commit status context:** `iuga/jenkins/cicd/prod`
 
 ---
@@ -267,6 +267,29 @@ docker run ... iuga/iuga-web-app-<env>:last-good
 | Development | 7777 | 6666 | `iuga-web-dev` |
 | Staging | 7777 | 7777 | `iuga-web-staging` |
 | Production | 7777 | 8888 | `iuga-web-prod` |
+
+### Shared host port allocation
+
+All environments deploy to the same host, along with services from other repositories. Every published port must be unique across all of them, including candidate ports. A candidate port is only held while a deploy health-checks the new build (container `iuga-web-<env>-candidate`); it is released before the live swap.
+
+| Host Port | Owner | Defined in |
+|---|---|---|
+| 6666 | Development site (live) | `dev.jenkinsfile` |
+| 6667 | Development site (candidate) | `dev.jenkinsfile` |
+| 7777 | Staging site (live) | `staging.jenkinsfile` |
+| 7778 | Development admin console (`dev-admin.iuga.info`) | `UW-IUGA/iuga-admin-console` |
+| 7779 | Staging site (candidate) | `staging.jenkinsfile` |
+| 8888 | Production site (live) | `prod.jenkinsfile` |
+| 8889 | Production admin console (`admin.iuga.info`) | `UW-IUGA/iuga-admin-console` |
+| 8890 | Production site (candidate) | `prod.jenkinsfile` |
+
+The admin console rows were read from its Jenkins build logs in October 2026; this repository does not control them. The notification service jobs (`email-service-dev`, `email-service-prod`) publish no host ports.
+
+When changing or adding a port:
+
+1. Confirm the port is free on the host (`docker ps --format '{{.Names}}\t{{.Ports}}'` and `ss -ltn`; requires host access).
+2. Update the `cfg` map in the jenkinsfile and this table.
+3. If another repository's port changed, update `EXTERNAL_PORTS` in `ci/test/pipeline-ports.test.js`. That test fails when two deployments claim the same port.
 
 The Node process binds to `0.0.0.0` in these environments so Docker and the host port mapping can reach it. External access is still expected to go through the documented host mapping and nginx.
 

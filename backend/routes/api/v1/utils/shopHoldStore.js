@@ -16,12 +16,15 @@ import {
   holdExpiresAtMs,
   holdTotalCents,
   isHoldDeadlinePassed,
-  perStudentLimitFor,
   removeHoldLine,
 } from "./shopHolds.js";
+import { currentLimits, limitFor } from "./shopLimits.js";
 
 const DUPLICATE_KEY_ERROR = 11000;
 const SWEEP_BATCH_LIMIT = 100;
+
+const VENMO_USERNAME_MISMATCH_MESSAGE =
+  "This doesn't match the Venmo username on your account. Email iuga@uw.edu to change it.";
 
 export class ShopHoldError extends Error {
   constructor(status, message) {
@@ -67,8 +70,7 @@ async function reserveLine(models, session, { userId, catalogVersion, line }) {
     throw new ShopHoldError(409, `Not enough ${line.name} left in this drop.`);
   }
 
-  const limitDoc = await models.ShopProductLimits.findOne({ sku }, null, { session }).lean();
-  const limit = perStudentLimitFor(limitDoc);
+  const limit = limitFor(await currentLimits(models), sku);
   const student = await models.ShopStudentUnits.updateOne(
     { userId, sku, units: { $lte: limit - quantity } },
     { $inc: { units: quantity } },
@@ -152,7 +154,9 @@ export async function sweepExpiredHolds(models, nowMs) {
 }
 
 /*
- * @behavior Reserve every cart line or none. Sweeps expired holds first.
+ * @behavior Reserve every cart line or none. Sweeps expired holds first. A student has one active hold:
+ *           a new hold cancels the student's earlier active hold in the same transaction, so a student
+ *           who left the checkout page can check out again. A refused hold leaves the earlier one active.
  * @param userId — signed-in student's user id
  * @param catalogVersion — current catalog version
  * @param lines — validated lines: { sku, name, size, quantity, unitPriceCents }
@@ -162,6 +166,7 @@ export async function sweepExpiredHolds(models, nowMs) {
  */
 export async function createHold(models, { userId, catalogVersion, lines, nowMs }) {
   await sweepExpiredHolds(models, nowMs);
+  await ensureCounter(models.ShopStudentCheckouts, { _id: userId }, { revision: 0 });
 
   for (const line of lines) {
     await ensureCounter(models.ShopCapacity, { catalogVersion, sku: line.sku }, { reservedUnits: 0 });
@@ -169,6 +174,15 @@ export async function createHold(models, { userId, catalogVersion, lines, nowMs 
   }
 
   return withTransaction(models, async (session) => {
+    // Write before reading active holds: disjoint carts must still conflict for the same student.
+    await models.ShopStudentCheckouts.updateOne({ _id: userId }, { $inc: { revision: 1 } }, { session });
+    const earlierHolds = await models.ShopHolds.find({ userId, status: "active" }, { _id: 1 }, { session }).lean();
+    for (const { _id } of earlierHolds) {
+      const closed = await closeActiveHold(models, session, _id, "cancelled");
+      if (closed) {
+        await releaseLines(models, session, closed);
+      }
+    }
     for (const line of lines) {
       await reserveLine(models, session, { userId, catalogVersion, line });
     }
@@ -266,18 +280,34 @@ export async function removeLineFromHold(models, { holdId, userId, sku, size, no
 }
 
 /*
+ * @behavior Read the Venmo username saved to the student's profile by an earlier purchase, lowercased.
+ * @param session — optional transaction session
+ * @returns the saved username, or null when the student has none
+ */
+export async function findSavedVenmoUsername(models, userId, session = null) {
+  const user = await models.Users.findById(userId).select("+uVenmoUsername").session(session).lean();
+  return user?.uVenmoUsername ? user.uVenmoUsername.toLowerCase() : null;
+}
+
+/*
  * @behavior Confirm an active hold before its deadline. Creates a pending purchase with an immutable
  *           snapshot of the lines and prices, keeps the units consumed, and saves the Venmo username
- *           to the student's profile.
- * @throws ShopHoldError 404 when the hold is not found, 409 when it is not active or has expired
+ *           and phone number to the student's profile. A student who already has a saved Venmo
+ *           username must confirm with the same one; the hold stays active when it differs.
+ * @throws ShopHoldError 404 when the hold is not found, 409 when it is not active, has expired,
+ *         or the Venmo username differs from the saved one
  */
-export async function confirmHold(models, { holdId, userId, venmoUsername, nowMs }) {
+export async function confirmHold(models, { holdId, userId, venmoUsername, phoneNumber, nowMs }) {
   const outcome = await withTransaction(models, async (session) => {
     const checked = await activeHoldOrError(models, session, { holdId, userId, nowMs });
     if (checked.error) {
       return checked;
     }
     const { hold } = checked;
+    const savedUsername = await findSavedVenmoUsername(models, userId, session);
+    if (savedUsername !== null && savedUsername !== venmoUsername) {
+      return { error: new ShopHoldError(409, VENMO_USERNAME_MISMATCH_MESSAGE) };
+    }
     const closed = await closeActiveHold(models, session, holdId, "confirmed");
     if (!closed) {
       return { error: new ShopHoldError(409, "This hold is no longer active.") };
@@ -297,11 +327,24 @@ export async function confirmHold(models, { holdId, userId, venmoUsername, nowMs
       { session },
     );
     await models.ShopHolds.updateOne({ _id: holdId }, { $set: { purchaseId: purchase._id } }, { session });
-    await models.Users.updateOne({ _id: userId }, { $set: { uVenmoUsername: venmoUsername } }, { session });
+    await models.Users.updateOne(
+      { _id: userId },
+      { $set: { uVenmoUsername: venmoUsername, uPhoneNumber: phoneNumber } },
+      { session },
+    );
     return { purchase: purchase.toObject() };
   });
   if (outcome.error) {
     throw outcome.error;
   }
   return outcome.purchase;
+}
+
+/*
+ * @behavior The per-student limits in effect now: the default and each product's own limit. Served from the
+ *           limits cache, so the database is read at most once per cache window.
+ * @returns {Promise<{ defaultLimit: number, perSku: Map<string, number> }>}
+ */
+export async function findLimits(models) {
+  return currentLimits(models);
 }

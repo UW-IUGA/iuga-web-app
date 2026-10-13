@@ -15,6 +15,9 @@ product owner. This module is the single source of truth for pricing and allowed
 callers must never re-derive or accept client-supplied prices.
 */
 
+import { DEFAULT_PER_STUDENT_LIMIT } from "./shopHolds.js";
+import { limitFor } from "./shopLimits.js";
+
 export const shopCatalog = Object.freeze({
   catalogId: "fall-2026",
   catalogVersion: "fall-2026-v1",
@@ -71,9 +74,10 @@ export function saleStateAt(catalog, nowMs) {
  * @behavior Project the catalog into its public representation including current sale state.
  * @param catalog — catalog definition
  * @param nowMs — current timestamp in milliseconds
+ * @param limits — limits snapshot from currentLimits ({ defaultLimit, perSku }); defaults to the code default
  * @returns public catalog object with catalogId, catalogVersion, currency, opensAt, closesAt, saleState, and items
  */
-export function publicCatalog(catalog, nowMs) {
+export function publicCatalog(catalog, nowMs, limits = { defaultLimit: DEFAULT_PER_STUDENT_LIMIT, perSku: new Map() }) {
   return {
     catalogId: catalog.catalogId,
     catalogVersion: catalog.catalogVersion,
@@ -86,6 +90,7 @@ export function publicCatalog(catalog, nowMs) {
       name: item.name,
       sizes: [...item.sizes],
       unitPriceCents: item.unitPriceCents,
+      perStudentLimit: limitFor(limits, item.sku),
     })),
   };
 }

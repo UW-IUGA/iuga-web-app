@@ -34,7 +34,7 @@ import {
 import { requireAuth } from "../utils/auth.js";
 import * as defaultHoldStore from "../utils/shopHoldStore.js";
 import { ShopHoldError } from "../utils/shopHoldStore.js";
-import { holdTotalCents, normalizeVenmoUsername } from "../utils/shopHolds.js";
+import { holdTotalCents, normalizePhoneNumber, normalizeVenmoUsername } from "../utils/shopHolds.js";
 
 const OBJECT_ID_PATTERN = /^[a-f0-9]{24}$/i;
 
@@ -100,10 +100,18 @@ export function createShopRouter({
   Expected Request Information: None.
   Expected Response Information:
   - 200 { status: "success", catalog: publicCatalog(...) }
+  - 500 The per-student limits could not be read
   */
-  router.get("/catalog", (_req, res) => {
+  router.get("/catalog", async (req, res) => {
     const currentMs = now();
-    const catalogData = publicCatalog(catalog, currentMs);
+    let limits;
+    try {
+      limits = await holdStore.findLimits(req.models);
+    } catch (error) {
+      console.error("Shop catalog limits failed:", error);
+      return sendError(res, 500, "Unable to load the shop catalog right now. Please try again.");
+    }
+    const catalogData = publicCatalog(catalog, currentMs, limits);
     return sendSuccess(res, { catalog: catalogData });
   });
 
@@ -262,8 +270,8 @@ export function createShopRouter({
     return sendSuccess(res, { url: session.url, sessionId: session.id });
   });
 
-  // Checked before any hold route reads or writes the database. Production leaves
-  // manualCheckoutExposed off until ADR-0006 Gate B passes.
+  // Checked before any hold route reads or writes the database. Production keeps
+  // manualCheckoutExposed off until its database passes the replica-set tests.
   function manualCheckoutClosed(res) {
     if (manualCheckoutExposed !== true) {
       sendError(
@@ -277,7 +285,7 @@ export function createShopRouter({
   }
 
   /*
-  Purpose: Hold the signed-in student's whole cart for 15 minutes, or none of it.
+  Purpose: Hold the signed-in student's whole cart for the hold duration (15 minutes by default), or none of it.
   Authentication/Authorization Requirements: Logged in.
   Expected Request Information:
   - req.body: { items: [{ sku, size, quantity }], catalogVersion: string }
@@ -334,7 +342,8 @@ export function createShopRouter({
   Authentication/Authorization Requirements: Logged in; the hold must belong to the signed-in student.
   Expected Request Information: URL parameter holdId.
   Expected Response Information:
-  - 200 { status: "success", hold } (status "expired" when the deadline has passed)
+  - 200 { status: "success", hold, savedVenmoUsername } (hold status "expired" when the deadline has passed;
+    savedVenmoUsername is the student's username from an earlier purchase, or null)
   - 401 Not authenticated
   - 404 Hold not found
   - 503 Manual checkout not exposed
@@ -351,7 +360,8 @@ export function createShopRouter({
         userId: req.session.userId,
         nowMs: now(),
       });
-      return sendSuccess(res, { hold: publicHold(hold) });
+      const savedVenmoUsername = await holdStore.findSavedVenmoUsername(req.models, req.session.userId);
+      return sendSuccess(res, { hold: publicHold(hold), savedVenmoUsername });
     } catch (error) {
       return sendHoldFailure(res, error);
     }
@@ -427,17 +437,18 @@ export function createShopRouter({
   });
 
   /*
-  Purpose: Confirm an active hold before its deadline. Creates a pending purchase and saves the Venmo username to the profile.
+  Purpose: Confirm an active hold before its deadline. Creates a pending purchase and saves the Venmo username and phone number to the profile.
   Authentication/Authorization Requirements: Logged in; the hold must belong to the signed-in student.
   Expected Request Information:
   - URL parameter holdId
-  - req.body: { venmoUsername: string }
+  - req.body: { venmoUsername: string, phoneNumber: string }
   Expected Response Information:
   - 200 { status: "success", purchase: { id, status, venmoUsername, totalCents, confirmedAt } }
-  - 400 Missing or invalid Venmo username
+  - 400 Missing or invalid Venmo username or phone number
   - 401 Not authenticated
   - 404 Hold not found
-  - 409 Hold is not active, or its deadline has passed (its items are released)
+  - 409 Hold is not active, its deadline has passed (its items are released), or the Venmo username
+    differs from the one saved by an earlier purchase (the hold stays active)
   - 503 Manual checkout not exposed
   */
   router.post("/holds/:holdId/confirm", requireAuth, async (req, res) => {
@@ -455,11 +466,17 @@ export function createShopRouter({
       );
     }
 
+    const phoneNumber = normalizePhoneNumber(req.body?.phoneNumber);
+    if (phoneNumber === null) {
+      return sendError(res, 400, "Enter a valid phone number: 7 to 15 digits, with a country code if it is not a US number.");
+    }
+
     try {
       const purchase = await holdStore.confirmHold(req.models, {
         holdId: req.params.holdId,
         userId: req.session.userId,
         venmoUsername,
+        phoneNumber,
         nowMs: now(),
       });
       return sendSuccess(res, { purchase: publicPurchase(purchase) });

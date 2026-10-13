@@ -82,6 +82,15 @@ describe("saleStateAt", () => {
 });
 
 describe("publicCatalog", () => {
+  it("gives each item its per-student limit, defaulting to 5 when none is stored", () => {
+    const nowMs = Date.parse(shopCatalog.opensAt) + 10000;
+    const pub = publicCatalog(shopCatalog, nowMs, { defaultLimit: 5, perSku: new Map([["info-crewneck", 2]]) });
+
+    for (const item of pub.items) {
+      assert.equal(item.perStudentLimit, item.sku === "info-crewneck" ? 2 : 5);
+    }
+  });
+
   it("projects public catalog with sale state and preserves item ordering", () => {
     const nowMs = Date.parse(shopCatalog.opensAt) + 10000;
     const pub = publicCatalog(shopCatalog, nowMs);
@@ -106,6 +115,7 @@ describe("publicCatalog", () => {
         name: source.name,
         sizes: source.sizes,
         unitPriceCents: source.unitPriceCents,
+        perStudentLimit: 5,
       });
     }
   });

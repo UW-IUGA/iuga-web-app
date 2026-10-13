@@ -274,6 +274,29 @@ describe("resolveCartLines - sku and size validation", () => {
       `Expected message to name offending item, got: "${res.message}"`,
     );
   });
+
+  it("accepts every size from XS to 2XL for the hoodie, crewneck, and baseball tee", () => {
+    const apparelSkus = ["info-hoodie", "info-crewneck", "info-baseball-tee"];
+    const apparelSizes = ["XS", "S", "M", "L", "XL", "2XL"];
+    for (const sku of apparelSkus) {
+      for (const size of apparelSizes) {
+        const res = resolveCartLines(shopCatalog, [{ sku, size, quantity: 1 }]);
+        assert.equal(res.ok, true, `Expected ${sku} to be sold in ${size}, got: "${res.message}"`);
+        assert.equal(res.lines[0].size, size);
+      }
+    }
+  });
+
+  it("rejects XS and the other apparel sizes for the tote bag, which is One Size only", () => {
+    for (const size of ["XS", "S", "M", "L", "XL", "2XL"]) {
+      const res = resolveCartLines(shopCatalog, [{ sku: "info-tote-bag", size, quantity: 1 }]);
+      assert.equal(res.ok, false, `Expected tote bag to reject size ${size}`);
+      assert.ok(
+        res.message.includes(`"${size}"`) && res.message.includes("Tote Bag"),
+        `Expected message to name size and item, got: "${res.message}"`,
+      );
+    }
+  });
 });
 
 describe("resolveCartLines - duplicate consolidation and quantity safety", () => {

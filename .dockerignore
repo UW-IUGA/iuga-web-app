@@ -1,0 +1,13 @@
+.git
+.omo
+.agents
+node_modules
+**/node_modules
+frontend/build
+backend/env
+*.log
+.DS_Store
+docs
+.github
+ci
+*.md

@@ -1,79 +1,91 @@
-
 footer {
     position: relative;
-    @include top-gradient-border;
-    width: 100%;
-    background-color: $color-light-gray;
+    overflow: hidden;
+    background-color: transparent;
+    box-shadow: 0 -18px 48px rgba($color-primary, 0.08);
 
-    a {
-        font-size: 16px;
-        color: black;
-        text-align: center;
-        text-decoration: none;
-        padding: $padding-box-y 0;
+    &::before {
+        position: absolute;
+        top: -96px;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 0;
+        background:
+            linear-gradient(to bottom,
+                transparent 0,
+                rgba($color-social-light, 0.16) 42%,
+                rgba($color-social-light, 0.42) 100%),
+            radial-gradient(ellipse 80% 100% at 50% 100%,
+                rgba($color-primary, 0.13),
+                transparent 78%);
+        content: "";
+        pointer-events: none;
     }
 }
 
 .footerContainer {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: $section-divider-gap;
+    box-sizing: border-box;
     margin: 0 auto;
-    max-width: 1400px;
-    padding: $padding-content*2;
+    max-width: 1200px;
+    padding: $padding-content * 2 $padding-content * 2;
+}
 
-    & > div:first-of-type {
-        display: flex;
-        box-sizing: border-box;
-        margin-bottom: $margin-content*1;
+.footerBottomRow {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: $grid-gap;
+    padding-top: $section-divider-gap;
+
+    .footerBrand {
+        display: inline-flex;
+        width: fit-content;
+        align-items: center;
+        @include focus-ring;
 
         img {
-            width: 100px;
-        }
-
-        & > div:nth-of-type(1) {
-            flex: 1;
-        }
-
-        & > div:nth-of-type(2) {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            grid-template-rows: repeat(2, auto);
-            gap: 2px;
-            width: 300px;
-            text-align: center;
-
-            & > a {
-                color: rgb(71, 71, 71);
-            }
-
-            & > a:hover {
-                color: black;
-            }
+            display: block;
+            width: 82px;
+            height: auto;
         }
     }
 
-    & > div:last-of-type {
+    .footerCopyright {
+        margin: 0;
+        font-size: 0.9rem;
+        color: $color-dark-gray;
+        text-align: center;
+    }
+
+    .footerSocials {
         display: flex;
-        box-sizing: border-box;
-
-        & > div:nth-of-type(1) {
-            flex: 1;
-        }
-
-        & > div:nth-of-type(2) {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 300px;
-        }
+        align-items: center;
+        gap: 12px;
+        justify-content: flex-end;
 
         a {
-            display: inline-block;
-            padding: 0;
-            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+            border-radius: $radius-pill;
+            transition: background-color 200ms cubic-bezier(0.19, 1, 0.22, 1);
+            @include focus-ring;
+
+            &:hover {
+                background-color: $color-lavender;
+            }
         }
 
         img {
+            display: block;
             width: 32px;
-            padding: 0;
         }
     }
 }
@@ -87,41 +99,17 @@ footer {
 }
 
 @include media(">=sm-desktop", "<desktop") {
-    footer {
-        a {
-            font-size: 12px;
-            padding: 12px 0;
-        }
+    .footerContainer {
+        max-width: 1000px;
     }
 
-    .footerContainer {
-        margin: 0 auto;
-        max-width: 1100px;
-
-        & > div:first-of-type {
-            margin-bottom: $margin-content*1;
-
-            img {
-                width: 80px;
-            }
-
-            & > div:nth-of-type(2) {
-                width: 250px;
-            }
+    .footerBottomRow {
+        .footerCopyright {
+            font-size: 0.8rem;
         }
 
-        & > div:last-of-type {
-            p {
-                font-size: 12px;
-            }
-
-            & > div:nth-of-type(2) {
-                width: 250px;
-            }
-
-            img {
-                width: 24px;
-            }
+        .footerSocials img {
+            width: 24px;
         }
     }
 
@@ -136,67 +124,31 @@ footer {
 
 @include media("screen", "<tablet") {
     .footerContainer {
-        margin: 0 auto;
-        padding: $padding-content*2;
+        gap: $grid-gap;
+        padding: $padding-content * 2 24px;
+    }
 
-        & > div:first-of-type {
-            display: flex;
-            box-sizing: border-box;
-            flex-direction: column;
-            margin-bottom: $margin-content*3;
+    .footerBottomRow {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        padding-top: $grid-gap;
 
-            img {
-                display: block;
-                width: 100px;
-            }
-
-            & > div:nth-of-type(1) {
-                flex: 1;
-            }
-
-            & > div:nth-of-type(2) {
-                display: flex;
-                flex-direction: row;
-                align-items: center;
-                justify-content: space-between;
-                width: 300px;
-
-                & > a {
-                    color: rgb(71, 71, 71);
-                }
-
-                & > a:hover {
-                    color: black;
-                }
-            }
+        .footerBrand {
+            order: 1;
         }
 
-        & > div:last-of-type {
-            display: flex;
-            box-sizing: border-box;
-            flex-direction: column-reverse;
-
-            & > div:nth-of-type(1) {
-                flex: 1;
-            }
-
-            & > div:nth-of-type(2) {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                width: 300px;
-            }
-
-            a {
-                display: inline-block;
-                padding: 0;
-                cursor: pointer;
-            }
-
-            img {
-                width: 32px;
-                padding: 0;
-            }
+        .footerCopyright {
+            order: 2;
         }
+
+        .footerSocials {
+            order: 3;
+        }
+    }
+
+    .footerSocials {
+        gap: 8px;
     }
 }

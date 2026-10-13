@@ -1,68 +1,47 @@
-import React, { useState, useEffect } from "react";
-import Dropdown from "../components/Dropdown";
-import GradientLine from "../components/GradientLine";
-import AboutCard from "../components/AboutCard";
+import { useState } from "react";
+import StudentProfileCard from "../components/StudentProfileCard";
+import { groupType } from "../assets/data/Enum";
 
 function AboutPage({ teams }) {
-    const years = Object.keys(teams).reverse();
-    const [selectedYear, setSelectedYear] = useState(years[0]);
-    const [data, setData] = useState(null);
-
-    useEffect(() => {
-        setData(teams[selectedYear]);
-    }, [selectedYear, teams]);
-
-    const handleSelectYear = (year) => {
-        setSelectedYear(year);
-    };
-
-    const renderTeams = (data) => {
-        return Object.keys(data).map((team) => {
-            if (team !== "Officers" && data[team].length > 0) {
-                return (
-                    <div key={team}>
-                        <div className="aboutHeader">
-                            <h2>{team}</h2>
-                        </div>
-                        <div className="aboutWrapper">
-                            {data[team].map((member, index) => (
-                                <AboutCard key={`${member.position}-${index}`} member={member} />
-                            ))}
-                        </div>
-                    </div>
-                );
-            }
-            return null;
-        });
-    };
+    const years = Object.keys(teams);
+    const [selectedYear, setSelectedYear] = useState(years[years.length - 1]);
+    const officers = teams[selectedYear]?.[groupType.OFFICERS] ?? [];
 
     return (
         <div className="baseContainer">
-            <div className="aboutSummaryContainer">
-                <img className="aboutImg" src="/assets/about-main.png" alt="group of iuga students" />
-                <div className="aboutSummary">
-                    <h1>IUGA History</h1>
-                    <p>
-                        Ever since the Informatics major has existed, we’ve had passionate, motivated student leaders to help establish the iSchool community for undergraduate students. From management, software development, and design, our officers old and new bring diverse experiences and skillsets to the IUGA executive board table. 
-                        <br /><br />
-                        Want to contribute to the Informatics community? Elections for officers are held mid-winter quarter, and all are encouraged to apply! Explore our current and past officers to understand which student leaders work with the iSchool, and feel free to reach out to any of them with questions!
-                    </p>
-                </div>
-            </div>
-            <div className="aboutContainer">
-                <div className="aboutHeader">
-                    <h2>Officers</h2>
-                    <Dropdown options={years} defaultOption={years[0]} onSelect={handleSelectYear} />
-                </div>
-                <div className="aboutWrapper">
-                    {data &&
-                        data["Officers"] &&
-                        data["Officers"].map((member, index) => (
-                            <AboutCard key={`${member.position}-${index}`} member={member} />
+            <main className="about">
+                <section className="about__summary">
+                    <div className="about__summaryText">
+                        <p className="about__kicker">Meet the {selectedYear} Team</p>
+                        <h1>About Us</h1>
+                        <p>
+                            IUGA is a student-led organization run by Informatics undergraduates, for Informatics
+                            undergraduates. We create space for students to connect, build community, and shape the iSchool experience.
+                        </p>
+                    </div>
+                </section>
+
+                <section className="about__section" aria-label={`Meet the ${selectedYear} Team`}>
+                    <div className="about__yearFilter" role="group" aria-label="Team year">
+                        {years.map((year) => (
+                            <button
+                                key={year}
+                                type="button"
+                                className="pill-button"
+                                aria-pressed={selectedYear === year}
+                                onClick={() => setSelectedYear(year)}
+                            >
+                                {year}
+                            </button>
                         ))}
-                </div>
-                {data && renderTeams(data)}
-            </div>
+                    </div>
+                    <div className="about__teamGrid">
+                        {officers.map((member, index) => (
+                            <StudentProfileCard key={`${member.position}-${index}`} profile={member} />
+                        ))}
+                    </div>
+                </section>
+            </main>
         </div>
     );
 }

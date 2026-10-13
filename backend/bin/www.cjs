@@ -1,5 +1,11 @@
 #!/usr/bin/env node
 
+/*
+Purpose: Start the Express API on its configured or selected HTTP port.
+Expected Request Information: Environment variables loaded by the selected backend npm script.
+Expected Response Information: The API listens on the configured port or the next available local port.
+*/
+
 /**
  * Module dependencies.
  */
@@ -7,16 +13,18 @@ var debug = require('debug')('vulnalert:server');
 var http = require('http');
 
 const DEFAULT_PORT = '7777';
+const startupStartedAt = Date.now();
 
 (async () => {
   const app = await (await import('../app.js')).default;
+  const { listenWithAvailablePort, shouldAllowPortFallback } = await import('../serverPort.js');
 
   /**
    * Get port from environment and store in Express.
    */
 
-  var port = normalizePort(process.env.PORT || DEFAULT_PORT);
-  app.set('port', port);
+  var configuredPort = process.env.PORT;
+  var port = normalizePort(configuredPort || DEFAULT_PORT);
 
   /**
    * Create HTTP server.
@@ -30,9 +38,17 @@ const DEFAULT_PORT = '7777';
    * Listen on provided port, on all network interfaces.
    */
 
-  server.listen(port, host);
-  server.on('error', onError);
-  server.on('listening', onListening);
+  const allowPortFallback = shouldAllowPortFallback({
+    isLocalDevelopment: process.env.IUGA_LOCAL_DEV === '1',
+    hasConfiguredPort: Boolean(configuredPort),
+  });
+
+  listenWithAvailablePort(server, port, host, allowPortFallback)
+    .then((actualPort) => {
+      app.set('port', actualPort);
+      onListening(actualPort, host);
+    })
+    .catch(onError);
 
   /**
    * Normalize a port into a number, string, or false.
@@ -59,42 +75,23 @@ const DEFAULT_PORT = '7777';
    */
 
   function onError(error) {
-    if (error.syscall !== 'listen') {
-      throw error;
-    }
-
-    var bind = typeof port === 'string'
-      ? 'Pipe ' + port
-      : 'Port ' + port;
-
-    // handle specific listen errors with friendly messages
-    switch (error.code) {
-      case 'EACCES':
-        console.error(bind + ' requires elevated privileges');
-        process.exit(1);
-        break;
-      case 'EADDRINUSE':
-        console.error(bind + ' is already in use');
-        process.exit(1);
-        break;
-      default:
-        throw error;
-    }
+    console.error(error.message);
+    process.exitCode = 1;
   }
 
   /**
    * Event listener for HTTP server "listening" event.
    */
 
-  function onListening() {
-    let host = process.env.DEPLOY_ENV === "production" || process.env.DEPLOY_ENV === "staging" || process.env.DEPLOY_ENV === "development" ? '0.0.0.0' : 'localhost';
-    let port = process.env.PORT ? process.env.PORT : DEFAULT_PORT;
-
+  function onListening(port, host) {
+    console.log(`[startup] Listening at ${host}:${port} after ${Date.now() - startupStartedAt}ms`);
     if (!process.env.DEBUG) {
-      console.log('Listening at ' + host + ":" + port);
-    } else {
-      debug('Listening at ' + host + ":" + port);
+      return;
     }
+      debug('Listening at ' + host + ":" + port);
   }
 
-})().catch(err => console.error(err));
+})().catch(err => {
+  console.error(err);
+  process.exitCode = 1;
+});

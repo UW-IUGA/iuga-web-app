@@ -1,30 +1,35 @@
 import HomePage from "./pages/Home";
 import EventsPage from "./pages/Events";
 import ResourcesPage from "./pages/Resources";
-import AboutPage from "./pages/About";
 import ElectionPage from "./pages/Elections";
 import ElectionsFAQPage from "./pages/ElectionsFAQ";
+import AboutPage from "./pages/About";
+import GetInvolvedPage from "./pages/GetInvolved";
+import StudentVoicePage from "./pages/StudentVoice";
+import ShopPage from "./pages/Shop";
 import { ToastContainer, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Route, Routes } from "react-router-dom";
 import Navbar from "./layouts/Navbar";
+import { ShopCartProvider } from "./context/ShopCartContext";
 import { useState, useEffect } from "react";
 import { mockCalendarData } from "./assets/mock-data/MockCalendarData";
+import { enrichWithDevThumbnails } from "./utils/devThumbnails";
 import { resources } from "./assets/data/ResourcesData";
 import { iugaCandidates } from "./assets/data/CandidateData";
-import { electionFAQ } from "./assets/data/ElectionFAQData"; 
+import { electionFAQ } from "./assets/data/ElectionFAQData";
 import { iugaTeams } from "./assets/data/AboutData";
-import { positionInformation } from "./assets/data/AboutData";
 import { useAuthContext } from "./context/AuthContext";
+import SignInRequired from "./components/SignInRequired";
 import Footer from "./layouts/Footer";
-import MediaQuery from 'react-responsive';
+import { isProduction } from "./runtime";
 
 function App() {
     const { signIn, signOut } = useAuthContext();
     const [upcomingEvents, setUpcomingEvents] = useState([]);
 
     useEffect(() => {
-        if (process.env.NODE_ENV === "production") {
+        if (isProduction) {
             fetch('/api/v1/events/upcoming', {
                 method: "GET",
             })
@@ -36,7 +41,7 @@ function App() {
                     console.log(error);
                 });
         } else {
-            setUpcomingEvents(mockCalendarData);
+            setUpcomingEvents(enrichWithDevThumbnails(mockCalendarData));
         }
     }, []);
 
@@ -56,26 +61,27 @@ function App() {
                 transition={Bounce}
             />
             <Navbar signIn={signIn} signOut={signOut} />
+            <ShopCartProvider>
             <Routes>
                 <Route path="/" element={<HomePage upcomingEvents={upcomingEvents} />} />
                 <Route path="/events" element={<EventsPage />} />
                 <Route path="/resources" element={<ResourcesPage resources={resources} />} />
-                <Route path="/about" element={<AboutPage teams={iugaTeams} />} />
+                <Route
+                    path="/student-voice"
+                    element={
+                        <SignInRequired>
+                            <StudentVoicePage />
+                        </SignInRequired>
+                    }
+                />
+                <Route path="/shop" element={<ShopPage />} />
                 <Route path="/elections" element={<ElectionPage candidates={iugaCandidates} />} />
                 <Route path="/electionfaq" element={<ElectionsFAQPage electionFAQ={electionFAQ} />} />
+                <Route path="/about" element={<AboutPage teams={iugaTeams} />} />
+                <Route path="/get-involved" element={<GetInvolvedPage />} />
             </Routes>
+            </ShopCartProvider>
             <Footer />
-            {/* <MediaQuery minWidth={1024}>
-
-            </MediaQuery>
-            <MediaQuery minWidth={340} maxWidth={1023}>
-                <div className="constructionContainer">
-                    <h1>Informatics</h1>
-                    <h1>Undergraduate Association</h1>
-                    <p>🚧 The Mobile Page is Under Construction! 🚧</p>
-                    <img src="/assets/about-main.png" alt="group of iuga students" />
-                </div>
-            </MediaQuery> */}
         </div>
     );
 }

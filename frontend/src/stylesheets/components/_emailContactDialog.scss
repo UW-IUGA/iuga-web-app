@@ -1,0 +1,205 @@
+.emailContactDialog__trigger {
+    display: inline-flex;
+    min-height: 46px;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 18px;
+    border: 1px solid $color-uw-purple;
+    border-radius: $radius-pill;
+    background: $color-uw-purple;
+    color: white;
+    font-family: inherit;
+    font-size: 0.86rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: center;
+    transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
+    white-space: nowrap;
+    cursor: pointer;
+
+    &:hover {
+        border-color: $color-primary;
+        background: $color-primary;
+        transform: translateY(-2px);
+    }
+
+    &:focus-visible {
+        outline: 3px solid rgba($color-primary, 0.45);
+        outline-offset: 3px;
+    }
+}
+
+.emailContactDialog {
+    box-sizing: border-box;
+    width: min(600px, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    margin: auto;
+    padding: clamp(22px, 4vw, 34px);
+    border: 1px solid rgba($color-uw-purple, 0.18);
+    border-radius: $radius-card;
+    background: white;
+    color: $color-uw-purple;
+    box-shadow: 0 24px 80px rgba(15, 15, 15, 0.26);
+
+    &::backdrop {
+        background: rgba(15, 15, 15, 0.62);
+        backdrop-filter: blur(3px);
+    }
+}
+
+.emailContactDialog__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 24px;
+
+    h2 {
+        max-width: 20ch;
+        margin: 0;
+        font-family: $sans-serif;
+        font-size: clamp(1.55rem, 4vw, 2.1rem);
+        letter-spacing: -0.035em;
+        line-height: 1.12;
+    }
+}
+
+.emailContactDialog__label {
+    @extend %pageKicker;
+    margin: 0 0 10px;
+}
+
+.emailContactDialog__close {
+    display: inline-flex;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid rgba($color-uw-purple, 0.22);
+    border-radius: 50%;
+    background: white;
+    color: $color-uw-purple;
+    font-size: 1.8rem;
+    line-height: 1;
+    cursor: pointer;
+
+    &:hover {
+        background: rgba($color-uw-purple, 0.07);
+    }
+
+    &:focus-visible {
+        outline: 3px solid rgba($color-primary, 0.45);
+        outline-offset: 3px;
+    }
+}
+
+.emailContactDialog__draft {
+    margin: 0 0 24px;
+    overflow: hidden;
+    border: 1px solid rgba($color-uw-purple, 0.16);
+    border-radius: $radius-card;
+    background: rgba($color-uw-purple, 0.035);
+
+    > div {
+        display: grid;
+        grid-template-columns: 84px minmax(0, 1fr);
+        gap: 16px;
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba($color-uw-purple, 0.12);
+    }
+
+    > div:last-child {
+        border-bottom: 0;
+    }
+
+    dt {
+        color: $color-dark-gray;
+        font-size: 0.74rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    dd {
+        min-width: 0;
+        margin: 0;
+        color: $color-uw-purple;
+        font-size: 0.94rem;
+        line-height: 1.55;
+        overflow-wrap: anywhere;
+    }
+
+    .emailContactDialog__message {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px;
+
+        dd {
+            white-space: pre-wrap;
+        }
+    }
+}
+
+.emailContactDialog__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.emailContactDialog__action {
+    display: inline-flex;
+    min-height: 48px;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 16px;
+    border: 1px solid $color-uw-purple;
+    border-radius: $radius-pill;
+    color: $color-uw-purple;
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+    transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
+
+    &:hover {
+        background: rgba($color-uw-purple, 0.07);
+        transform: translateY(-2px);
+    }
+
+    &:focus-visible {
+        outline: 3px solid rgba($color-primary, 0.45);
+        outline-offset: 3px;
+    }
+
+    &--gmail {
+        background: $color-uw-purple;
+        color: white;
+
+        &:hover {
+            background: $color-primary;
+            color: white;
+        }
+    }
+}
+
+@include media("<tablet") {
+    .emailContactDialog__actions {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .emailContactDialog__trigger,
+    .emailContactDialog__action {
+        transition: none;
+
+        &:hover {
+            transform: none;
+        }
+    }
+}

@@ -1,136 +1,187 @@
-import Button from "../components/Button";
-import CharacterCard from "../components/CharacterCard";
-import { MouseParallax } from 'react-just-parallax';
-import EventCard from "../components/EventCard";
-import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { useLocation } from 'react-router-dom';
-import groups from "../assets/gallery/groups.png";
-import bowling from "../assets/gallery/bowling.jpeg";
-import merch from "../assets/gallery/merch.jpeg";
-import gamenight from "../assets/gallery/gamenight.png";
-import panelists from "../assets/gallery/panelists.png";
+import { Link, useLocation } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCalendarDays } from "@fortawesome/free-solid-svg-icons";
 import heart from "../assets/gallery/heart.jpeg";
-import gamenight2 from "../assets/gallery/gamenight-2.png";
-import officers22 from "../assets/gallery/officers-22.png";
-import careerIcon from "../assets/icons/career-icon.svg";
-import socialIcon from "../assets/icons/social-icon.svg";
-import academicIcon from "../assets/icons/academic-icon.svg";
-import MediaQuery from "react-responsive";
+import gameNight from "../assets/gallery/gamenight.jpg";
+import merch from "../assets/gallery/merch.jpeg";
 
-function HomePage({upcomingEvents}) {
-    const navigate = useNavigate();
-    const {pathname} = useLocation();
-    const categories = ["Academic", "Social", "Career"];
+const INFORMATICS_DESTINATIONS = [
+    {
+        label: "Student organizations",
+        description: "Find clubs and communities across the iSchool.",
+        to: "/resources?category=Community",
+    },
+    {
+        label: "Resources",
+        description: "Academic, career, community, and well-being support.",
+        to: "/resources",
+    },
+    {
+        label: "Student Voice",
+        description: "Share feedback that informs IUGA advocacy.",
+        to: "/student-voice",
+    },
+    {
+        label: "About IUGA",
+        description: "Meet the students and teams behind IUGA.",
+        to: "/about",
+    },
+];
+
+const eventMonthFormatter = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    timeZone: "America/Los_Angeles",
+});
+const eventDayFormatter = new Intl.DateTimeFormat("en-US", {
+    day: "numeric",
+    timeZone: "America/Los_Angeles",
+});
+const eventTimeFormatter = new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "America/Los_Angeles",
+});
+
+function getUpcomingHomeEvents(upcomingEvents) {
+    const now = Date.now();
+    return (Array.isArray(upcomingEvents) ? upcomingEvents : [])
+        .map((event) => ({ event, start: Date.parse(event?.eStartDate) }))
+        .filter(({ start }) => Number.isFinite(start) && start > now)
+        .sort((first, second) => first.start - second.start)
+        .slice(0, 3)
+        .map(({ event }) => event);
+}
+
+function UpcomingEvents({ events }) {
+    return (
+        <section className="homeEvents" aria-labelledby="homeUpcomingEventsHeading">
+            <div className="homeEventsHeader">
+                <h2 id="homeUpcomingEventsHeading">Upcoming events</h2>
+            </div>
+            {events.length > 0 ? (
+                <ul className="homeEventList">
+                    {events.map((event) => {
+                        const start = new Date(event.eStartDate);
+                        return (
+                            <li key={`${event.eName}-${event.eStartDate}`}>
+                                <Link className="homeEventLink" to="/events">
+                                    <time className="homeEventDate" dateTime={event.eStartDate}>
+                                        <span>{eventMonthFormatter.format(start)}</span>
+                                        <strong>{eventDayFormatter.format(start)}</strong>
+                                    </time>
+                                    <div className="homeEventDetails">
+                                        <h3>{event.eName}</h3>
+                                        <p>{eventTimeFormatter.format(start)} Pacific</p>
+                                    </div>
+                                </Link>
+                            </li>
+                        );
+                    })}
+                </ul>
+            ) : (
+                <Link className="homeEmptyEventCard" to="/events">
+                    <span className="homeEventIcon" aria-hidden="true">
+                        <FontAwesomeIcon icon={faCalendarDays} />
+                    </span>
+                    <div>
+                        <h3>New dates are on the way.</h3>
+                        <p>Check the calendar for the next IUGA gathering.</p>
+                    </div>
+                </Link>
+            )}
+        </section>
+    );
+}
+
+function HomePage({ upcomingEvents = [] }) {
+    const { pathname } = useLocation();
+    const events = getUpcomingHomeEvents(upcomingEvents);
 
     useEffect(() => {
         window.scrollTo(0, 0);
     }, [pathname]);
 
     return (
-        <div className="baseContainer">
-            <div className="introduction">
-                <h1>Informatics</h1>
-                <h1>Undergraduate Association</h1>
-                <p>IUGA is a student-led RSO that communicates between the Informatics student body, faculty, and administration of the University of Washington Information School.</p>
-                <MediaQuery minWidth={1024}>    
-                    <div className="characterCardContainer">
-                    <MouseParallax isAbsolutelyPositioned strength={0.035} shouldPause>
-                        <div className="characterBackground1 characterBackgroundLeft">
-                            <img src={careerIcon} alt="" />
-                            <img src={socialIcon} alt="" />
-                            <img src={academicIcon} alt="" />
-                        </div>
-                    </MouseParallax>
-                    <MouseParallax isAbsolutelyPositioned strength={0.015} shouldPause>
-                        <div className="characterBackground2 characterBackgroundLeft">
-                            <img src={socialIcon} alt="" />
-                            <img src={academicIcon} alt="" />
-                            <img src={careerIcon} alt="" />
-                        </div>
-                    </MouseParallax>
-                    <MouseParallax isAbsolutelyPositioned strength={0.005} shouldPause>
-                        <div className="characterBackground3 characterBackgroundLeft">
-                            <img src={academicIcon} alt="" />
-                            <img src={socialIcon} alt="" />
-                            <img src={careerIcon} alt="" />
-                        </div>
-                    </MouseParallax>
-                    { 
-                        categories.map(category => {
-                            return <CharacterCard key={category} category={category} />;
-                        })
-                    }
-                    <MouseParallax isAbsolutelyPositioned strength={0.035} shouldPause>
-                        <div className="characterBackground1 characterBackgroundRight">
-                            <img src={careerIcon} alt="" />
-                            <img src={socialIcon} alt="" />
-                            <img src={academicIcon} alt="" />
-                        </div>
-                    </MouseParallax>
-                    <MouseParallax isAbsolutelyPositioned strength={0.015} shouldPause>
-                        <div className="characterBackground2 characterBackgroundRight">
-                            <img src={academicIcon} alt="" />
-                            <img src={careerIcon} alt="" />
-                            <img src={socialIcon} alt="" />
-                        </div>
-                    </MouseParallax>
-                    <MouseParallax isAbsolutelyPositioned strength={0.005} shouldPause>
-                        <div className="characterBackground3 characterBackgroundRight">
-                            <img src={academicIcon} alt="" />
-                            <img src={careerIcon} alt="" />
-                            <img src={socialIcon} alt="" />
-                        </div>
-                    </MouseParallax>
+        <main className="baseContainer homePage">
+            <div className="homeOpening">
+                <header className="homeIntro">
+                    <p className="homeAffiliation">University of Washington / Information School</p>
+                    <h1>Find your place in Informatics.</h1>
+                    <p className="homeSummary">
+                        IUGA is the undergraduate student government for UW Informatics. Find your community, support, and a say in what happens next.
+                    </p>
+                    <nav className="homeActions" aria-label="Homepage shortcuts">
+                        <Link className="pill-button homePrimaryLink" to="/events">Explore events</Link>
+                        <Link className="pill-button homeSecondaryLink" to="/get-involved">Get involved</Link>
+                    </nav>
+                </header>
+
+                <div className="homeHeroPhotoSlot">
+                    <div className="homeHeroPhotos">
+                        <img
+                            className="homeHeartPhoto"
+                            src={heart}
+                            alt="Informatics students forming a heart under the Quad cherry blossoms"
+                            width="1066"
+                            height="1600"
+                        />
                     </div>
-                </MediaQuery>
-                <MediaQuery minWidth={340} maxWidth={1023}>
-                    <div className="characterCardScrollContainer">
-                        <div className="characterCardContainer">
-                        { 
-                            categories.map(category => {
-                                return <CharacterCard key={category} category={category} />;
-                            })
-                        }
+                </div>
+
+                <UpcomingEvents events={events} />
+            </div>
+
+            <section className="homeExplore" aria-labelledby="homeExploreHeading">
+                <div className="homeSectionHeading">
+                    <h2 id="homeExploreHeading">Explore Informatics</h2>
+                    <p>Find your people, get support, and make your voice heard.</p>
+                </div>
+                <nav className="homeDestinations" aria-label="Informatics support and community">
+                    {INFORMATICS_DESTINATIONS.map((destination) => (
+                        <Link className="homeDestination" to={destination.to} key={destination.to}>
+                            <h3>{destination.label}</h3>
+                            <p>{destination.description}</p>
+                        </Link>
+                    ))}
+                </nav>
+            </section>
+
+            <section className="homeCommunity" aria-label="Community links">
+                <div className="homeCommunityLinks">
+                    <Link className="homeCommunityLink homeInvolvedLink" to="/get-involved" aria-labelledby="homeInvolvedLabel">
+                        <div className="homeCommunityPhoto">
+                            <img
+                                src={gameNight}
+                                alt="Students playing video games at an IUGA game night"
+                                width="1066"
+                                height="1600"
+                                loading="lazy"
+                            />
+                            <div className="homePhotoLabel">
+                                <h3 id="homeInvolvedLabel">Get involved</h3>
+                            </div>
                         </div>
-                    </div>
-                </MediaQuery>
-            </div>
-            <div className="upcomingEvents">
-                <div className="homeSectionHeader">
-                    <h1>Latest Events</h1>
+                    </Link>
+                    <Link className="homeCommunityLink homeShopLink" to="/shop" aria-labelledby="homeShopLabel">
+                        <div className="homeCommunityPhoto">
+                            <img
+                                src={merch}
+                                alt="Students wearing Informatics sweatshirts on campus"
+                                width="1066"
+                                height="1600"
+                                loading="lazy"
+                            />
+                            <div className="homePhotoLabel">
+                                <h3 id="homeShopLabel">Shop</h3>
+                            </div>
+                        </div>
+                    </Link>
                 </div>
-                <div className="upcomingEventsCardContainer">
-                    { upcomingEvents.slice(0, 3).map((event, i) => {
-                        return <EventCard key={event.eName} event={event} decorate={i === 2 ? true : false }/>;
-                    })}
-                </div>
-                <div className="upcomingEventsButtonContainer">
-                    <Button text="More Events" className="primary-button" type="right-arrow" color="black" onClick={() => {navigate("/events")}}/>
-                </div>
-            </div>
-            <div className="gallery">
-                <div className="homeSectionHeader galleryHeader">
-                    <span></span>
-                    <h1>Event Gallery</h1>
-                    <span></span>
-                </div>
-                <div className="galleryImageContainer">
-                    <div><img src={groups} alt="" /></div>
-                    <div><img src={bowling} alt="" /></div>
-                    <div><img src={merch} alt="" /></div>
-                    <div><img src={gamenight} alt="" /></div>
-                    <div><img src={panelists} alt="" /></div>
-                    <div><img src={heart} alt="" /></div>
-                    <div><img src={gamenight2} alt="" /></div>
-                    <div><img src={officers22} alt="" /></div>
-                </div>
-                <div>
-                    <img src="/assets/campfire.png" alt="characters around a campfire" />
-                </div>
-            </div>
-        </div>
-    )
+            </section>
+        </main>
+    );
 }
 
 export default HomePage;

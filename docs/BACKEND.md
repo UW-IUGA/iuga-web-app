@@ -14,7 +14,7 @@
 
 | File | Role |
 |---|---|
-| `bin/www.cjs` | HTTP server bootstrap — imports `app.js`, listens on `PORT` (default 7777) |
+| `bin/www.cjs` | HTTP server bootstrap — imports `app.js`; local `start`/`debug` scripts use `PORT` as a preference and select the next port on collision, while deployment keeps an explicit `PORT` fixed |
 | `app.js` | Express application setup — middleware stack, static serving, API mount |
 | `models.js` | MongoDB connection + Mongoose model registration |
 
@@ -22,27 +22,39 @@
 
 ## Directory Layout
 
-```
 backend/
 ├── bin/
 │   └── www.cjs              ← Server entry point (CommonJS)
-├── app.js                   ← Express app config
+├── app.js                   ← Express app config and middleware order
+├── http/
+│   ├── boundary.js          ← Shared body-size and browser-origin policy
+│   ├── errors.js            ← Safe JSON responses for parser/server errors
+│   ├── session.js           ← Session signing secret and cookie policy
+│   └── spaRoutes.js         ← SPA shell routes served from the compiled frontend
 ├── models.js                ← Database connection + model registration
+├── committeeRecruitment.js  ← Local recruitment campaign schema and Creative seed
 ├── schemas/                 ← Git submodule → UW-IUGA/iuga-web-schemas
 ├── routes/
 │   └── api/v1/
 │       ├── apiv1.js         ← API router (mounts controller modules)
 │       ├── controllers/
 │       │   ├── user.js           ← Login, logout, user info
-│       │   ├── events.js         ← Event CRUD, RSVP
-│       │   ├── feedback.js       ← Feedback form CRUD (not currently mounted — see Feedback section)
-│       │   └── administration.js ← Officer/committee stubs (not currently mounted — see Administration section)
+│       │   ├── events.js         ← Event browsing and RSVP
+│       │   ├── feedback.js       ← Feedback form CRUD
+│       │   ├── roles.js           ← Role catalog and role assignments
+│       │   ├── eventRequests.js   ← Event request workflow and operations
+│       │   ├── recruitment.js     ← Public committee recruitment campaign status
+│       │   ├── shop.js            ← Merch catalog browsing and checkout
+│       │   └── administration.js ← Unmounted officer/committee stubs
 │       └── utils/
-│           └── auth.js          ← (empty — auth is inline in controllers)
-├── env/
-│   ├── .env.example          ← Template for environment files
-│   └── (actual .env.* files are gitignored)
-└── package.json             ← ES module ("type": "module")
+│           ├── auth.js        ← Authentication and permission middleware
+│           ├── csrf.js        ← Origin checks for session mutations
+│           ├── rateLimit.js   ← Process-local request limits
+│           ├── shopCatalog.js ← Merch catalog source of truth and validation
+│           └── stripeClient.js ← Stripe client factory with fail-closed key validation
+├── .env.example            ← Tracked runtime template
+├── env/                    ← Ignored runtime environment files
+└── package.json            ← ES module ("type": "module")
 ```
 
 ---
@@ -56,7 +68,7 @@ These routes in `app.js` serve the built frontend (`frontend/build/index.html`) 
 | `GET /` | Home page |
 | `GET /events` | Events calendar |
 | `GET /resources` | Resources page |
-| `GET /about` | About page |
+| `GET /get-involved` | Get involved page (team, committees, idea engagement) |
 | `GET /electionfaq` | Election FAQ |
 | `GET /contact` | Contact page |
 
@@ -69,19 +81,16 @@ Express also serves:
 ---
 
 ## API Routes
-
-All API routes are mounted under `/api/v1`. They return JSON.
-
 ### Events (`/api/v1/events`)
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| `GET` | `/` | No | All events for the calendar. Populates participant info only if authenticated; otherwise `hasRSVPd: false`. |
-| `GET` | `/upcoming` | No | Latest 3 events (sorted by start date descending). Used by the homepage. |
-| `GET` | `/id/:eId` | No | Single event details. Includes RSVP questions, participant count, thumbnail. If authenticated, includes user's RSVP answers. |
-| `POST` | `/rsvp` | Yes | RSVP to an event. Body: `{ eId, rsvpAnswers }`. Validates: event exists, RSVP enabled, event hasn't started, user not already RSVPed. |
-| `DELETE` | `/withdraw/:eId/:pId` | Yes | Withdraw from an event. |
-| `GET` | `/:pId` | No | Get participant info by participant ID. |
+| `GET` | `/` | No | All events for the calendar. Authenticated callers also receive `hasRSVPd`; anonymous callers receive `false`. |
+| `GET` | `/upcoming` | No | Nearest 3 future events (ascending start time). Used by the homepage. |
+| `GET` | `/id/:eId` | No | Single event details. Includes RSVP questions, participant count, thumbnail, and the caller's RSVP answers when authenticated. |
+| `POST` | `/rsvp` | Yes | RSVP to an event. Requires a valid event ID and an array of string answers; also checks event state and duplicate participation. |
+| `DELETE` | `/withdraw/:eId/:pId` | Yes | Withdraw only the caller's participant from the matching event. Admins may withdraw any participant. |
+| `GET` | `/:pId` | Yes | Return protected participant details only to the participant owner or an admin. |
 
 ### User (`/api/v1/user`)
 
@@ -90,24 +99,87 @@ All API routes are mounted under `/api/v1`. They return JSON.
 | `POST` | `/login` | No* | Exchange MS access token for a server session. Validates token via Microsoft Graph API. Creates user in MongoDB if new. |
 | `POST` | `/logout` | Yes | Destroy server session. |
 | `GET` | `/` | Yes | Return current session user info (firstName, lastName, displayName, email, memberType). |
-| `GET` | `/:uId` | Yes | Get user by ID (stub — controller has empty branches for owner/admin/outsider views). |
-| `POST` | `/:uId` | Yes | Update user by ID (stub — branches for self-edit and admin-edit, no implementation). |
+| `GET` | `/:userId` | Yes | Validate a user ID before entering the current owner/admin view stub. |
+| `POST` | `/:userId` | Yes | Validate a user ID before entering the current self/admin update stub. |
 
 \* `/login` does not require a session but does require a Bearer token from Microsoft.
 
-### Feedback (`/api/v1/feedback`) — *not currently wired*
+### Feedback (`/api/v1/feedback`)
 
-⚠️ **These endpoints are defined in `controllers/feedback.js` but are NOT imported by `apiv1.js`. All requests to `/api/v1/feedback/*` currently return 404.**
-
-The controller provides full CRUD (no auth required):
+The controller provides CRUD. `POST /` requires a logged-in session (`fUID` comes from the session, not the request body):
 
 | Method | Path | Description |
 |---|---|---|
 | `GET` | `/` | Get a feedback form by `fID` query parameter |
-| `POST` | `/` | Submit a new feedback form. Body: `{ fUID, fType, fTopic, fDescription }` |
+| `POST` | `/` | Submit a new feedback form (requires session). Body: `{ fType, fTopic, fDescription }` — `fUID` comes from the session, not the body |
 | `DELETE` | `/` | Delete a feedback form by `fID` query parameter |
 
-To activate, import and mount `feedbackRouter` in `apiv1.js`.
+### Role catalog (`/api/v1/roles`)
+
+These endpoints require the `users.roles.manage` permission. They manage role definitions, inspect assignments, and create or deactivate role assignments.
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/` | List active and inactive role definitions |
+| `POST` | `/` | Create a role using backend-approved permission keys |
+| `PATCH` | `/:id` | Update role details without changing `roleKey` |
+| `GET` | `/users?search=` | Search users by display name, email, or NetID |
+| `GET` | `/users/:id/assignments` | Read a user's active role assignments |
+| `POST` | `/users/:id/assignments` | Assign an active role to a user. Body: `{ roleId, committeeId?, reportsToUserId?, expiresAt? }` |
+| `DELETE` | `/users/:id/assignments/:assignmentId` | Deactivate an assignment without deleting its history |
+
+`roleName` is the display name. `roleKey` is the stable internal identifier, such as `finance_director`. The API validates role keys, field lengths, booleans, and recognized permissions. It returns only deliberate user identity fields during search.
+
+Assignment creation validates the target user, role, optional committee, optional reporting user, expiration date, duplicate active assignments, inactive roles, and self-reporting. Assignment creation records `assignedBy` from the authenticated session. Deactivation records `deactivatedBy` and `deactivatedAt` while preserving the assignment record.
+
+### Event administration (`/api/v1/event-requests`)
+
+Officer-only event operations use separate EventRequests records before publishing an Events record. The requesting group is the committee, student organization, or IUGA group asking to run the event; it is not the authenticated requester. All actor fields come from the authenticated session. Leadership actions require `events.leadership.approve`; budget changes require `events.finance.manage`; purchase checkpoint changes require `events.purchases.complete`.
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/` | Submit an event request. Requester and organizer come from the session. |
+| `PATCH` | `/:id` | Resubmit a request after leadership requests changes; only its requester may edit it. |
+| `GET` | `/templates/slides` | Return configured OneDrive slide templates from `EVENT_SLIDE_TEMPLATES`. |
+| `GET` | `/mine` | List requests submitted by the current officer. |
+| `GET` | `/` | List officer requests, optionally filtered by `status` or `requesterId`. |
+| `GET` | `/:id` | Read one request and its checkpoints. |
+| `POST` | `/:id/request-changes` | Leadership returns a request with a required reason. |
+| `POST` | `/:id/deny` | Leadership denies a request with a required reason. |
+| `POST` | `/:id/approve` | Leadership approves and publishes an Events record; this completes the `proposal` checkpoint. |
+| `PATCH` | `/:id/checklist/:step` | Update an independent checkpoint. The sequence is `proposal`, `meeting`, `finance`, `room`, `marketing`, `purchases`, `completion`, `review`. |
+| `PATCH` | `/:id/budget` | Finance records allocated and actual cents. |
+| `PATCH` | `/:id/booking` | Record room booking details and actor audit fields. |
+| `PATCH` | `/:id/review-tracking` | Store the external OneDrive/Microsoft Forms review link and manually record receipt. |
+| `POST` | `/:id/reviews` | Submit an organizer or distinct-member post-event review. |
+| `GET` | `/:id/reviews` | List post-event reviews. |
+| `POST` | `/:id/complete` | Close an approved request after all checkpoints and both reviews are complete. |
+Money is displayed as dollars and cents in the UI, then converted to an integer number of cents before the API call. For example, `$125.50` becomes `{ "allocatedCents": 12550 }`; the backend never stores floating-point currency.
+
+### Recruitment (`/api/v1/recruitment`)
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `GET` | `/creative` | No | Report whether the Creative Committee application is open. Returns `{ application: { isOpen: true, formUrl, closesAt } }` while an open campaign exists, otherwise `{ application: { isOpen: false } }`. Responses set `Cache-Control: no-store`. |
+
+The campaign comes from the locally defined `CommitteeRecruitment` model (not the shared schemas submodule). Startup seeds one Creative record with `$setOnInsert`, so later database edits persist. The server decides openness (`closesAt > now`); the client falls back to the contact dialog on any error.
+
+### Shop (`/api/v1/shop`)
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| `GET` | `/catalog` | No | Public catalog: `catalogId`, `catalogVersion`, currency, sale window, and each item's sku, name, allowed sizes, and `unitPriceCents`. |
+| `POST` | `/checkout` | Yes | Returns 503 for a valid cart while online checkout is not exposed in production. When `stripeCheckoutExposed` is enabled, creates a Stripe Checkout Session for the authenticated cart and returns its hosted URL. |
+| `GET` | `/checkout/:sessionId` | Yes | Confirm a returning Checkout Session belongs to the signed-in buyer and reports paid by Stripe before the browser removes purchased items from its cart. |
+
+**Cart consolidation:** a cart is a list of entries, each naming a product (`sku`), a `size`, and a `quantity`. When the same `sku` and `size` appears more than once, the backend merges those entries into one and adds their quantities — two "hoodie / size M" entries become a single line with quantity 2. Adding the same product and size again therefore raises the quantity rather than creating a duplicate. This is what the backend calls a cart **line**: one product and size carrying a combined quantity.
+
+Required environment variables for Shop checkout:
+
+- `STRIPE_SECRET_KEY` — Stripe secret API key (`sk_test_...` in development). When unconfigured, `/checkout` fails closed with 503.
+- `SHOP_RETURN_BASE_URL` — Return base URL for redirecting buyers after completion or cancellation (e.g. `http://localhost:3000`, no trailing slash). When unconfigured, `/checkout` fails closed with 503.
+
+Online checkout is not exposed in production: `POST /checkout` returns 503 for a valid cart unless `createShopRouter()` receives `stripeCheckoutExposed: true`, and production wiring does not set it. The Stripe path is kept in the repository. Checkout returns a session ID alongside the hosted URL. The success redirect includes that ID; the frontend keeps a per-session cart snapshot and only removes purchased lines after `/checkout/:sessionId` confirms payment. A canceled or unconfirmed return keeps the cart. Stripe does not automatically email payment receipts for sandbox purchases. Live-mode email receipts depend on Stripe's customer-email settings and an email address collected at checkout.
 
 ### Administration (`/api/v1/administration`) — *not currently wired*
 
@@ -145,15 +217,66 @@ The backend uses **server-side sessions** with `express-session`.
 
 ### Session check
 
-Route handlers check `req.session.isAuthenticated` to determine auth state. There is no dedicated middleware — each controller checks inline.
+`utils/auth.js` provides session and permission middleware:
+
+- `requireAuth` — requires a logged-in session
+- `requireAdmin` — requires a logged-in admin/officer session
+- `requireOfficerRolePermission("users.roles.manage")` — requires an active role assignment granting the permission.
+
+The permission middleware loads active role assignments for the session user and checks the populated role permissions before calling `next()`.
+
+| Middleware | Blocks when | Returns |
+|---|---|---|
+| `requireAuth` | No session (`req.session.isAuthenticated` falsy) | `401` not authenticated |
+| `requireAdmin` | No session, or logged in but not an officer (`req.session.isAdmin` falsy) | `401` not authenticated / `403` not authorized |
+
+Attach them in the route chain, e.g. `router.post("/", requireAuth, handler)` or `router.post("/:id/approve", requireAdmin, handler)`. They run before the route handler; `next()` passes the request through.
 
 ### Session destruction
 
-`POST /api/v1/user/logout` destroys the session and responds with `{ status: "success" }`.
+`POST /api/v1/user/logout` destroys the session. A successful response is `{ status: "success" }`; a session-store failure returns the generic 500 error envelope.
+
+### HTTP security boundaries
+
+The application applies these checks before API handlers:
+
+- The session signing secret is supplied at startup from the deployment-matching variable (`SESSION_SECRET_DEV`, `SESSION_SECRET_STAGING`, or `SESSION_SECRET_PROD`, chosen by `DEPLOY_ENV`); there is no source-controlled fallback.
+- Session cookies are `httpOnly`, use `SameSite=Lax`, and are `secure` in staging and production.
+- Authenticated `POST`, `PUT`, `PATCH`, and `DELETE` requests must include an allowed browser `Origin`. Login is exempt because it uses a Microsoft Bearer token instead of a session cookie.
+- CORS and CSRF allow HTTP origins on the exact `localhost` hostname for local development (including dynamically selected Vite ports), plus the documented IUGA domains. Other hosts and protocols remain rejected.
+- CORS middleware runs before `GET /readyz`, so the local frontend can read the readiness response while setting up sign-in.
+- JSON and URL-encoded bodies are limited to 32 KB. API traffic is limited to 100 requests per 15 minutes, and login is limited to 10 requests per minute per client address.
+- Malformed JSON, oversized bodies, CORS failures, and unexpected server failures return the repository JSON error envelope rather than HTML or stack traces.
+
+Production dependency audits currently pass for the backend. The frontend audit still reports two moderate React Router advisories:
+
+- `GHSA-wrjc-x8rr-h8h6` — open redirect through backslash handling.
+- `GHSA-337j-9hxr-rhxg` — constructor injection in SSR hydration error deserialization.
+
+The current frontend uses React Router 6 with `BrowserRouter` and does not use SSR hydration. Existing navigation targets are internal paths, so no affected external redirect flow is currently documented; future route-input changes must preserve that property. The available fix requires a breaking React Router 7 upgrade. **Owner:** frontend maintainer, in a separate migration.
 
 ---
 
 ## Database
+
+### Local MongoDB helper
+
+Local backend `npm start` and `npm run debug` automatically start or reuse an isolated `mongo:7` container. Run `npm run docker --prefix backend` to start just the database.
+Docker selects an available host port and publishes it only on IPv4 loopback;
+the database itself listens on port `27017` inside each container. A hash of the
+checkout's absolute path determines its stable `iuga-mongo-<hash>` name. Different
+worktrees have separate databases; restarting a checkout preserves its data, and
+new databases start empty. Moving a checkout changes its database identity; old
+containers are retained. The helper does not stop Homebrew MongoDB, replace
+containers, or remove data volumes. Use Docker Engine 28 or newer: older releases
+can expose localhost-published ports to other hosts on the same network segment.
+
+After MongoDB is ready, the helper prints its selected connection URI. Local
+startup passes this URI to the backend automatically, ignoring `DB_URI` in both
+the environment file and the shell so inherited settings cannot cause worktrees
+to share a database. It does not edit `.env.dev` or redirect other running
+backends. Deployment continues to use its configured URI without Docker startup.
+The helper rejects port bindings that are not IPv4 loopback-only.
 
 ### Connection
 
@@ -169,15 +292,21 @@ if (DEPLOY_ENV === "production" || DEPLOY_ENV === "staging") {
 
 ### Models
 
-Three Mongoose models are registered at startup:
+Mongoose models are registered at startup:
 
 | Model | Schema Source | Collection |
 |---|---|---|
 | `Events` | `eventsSchema` | `events` |
 | `Participants` | `participantsSchema` | `participants` |
 | `Users` | `usersSchema` | `users` |
+| `Roles` | `rolesSchema` | `roles` |
+| `RoleAssignments` | `roleAssignmentsSchema` | `roleassignments` |
+| `EventRequests` | `eventRequestsSchema` | `eventrequests` |
+| `EventReviews` | `eventReviewsSchema` | `eventreviews` |
+| `Committees` | `committeesSchema` | `committees` |
+| `CommitteeRecruitment` | `committeeRecruitmentSchema` (local) | `committeerecruitments` |
 
-The schemas live in a **separate GitHub repository** (`UW-IUGA/iuga-web-schemas`) mounted as a submodule at `backend/schemas/`. If the submodule is not initialized, the backend will fail to start.
+The schemas live in a **separate GitHub repository** (`UW-IUGA/iuga-web-schemas`) mounted as a submodule at `backend/schemas/`. If the submodule is not initialized, the backend will fail to start. `CommitteeRecruitment` is the exception: its schema lives in `backend/committeeRecruitment.js` so the campaign model stays out of the shared submodule.
 
 ### Schema details (from submodule)
 
@@ -187,24 +316,39 @@ Based on controller usage, the schemas include these fields:
 
 **Participants**: `pUID` (ref → Users), `eID` (ref → Events), `rsvpAnswers` (array of `{ qId, aString }`), `isAnon`
 
-**Users**: `uFirstName`, `uLastName`, `uDisplayName`, `uEmail`, `uType` (e.g., "Admin")
+**Users**: `uFirstName`, `uLastName`, `uDisplayName`, `uEmail`, `uNetId`, `uType` (e.g., "Admin")
+
+**Roles**: `roleName`, `roleKey`, `roleDescription`, `permissions`, `isActive`, `createdBy`, `updatedBy`
+
+**RoleAssignments**: `userId`, `roleId`, optional `committeeId`, optional `reportsToUserId`, `assignedBy`, `assignedAt`, optional `expiresAt`, `deactivatedBy`, `deactivatedAt`, `isActive`
+
+**Committees**: `cmeName`, `cmeDescription`, `cmeYear`, `cmeMembers` (array of objects with `cmeUID` (ref → Users) and `memberPic`)
+
+**CommitteeRecruitment** (local, not the submodule): `committee` (unique), `formUrl`, `closesAt`
+
+**EventRequests**: session-derived requester/organizer, requesting group, event details, lifecycle status, ordered checkpoints, finance and booking data, selected slide template, external review link/receipt, published event link, and actor/timestamp audit fields.
+
+**EventReviews**: request id, session-derived reviewer, enforced `organizer` or `member` role, review responses, attendee count, and integer-cent total spend.
 
 ---
 
 ## Middleware Stack (in order)
 
-1. `cors()` — enabled only when `DEPLOY` environment variable is not set (dev)
-2. `morgan('dev')` — HTTP request logging
-3. `express.json()` — JSON body parsing
-4. `express.urlencoded({ extended: false })` — URL-encoded body parsing
-5. `cookie-parser` — Cookie parsing
-6. `express.static("../frontend/build")` — Static file serving
-7. `express-session` — Server-side session management
-8. Custom middleware — attaches `req.models` (Mongoose models) to each request
-9. SPA route handlers — serve `index.html` for browser routes
-10. `app.use('/api/v1', apiv1Router)` — API route mount
+1. `cors()` — allows only configured browser origins and credentials
+2. Security-header middleware — adds `nosniff`, `DENY`, and strict referrer policy
+3. `morgan('dev')` — HTTP request logging
+4. `express.json()` and `express.urlencoded()` — parse bodies up to 32 KB
+5. `cookie-parser` — parses incoming cookies
+6. `express.static("../frontend/build")` — serves built frontend assets
+7. `express-session` — creates explicit, environment-aware session cookies
+8. CSRF middleware — rejects authenticated mutations without a trusted `Origin`
+9. Model middleware — attaches `req.models` to each request
+10. SPA route handlers — serve `index.html` for browser routes
+11. `/uploads` static delivery — serves public uploaded files
+12. `/api/v1` rate limiter and router — limits API traffic before dispatch
+13. `httpErrorHandler` — converts parser, CORS, and unexpected failures to safe JSON
 
-Note: ETag is **disabled** (`app.disable('etag')`) to ensure clients always get the latest version.
+ETags are disabled with `app.disable('etag')`, so responses do not use conditional-cache headers.
 
 ---
 
@@ -216,20 +360,18 @@ Note: ETag is **disabled** (`app.disable('etag')`) to ensure clients always get 
 | `mongoose` | MongoDB ODM |
 | `express-session` | Server-side sessions |
 | `morgan` | HTTP request logging |
-| `cors` | Cross-origin resource sharing (dev only) |
+| `cors` | Cross-origin resource sharing |
 | `cookie-parser` | Cookie parsing |
 | `dotenv-cli` | Load environment files |
-| `node-fetch` | HTTP requests to Microsoft Graph API |
-| `@sendgrid/mail` | Email sending (installed, usage unconfirmed from source) |
-| `node-cache` | In-memory caching |
-| `node-cron` | Scheduled tasks |
-| `handlebars` | Template engine (installed, not used in current routes) |
+| `stripe` | Stripe hosted checkout SDK |
+| Native `fetch` | HTTP requests to Microsoft Graph API |
 
 ---
 
 ## Related Documents
 
 - [Architecture Overview](ARCHITECTURE.md) — System components and data flow
+- [Commenting Guide](COMMENTING.md) — House style for code comments
 - [Development Guide](DEVELOPMENT.md) — Setup, scripts, code conventions
 - [Frontend Documentation](FRONTEND.md) — React app structure, routing, auth flow
 - [Deployment Guide](DEPLOYMENT.md) — Environments, CI/CD, Docker

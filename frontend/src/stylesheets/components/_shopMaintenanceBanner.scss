@@ -1,0 +1,31 @@
+// A slim notice under the navigation on every page, shown only to students with items in their cart.
+.shopMaintenanceBanner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: center;
+    gap: 4px 16px;
+    padding: 10px $page-margin;
+    border-bottom: 1px solid rgba($color-academic-primary, 0.4);
+    background: $color-academic-light;
+    color: $color-academic-capsule;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    text-align: center;
+
+    p {
+        margin: 0;
+    }
+
+    &__countdown {
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+
+    &--paused {
+        border-bottom-color: rgba($color-dark-gray, 0.25);
+        background: $color-gray;
+        color: $color-dark-gray;
+    }
+}

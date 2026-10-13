@@ -147,6 +147,25 @@ unauthorized: authentication required
    ls -la /var/lib/iuga-web-app/uploads/<env>/
    ```
 
+### 1.6 Deploy: Candidate port already allocated
+
+**Symptom:** Jenkins fails at the Deploy stage, before the live container is replaced, with:
+
+```
+docker: Error response from daemon: ... Bind for 127.0.0.1:<port> failed: port is already allocated
+```
+
+The live site keeps serving the previous build.
+
+**Probable cause:** Another deployment on the shared host publishes the same port as this environment's candidate (`tempPort`). This happened in October 2026, when the production candidate port matched the production admin console's port. A leftover candidate container is not the cause: the deploy removes `iuga-web-<env>-candidate` before starting a new one.
+
+**Diagnosis steps:**
+1. Find what holds the port (requires host access):
+   ```bash
+   docker ps --format '{{.Names}}\t{{.Ports}}' | grep <port>
+   ```
+2. Do not stop the other service. Pick a free candidate port and follow [Shared host port allocation](DEPLOYMENT.md#shared-host-port-allocation).
+
 ---
 
 ## 2. Runtime Failures

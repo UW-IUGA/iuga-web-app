@@ -259,7 +259,7 @@ The application applies these checks before API handlers:
 - Authenticated `POST`, `PUT`, `PATCH`, and `DELETE` requests must include an allowed browser `Origin`. Login is exempt because it uses a Microsoft Bearer token instead of a session cookie.
 - CORS and CSRF allow HTTP origins on the exact `localhost` hostname for local development (including dynamically selected Vite ports), plus the documented IUGA domains. Other hosts and protocols remain rejected.
 - CORS middleware runs before `GET /readyz`, so the local frontend can read the readiness response while setting up sign-in.
-- JSON and URL-encoded bodies are limited to 32 KB. API traffic is limited to 100 requests per 15 minutes, and login is limited to 10 requests per minute per client address.
+- JSON and URL-encoded bodies are limited to 32 KB. API traffic is limited per 15 minutes to 300 requests for each signed-in student and 600 for each network address without a sign-in (students on campus Wi-Fi share addresses), and login is limited to 10 requests per minute per client address.
 - Malformed JSON, oversized bodies, CORS failures, and unexpected server failures return the repository JSON error envelope rather than HTML or stack traces.
 
 Production dependency audits currently pass for the backend. The frontend audit still reports two moderate React Router advisories:

@@ -6,6 +6,7 @@ import { once } from "node:events";
 import userRouter from "../routes/api/v1/controllers/user.js";
 import {
   configureTrustedProxy,
+  createApiRateLimiter,
   createRateLimiter,
 } from "../routes/api/v1/utils/rateLimit.js";
 import { makeTestApi } from "./testApi.js";
@@ -115,6 +116,52 @@ describe("rate limiter middleware", () => {
       await new Promise((resolve, reject) =>
         server.close((error) => (error ? reject(error) : resolve())),
       );
+    }
+  });
+});
+
+describe("API rate limiter", () => {
+  async function probe({ userId } = {}) {
+    const app = express();
+    const limiter = createApiRateLimiter({
+      signedIn: { limit: 2, windowMs: 60_000 },
+      anonymous: { limit: 1, windowMs: 60_000 },
+    });
+    app.use((req, _res, next) => {
+      const id = req.get("x-test-user");
+      req.session = id ? { isAuthenticated: true, userId: id } : {};
+      next();
+    });
+    app.get("/probe", limiter, (_req, res) => res.json({ status: "success" }));
+    const server = app.listen(0);
+    await once(server, "listening");
+    const { port } = server.address();
+    const request = async (user) => {
+      const response = await fetch(`http://127.0.0.1:${port}/probe`, { headers: user ? { "x-test-user": user } : {} });
+      return response.status;
+    };
+    return { request, close: () => server.close(), userId };
+  }
+
+  it("counts signed-in students one by one when they share a network address", async () => {
+    const { request, close } = await probe();
+    try {
+      assert.deepStrictEqual([await request("student-a"), await request("student-a")], [200, 200]);
+      assert.equal(await request("student-a"), 429);
+      assert.equal(await request("student-b"), 200, "another student on the same address keeps their own allowance");
+    } finally {
+      close();
+    }
+  });
+
+  it("counts requests without a sign-in by network address", async () => {
+    const { request, close } = await probe();
+    try {
+      assert.equal(await request(), 200);
+      assert.equal(await request(), 429);
+      assert.equal(await request("student-a"), 200, "signing in moves the student to their own allowance");
+    } finally {
+      close();
     }
   });
 });

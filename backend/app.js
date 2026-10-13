@@ -10,7 +10,7 @@ import { createSessionOptions, readSessionSecret } from "./http/session.js";
 import apiv1Router from "./routes/api/v1/apiv1.js";
 import {
   configureTrustedProxy,
-  createRateLimiter,
+  createApiRateLimiter,
 } from "./routes/api/v1/utils/rateLimit.js";
 import { httpErrorHandler, sendSpaError } from "./http/errors.js";
 import {
@@ -38,9 +38,11 @@ await seedCreativeRecruitment(models.CommitteeRecruitment);
 const app = express();
 configureTrustedProxy(app);
 
-const apiRateLimiter = createRateLimiter({
-  limit: 100,
-  windowMs: 15 * 60_000,
+// Signed-in students are counted one by one. Everyone else is counted by network address, which
+// many students share on campus Wi-Fi, so that limit is higher.
+const apiRateLimiter = createApiRateLimiter({
+  signedIn: { limit: 300, windowMs: 15 * 60_000 },
+  anonymous: { limit: 600, windowMs: 15 * 60_000 },
 });
 
 configureCorsAndReadiness(app);

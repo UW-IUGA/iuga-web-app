@@ -31,6 +31,7 @@ def cfg = [
     realPort:  6666,
     uploadsDir: '/var/lib/iuga-web-app/uploads/dev',
     network:   false,   // dev container does not join the shared docker network
+    shopManualCheckout: true,   // dev uses MongoDB Atlas, a replica set, which shop holds need
 ]
 
 void setBuildStatus(String credential_id, String context, String state, String message) {

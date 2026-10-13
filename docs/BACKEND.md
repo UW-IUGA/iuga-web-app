@@ -185,6 +185,7 @@ Required environment variables for Shop checkout:
 
 - `STRIPE_SECRET_KEY` — Stripe secret API key (`sk_test_...` in development). When unconfigured, `/checkout` fails closed with 503.
 - `SHOP_RETURN_BASE_URL` — Return base URL for redirecting buyers after completion or cancellation (e.g. `http://localhost:3000`, no trailing slash). When unconfigured, `/checkout` fails closed with 503.
+- `SHOP_MANUAL_CHECKOUT_EXPOSED` — Optional. `true` opens the manual Venmo checkout (`/holds` routes). Off by default. Keep it off in production until the production database is a replica set and its replica-set tests pass.
 - `SHOP_LIMIT_CACHE_SECONDS` — Optional. How long per-student limits stay in memory before the database is read again. Defaults to 60. `0` turns the cache off; the smoke test sets it so limit changes apply at once.
 - `SHOP_HOLD_MINUTES` — Optional. How long a checkout hold lasts, in minutes. Defaults to 15. A testing environment can set a shorter value such as `1`; production keeps the default. Must be a positive number, or the backend fails at startup.
 

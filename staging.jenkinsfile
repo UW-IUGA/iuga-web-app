@@ -32,6 +32,7 @@ def cfg = [
     realPort:  7777,
     uploadsDir: '/var/lib/iuga-web-app/uploads/staging',
     network:   true,   // staging joins the shared docker network
+    shopManualCheckout: false,   // keep false until this MongoDB is a replica set; shop holds use transactions
 ]
 
 void setBuildStatus(String credential_id, String context, String state, String message) {

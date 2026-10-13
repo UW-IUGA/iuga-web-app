@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import ShopPage from "./Shop";
 import { ShopCartProvider } from "../context/ShopCartContext";
@@ -50,4 +50,21 @@ test("loads the shop with canonical catalog products and their real images", asy
             expect(image).toHaveAttribute("src", imagesBySku[sku]);
         }
     }
+});
+
+test("offers XS through 2XL on the apparel cards and no size choice on the tote bag", async () => {
+    render(
+        <MemoryRouter initialEntries={["/shop"]}>
+            <ShopCartProvider><ShopPage /></ShopCartProvider>
+        </MemoryRouter>,
+    );
+
+    const cardFor = async (name) => (await screen.findByRole("heading", { name, exact: true })).closest("article");
+    const sizeGroupOf = (card) => within(card).queryByRole("group", { name: "Choose size" });
+
+    for (const name of ["Hoodie", "Crewneck", "Baseball Tee"]) {
+        const sizeGroup = sizeGroupOf(await cardFor(name));
+        expect(within(sizeGroup).getAllByRole("button").map((button) => button.textContent)).toEqual(["XS", "S", "M", "L", "XL", "2XL"]);
+    }
+    expect(sizeGroupOf(await cardFor("Tote Bag"))).toBeNull();
 });

@@ -48,7 +48,7 @@ const EXPIRED_MESSAGE = "This hold has expired. Its items have been released.";
 
 const SHOP_MODEL_NAMES = ["ShopHolds", "ShopPurchases", "ShopCapacity", "ShopStudentUnits", "ShopStudentCheckouts", "ShopProductLimits"];
 const REQUIRED_UNIQUE_INDEXES = [
-  { model: "ShopCapacity", key: { catalogVersion: 1, sku: 1 } },
+  { model: "ShopCapacity", key: { catalogId: 1, sku: 1 } },
   { model: "ShopStudentUnits", key: { userId: 1, sku: 1 } },
   { model: "ShopProductLimits", key: { sku: 1 } },
   { model: "ShopPurchases", key: { holdId: 1 } },
@@ -199,6 +199,7 @@ run("shop manual Venmo checkout against the real backend", () => {
   let connection;
   let models;
   let dbName;
+  let catalogId;
   let catalogVersion;
   let primary;
   let seededUnits = new Map();
@@ -231,6 +232,7 @@ run("shop manual Venmo checkout against the real backend", () => {
           `(opensAt ${catalog.opensAt}, closesAt ${catalog.closesAt}).`,
       );
     }
+    catalogId = catalog.catalogId;
     catalogVersion = catalog.catalogVersion;
   });
 
@@ -402,7 +404,7 @@ run("shop manual Venmo checkout against the real backend", () => {
    * @behavior Write a stock counter for this run and remember the amount, so the ledger check can account for it.
    */
   async function seedCapacity(sku, reservedUnits) {
-    await models.ShopCapacity.create({ catalogVersion, sku, reservedUnits });
+    await models.ShopCapacity.create({ catalogId, sku, reservedUnits });
     seededUnits.set(sku, reservedUnits);
   }
 
@@ -411,7 +413,7 @@ run("shop manual Venmo checkout against the real backend", () => {
   }
 
   async function reservedUnits(sku) {
-    const doc = await models.ShopCapacity.findOne({ catalogVersion, sku }).lean();
+    const doc = await models.ShopCapacity.findOne({ catalogId, sku }).lean();
     return doc?.reservedUnits ?? 0;
   }
 

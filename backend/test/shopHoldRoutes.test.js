@@ -16,6 +16,7 @@ function storedHold(overrides = {}) {
   return {
     _id: HOLD_ID,
     userId: USER_ID,
+    catalogId: shopCatalog.catalogId,
     catalogVersion: shopCatalog.catalogVersion,
     status: "active",
     expiresAt: new Date(DEADLINE_MS),
@@ -159,6 +160,7 @@ describe("POST /api/v1/shop/holds", () => {
       assert.equal(store.calls.length, 1);
       assert.equal(store.calls[0].name, "createHold");
       assert.equal(store.calls[0].args.userId, USER_ID);
+      assert.equal(store.calls[0].args.catalogId, shopCatalog.catalogId);
       assert.equal(store.calls[0].args.catalogVersion, shopCatalog.catalogVersion);
       assert.equal(store.calls[0].args.nowMs, OPEN_MS);
       assert.deepEqual(store.calls[0].args.lines, [

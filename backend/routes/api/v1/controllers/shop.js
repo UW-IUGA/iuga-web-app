@@ -327,6 +327,7 @@ export function createShopRouter({
     try {
       const hold = await checkoutStore.createHold(req.models, {
         userId: req.session.userId,
+        catalogId: catalog.catalogId,
         catalogVersion: catalog.catalogVersion,
         lines: cartResult.lines,
         nowMs: currentMs,

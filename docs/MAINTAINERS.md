@@ -169,7 +169,19 @@ No route or screen records paid, not paid, or refunded yet; every purchase stays
 
 A deploy signs every student out, because sign-in sessions live in the app's memory. Holds and purchases are in the database and are not lost. To avoid interrupting students who are paying, pause new checkouts first, wait for the active holds to finish, deploy, then turn checkout back on. Run in `mongosh` against the environment's database.
 
-Pause new checkouts. Students with a hold can still confirm it; everyone else sees "Checkout is paused for a few minutes":
+**With a warning (preferred).** Announce a maintenance time, here 15 minutes from now. Students with items in their cart see a countdown banner on every page, checkout keeps working until then, and holds started in the meantime end at that time. When it arrives, new checkouts stop on their own:
+
+```js
+db.shopsettings.updateOne({ key: "shop" }, { $set: { maintenanceAt: new Date(Date.now() + 15 * 60 * 1000) } }, { upsert: true })
+```
+
+After the update, clear it so checkout opens again and the banner goes away:
+
+```js
+db.shopsettings.updateOne({ key: "shop" }, { $set: { maintenanceAt: null } })
+```
+
+**Right away.** Pause new checkouts now. Students with a hold can still confirm it; everyone else sees "Checkout is paused for a few minutes":
 
 ```js
 db.shopsettings.updateOne({ key: "shop" }, { $set: { newCheckoutsPaused: true } }, { upsert: true })

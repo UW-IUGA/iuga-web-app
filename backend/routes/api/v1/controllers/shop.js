@@ -34,7 +34,7 @@ import {
 import { requireAuth } from "../utils/auth.js";
 import * as defaultCheckoutStore from "../utils/shopCheckoutStore.js";
 import { ShopHoldError } from "../utils/shopCheckoutStore.js";
-import { holdTotalCents, normalizePhoneNumber, normalizeVenmoUsername } from "../utils/shopHolds.js";
+import { checkoutStatusAt, holdTotalCents, normalizePhoneNumber, normalizeVenmoUsername } from "../utils/shopHolds.js";
 
 const OBJECT_ID_PATTERN = /^[a-f0-9]{24}$/i;
 const CHECKOUT_PAUSED_MESSAGE =
@@ -272,6 +272,37 @@ export function createShopRouter({
     return sendSuccess(res, { url: session.url, sessionId: session.id });
   });
 
+  /*
+  Purpose: Tell the site whether shop checkout is paused or has a maintenance time announced, so it can warn
+           students who have items in their cart.
+  Authentication/Authorization Requirements: None (public, like the catalog).
+  Expected Request Information: None.
+  Expected Response Information:
+  - 200 { status: "success", shop: { checkoutPaused: boolean, maintenanceAt: ISO string | null } }
+    (maintenanceAt is null once that time has passed; checkoutPaused is then true)
+  - 500 The settings could not be read
+  */
+  router.get("/status", async (req, res) => {
+    // Where checkout is not offered there is nothing to warn about.
+    if (manualCheckoutExposed !== true) {
+      return sendSuccess(res, { shop: { checkoutPaused: false, maintenanceAt: null } });
+    }
+    try {
+      const currentMs = now();
+      const { checkoutPaused, maintenanceAtMs } = checkoutStatusAt(
+        await checkoutStore.findCheckoutSettings(req.models),
+        currentMs,
+      );
+      const upcoming = maintenanceAtMs !== null && maintenanceAtMs > currentMs;
+      return sendSuccess(res, {
+        shop: { checkoutPaused, maintenanceAt: upcoming ? new Date(maintenanceAtMs).toISOString() : null },
+      });
+    } catch (error) {
+      console.error("Shop status failed:", error);
+      return sendError(res, 500, "Unable to load the shop status right now.");
+    }
+  });
+
   // Checked before any hold route reads or writes the database. Production keeps
   // manualCheckoutExposed off until its database passes the replica-set tests.
   function manualCheckoutClosed(res) {
@@ -328,10 +359,15 @@ export function createShopRouter({
 
     try {
       // Only new holds are paused. A student who already has a hold can still confirm or cancel it.
-      if (await checkoutStore.isNewCheckoutPaused(req.models)) {
+      const { checkoutPaused, maintenanceAtMs } = checkoutStatusAt(
+        await checkoutStore.findCheckoutSettings(req.models),
+        currentMs,
+      );
+      if (checkoutPaused) {
         return sendError(res, 503, CHECKOUT_PAUSED_MESSAGE);
       }
       const hold = await checkoutStore.createHold(req.models, {
+        maintenanceAtMs,
         userId: req.session.userId,
         catalogId: catalog.catalogId,
         catalogVersion: catalog.catalogVersion,

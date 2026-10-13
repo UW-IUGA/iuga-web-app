@@ -16,8 +16,8 @@ import {
   cancelHold,
   confirmHold,
   createHold,
+  findCheckoutSettings,
   getHold,
-  isNewCheckoutPaused,
   removeLineFromHold,
   ShopHoldError,
   sweepExpiredHolds,
@@ -175,14 +175,39 @@ run("shop checkout store on a replica set", () => {
     assert.equal(await counter(catalogId, "info-hoodie"), 23);
   });
 
-  it("reports new checkouts as paused only while the setting is on", async () => {
-    assert.equal(await isNewCheckoutPaused(models), false, "a missing settings document means not paused");
+  it("reads the pause switch and the maintenance time an officer sets", async () => {
+    assert.deepEqual(
+      await findCheckoutSettings(models),
+      { newCheckoutsPaused: false, maintenanceAtMs: null },
+      "a missing settings document means not paused and nothing planned",
+    );
 
-    await models.ShopSettings.updateOne({ key: "shop" }, { $set: { newCheckoutsPaused: true } }, { upsert: true });
-    assert.equal(await isNewCheckoutPaused(models), true);
+    const maintenanceAt = new Date(Date.now() + 15 * 60 * 1000);
+    await models.ShopSettings.updateOne(
+      { key: "shop" },
+      { $set: { newCheckoutsPaused: true, maintenanceAt } },
+      { upsert: true },
+    );
+    assert.deepEqual(await findCheckoutSettings(models), {
+      newCheckoutsPaused: true,
+      maintenanceAtMs: maintenanceAt.getTime(),
+    });
 
-    await models.ShopSettings.updateOne({ key: "shop" }, { $set: { newCheckoutsPaused: false } });
-    assert.equal(await isNewCheckoutPaused(models), false);
+    await models.ShopSettings.updateOne({ key: "shop" }, { $set: { newCheckoutsPaused: false, maintenanceAt: null } });
+    assert.deepEqual(await findCheckoutSettings(models), { newCheckoutsPaused: false, maintenanceAtMs: null });
+  });
+
+  it("ends a hold at the announced maintenance time when that comes first", async () => {
+    const { catalogId, catalogVersion } = testDrop();
+    const userId = new mongoose.Types.ObjectId();
+    const nowMs = Date.now();
+    const maintenanceAtMs = nowMs + 5 * 60 * 1000;
+
+    const hold = await createHold(models, {
+      userId, catalogId, catalogVersion, lines: [line("info-hoodie")], nowMs, maintenanceAtMs,
+    });
+
+    assert.equal(new Date(hold.expiresAt).getTime(), maintenanceAtMs);
   });
 
   it("rejects a cart over the default limit of 5 per student", async () => {

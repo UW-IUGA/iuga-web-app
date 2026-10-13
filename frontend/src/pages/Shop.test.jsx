@@ -52,6 +52,21 @@ test("loads the shop with canonical catalog products and their real images", asy
     }
 });
 
+test("shows the confirmed material on each product card", async () => {
+    render(
+        <MemoryRouter initialEntries={["/shop"]}>
+            <ShopCartProvider><ShopPage /></ShopCartProvider>
+        </MemoryRouter>,
+    );
+
+    const cardFor = async (name) => (await screen.findByRole("heading", { name, exact: true })).closest("article");
+
+    expect(within(await cardFor("Hoodie")).getByText("50/50 cotton/polyester fleece")).toBeInTheDocument();
+    expect(within(await cardFor("Crewneck")).getByText("60/40 cotton/polyester")).toBeInTheDocument();
+    expect(within(await cardFor("Baseball Tee")).getByText("90/10 cotton/polyester jersey")).toBeInTheDocument();
+    expect(within(await cardFor("Tote Bag")).getByText("60/40 recycled cotton/polyester")).toBeInTheDocument();
+});
+
 test("offers XS through 2XL on the apparel cards and no size choice on the tote bag", async () => {
     render(
         <MemoryRouter initialEntries={["/shop"]}>
@@ -67,4 +82,20 @@ test("offers XS through 2XL on the apparel cards and no size choice on the tote 
         expect(within(sizeGroup).getAllByRole("button").map((button) => button.textContent)).toEqual(["XS", "S", "M", "L", "XL", "2XL"]);
     }
     expect(sizeGroupOf(await cardFor("Tote Bag"))).toBeNull();
+});
+
+test("shows one material line on each product card", async () => {
+    render(
+        <MemoryRouter initialEntries={["/shop"]}>
+            <ShopCartProvider><ShopPage /></ShopCartProvider>
+        </MemoryRouter>,
+    );
+
+    const cardFor = async (name) => (await screen.findByRole("heading", { name, exact: true })).closest("article");
+    const specLines = (card) => Array.from(card.querySelectorAll(".shopCard__spec"), (line) => line.textContent);
+
+    expect(specLines(await cardFor("Hoodie"))).toEqual(["50/50 cotton/polyester fleece"]);
+    expect(specLines(await cardFor("Crewneck"))).toEqual(["60/40 cotton/polyester"]);
+    expect(specLines(await cardFor("Baseball Tee"))).toEqual(["90/10 cotton/polyester jersey"]);
+    expect(specLines(await cardFor("Tote Bag"))).toEqual(["60/40 recycled cotton/polyester"]);
 });

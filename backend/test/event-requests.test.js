@@ -1,5 +1,7 @@
 import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
+import mongoose from "mongoose";
+import { eventRequestsSchema, eventsSchema, usersSchema } from "../schemas/schemas.js";
 import eventRequestsRouter from "../routes/api/v1/controllers/eventRequests.js";
 import { makeTestApi } from "./testApi.js";
 
@@ -264,5 +266,36 @@ describe("event request API", () => {
     assert.equal(result.status, 201);
     assert.equal(result.body.review.reviewerRole, "member");
     assert.equal(result.body.review.reviewerId, reviewerId);
+  });
+
+  it("returns reviewer names without account, contact, or payment details", { skip: !process.env.SHOP_REPLSET_URI }, async () => {
+    const connection = await mongoose.createConnection(process.env.SHOP_REPLSET_URI, {
+      dbName: `event_privacy_${new mongoose.Types.ObjectId()}`,
+    }).asPromise();
+    try {
+      const models = {
+        ...makeModels(),
+        EventRequests: connection.model("EventRequests", eventRequestsSchema),
+      };
+      const Users = connection.model("Users", usersSchema);
+      connection.model("Events", eventsSchema);
+      await Users.create({
+        _id: organizerId, uNetId: "private-net-id", uDisplayName: "Test Organizer",
+        uVenmoUsername: "private.venmo", uPhoneNumber: "2065550123", uType: "Admin", uPrivate: true,
+      });
+      await models.EventRequests.create({ ...submittedRequest, submittedBy: organizerId });
+
+      const result = await api.request("GET", `/api/v1/event-requests/${requestId}`, undefined, { models });
+      assert.equal(result.status, 200);
+      for (const person of [result.body.eventRequest.requesterId, result.body.eventRequest.organizerId]) {
+        assert.equal(person.uDisplayName, "Test Organizer");
+        for (const forbidden of ["uNetId", "uVenmoUsername", "uPhoneNumber", "uType", "uPrivate"]) {
+          assert.ok(!Object.hasOwn(person, forbidden), `${forbidden} must not be returned to reviewers`);
+        }
+      }
+    } finally {
+      await connection.dropDatabase();
+      await connection.close();
+    }
   });
 });

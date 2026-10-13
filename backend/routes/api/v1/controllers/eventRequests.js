@@ -171,9 +171,15 @@ function completeCheckpoint(checkpoints, key, actorId) {
   );
 }
 
+// Reviewers see who asked for and who runs an event, and nothing else from those accounts.
+// Credentials and contact or payment details (NetID, Venmo username, phone) are never selected.
+const REVIEWER_USER_FIELDS = "uFirstName uLastName uDisplayName uEmail";
+
 async function findRequest(req, id) {
   return req.models.EventRequests.findById(id)
-    .populate("requesterId organizerId publishedEventId")
+    .populate("requesterId", REVIEWER_USER_FIELDS)
+    .populate("organizerId", REVIEWER_USER_FIELDS)
+    .populate("publishedEventId")
     .lean();
 }
 

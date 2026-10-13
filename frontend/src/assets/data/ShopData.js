@@ -4,8 +4,8 @@ import infoBaseballTee from "../shop/info-baseball-tee.png";
 import infoToteBag from "../shop/info-tote-bag.png";
 
 // What each card says about the product, kept to what helps a student decide:
-// material is the fabric blend of the color we sell (no fabric weight or construction terms).
-// Leave a field out until it is confirmed.
+// material is the fabric blend of the color we sell (no fabric weight or construction terms),
+// and dimensions is only for items without a size to choose. Leave a field out until it is confirmed.
 export const shopProducts = [
     {
         sku: "info-hoodie",
@@ -32,5 +32,6 @@ export const shopProducts = [
         name: "Tote Bag",
         image: infoToteBag,
         material: "60/40 recycled cotton/polyester",
+        dimensions: "14 in H x 24 in W x 7 in D",
     },
 ];

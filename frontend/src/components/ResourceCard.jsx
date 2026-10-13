@@ -1,15 +1,27 @@
-import Button from "./Button";
-
-const ResourceCard = ({ resource }) => {
+const ResourceCard = ({ resource, category }) => {
     return (
-        <div className="resourceBox">
-            <img className="resourceIcon" src={resource.rImage} alt={`${resource.rName} icon`} />
-            <div className="resourceContent">
+        <article className="resourceCard editorial-card">
+            <div className="resourceCardIcon">
+                {resource.rImage ? (
+                    <img src={resource.rImage} alt={`${resource.rName} icon`} />
+                ) : (
+                    <span aria-label={`${resource.rName} icon unavailable`}>{resource.rName.charAt(0)}</span>
+                )}
+            </div>
+            <div className="resourceCardContent">
+                <p className="resourceCardCategory">{category}</p>
                 <h3>{resource.rName}</h3>
                 <p>{resource.rDescription}</p>
-                <Button text="Learn More" className="primary-button" type="right-arrow" onClick={() => {window.open(resource.rLink)}} />
+                {resource.rLink ? (
+                    <a className="pill-button resourceCardLink" href={resource.rLink} target="_blank" rel="noreferrer">
+                        Visit resource
+                        <span className="sr-only"> (opens in a new tab)</span>
+                    </a>
+                ) : (
+                    <span className="resourceCardPending">Details coming soon</span>
+                )}
             </div>
-        </div>
+        </article>
     );
 };
 

@@ -5,6 +5,24 @@
 > **Reference:** [Deployment Guide](DEPLOYMENT.md), [Maintainers Guide](MAINTAINERS.md).
 
 ---
+## Local development sign-in
+
+If clicking sign-in shows a backend/Docker reminder, run this from the checkout root. It starts or reuses that checkout's Docker MongoDB automatically:
+
+```bash
+npm run dev
+```
+
+Development checks the backend's `GET /readyz` endpoint before redirecting to UW NetID. With `npm run dev`, use the backend URL printed in the terminal (normally `http://localhost:7777`); local startup moves to the next available port if the configured port is occupied, including when `PORT` is set in `backend/env/.env.dev`. The root dev script passes the selected backend URL to Vite. Deployment keeps an explicitly configured port fixed. Production does not run this local readiness check.
+
+### Local MongoDB or Shop connection refused
+
+- `ECONNREFUSED 127.0.0.1:27017` means no database accepts connections at that address. Current local startup manages its own database port and ignores file and shell `DB_URI` values. Use root `npm start` or backend `npm start`, rather than launching `bin/www.cjs` directly, and check that this checkout includes the current startup scripts.
+- Vite proxy errors for `/api/v1/shop/catalog` mean its backend is unavailable. Start the full stack with root `npm start`, rather than starting Vite alone; this also pairs Vite with the correct backend when several versions run in parallel.
+- `vite: command not found` means dependencies are missing in that checkout. Run root `npm run setup` once.
+- Local managed databases require Docker. On macOS the helper opens Docker Desktop if needed; other systems must start their Docker daemon first. Existing databases are not imported into the new, isolated containers.
+
+---
 
 ## 1. Pipeline Failures
 
@@ -64,15 +82,15 @@ The command '/bin/sh -c npm run build' returned a non-zero code
 
 **Probable causes:**
 1. A frontend dependency changed without a lockfile update.
-2. The `sed` transform for API URL substitution failed (unexpected `DEPLOY_ENV` value).
+2. The `VITE_API_URL` build argument is missing or incorrect.
 3. Out of disk space on the Jenkins worker.
 
 **Diagnosis steps:**
-1. Check the Jenkins build log for the specific `npm` or `sed` error.
-2. Verify `DEPLOY_ENV` is one of `development`, `staging`, or `production`.
+1. Check the Jenkins build log for the specific `npm` or `VITE_API_URL` error.
+2. Verify the pipeline passes the intended `VITE_API_URL` build argument.
 3. Reproduce locally:
    ```bash
-   docker build . -t test --build-arg DEPLOY_ENV=development
+   docker build . -t test --build-arg DEPLOY_ENV=development --build-arg VITE_API_URL=http://localhost:7777
    ```
 
 ---
@@ -233,7 +251,7 @@ If no ports are shown, the `-p` flag was omitted from `docker run`.
 ### Step 3 — Can you reach the application from the host?
 
 ```bash
-curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:<host-port>/
+curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:<host-port>/readyz
 ```
 
 - **200:** The app is healthy. The issue is in nginx configuration (TLS, proxy_pass URL, upstream definition). **Not managed by this repo.**

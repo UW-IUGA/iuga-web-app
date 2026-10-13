@@ -1,0 +1,119 @@
+/*
+ * Purpose: Style the reusable blocking acknowledgment dialog.
+ * Authentication/Authorization Requirements: None; callers decide when it is shown.
+ * Expected Response: A responsive dialog with a neutral page scrim.
+ */
+.alert-dialog-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: grid;
+    place-items: center;
+    padding: $padding-content;
+    background: rgba(17, 18, 22, 0.55);
+}
+
+.alert-dialog {
+    width: min(100%, 380px);
+    padding: 28px 24px 24px;
+    border: 1px solid #e4e4e4;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 16px 40px rgba(17, 18, 22, 0.18);
+    color: #1a1a1a;
+    font-family: $sans-serif;
+    text-align: center;
+
+    .alert-dialog-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        margin-bottom: 12px;
+        border-radius: 50%;
+        background: $color-lavender;
+        color: $color-uw-purple;
+        font-size: 1.1rem;
+        font-weight: 700;
+    }
+
+    .alert-dialog-eyebrow {
+        display: inline-block;
+        margin-bottom: 8px;
+        margin-left: 8px;
+        padding: 3px 10px;
+        border-radius: $radius-pill;
+        background: #f2f2f2;
+        color: $color-dark-gray;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        line-height: 1.4;
+        text-transform: uppercase;
+        vertical-align: super;
+    }
+
+    h2 {
+        margin: 0 0 8px;
+        font-family: $sans-serif;
+        font-size: 1.2rem;
+        font-weight: 700;
+        line-height: 1.3;
+    }
+
+    p {
+        margin: 0 0 20px;
+        color: $color-dark-gray;
+        font-size: 0.9rem;
+        line-height: 1.55;
+        overflow-wrap: anywhere;
+    }
+
+    a {
+        color: $color-primary;
+        font-weight: 600;
+        text-underline-offset: 2px;
+
+        &:hover {
+            color: $color-uw-purple;
+        }
+    }
+
+    .alert-dialog-confirm {
+        width: 100%;
+        padding: 11px 24px;
+        border: 2px solid $color-primary;
+        border-radius: $radius-pill;
+        background: #fff;
+        color: $color-primary;
+        font-size: 0.9rem;
+        font-weight: 700;
+        @include focus-ring;
+
+        &::before {
+            content: none;
+        }
+
+        &:hover {
+            background: $color-lavender;
+        }
+
+        &:active {
+            transform: translateY(1px);
+        }
+    }
+}
+
+@include media("<tablet") {
+    .alert-dialog {
+        padding: 24px 20px 20px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .alert-dialog-overlay,
+    .alert-dialog {
+        transition: none;
+    }
+}

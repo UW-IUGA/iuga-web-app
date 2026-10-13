@@ -1,18 +1,13 @@
 // components/RolePage.jsx
 import { useEffect, useState } from "react";
+import StudentProfileCard from "./StudentProfileCard";
 
 const CandidatePage = ({ candidate }) => {
   if (!candidate) return <div>Candidate data not available</div>;
   return (
     <div className="candidatePage">
-      <div className="img-name-container">
-        <div className="candidateImage">
-          <img src={candidate.picture} alt={candidate.name} />
-        </div>
-        <div className="space" />
-        <div className="candidateName">
-          <h2>{candidate.name}</h2>
-        </div>
+      <div className="candidatePage__profile">
+        <StudentProfileCard profile={candidate} />
       </div>
 
       <div className="aboutMe">

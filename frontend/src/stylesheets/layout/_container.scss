@@ -14,14 +14,23 @@
     z-index: 1;
 }
 
-@include media(">=sm-desktop", "<desktop") {
+@include media(">=tablet") {
     .baseContainer {
-        width: 1000px;
+        box-sizing: border-box;
+        width: min(1200px, calc(100% - $page-margin * 2));
     }
 }
 
-@include media("screen", "<sm-desktop") { 
+@include media(">=sm-desktop", "<desktop") {
     .baseContainer {
+        width: min(1000px, calc(100% - $page-margin * 2));
+    }
+}
+
+@include media("screen", "<tablet") {
+    .baseContainer {
+        box-sizing: border-box;
         width: 100vw;
+        padding-inline: $padding-content;
     }
 }

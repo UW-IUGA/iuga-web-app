@@ -6,9 +6,10 @@ This repository (`iuga-web-app`) contains two deployable units plus shared infra
 
 ```
 iuga-web-app/
-├── frontend/          → React SPA (Create React App)
+├── frontend/          → React SPA (Vite)
 ├── backend/           → Express.js API server
 ├── backend/schemas/   → Git submodule: UW-IUGA/iuga-web-schemas (Mongoose schemas)
+├── context/           → Git submodule (private): UW-IUGA/iUGA-Agent-Docs (Internal architecture plans)
 ├── Dockerfile         → Multi-stage build for production deployment
 ├── dev.jenkinsfile    → Jenkins pipeline (dev environment)
 ├── staging.jenkinsfile
@@ -33,7 +34,7 @@ Browser
    ├──[SPA route]──→ React (frontend/build/)
    │                    │
    │                    ├── page components (pages/)
-   │                    ├── shared UI (components/)
+   │                    ├── shared UI (components/ + layouts/)
    │                    ├── auth context (context/AuthContext.jsx)
    │                    └── API calls via fetch()
    │                         │
@@ -44,7 +45,7 @@ Browser
    │                    ├── routes/api/v1/  (controller modules)
    │                    └── schemas/        (Mongoose schema definitions, submodule)
    │                         │
-   │                    MongoDB (Atlas dev / local prod)
+   │                    MongoDB (Atlas or local Docker in development; deployment database in staging/production)
    │
    └──[static asset]──→ Express serves frontend/build/
 ```
@@ -53,19 +54,25 @@ Browser
 
 - Serve the single-page application (SPA) shell (`index.html`)
 - Client-side routing with React Router v6
-- Render pages: Home, Events, Resources, About, Elections, Election FAQ
+- Render pages: Home, Events, Resources, About, Get Involved, Shop, and Student
+  Voice.
+- **Archived, not deleted:** Elections and Election FAQ stay routed at
+  `/elections` and `/electionfaq`, but the navigation intentionally omits them.
+  They are unreachable from the UI by design, not by oversight.
+- Render shared responsive navigation and footer layouts around the routed pages
 - Manage authentication state via Azure MSAL (Microsoft Authentication Library)
-- In **production**: fetch data from `REACT_APP_API_URL` (set via `.env.production`)
+- In **production**: fetch data from same-origin `/api` routes. MSAL returns to the frontend's origin.
 - In **development**: use mock data from `src/assets/mock-data/` — no backend needed
 
 ### Backend Responsibilities
 
-- Express.js HTTP server (default port **7777**)
+- Express.js HTTP server (local development prefers **7777** and selects the next port if occupied; deployments use their configured port)
 - Serve the built SPA as static files (`GET /`, `/events`, `/resources`, etc.)
 - Mount REST API at `/api/v1`
+- Apply explicit CORS, security headers, body-size, rate-limit, CSRF, and safe-error boundaries
 - Manage server-side sessions with `express-session`
 - Connect to MongoDB (Mongoose ODM)
-- Models registered at startup: `Events`, `Participants`, `Users`
+- Attach registered models to requests for controllers
 - Handle Microsoft Graph token exchange for authentication
 
 ### Database (MongoDB)
@@ -76,10 +83,11 @@ Connection depends on `DEPLOY_ENV`:
 |---|---|---|
 | `production` | `mongodb://user:pass@mongo:27017/iuga` | Docker container |
 | `staging` | same as production | Docker container |
-| `development` | `mongodb+srv://user:pass@cluster0.mongodb.net/` | MongoDB Atlas |
+| `development` | Local startup supplies a per-checkout loopback MongoDB URI, ignoring file and shell `DB_URI` values. Deployment uses its injected URI. | Local Docker container; configured database for deployment |
 
 The **schemas** live in a separate GitHub repository (`UW-IUGA/iuga-web-schemas`) mounted as a submodule at `backend/schemas/`. The main repo imports `eventsSchema`, `participantsSchema`, and `usersSchema` from `./schemas/schemas.js`.
 
+Internal **architecture plans and agent documentation** live in a private organization repository (`UW-IUGA/iUGA-Agent-Docs`) mounted as an optional submodule at `context/`. It is maintained for developers and officers to track feature specifications and roadmaps without leaking planning scratchpads to the public repository.
 ---
 
 ## Request Flow (Production)
@@ -91,13 +99,13 @@ The **schemas** live in a separate GitHub repository (`UW-IUGA/iuga-web-schemas`
 4.  React boots, React Router reads URL path
 5.  Browser renders matched page component
 6.  If page needs live data (events):
-    fetch(REACT_APP_API_URL/api/v1/events/upcoming)
+    fetch("/api/v1/events/upcoming")
 7.  Express API controller queries MongoDB
 8.  Response flows back: MongoDB → Mongoose → Controller → Browser JSON → React state → DOM
 ```
 
 **SPA routes** (handled by Express sending the same `index.html`):
-`/`, `/events`, `/resources`, `/about`, `/electionfaq`, `/contact`
+`/`, `/events`, `/resources`, `/get-involved`, `/electionfaq`, `/contact`
 
 **API routes** (JSON responses):
 All mounted under `/api/v1` — see [BACKEND.md](./BACKEND.md).
@@ -109,8 +117,8 @@ All mounted under `/api/v1` — see [BACKEND.md](./BACKEND.md).
 ```
 Frontend                         Backend                       Azure AD / Graph
    │                                │                              │
-   ├─ loginRedirect() ──────────────┼────────────────────────────►│
-   │◄──── redirect back ────────────┼─────────────────────────────│
+   ├─ loginPopup() ─────────────────┼────────────────────────────►│
+   │◄──── popup resolves ───────────┼─────────────────────────────│
    │                                │                              │
    ├─ acquireTokenSilent() ─────────┼────────────────────────────►│
    │◄──── access token ─────────────┼─────────────────────────────│
@@ -120,8 +128,9 @@ Frontend                         Backend                       Azure AD / Graph
    │                                ├─ GET /v1.0/me (Graph) ─────►│
    │                                │◄── user profile ────────────│
    │                                │                              │
+   │                                ├─ Rotate anonymous session    │
    │                                ├─ Create/Fetch MongoDB user   │
-   │                                ├─ Create server session       │
+   │                                ├─ Store authenticated session │
    │◄── { user object } ───────────│                              │
    │                                │                              │
    ├─ Session cookie set            │                              │
@@ -130,13 +139,15 @@ Frontend                         Backend                       Azure AD / Graph
 
 Authentication uses **Microsoft Azure AD** (UW enterprise directory). The frontend never sees the user's password — only MSAL access tokens. The backend validates tokens via Microsoft Graph API, then creates its own server-side session.
 
+After login, session-authenticated state changes must include an `Origin` header whose value is in the configured frontend/IUGA origin list. CORS and CSRF share that list; backend listening ports are not browser origins.
+
 ---
 
 ## Deployment Boundary
 
 **What the Dockerfile does** (multi-stage build):
 
-1. **Build stage**: Install frontend dependencies, compile React app, substitute API URL based on `DEPLOY_ENV`
+1. **Build stage**: Install frontend dependencies, compile the Vite app with the `VITE_API_URL` build argument
 2. **Production stage**: Install backend production dependencies, copy built frontend, run Express server
 
 The Docker image runs the backend Node.js process which serves both the API and the static SPA. In production, a reverse proxy (nginx, external to this repo) forwards requests to the container.

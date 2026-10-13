@@ -1,12 +1,13 @@
 import dateFormat from "dateformat";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCheck } from '@fortawesome/free-solid-svg-icons'
+import { faArrowLeft, faArrowRight, faCheck } from '@fortawesome/free-solid-svg-icons'
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { startOfMonth, endOfMonth, eachDayOfInterval, format, getDay, parseISO } from "date-fns";
 import EventDetailsLoader from "./EventDetailsLoader";
 import Tag from "../components/Tag";
 import EventDetailsCard from "./EventDetailsCard";
 import { mockEvent } from "../assets/mock-data/MockCalendarData";
+import { isProduction } from "../runtime";
 
 const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const eventPlaceholder = {
@@ -60,7 +61,7 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
         setShowLoader(true);
         setActive(true);
         setSelectedDate(date);
-        if (process.env.NODE_ENV === "production") {
+        if (isProduction) {
             fetch(`/api/v1/events/id/${eid}`, {
                 method: "GET",
             }).then((res) => res.json())
@@ -105,12 +106,16 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
     return (
         <div className="calendar">
             <div className="calendar-header">
-                <img className="left-arrow" src="/assets/right-arrow.svg" alt="left arrow" onClick={prevMonth} />
+                <button className="calendar-nav-button" type="button" aria-label="Previous month" onClick={prevMonth}>
+                    <FontAwesomeIcon icon={faArrowLeft} aria-hidden="true" />
+                </button>
                 <div>
                     <h1>{dateFormat(calendarDate, "mmmm yyyy")}</h1>
-                    <p>Click a highlighted date to learn more about that event!</p>
+                    <p>Click an event to learn more.</p>
                 </div>
-                <img className="right-arrow" src="/assets/right-arrow.svg" alt="right arrow" onClick={nextMonth} />
+                <button className="calendar-nav-button" type="button" aria-label="Next month" onClick={nextMonth}>
+                    <FontAwesomeIcon icon={faArrowRight} aria-hidden="true" />
+                </button>
             </div>
             <div className="calendar-wrapper">
                 <div className="calendar-content-wrapper">
@@ -138,11 +143,26 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
                                 const isSelectedClass = "eLabels" in currentEvent && dateKey === selectedDate ? `calendar-day-selected-${currentEvent.eLabels[0].toLowerCase()}` : "";
                                 const today = new Date();
                                 const eventStartDate = new Date(currentEvent.eStartDate);
-                                return <div key={index} className={`calendar-item calendar-day-wrapper ${eventClassName} ${isSelectedClass}`} onClick={!currentEvent["isPlaceholder"] ? () => showEventDetails(currentEvent.eId, dateKey) : null}>
+                                const hasEvent = !currentEvent["isPlaceholder"];
+                                const openEvent = () => showEventDetails(currentEvent.eId, dateKey);
+                                return <div
+                                    key={index}
+                                    className={`calendar-item calendar-day-wrapper ${eventClassName} ${isSelectedClass}`}
+                                    role={hasEvent ? "button" : undefined}
+                                    tabIndex={hasEvent ? 0 : undefined}
+                                    aria-label={hasEvent ? `${currentEvent.eName} on ${format(day, "MMMM d, yyyy")}` : undefined}
+                                    onClick={hasEvent ? openEvent : undefined}
+                                    onKeyDown={hasEvent ? (event) => {
+                                        if (event.key === "Enter" || event.key === " ") {
+                                            event.preventDefault();
+                                            openEvent();
+                                        }
+                                    } : undefined}
+                                >
                                     <div className="calendar-day-container">
                                         {currentEvent.hasRSVPd && (
                                             <div>
-                                                <FontAwesomeIcon size="xs" icon={faCheck} />
+                                                <FontAwesomeIcon size="xs" icon={faCheck} aria-hidden="true" />
                                                 <span className="calendar-rsvp-status">{eventStartDate < today ? "" : "RSVPd"}</span>
                                             </div>
                                         )}
@@ -153,7 +173,6 @@ const Calendar = ({ calendarEvents, highlightEvent }) => {
                                 </div>
                             })
                         }
-                        <img className="calendar-decoration" src="/assets/calendar-decoration.svg" alt="calendar decoration" />
                     </div>
                 </div>
                 {

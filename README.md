@@ -5,11 +5,12 @@ React frontend + Express backend for the **Informatics Undergraduate Association
 ## Quickstart
 
 ```bash
-# Install everything and run in dev mode
+# Install dependencies once, then start MongoDB + backend + frontend
+npm run setup
 npm run dev
 ```
 
-The app is served at **http://localhost:7777** — the frontend uses **mock data**, so no backend or database is needed for frontend development.
+Open the URL printed by Vite (normally **http://localhost:3000**). Full-stack startup requires Docker and manages a separate, reusable MongoDB for each checkout/worktree, selecting available database, backend, and frontend ports automatically. Most frontend pages use mock data, but Shop requires the API. For frontend-only work, run `npm run frontend`.
 
 See [Quickstart Guide](docs/QUICKSTART.md) for full setup instructions.
 
@@ -29,10 +30,11 @@ See [Quickstart Guide](docs/QUICKSTART.md) for full setup instructions.
 ## Project Structure
 
 ```
-├── frontend/          # React SPA (Create React App, MSAL auth, SCSS)
+├── frontend/          # React SPA (Vite, MSAL auth, SCSS)
 ├── backend/           # Express.js API (MongoDB, express-session)
 │   ├── env/           # Environment files (gitignored except .env.example)
 │   └── schemas/       # Git submodule — shared Mongoose schemas
+├── context/           # Git submodule (private) — internal architecture plans
 ├── docs/              # Project documentation (start here)
 ├── Dockerfile         # Multi-stage production build
 ├── dev.jenkinsfile    # CI/CD pipeline — development
@@ -44,9 +46,9 @@ See [Quickstart Guide](docs/QUICKSTART.md) for full setup instructions.
 
 | Script | Action |
 |---|---|
-| `npm run dev` | Build frontend → start backend (dev env) |
+| `npm start` / `npm run dev` | Start checkout MongoDB → backend → Vite paired with that backend |
 | `npm run debug` | Build frontend → start backend (debug env) |
-| `npm run frontend` | Start CRA dev server only (`:3000`, hot reload) |
-| `npm run backend` | Install + start backend (dev env) |
+| `npm run frontend` | Start Vite dev server only (`:3000`, hot reload) |
+| `npm run backend` | Start checkout MongoDB + backend (dev env) |
 | `npm run backend-dev` | Same as above |
 | `npm run backend-debug` | Install + start backend (debug env) |

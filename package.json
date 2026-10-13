@@ -4,17 +4,21 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "debug": "cd frontend; npm install && npm run build && cd ../backend; npm install && npm run debug",
-    "dev": "cd frontend; npm install && npm run build && cd ../backend; npm install && npm start",
-    "frontend": "cd frontend; npm install && npm start",
-    "backend": "cd backend; npm install && npm start",
-    "backend-dev": "cd backend; npm install && npm start",
-    "backend-debug": "cd backend; npm install && npm run debug"
+    "test:backend": "npm test --prefix backend",
+    "test:frontend": "npm test --prefix frontend",
+    "test": "npm run test:backend && npm run test:frontend",
+    "start": "npm run dev",
+    "debug": "cd frontend && npm install && npm run build -- --mode development && cd ../backend && npm install && npm run debug",
+    "dev": "node scripts/dev.mjs",
+    "frontend": "cd frontend && npm start",
+    "backend": "cd backend && npm start",
+    "backend-dev": "cd backend && npm start",
+    "backend-debug": "cd backend && npm run debug",
+    "setup": "npm ci && npm ci --prefix backend && npm ci --prefix frontend && git submodule update --init backend/schemas"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.4"
   },
   "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "react-horizontal-scrolling-menu": "^7.1.1"
-  }
+  "license": "ISC"
 }

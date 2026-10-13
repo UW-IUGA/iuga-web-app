@@ -60,25 +60,150 @@ button:before {
 }
 
 .primary-button {
-    color: #8458CA; 
+    color: #8458CA;
     background: linear-gradient(90deg, #FAE5FF 0%, #FEEFCD 50%, #CFDFF5 100%);
     border: 2px solid #A276E9;
 }
 
 .secondary-button {
     color: $color-primary;
-    background-color: #F1E8FF;
+    background-color: $color-lavender;
     border: 2px solid $color-primary;
 }
 
-@keyframes glowing {
-    0% { background-position: 0 0; }
-    50% { background-position: 400% 0; }
-    100% { background-position: 0 0; }
+%pill-surface {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: $pill-height;
+    box-sizing: border-box;
+    padding: $pill-padding-y $pill-padding-x;
+    white-space: nowrap;
+    border: $pill-border-width solid $color-primary;
+    border-radius: $radius-pill;
+    background-color: white;
+    color: black;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: center;
+}
+
+// Shared category treatment used by the Home hero and the Events page.
+%category-pill-surface {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.78);
+    border-radius: $radius-pill;
+    background: rgba(255, 255, 255, 0.52);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 14px 30px rgba($color-uw-purple, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.88);
+    color: $color-uw-purple;
+    font-size: 0.84rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.category-pill {
+    @extend %category-pill-surface;
+}
+
+.pill-button {
+    @extend %pill-surface;
+    gap: 6px;
+    text-decoration: none;
+    text-shadow: none;
+    cursor: pointer;
+    transition: all 150ms cubic-bezier(0.19, 1, 0.22, 1);
+    @include focus-ring;
+
+    &:hover {
+        background-color: $color-lavender;
+    }
+
+    &:hover::before,
+    &:focus-visible::before {
+        opacity: 0;
+    }
+
+    &:active {
+        transform: translateY(1px);
+    }
+
+    &[aria-pressed="true"] {
+        background-color: $color-primary;
+        color: white;
+    }
+
+    &:disabled,
+    &[disabled] {
+        cursor: not-allowed;
+    }
+}
+
+.standard-button {
+    @extend .pill-button;
+}
+
+.cta-primary,
+.cta-secondary {
+    border: 2px solid $color-primary;
+    border-radius: $radius-pill;
+    font-weight: bold;
+    text-shadow: none;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    cursor: pointer;
+    transition: all 150ms cubic-bezier(0.19, 1, 0.22, 1);
+    @include focus-ring;
+}
+
+.cta-primary,
+.cta-secondary {
+    padding: 12px 28px;
+    font-size: 15px;
+}
+
+.cta-primary {
+    background-color: white;
+    color: $color-primary;
+}
+
+.cta-primary:hover {
+    background-color: $color-lavender;
+}
+
+.cta-primary:active,
+.cta-secondary:active {
+    transform: translateY(1px);
+}
+
+.cta-secondary {
+    background-color: $color-lavender;
+    color: $color-primary;
+}
+
+.cta-primary:hover::before,
+.cta-primary:focus-visible::before,
+.cta-secondary:hover::before,
+.cta-secondary:focus-visible::before {
+    opacity: 0;
+}
+
+.editorial-card {
+    background-color: white;
+    border-radius: $radius-card;
+    border: 1px solid rgba($color-uw-purple, 0.12);
+    box-shadow: 0 2px 10px rgba($color-uw-purple, 0.08);
 }
 
 @include media(">=sm-desktop", "<desktop") {
-    button {
+    button:not(.pill-button):not(.standard-button) {
         font-size: 12px;
         padding: 10px 16px;
 

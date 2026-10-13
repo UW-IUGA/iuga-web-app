@@ -248,6 +248,11 @@
         letter-spacing: -0.02em;
     }
 
+    // Nested under __info so it outranks the `&__info p` margin reset.
+    &__info &__price + &__spec {
+        margin-top: 6px;
+    }
+
     &__controls {
         display: flex;
         flex-direction: column;

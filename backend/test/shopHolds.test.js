@@ -1,15 +1,31 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
-  DEFAULT_PER_STUDENT_LIMIT,
   HOLD_DURATION_MS,
+  holdDurationMs,
   holdExpiresAtMs,
   holdTotalCents,
   isHoldDeadlinePassed,
+  normalizePhoneNumber,
   normalizeVenmoUsername,
-  perStudentLimitFor,
   removeHoldLine,
 } from "../routes/api/v1/utils/shopHolds.js";
+
+describe("hold duration setting", () => {
+  it("defaults to 15 minutes when SHOP_HOLD_MINUTES is unset or empty", () => {
+    assert.equal(holdDurationMs(undefined), 15 * 60 * 1000);
+    assert.equal(holdDurationMs(""), 15 * 60 * 1000);
+  });
+
+  it("uses the configured number of minutes", () => {
+    assert.equal(holdDurationMs("1"), 60 * 1000);
+  });
+
+  it("fails loudly for a value that is not a positive number", () => {
+    assert.throws(() => holdDurationMs("0"), /SHOP_HOLD_MINUTES must be a positive number/);
+    assert.throws(() => holdDurationMs("soon"), /SHOP_HOLD_MINUTES must be a positive number/);
+  });
+});
 
 describe("hold deadline", () => {
   it("expires 15 minutes after creation", () => {
@@ -65,21 +81,36 @@ describe("removing a line from a hold", () => {
   });
 });
 
-describe("per-student limit", () => {
-  it("defaults to 1 when no limit document exists", () => {
-    assert.equal(DEFAULT_PER_STUDENT_LIMIT, 1);
-    assert.equal(perStudentLimitFor(null), 1);
-    assert.equal(perStudentLimitFor(undefined), 1);
+
+describe("Phone number normalization", () => {
+  it("removes spaces, dashes, periods, and parentheses, keeping the digits", () => {
+    assert.equal(normalizePhoneNumber("(206) 555-0123"), "2065550123");
+    assert.equal(normalizePhoneNumber(" 206.555.0123 "), "2065550123");
   });
 
-  it("uses the stored limit when one exists", () => {
-    assert.equal(perStudentLimitFor({ perStudentLimit: 3 }), 3);
+  it("accepts an international number and keeps its leading +", () => {
+    assert.equal(normalizePhoneNumber("+1 206 555 0123"), "+12065550123");
+    assert.equal(normalizePhoneNumber("+44 20 7946 0958"), "+442079460958");
+    assert.equal(normalizePhoneNumber("+86 138 0013 8000"), "+8613800138000");
+  });
+
+  it("rejects fewer than 7 digits, more than 15, a misplaced +, or other characters", () => {
+    assert.equal(normalizePhoneNumber(""), null);
+    assert.equal(normalizePhoneNumber("555012"), null);
+    assert.equal(normalizePhoneNumber("1234567890123456"), null);
+    assert.equal(normalizePhoneNumber("206+5550123"), null);
+    assert.equal(normalizePhoneNumber("206-555-01a3"), null);
+    assert.equal(normalizePhoneNumber(2065550123), null);
   });
 });
 
 describe("Venmo username normalization", () => {
   it("trims whitespace and removes one leading @", () => {
     assert.equal(normalizeVenmoUsername("  @jane-doe_1.x "), "jane-doe_1.x");
+  });
+
+  it("lowercases letters so one account always compares equal", () => {
+    assert.equal(normalizeVenmoUsername("@Jane.Doe"), "jane.doe");
   });
 
   it("accepts a username of exactly 30 characters", () => {

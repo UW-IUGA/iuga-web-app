@@ -9,11 +9,31 @@ Expected Response Information: N/A
 A "line" is one product in one size with a quantity, for example 2 Hoodies in size M.
 */
 
-export const HOLD_DURATION_MS = 15 * 60 * 1000;
+const DEFAULT_HOLD_MINUTES = 15;
+
+/*
+ * @behavior Converts SHOP_HOLD_MINUTES into a hold duration. Unset means the default of 15 minutes.
+ *           Testing environments can shorten it. A value that is not a positive number fails startup.
+ * @param rawMinutes — the environment value, or undefined
+ * @returns duration in milliseconds
+ */
+export function holdDurationMs(rawMinutes) {
+  if (rawMinutes === undefined || rawMinutes === "") {
+    return DEFAULT_HOLD_MINUTES * 60 * 1000;
+  }
+  const minutes = Number(rawMinutes);
+  if (!Number.isFinite(minutes) || minutes <= 0) {
+    throw new Error(`SHOP_HOLD_MINUTES must be a positive number of minutes, got "${rawMinutes}".`);
+  }
+  return minutes * 60 * 1000;
+}
+
+export const HOLD_DURATION_MS = holdDurationMs(process.env.SHOP_HOLD_MINUTES);
 export const DROP_UNIT_CAP = 24;
-export const DEFAULT_PER_STUDENT_LIMIT = 1;
+export const DEFAULT_PER_STUDENT_LIMIT = 5;
 
 const VENMO_USERNAME_PATTERN = /^[A-Za-z0-9._-]{1,30}$/;
+const PHONE_NUMBER_PATTERN = /^\+?\d{7,15}$/;
 
 /*
  * @behavior Compute the deadline for a hold created at nowMs.
@@ -61,17 +81,10 @@ export function removeHoldLine(lines, sku, size) {
   };
 }
 
-/*
- * @behavior The per-student limit for a product. A missing limit document means the default of 1.
- * @param limitDoc — { perStudentLimit } or null
- * @returns integer limit
- */
-export function perStudentLimitFor(limitDoc) {
-  return limitDoc?.perStudentLimit ?? DEFAULT_PER_STUDENT_LIMIT;
-}
 
 /*
- * @behavior Normalize a student's Venmo username. A single leading "@" is allowed and removed.
+ * @behavior Normalize a student's Venmo username. A single leading "@" is allowed and removed,
+ *           and letters are lowercased so one account always compares equal.
  *           Allowed characters: letters, digits, dots, hyphens, and underscores; 1 to 30 characters.
  * @param value — raw username from the request body
  * @returns the normalized username, or null when it is not valid
@@ -81,5 +94,20 @@ export function normalizeVenmoUsername(value) {
     return null;
   }
   const trimmed = value.trim().replace(/^@/, "");
-  return VENMO_USERNAME_PATTERN.test(trimmed) ? trimmed : null;
+  return VENMO_USERNAME_PATTERN.test(trimmed) ? trimmed.toLowerCase() : null;
+}
+
+/*
+ * @behavior Normalize a student's phone number, US or international. Spaces, dashes, periods, and
+ *           parentheses are removed. The result must be 7 to 15 digits, with an optional leading "+"
+ *           for a country code.
+ * @param value — raw phone number from the request body
+ * @returns the digits with any leading "+", or null when it is not valid
+ */
+export function normalizePhoneNumber(value) {
+  if (typeof value !== "string") {
+    return null;
+  }
+  const digits = value.replace(/[\s().-]/g, "");
+  return PHONE_NUMBER_PATTERN.test(digits) ? digits : null;
 }

@@ -12,6 +12,7 @@ describe("Shop HTTP Controller (GET /api/v1/shop/catalog)", () => {
     const router = createShopRouter({
       catalog: shopCatalog,
       now: () => fixedNow,
+      holdStore: { findLimits: async () => ({ defaultLimit: 5, perSku: new Map() }) },
     });
     const api = await makeTestApi({
       router,
@@ -42,11 +43,38 @@ describe("Shop HTTP Controller (GET /api/v1/shop/catalog)", () => {
     }
   });
 
+  it("includes each product's per-student limit from the limits in effect", async () => {
+    const fixedNow = Date.parse(shopCatalog.opensAt) + 3600 * 1000;
+    const router = createShopRouter({
+      catalog: shopCatalog,
+      now: () => fixedNow,
+      holdStore: { findLimits: async () => ({ defaultLimit: 5, perSku: new Map([["info-crewneck", 2]]) }) },
+    });
+    const api = await makeTestApi({
+      router,
+      mountPath: "/api/v1/shop",
+      models: {},
+      session: { isAuthenticated: false },
+    });
+
+    try {
+      const response = await api.request("GET", "/api/v1/shop/catalog");
+      const limits = Object.fromEntries(
+        response.body.catalog.items.map((item) => [item.sku, item.perStudentLimit])
+      );
+      assert.equal(limits["info-crewneck"], 2);
+      assert.equal(limits["info-hoodie"], 5);
+    } finally {
+      await api.close();
+    }
+  });
+
   it("reports the confirmed student amounts for each product", async () => {
     const fixedNow = Date.parse(shopCatalog.opensAt) + 3600 * 1000;
     const router = createShopRouter({
       catalog: shopCatalog,
       now: () => fixedNow,
+      holdStore: { findLimits: async () => ({ defaultLimit: 5, perSku: new Map() }) },
     });
     const api = await makeTestApi({
       router,
@@ -78,6 +106,7 @@ describe("Shop HTTP Controller (GET /api/v1/shop/catalog)", () => {
     const router = createShopRouter({
       catalog: shopCatalog,
       now: () => mockTime,
+      holdStore: { findLimits: async () => ({ defaultLimit: 5, perSku: new Map() }) },
     });
 
     const api = await makeTestApi({
@@ -106,7 +135,10 @@ describe("Shop HTTP Controller (GET /api/v1/shop/catalog)", () => {
     const api = await makeTestApi({
       router: apiv1Router,
       mountPath: "/api/v1",
-      models: {},
+      models: {
+        ShopLimitDefault: { findOne: () => ({ lean: async () => null }) },
+        ShopProductLimits: { find: () => ({ lean: async () => [] }) },
+      },
     });
 
     try {

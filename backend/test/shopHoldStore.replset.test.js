@@ -4,9 +4,11 @@ import mongoose from "mongoose";
 import {
   shopCapacitySchema,
   shopHoldsSchema,
+  shopLimitDefaultSchema,
   shopProductLimitsSchema,
   shopPurchasesSchema,
   shopStudentUnitsSchema,
+  shopStudentCheckoutsSchema,
   usersSchema,
 } from "../schemas/schemas.js";
 import {
@@ -18,6 +20,7 @@ import {
   ShopHoldError,
   sweepExpiredHolds,
 } from "../routes/api/v1/utils/shopHoldStore.js";
+import { invalidateLimits } from "../routes/api/v1/utils/shopLimits.js";
 
 // Runs only against a real replica set (ADR-0006 Gate B). Start one with
 // scripts/start-replica-set-mongodb.sh and pass SHOP_REPLSET_URI.
@@ -40,7 +43,9 @@ run("shop hold store on a replica set", () => {
       ShopPurchases: connection.model("ShopPurchases", shopPurchasesSchema),
       ShopCapacity: connection.model("ShopCapacity", shopCapacitySchema),
       ShopStudentUnits: connection.model("ShopStudentUnits", shopStudentUnitsSchema),
+      ShopStudentCheckouts: connection.model("ShopStudentCheckouts", shopStudentCheckoutsSchema),
       ShopProductLimits: connection.model("ShopProductLimits", shopProductLimitsSchema),
+      ShopLimitDefault: connection.model("ShopLimitDefault", shopLimitDefaultSchema),
       Users: connection.model("Users", usersSchema),
     };
   });
@@ -142,29 +147,124 @@ run("shop hold store on a replica set", () => {
     assert.equal(await counter(catalogVersion, "info-hoodie"), 24);
   });
 
-  it("rejects a second hold of a product that would exceed the student's limit", async () => {
+  it("rejects a cart over the default limit of 5 per student", async () => {
+    const { catalogVersion } = testDrop();
+    const userId = new mongoose.Types.ObjectId();
+
+    await assertRejected(
+      createHold(models, { userId, catalogVersion, lines: [line("info-crewneck", 6)], nowMs: Date.now() }),
+      409,
+      /limited to 5 per student/,
+    );
+
+    assert.equal(await counter(catalogVersion, "info-crewneck"), 0, "rejected hold must not change stock");
+    assert.equal(await studentUnits(userId, "info-crewneck"), 0);
+  });
+
+  it("counts a confirmed purchase toward the student's limit", async () => {
+    const { catalogVersion } = testDrop();
+    const userId = new mongoose.Types.ObjectId();
+    await models.Users.create({ _id: userId, uNetId: `net-${userId.toHexString()}` });
+    const nowMs = Date.now();
+
+    const hold = await createHold(models, { userId, catalogVersion, lines: [line("info-crewneck", 5)], nowMs });
+    await confirmHold(models, { holdId: hold._id, userId, venmoUsername: "jane.doe", phoneNumber: "2065550123", nowMs });
+    await assertRejected(
+      createHold(models, { userId, catalogVersion, lines: [line("info-crewneck", 1, "L")], nowMs }),
+      409,
+      /limited to 5 per student/,
+    );
+
+    assert.equal(await counter(catalogVersion, "info-crewneck"), 5, "rejected hold must not change stock");
+    assert.equal(await studentUnits(userId, "info-crewneck"), 5);
+  });
+
+  it("reads the per-product limit from its document", async () => {
+    const { catalogVersion } = testDrop();
+    const userId = new mongoose.Types.ObjectId();
+    await models.ShopProductLimits.create({ sku: "info-baseball-tee", perStudentLimit: 2 });
+    invalidateLimits();
+
+    await assertRejected(
+      createHold(models, { userId, catalogVersion, lines: [line("info-baseball-tee", 3)], nowMs: Date.now() }),
+      409,
+      /limited to 2 per student/,
+    );
+    await createHold(models, { userId, catalogVersion, lines: [line("info-baseball-tee", 2)], nowMs: Date.now() });
+    assert.equal(await studentUnits(userId, "info-baseball-tee"), 2);
+  });
+
+  it("replaces the student's active hold when they check out again", async () => {
     const { catalogVersion } = testDrop();
     const userId = new mongoose.Types.ObjectId();
     const nowMs = Date.now();
 
-    await createHold(models, { userId, catalogVersion, lines: [line("info-crewneck")], nowMs });
-    await assertRejected(
-      createHold(models, { userId, catalogVersion, lines: [line("info-crewneck", 1, "L")], nowMs }),
-      409,
-      /limited to 1 per student/,
-    );
+    const first = await createHold(models, { userId, catalogVersion, lines: [line("info-hoodie", 5)], nowMs });
+    const second = await createHold(models, {
+      userId,
+      catalogVersion,
+      lines: [line("info-hoodie", 5, "L"), line("info-tote-bag", 1, "One Size", 2000)],
+      nowMs,
+    });
 
-    assert.equal(await counter(catalogVersion, "info-crewneck"), 1, "rejected hold must not change stock");
-    assert.equal(await studentUnits(userId, "info-crewneck"), 1);
+    assert.equal((await models.ShopHolds.findById(first._id).lean()).status, "cancelled");
+    assert.equal(second.status, "active");
+    assert.equal(await models.ShopHolds.countDocuments({ userId, status: "active" }), 1);
+    assert.equal(await counter(catalogVersion, "info-hoodie"), 5);
+    assert.equal(await counter(catalogVersion, "info-tote-bag"), 1);
+    assert.equal(await studentUnits(userId, "info-hoodie"), 5);
   });
 
-  it("reads the per-product limit, so a raised limit allows more units", async () => {
+  it("keeps the student's active hold when the new checkout is refused", async () => {
     const { catalogVersion } = testDrop();
     const userId = new mongoose.Types.ObjectId();
-    await models.ShopProductLimits.create({ sku: "info-baseball-tee", perStudentLimit: 2 });
+    const nowMs = Date.now();
+    await seedCapacity(catalogVersion, "info-tote-bag", 24);
 
-    await createHold(models, { userId, catalogVersion, lines: [line("info-baseball-tee", 2)], nowMs: Date.now() });
-    assert.equal(await studentUnits(userId, "info-baseball-tee"), 2);
+    const first = await createHold(models, { userId, catalogVersion, lines: [line("info-hoodie")], nowMs });
+    await assertRejected(
+      createHold(models, { userId, catalogVersion, lines: [line("info-tote-bag", 1, "One Size", 2000)], nowMs }),
+      409,
+      /Not enough info-tote-bag/,
+    );
+
+    assert.equal((await models.ShopHolds.findById(first._id).lean()).status, "active");
+    assert.equal(await counter(catalogVersion, "info-hoodie"), 1);
+    assert.equal(await studentUnits(userId, "info-hoodie"), 1);
+  });
+
+  it("keeps one concurrent disjoint cart active and replaces it on the next checkout", async () => {
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      const { catalogVersion } = testDrop();
+      const userId = new mongoose.Types.ObjectId();
+      const nowMs = Date.now();
+      const completed = await Promise.all(Array.from({ length: 4 }, (_, index) =>
+        createHold(models, {
+          userId, catalogVersion, lines: [line(`disjoint-${attempt}-${index}`)], nowMs,
+        }),
+      ));
+      const stored = await Promise.all(completed.map((hold) => getHold(models, {
+        holdId: hold._id, userId, nowMs,
+      })));
+      const active = stored.filter((hold) => hold.status === "active");
+      assert.equal(active.length, 1);
+      assert.equal(stored.filter((hold) => hold.status === "cancelled").length, 3);
+      for (const hold of stored) {
+        assert.equal(await counter(catalogVersion, hold.lines[0].sku), hold.status === "active" ? 1 : 0);
+        assert.equal(await studentUnits(userId, hold.lines[0].sku), hold.status === "active" ? 1 : 0);
+      }
+      const replacement = await createHold(models, {
+        userId, catalogVersion, lines: [line(`replacement-${attempt}`)], nowMs,
+      });
+      assert.equal((await getHold(models, { holdId: active[0]._id, userId, nowMs })).status, "cancelled");
+      assert.equal((await getHold(models, { holdId: replacement._id, userId, nowMs })).status, "active");
+      for (const hold of stored) {
+        assert.equal(await counter(catalogVersion, hold.lines[0].sku), 0);
+        assert.equal(await studentUnits(userId, hold.lines[0].sku), 0);
+      }
+      assert.equal(await counter(catalogVersion, replacement.lines[0].sku), 1);
+      assert.equal(await studentUnits(userId, replacement.lines[0].sku), 1);
+    }
   });
 
   it("releases stock and student units when a hold is cancelled", async () => {
@@ -249,6 +349,7 @@ run("shop hold store on a replica set", () => {
       holdId: hold._id,
       userId,
       venmoUsername: "jane.doe",
+      phoneNumber: "2065550123",
       nowMs: nowMs + 5 * 60 * 1000,
     });
 
@@ -262,11 +363,51 @@ run("shop hold store on a replica set", () => {
     assert.equal(saved.status, "confirmed");
     assert.equal(String(saved.purchaseId), String(purchase._id));
 
-    const user = await models.Users.findById(userId).lean();
+    const user = await models.Users.findById(userId).select("+uVenmoUsername +uPhoneNumber").lean();
     assert.equal(user.uVenmoUsername, "jane.doe");
+    assert.equal(user.uPhoneNumber, "2065550123");
+
+    const ordinaryUser = await models.Users.findById(userId).lean();
+    assert.ok(!Object.hasOwn(ordinaryUser, "uVenmoUsername"), "ordinary user queries must omit payment details");
+    assert.ok(!Object.hasOwn(ordinaryUser, "uPhoneNumber"), "ordinary user queries must omit contact details");
 
     assert.equal(await counter(catalogVersion, "info-hoodie"), 1, "confirmed units stay consumed");
     assert.equal(await studentUnits(userId, "info-hoodie"), 1);
+  });
+
+  it("rejects a different Venmo username than the saved one and keeps the hold active", async () => {
+    const { catalogVersion } = testDrop();
+    const userId = new mongoose.Types.ObjectId();
+    await models.Users.create({ _id: userId, uNetId: `net-${userId.toHexString()}`, uVenmoUsername: "Jane.Doe" });
+    const nowMs = Date.now();
+    const hold = await createHold(models, { userId, catalogVersion, lines: [line("info-hoodie")], nowMs });
+
+    await assertRejected(
+      confirmHold(models, {
+        holdId: hold._id,
+        userId,
+        venmoUsername: "someone.else",
+        phoneNumber: "2065550123",
+        nowMs: nowMs + 60 * 1000,
+      }),
+      409,
+      /doesn't match the Venmo username on your account/,
+    );
+
+    assert.equal((await models.ShopHolds.findById(hold._id).lean()).status, "active");
+    assert.equal(await models.ShopPurchases.countDocuments({ userId }), 0);
+    const user = await models.Users.findById(userId).select("+uVenmoUsername").lean();
+    assert.equal(user.uVenmoUsername, "Jane.Doe");
+
+    // The saved username matches regardless of letter case.
+    const purchase = await confirmHold(models, {
+      holdId: hold._id,
+      userId,
+      venmoUsername: "jane.doe",
+      phoneNumber: "2065550123",
+      nowMs: nowMs + 2 * 60 * 1000,
+    });
+    assert.equal(purchase.status, "pending");
   });
 
   it("rejects a confirmation at the deadline and releases the units", async () => {
@@ -280,6 +421,7 @@ run("shop hold store on a replica set", () => {
         holdId: hold._id,
         userId,
         venmoUsername: "jane.doe",
+        phoneNumber: "2065550123",
         nowMs: nowMs + FIFTEEN_MIN_MS,
       }),
       409,

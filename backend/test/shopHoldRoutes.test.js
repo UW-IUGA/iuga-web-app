@@ -44,6 +44,7 @@ function fakeStore(results = {}) {
     cancelHold: storedHold({ status: "cancelled" }),
     removeLineFromHold: storedHold(),
     confirmHold: storedPurchase(),
+    findSavedVenmoUsername: null,
   };
   const merged = { ...defaults, ...results };
   const method = (name) => async (_models, args) => {
@@ -61,6 +62,7 @@ function fakeStore(results = {}) {
     cancelHold: method("cancelHold"),
     removeLineFromHold: method("removeLineFromHold"),
     confirmHold: method("confirmHold"),
+    findSavedVenmoUsername: method("findSavedVenmoUsername"),
   };
 }
 
@@ -98,7 +100,7 @@ describe("manual checkout gate", () => {
         ["GET", `/api/v1/shop/holds/${HOLD_ID}`, undefined],
         ["DELETE", `/api/v1/shop/holds/${HOLD_ID}`, undefined],
         ["PATCH", `/api/v1/shop/holds/${HOLD_ID}/lines`, { sku: "info-hoodie", size: "M" }],
-        ["POST", `/api/v1/shop/holds/${HOLD_ID}/confirm`, { venmoUsername: "jane.doe" }],
+        ["POST", `/api/v1/shop/holds/${HOLD_ID}/confirm`, { venmoUsername: "jane.doe", phoneNumber: "2065550123" }],
       ];
       for (const [method, path, body] of requests) {
         const response = await api.request(method, path, body);
@@ -275,8 +277,20 @@ describe("GET /api/v1/shop/holds/:holdId", () => {
       const response = await api.request("GET", `/api/v1/shop/holds/${HOLD_ID}`);
       assert.equal(response.status, 200);
       assert.equal(response.body.hold.id, HOLD_ID);
+      assert.equal(response.body.savedVenmoUsername, null);
       assert.equal(store.calls[0].args.userId, USER_ID);
       assert.equal(store.calls[0].args.holdId, HOLD_ID);
+    } finally {
+      await api.close();
+    }
+  });
+
+  it("returns the Venmo username saved by the student's earlier purchase", async () => {
+    const { api } = await setup({ store: fakeStore({ findSavedVenmoUsername: "jane.doe" }) });
+    try {
+      const response = await api.request("GET", `/api/v1/shop/holds/${HOLD_ID}`);
+      assert.equal(response.status, 200);
+      assert.equal(response.body.savedVenmoUsername, "jane.doe");
     } finally {
       await api.close();
     }
@@ -398,7 +412,8 @@ describe("POST /api/v1/shop/holds/:holdId/confirm", () => {
     const { api, store } = await setup();
     try {
       const response = await api.request("POST", `/api/v1/shop/holds/${HOLD_ID}/confirm`, {
-        venmoUsername: "  @jane.doe ",
+        venmoUsername: "  @Jane.Doe ",
+        phoneNumber: "(206) 555-0123",
       });
       assert.equal(response.status, 200);
       assert.deepEqual(response.body.purchase, {
@@ -409,6 +424,7 @@ describe("POST /api/v1/shop/holds/:holdId/confirm", () => {
         confirmedAt: new Date(OPEN_MS).toISOString(),
       });
       assert.equal(store.calls[0].args.venmoUsername, "jane.doe");
+      assert.equal(store.calls[0].args.phoneNumber, "2065550123");
       assert.equal(store.calls[0].args.userId, USER_ID);
       assert.equal(store.calls[0].args.nowMs, OPEN_MS);
     } finally {
@@ -429,6 +445,24 @@ describe("POST /api/v1/shop/holds/:holdId/confirm", () => {
     }
   });
 
+  it("rejects an invalid phone number without calling the store", async () => {
+    const { api, store } = await setup();
+    try {
+      const response = await api.request("POST", `/api/v1/shop/holds/${HOLD_ID}/confirm`, {
+        venmoUsername: "jane.doe",
+        phoneNumber: "555-01",
+      });
+      assert.equal(response.status, 400);
+      assert.equal(
+        response.body.message,
+        "Enter a valid phone number: 7 to 15 digits, with a country code if it is not a US number."
+      );
+      assert.equal(store.calls.length, 0);
+    } finally {
+      await api.close();
+    }
+  });
+
   it("rejects a confirmation after the deadline with 409", async () => {
     const store = fakeStore({
       confirmHold: new ShopHoldError(409, "This hold has expired. Its items have been released."),
@@ -437,6 +471,7 @@ describe("POST /api/v1/shop/holds/:holdId/confirm", () => {
     try {
       const response = await api.request("POST", `/api/v1/shop/holds/${HOLD_ID}/confirm`, {
         venmoUsername: "jane.doe",
+        phoneNumber: "2065550123",
       });
       assert.equal(response.status, 409);
       assert.equal(response.body.message, "This hold has expired. Its items have been released.");

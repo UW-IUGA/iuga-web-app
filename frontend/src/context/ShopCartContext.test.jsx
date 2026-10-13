@@ -21,8 +21,8 @@ const catalog = {
     saleState: "open",
     currency: "usd",
     items: [
-        { sku: bag.sku, name: "INFO Tote Bag", sizes: [bag.size], unitPriceCents: 2000 },
-        { sku: hoodie.sku, name: "Hoodie", sizes: ["S", "M", "L"], unitPriceCents: 4500 },
+        { sku: bag.sku, name: "INFO Tote Bag", sizes: [bag.size], unitPriceCents: 2000, perStudentLimit: 5 },
+        { sku: hoodie.sku, name: "Hoodie", sizes: ["S", "M", "L"], unitPriceCents: 4500, perStudentLimit: 1 },
     ],
 };
 const sessionId = "cs_test_paid_return";
@@ -211,6 +211,54 @@ describe("starting checkout from the cart", () => {
         expect(currentPathname()).toBe("/shop");
     });
 
+    test("any other failure shows the server's reason and keeps the bag open", async () => {
+        storeCart([bag]);
+        const checkout = vi.fn(() => response({ status: "error", message: "Unable to update your hold right now. Please try again." }, 500));
+        mockApi({ checkout });
+        renderShop();
+        fireEvent.click(await openCart());
+
+        expect(await screen.findByText("Unable to update your hold right now. Please try again.")).toBeInTheDocument();
+        expect(screen.getByRole("dialog")).toBeInTheDocument();
+        expect(currentPathname()).toBe("/shop");
+    });
+
+    test("an other failure with no reason shows the fixed checkout notice", async () => {
+        storeCart([bag]);
+        const checkout = vi.fn(() => response({}, 500));
+        mockApi({ checkout });
+        renderShop();
+        fireEvent.click(await openCart());
+
+        expect(await screen.findByText("Unable to start checkout. Please try again later.")).toBeInTheDocument();
+        expect(currentPathname()).toBe("/shop");
+    });
+
+    test("blocks checkout when a product's units across sizes exceed its limit, before any sign-in or request", async () => {
+        storeCart([{ sku: hoodie.sku, size: "M", quantity: 1 }, { sku: hoodie.sku, size: "L", quantity: 1 }]);
+        const checkout = vi.fn(checkoutStarted);
+        mockApi({ checkout });
+        renderShop();
+        fireEvent.click(await openCart());
+
+        expect(await screen.findByText("Hoodie is limited to 1 per student. Lower the quantity in your cart.")).toBeInTheDocument();
+        expect(checkout).not.toHaveBeenCalled();
+        expect(auth.signIn).not.toHaveBeenCalled();
+        expect(currentPathname()).toBe("/shop");
+        expect(screen.getByRole("dialog")).toBeInTheDocument();
+    });
+
+    test("allows checkout when every product is within its limit", async () => {
+        storeCart([bag, hoodie]);
+        const checkout = vi.fn(checkoutStarted);
+        mockApi({ checkout });
+        renderShop();
+        fireEvent.click(await openCart());
+
+        await waitFor(() => expect(currentPathname()).toBe(checkoutPath));
+        expect(checkout).toHaveBeenCalledTimes(1);
+    });
+
     test("a stale-catalog 409 forces a fresh catalog even just after loading and requires another confirmation", async () => {
         storeCart([bag]);
         const checkout = vi.fn(() => response({}, 409));
@@ -266,6 +314,43 @@ describe("starting checkout from the cart", () => {
     });
 });
 
+describe("per-student limit in the bag", () => {
+    test("steppers and typed quantities stop at the limit, counted across sizes", async () => {
+        storeCart([{ ...hoodie, size: "M" }]);
+        mockApi();
+        renderShop();
+        await openCart();
+        const dialog = screen.getByRole("dialog");
+        const quantity = within(dialog).getByRole("textbox", { name: "Hoodie size M quantity. Type a number from 1 to 100." });
+
+        await waitFor(() => expect(within(dialog).getByRole("button", { name: "Increase Hoodie M" })).toBeDisabled());
+        fireEvent.change(quantity, { target: { value: "3" } });
+        fireEvent.blur(quantity);
+        expect(quantity).toHaveValue("1");
+    });
+
+    test("Add to cart is disabled for a product whose limit is already in the bag in another size", async () => {
+        storeCart([{ ...hoodie, size: "M" }]);
+        mockApi();
+        renderShop();
+        const card = (await screen.findByRole("heading", { name: "Hoodie" })).closest("article");
+        fireEvent.click(within(card).getByRole("button", { name: "L" }));
+
+        expect(within(card).getByRole("button", { name: "Add to cart" })).toBeDisabled();
+    });
+
+    test("the cart line shows the per-student limit only once it is reached", async () => {
+        storeCart([{ ...hoodie, size: "M" }, bag]);
+        mockApi();
+        renderShop();
+        await openCart();
+
+        const dialog = within(screen.getByRole("dialog"));
+        expect(await dialog.findByText("Limit 1 per student")).toBeInTheDocument();
+        expect(dialog.queryByText("Limit 5 per student")).not.toBeInTheDocument();
+    });
+});
+
 describe("paid checkout returns", () => {
     test("reloading an already processed paid return preserves newly added items without a cart mismatch", async () => {
         storeCart([bag], [bag]);
@@ -277,7 +362,7 @@ describe("paid checkout returns", () => {
         expect(screen.getByRole("button", { name: "Shopping cart, empty" })).toBeInTheDocument();
         fireEvent.click(within(screen.getByRole("heading", { name: "INFO Tote Bag" }).closest("article"))
             .getByRole("button", { name: "Add to cart" }));
-        fireEvent.click(screen.getByRole("button", { name: "Close bag" }));
+        fireEvent.click(screen.getByRole("button", { name: "Close cart" }));
         expect(bagQuantity()).toHaveValue("1");
 
         firstVisit.unmount();

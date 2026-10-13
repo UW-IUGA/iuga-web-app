@@ -13,6 +13,7 @@ import { shopProducts } from "../assets/data/ShopData";
 import { useAuthContext } from "../context/AuthContext";
 import { useShopCart } from "../context/ShopCartContext";
 import { QuantityInput } from "../components/ShopCart";
+import { isSkuAtLimit, limitForSku } from "../utils/shopCart";
 import { formatCents, formatDate } from "../utils/shopFormat";
 
 function ShopHeroCarousel() {
@@ -126,16 +127,15 @@ function ShopPage() {
                 {checkoutParam === "complete" && returnStatus !== "paid" && (
                     <div className="shopPage__banner shopPage__banner--complete" role="status">
                         {returnStatus === "paid-cart-missing" && <p>Payment confirmed, but we could not match your cart to this checkout. Please review it before buying again or contact the IUGA officers.</p>}
-                        {returnStatus === "unconfirmed" && <p>We could not confirm payment yet. Your cart is still here. Please check your payment in Stripe or contact the IUGA officers before trying again.</p>}
-                        {returnStatus === "checking" && <p>{!checkoutSessionId ? "We could not identify this checkout. Check your payment before trying again or contact the IUGA officers." : isAuthenticated ? "Checking your payment with Stripe..." : "Sign in to confirm your payment before checking out again."}</p>}
+                        {returnStatus === "unconfirmed" && <p>We could not confirm payment yet. Your cart is still here. Please check your payment or contact the IUGA officers before trying again.</p>}
+                        {returnStatus === "checking" && <p>{!checkoutSessionId ? "We could not identify this checkout. Check your payment before trying again or contact the IUGA officers." : isAuthenticated ? "Checking your payment..." : "Sign in to confirm your payment before checking out again."}</p>}
                     </div>
                 )}
 
                 {checkoutParam === "canceled" && (
                     <div className="shopPage__banner shopPage__banner--canceled" role="status">
                         <p>
-                            Your checkout was canceled. Your items are still in your cart if you would like
-                            to continue later.
+                            Checkout canceled. Your items are still in your cart.
                         </p>
                     </div>
                 )}
@@ -185,6 +185,8 @@ function ShopPage() {
                                     const oneSize = sizes.length === 1 && sizes[0] === "One Size";
                                     const selectedSize = oneSize ? "One Size" : selectedSizes[item.sku] || cart.find((line) => line.sku === item.sku)?.size;
                                     const selectedQuantity = selectedSize ? getSizeQuantity(item.sku, selectedSize) : 0;
+                                    // The limit counts units across sizes, so one size in the bag can block the others too.
+                                    const atLimit = isSkuAtLimit(cart, item.sku, limitForSku(catalog, item.sku));
 
                                     return (
                                         <article className="shopCard" key={item.sku}>
@@ -239,13 +241,14 @@ function ShopPage() {
                                                                 label={`${item.name}${oneSize ? "" : ` ${selectedSize}`}`}
                                                                 quantity={selectedQuantity}
                                                                 removeAtOne
+                                                                canIncrease={!atLimit}
                                                                 onDecrease={() => setItemQuantity(item.sku, selectedSize, selectedQuantity - 1)}
                                                                 onIncrease={() => setItemQuantity(item.sku, selectedSize, selectedQuantity + 1)}
                                                                 onQuantityChange={(value) => setItemQuantity(item.sku, selectedSize, value)}
                                                             />
                                                         </div>
                                                     ) : (
-                                                        <button type="button" className="shopCard__addToCart" onClick={() => handleAddToCart(item, selectedSize)}>
+                                                        <button type="button" className="shopCard__addToCart" disabled={atLimit} onClick={() => handleAddToCart(item, selectedSize)}>
                                                             Add to cart
                                                         </button>
                                                     )}

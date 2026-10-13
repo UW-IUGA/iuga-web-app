@@ -344,6 +344,8 @@
 
         &:hover { background: $color-primary; }
         &:focus-visible { outline: 3px solid rgba($color-uw-purple, 0.3); outline-offset: 2px; }
+        &:disabled { opacity: 0.45; cursor: not-allowed; }
+        &:disabled:hover { background: $color-uw-purple; }
     }
 
     &__cartPill {
@@ -409,6 +411,8 @@
         &:hover { background: $color-lavender; }
         &:active { transform: scale(0.92); }
         &:focus-visible { outline: 3px solid rgba($color-uw-purple, 0.28); outline-offset: 2px; }
+        &:disabled { opacity: 0.35; cursor: not-allowed; }
+        &:disabled:hover { background: transparent; }
     }
 
     > input {

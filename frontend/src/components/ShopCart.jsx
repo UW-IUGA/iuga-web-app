@@ -11,7 +11,7 @@ import { NavLink } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCartShopping, faTrashCan } from "@fortawesome/free-solid-svg-icons";
 import { shopProducts } from "../assets/data/ShopData";
-import { cartTotal, MAX_QUANTITY } from "../utils/shopCart";
+import { cartTotal, isSkuAtLimit, limitForSku, MAX_QUANTITY } from "../utils/shopCart";
 import { formatCents, formatDate } from "../utils/shopFormat";
 
 /**
@@ -25,8 +25,9 @@ import { formatCents, formatDate } from "../utils/shopFormat";
  * @param {Function} onDecrease
  * @param {Function} onQuantityChange
  * @param {boolean} removeAtOne
+ * @param {boolean} canIncrease False when the product's per-student limit is already in the bag
  */
-export function QuantityInput({ label, quantityLabel = `${label} quantity`, quantity, onIncrease, onDecrease, onQuantityChange, removeAtOne = false }) {
+export function QuantityInput({ label, quantityLabel = `${label} quantity`, quantity, onIncrease, onDecrease, onQuantityChange, removeAtOne = false, canIncrease = true }) {
     const [draft, setDraft] = useState(null);
 
     useEffect(() => {
@@ -68,7 +69,7 @@ export function QuantityInput({ label, quantityLabel = `${label} quantity`, quan
                     }
                 }}
             />
-            <button type="button" aria-label={`Increase ${label}`} onClick={onIncrease}>+</button>
+            <button type="button" aria-label={`Increase ${label}`} disabled={!canIncrease} onClick={onIncrease}>+</button>
         </div>
     );
 }
@@ -185,7 +186,7 @@ export function ShopCartDropdown({
             className={`shopCartDropdown${leaving ? " shopCartDropdown--leaving" : ""}`}
             data-testid="shop-cart-dropdown"
         >
-            <button type="button" className="shopCartDropdown__backdrop" aria-label="Dismiss bag preview" onClick={onClose} />
+            <button type="button" className="shopCartDropdown__backdrop" aria-label="Dismiss cart preview" onClick={onClose} />
             <div
                 id="shop-cart-dropdown"
                 className="shopCartDropdown__panel"
@@ -200,19 +201,19 @@ export function ShopCartDropdown({
                 <div className="shopCartDropdown__header">
                     <p className="shopCartDropdown__status shopCartDropdown__status--plain">
                         <span id="shop-cart-dropdown-heading">
-                            {isEmpty ? "Your bag" : `Your bag (${totalQuantity})`}
+                            {isEmpty ? "Your cart" : `Your cart (${totalQuantity})`}
                         </span>
                     </p>
-                    <button type="button" className="shopCartDropdown__close" aria-label="Close bag" onClick={onClose}>
+                    <button type="button" className="shopCartDropdown__close" aria-label="Close cart" onClick={onClose}>
                         <span aria-hidden="true">×</span>
                     </button>
                     {freshAdd && addedName && (
-                        <p className="sr-only" role="status">Added {addedName} to bag.</p>
+                        <p className="sr-only" role="status">Added {addedName} to cart.</p>
                     )}
                 </div>
                 {isEmpty ? (
                     <div className="shopCartDropdown__empty">
-                        <h2 className="shopCartDropdown__emptyTitle">Your bag is empty.</h2>
+                        <h2 className="shopCartDropdown__emptyTitle">Your cart is empty.</h2>
                         <NavLink
                             to="/shop"
                             className="shopCard__addToCart shopCartDropdown__checkout"
@@ -230,6 +231,8 @@ export function ShopCartDropdown({
                                 const product = productBySku.get(line.sku);
                                 const name = catalogItem?.name || product?.name || line.sku;
                                 const lineTotal = catalogItem ? catalogItem.unitPriceCents * line.quantity : null;
+                                const limit = limitForSku(catalog, line.sku);
+                                const atLimit = isSkuAtLimit(cart, line.sku, limit);
                                 return (
                                     <li key={`${line.sku}-${line.size}`} className={`shopCartDropdown__line${isJustAdded(line) ? " shopCartDropdown__line--justAdded" : ""}`}>
                                         {product?.image && (
@@ -240,6 +243,9 @@ export function ShopCartDropdown({
                                             {line.size !== "One Size" && (
                                                 <p className="shopCartDropdown__lineMeta">Size {line.size}</p>
                                             )}
+                                            {atLimit && (
+                                                <p className="shopCartDropdown__lineMeta">Limit {limit} per student</p>
+                                            )}
                                         </div>
                                         <QuantityInput
                                             label={`${name} ${line.size}`}
@@ -249,6 +255,7 @@ export function ShopCartDropdown({
                                             onIncrease={() => onQuantityChange?.(line.sku, line.size, line.quantity + 1)}
                                             onQuantityChange={(value) => onQuantityChange?.(line.sku, line.size, value)}
                                             removeAtOne
+                                            canIncrease={!atLimit}
                                         />
                                         <div className="shopCartDropdown__lineRail">
                                             {lineTotal !== null && (
@@ -257,7 +264,7 @@ export function ShopCartDropdown({
                                             <button
                                                 type="button"
                                                 className="shopCartDropdown__removeText"
-                                                aria-label={`Remove ${name} from bag`}
+                                                aria-label={`Remove ${name} from cart`}
                                                 onClick={() => onRemove?.(line.sku, line.size)}
                                             >
                                                 Remove

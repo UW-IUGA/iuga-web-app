@@ -103,7 +103,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    signInToBackend();
+    // A failed sync is already recorded in authError and shown in the dialog.
+    signInToBackend().catch(() => {});
   }, [accounts]);
 
   const isUserCancellation = (error) => {

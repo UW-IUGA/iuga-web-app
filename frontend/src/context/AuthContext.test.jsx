@@ -18,9 +18,9 @@ function SignInButton() {
     return <button onClick={signIn}>Sign in</button>;
 }
 
-function mockLoginStatus(status) {
+function mockLoginStatus(status, headers = {}) {
     vi.spyOn(globalThis, "fetch").mockImplementation(async (url) => {
-        if (url === "/api/v1/user/login") return { ok: false, status, json: async () => ({}) };
+        if (url === "/api/v1/user/login") return { ok: false, status, headers: new Headers(headers), json: async () => ({}) };
         throw new Error(`Unexpected API request: ${url}`);
     });
 }
@@ -37,12 +37,30 @@ afterEach(() => {
 });
 
 describe("sign-in failure dialog", () => {
-    it("shows a sign-in heading when the backend rejects the sign-in", async () => {
+    it("tells the student how long to wait when the backend is limiting requests", async () => {
+        mockLoginStatus(429, { "Retry-After": "840" });
+        render(<AuthProvider />);
+
+        const dialog = await screen.findByRole("dialog");
+        expect(dialog).toHaveTextContent("We couldn't sign you in");
+        expect(dialog).toHaveTextContent("Try again in about 14 minutes.");
+        expect(dialog).not.toHaveTextContent("Local");
+    });
+
+    it("gives no wait time when a limited response does not send one", async () => {
+        mockLoginStatus(429);
+        render(<AuthProvider />);
+
+        expect(await screen.findByRole("dialog")).toHaveTextContent("Try again in a few minutes.");
+    });
+
+    it("names the status when the backend rejects the sign-in", async () => {
         mockLoginStatus(502);
         render(<AuthProvider />);
 
         const dialog = await screen.findByRole("dialog");
         expect(dialog).toHaveTextContent("We couldn't sign you in");
+        expect(dialog).toHaveTextContent("(status 502)");
         expect(dialog).not.toHaveTextContent("Local");
     });
 

@@ -50,6 +50,21 @@ const useAuth = () => {
     return { ensureBackendAuthentication };
 };
 
+/*
+ * @behavior: Explain a rejected backend sign-in in words a student can act on.
+ * @param {Response} response - Non-OK response from /api/v1/user/login.
+ * @returns {string} Message shown in the sign-in failure dialog.
+ */
+const signInFailureMessage = (response) => {
+    if (response.status === 429) {
+        // The backend limits requests in windows of different lengths and sends the wait in seconds.
+        const minutes = Math.ceil(Number(response.headers.get('Retry-After')) / 60);
+        const wait = minutes > 0 ? `about ${minutes} minute${minutes === 1 ? '' : 's'}` : 'a few minutes';
+        return `Too many requests are coming from your network right now. Try again in ${wait}.`;
+    }
+    return `The IUGA website could not finish signing you in (status ${response.status}). Try again in a moment.`;
+};
+
 const sendTokenToBackend = async (accessToken) => {
     try {
         const response = await fetch('/api/v1/user/login', {
@@ -62,7 +77,7 @@ const sendTokenToBackend = async (accessToken) => {
         });
 
         if (!response.ok) {
-            throw new Error('Token validation failed');
+            throw new Error(signInFailureMessage(response));
         }
 
         const data = await response.json();

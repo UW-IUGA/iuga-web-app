@@ -205,7 +205,6 @@ function ShopPage() {
                                                     <h3>{item.name}</h3>
                                                     <p className="shopCard__price">{formattedPrice}</p>
                                                     {product?.material && <p className="shopCard__spec">{product.material}</p>}
-                                                    {product?.dimensions && <p className="shopCard__spec">{product.dimensions}</p>}
                                                 </div>
 
                                                 <div className="shopCard__controls">

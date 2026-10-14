@@ -26,16 +26,12 @@ frontend/src/
 │   └── icons/         ← SVG icons (career, social, academic)
 ├── components/        ← Reusable UI components
 │   ├── Button.jsx
-│   ├── Calendar.jsx
 │   ├── CharacterCard.jsx
 │   ├── Dropdown.jsx
 │   ├── ElectionFAQCard.jsx
 │   ├── EmailContactDialog.jsx ← Mail-provider compose dialog for committee and shop contact
 │   ├── EventAgenda.jsx        ← One week of events: day buttons above a list of event rows
-│   ├── EventCard.jsx
 │   ├── EventCategoryPills.jsx ← Compact category labels for an event
-│   ├── EventDetailsCard.jsx
-│   ├── EventDetailsLoader.jsx
 │   ├── EventDialog.jsx        ← Event details and RSVP in a modal dialog
 │   ├── EventThumbnail.jsx     ← An event's photo, or a category tile when it has none
 │   ├── GradientLine.jsx
@@ -45,7 +41,6 @@ frontend/src/
 │   ├── ResourceCard.jsx
 │   ├── RolePage.jsx
 │   ├── ShopMaintenanceBanner.jsx ← Site-wide maintenance countdown for students with items in their cart
-│   ├── Tag.jsx
 │   └── WeekNavigation.jsx     ← Previous/next week control
 ├── context/
 │   └── AuthContext.jsx   ← Authentication state (React Context)

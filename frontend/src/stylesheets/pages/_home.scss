@@ -374,54 +374,6 @@
     }
 }
 
-%bodyCopy {
-    margin: 0;
-    line-height: 1.65;
-    color: $color-dark-gray;
-}
-
-.upcomingEventsCardContainer {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: $grid-gap;
-    margin: 0;
-}
-
-.eventStreamEmpty {
-    display: grid;
-    justify-items: center;
-    gap: $margin-content;
-    padding: 32px $padding-content;
-    text-align: center;
-    background-color: white;
-    border: 1px solid rgba($color-uw-purple, 0.12);
-    border-radius: $radius-card;
-
-    .eventStreamEmptyIcon {
-        display: grid;
-        place-items: center;
-        width: 56px;
-        height: 56px;
-        border-radius: 50%;
-        color: white;
-        background-color: $color-primary;
-    }
-
-    h2,
-    p {
-        margin: 0;
-    }
-
-    p {
-        @extend %bodyCopy;
-        max-width: 420px;
-    }
-}
-
-@include media("screen", "<sm-desktop") {
-    .upcomingEventsCardContainer { grid-template-columns: 1fr; }
-}
-
 @media (min-width: 768px) and (max-width: 1100px) {
     .homeOpening {
         grid-template-columns: minmax(0, 1.12fr) minmax(250px, 0.88fr);
@@ -547,7 +499,6 @@
     .homeCommunityPhoto { height: clamp(300px, 86vw, 360px); }
     .homePhotoLabel { padding: 16px 18px; }
 
-    .upcomingEventsCardContainer { grid-template-columns: 1fr; }
 }
 
 @include media("screen", "<phone") {

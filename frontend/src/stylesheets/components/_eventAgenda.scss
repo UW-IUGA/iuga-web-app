@@ -1,0 +1,338 @@
+/*
+Purpose: Style the weekly event agenda.
+Expected Request Information: Classes emitted by EventAgenda.
+Expected Response Information: A strip of day buttons above a list of event rows.
+*/
+.eventAgenda {
+    margin-top: 36px;
+}
+
+.eventAgenda__header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 22px;
+
+    h2 {
+        margin: 0;
+        color: $color-uw-purple;
+        font-family: $sans-serif;
+        font-size: clamp(1.9rem, 3.4vw, 2.8rem);
+        font-weight: 800;
+        letter-spacing: -0.035em;
+        line-height: 1.05;
+    }
+}
+
+.eventAgenda__days {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.eventAgenda__day {
+    display: grid;
+    font-family: inherit;
+    justify-items: center;
+    gap: 2px;
+    padding: 12px 4px 10px;
+    border: 1px solid rgba($color-uw-purple, 0.14);
+    border-radius: $radius-card-media;
+    background: white;
+    color: $color-uw-purple;
+    transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
+
+    >span:first-child {
+        color: $color-dark-gray;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    strong {
+        font-size: 1.35rem;
+        font-weight: 800;
+        line-height: 1.1;
+    }
+
+    &:hover:not(:disabled) {
+        border-color: $color-primary;
+        transform: translateY(-2px);
+    }
+
+    &:focus-visible {
+        outline: 3px solid rgba($color-primary, 0.4);
+        outline-offset: 2px;
+    }
+
+    &:disabled {
+        border-color: rgba($color-uw-purple, 0.08);
+        background: $color-light-gray;
+        color: rgba($color-uw-purple, 0.45);
+        cursor: default;
+    }
+
+    &.isToday {
+        border-color: $color-primary;
+
+        >span:first-child {
+            color: $color-primary;
+        }
+    }
+
+    &.isSelected {
+        border-color: $color-uw-purple;
+        background: $color-uw-purple;
+        color: white;
+
+        >span:first-child {
+            color: rgba(white, 0.82);
+        }
+    }
+}
+
+.eventAgenda__dots {
+    display: flex;
+    gap: 4px;
+    height: 7px;
+    margin-top: 4px;
+
+    i {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: $color-academic-primary;
+
+        &.social {
+            background: $color-social-primary;
+        }
+
+        &.professional {
+            background: $color-career-primary;
+        }
+    }
+}
+
+.eventAgenda__list {
+    display: grid;
+    gap: 14px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.eventAgenda__event {
+    display: grid;
+    font-family: inherit;
+    align-items: center;
+    grid-template-columns: 64px 168px minmax(0, 1fr) auto;
+    gap: 22px;
+    width: 100%;
+    padding: 14px 24px 14px 14px;
+    border: 1px solid rgba($color-uw-purple, 0.14);
+    border-radius: $radius-card;
+    background: white;
+    box-shadow: 0 6px 18px rgba(black, 0.1);
+    color: $color-uw-purple;
+    font-weight: 400;
+    text-align: left;
+    transition: border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+
+    &:hover,
+    &:focus-visible {
+        box-shadow: 0 9px 22px rgba(black, 0.14);
+        transform: translateY(-2px);
+    }
+
+    &:focus-visible {
+        outline: 2px solid $color-dark-gray;
+        outline-offset: 3px;
+    }
+
+    .eventThumbnail {
+        height: 112px;
+        border-radius: $radius-card-media;
+    }
+}
+
+.eventAgenda__date {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+
+    span {
+        color: $color-primary;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+
+    strong {
+        font-size: 2rem;
+        font-weight: 900;
+        letter-spacing: -0.04em;
+        line-height: 1;
+    }
+}
+
+.eventAgenda__body {
+    display: grid;
+    gap: 5px;
+    min-width: 0;
+
+    >strong {
+        font-size: 1.3rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1.15;
+    }
+}
+
+.eventAgenda__meta {
+    color: $color-primary;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.eventAgenda__host {
+    color: $color-dark-gray;
+    font-size: 0.9rem;
+}
+
+.eventAgenda__details,
+.eventAgenda__going {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.eventAgenda__details {
+    color: $color-primary;
+}
+
+.eventAgenda__going {
+    padding: 6px 12px;
+    border-radius: $radius-pill;
+    background: $color-lavender;
+    color: $color-uw-purple;
+}
+
+.eventAgenda__empty {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 22px 24px;
+    border: 1px dashed rgba($color-uw-purple, 0.25);
+    border-radius: $radius-card;
+
+    p {
+        margin: 0;
+        color: $color-dark-gray;
+    }
+
+    button {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        min-height: $pill-height;
+        font-family: inherit;
+        padding: $pill-padding-y $pill-padding-x;
+        border: $pill-border-width solid $color-primary;
+        border-radius: $radius-pill;
+        background: white;
+        color: $color-primary;
+
+        &:hover,
+        &:focus-visible {
+            background: $color-primary;
+            color: white;
+            outline: none;
+        }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .eventAgenda__day,
+    .eventAgenda__event {
+        transition: none;
+        transform: none;
+    }
+}
+
+@include media("screen", "<sm-desktop") {
+    .eventAgenda__event {
+        grid-template-columns: 52px 120px minmax(0, 1fr);
+        gap: 16px;
+        padding-right: 16px;
+
+        .eventThumbnail {
+            height: 96px;
+        }
+    }
+
+    .eventAgenda__details {
+        display: none;
+    }
+
+    .eventAgenda__going {
+        grid-column: 3;
+        justify-self: start;
+    }
+}
+
+@include media("screen", "<tablet") {
+    .eventAgenda__header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .eventAgenda__days {
+        gap: 5px;
+    }
+
+    .eventAgenda__day {
+        padding: 10px 0 8px;
+        border-radius: 12px;
+
+        >span:first-child {
+            font-size: 0.58rem;
+            letter-spacing: 0.04em;
+        }
+
+        strong {
+            font-size: 1.05rem;
+        }
+    }
+
+    .eventAgenda__event {
+        grid-template-columns: 44px minmax(0, 1fr);
+
+        .eventThumbnail {
+            grid-column: 1 / -1;
+            grid-row: 1;
+            height: 150px;
+        }
+    }
+
+    .eventAgenda__going {
+        grid-column: 2;
+    }
+}
+
+@include media("screen", "<phone") {
+    // The week control spans the full width once the header stacks.
+    .eventAgenda__header .weekNavigation {
+        width: 100%;
+        justify-content: space-between;
+    }
+}

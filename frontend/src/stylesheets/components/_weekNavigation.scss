@@ -1,0 +1,70 @@
+/*
+Purpose: Style the previous/next week control.
+Expected Request Information: Classes emitted by WeekNavigation.
+Expected Response Information: Two round arrow buttons around the current week's date range.
+*/
+.weekNavigation {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.weekNavigation__button {
+    display: grid;
+    font-family: inherit;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    // The site-wide button padding would squeeze the circle and push the arrow off centre.
+    padding: 0;
+    place-items: center;
+    border: 1px solid rgba($color-primary, 0.24);
+    border-radius: $radius-pill;
+    background: white;
+    color: $color-primary;
+    cursor: pointer;
+    transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
+
+    &:hover {
+        background: $color-primary;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    &:focus-visible {
+        outline: 3px solid rgba($color-primary, 0.3);
+        outline-offset: 3px;
+    }
+}
+
+.weekNavigation__range {
+    display: flex;
+    min-width: 158px;
+    flex-direction: column;
+    gap: 2px;
+    text-align: center;
+
+    span {
+        color: $color-dark-gray;
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+    }
+
+    strong {
+        color: $color-uw-purple;
+        font-size: 1rem;
+    }
+}
+
+@include media("screen", "<phone") {
+    .weekNavigation__range {
+        min-width: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .weekNavigation__button {
+        transition: none;
+    }
+}

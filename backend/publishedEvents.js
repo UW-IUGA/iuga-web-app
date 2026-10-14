@@ -22,6 +22,9 @@ Expected Response Information:
 See docs/BACKEND.md, "Publishing an event", for the steps.
 */
 
+import { createHash } from "node:crypto";
+import { snackAndBuildEvents } from "../shared/snackAndBuild.mjs";
+
 export const publishedEvents = [
     {
         _id: "6acee493cfa16b20fc23695e",
@@ -52,6 +55,13 @@ export const publishedEvents = [
             url: "https://forms.cloud.microsoft/pages/responsepage.aspx?id=W9229i_wGkSZoBYqxQYL0pj2PffrcZlMvNzx2DvLiVNUMDVST05QVTFBRDI0VUdIVEhUSEg1Q1FIUS4u&route=shorturl",
         },
     },
+    ...snackAndBuildEvents.map((event) => ({
+        ...event,
+        // A series + local calendar date keeps ids stable when times or bounds change.
+        _id: createHash("sha256")
+            .update(`snack-and-build-fall-2026:${event.eStartDate.toISOString().slice(0, 10)}`)
+            .digest("hex").slice(0, 24),
+    })),
 ];
 
 export function seedPublishedEvents(events) {

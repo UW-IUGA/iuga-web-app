@@ -4,6 +4,7 @@ import gamenight from "../gallery/gamenight.jpg";
 import groups from "../gallery/groups.jpg";
 import officers from "../gallery/officers-22.png";
 import panelists from "../gallery/panelists.jpg";
+import { snackAndBuildEvents } from "../../../../shared/snackAndBuild.mjs";
 
 // Events for local development only. The first two mirror the real events in
 // backend/publishedEvents.js, which is what the live site shows; change them
@@ -15,6 +16,15 @@ const startingIn = (days, hours, minutes) =>
 const DIETARY_QUESTION = { qId: "mock-dietary", qString: "Any dietary restrictions?" };
 
 export const mockUpcomingEvents = [
+    ...snackAndBuildEvents.map(({ eRsvpEnabled, ...event }) => ({
+        ...event,
+        eId: `mock-snack-and-build-${event.eStartDate.toISOString().slice(0, 10)}`,
+        eStartDate: event.eStartDate.toISOString(),
+        ...(event.eEndDate ? { eEndDate: event.eEndDate.toISOString() } : {}),
+        rsvpEnabled: eRsvpEnabled,
+        showParticipants: false,
+        rsvpQuestions: [],
+    })),
     {
         eId: "mock-problem-workshop",
         eName: "What problem are you actually solving?",

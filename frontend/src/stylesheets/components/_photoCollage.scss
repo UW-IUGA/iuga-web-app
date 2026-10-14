@@ -1,0 +1,56 @@
+/*
+Purpose: Style the overlapping three-photo collage.
+Expected Request Information: Classes emitted by PhotoCollage.
+Expected Response Information: Up to three tilted, overlapping photos.
+*/
+.photoCollage {
+    position: relative;
+    height: 330px;
+
+    img {
+        position: absolute;
+        border: 5px solid white;
+        border-radius: $radius-card;
+        box-shadow: 0 10px 26px rgba(black, 0.18);
+        object-fit: cover;
+    }
+
+    img:nth-child(1) {
+        top: 0;
+        right: 0;
+        z-index: 1;
+        width: 62%;
+        height: 230px;
+        transform: rotate(2deg);
+    }
+
+    img:nth-child(2) {
+        bottom: 0;
+        left: 2%;
+        z-index: 2;
+        width: 50%;
+        height: 190px;
+        transform: rotate(-3deg);
+    }
+
+    img:nth-child(3) {
+        right: 8%;
+        bottom: 4px;
+        z-index: 3;
+        width: 34%;
+        height: 130px;
+        transform: rotate(4deg);
+    }
+}
+
+@include media("screen", "<sm-desktop") {
+    .photoCollage {
+        height: 280px;
+    }
+}
+
+@include media("screen", "<phone") {
+    .photoCollage {
+        height: 230px;
+    }
+}

@@ -1,0 +1,151 @@
+/*
+Purpose: Style the past event card.
+Expected Request Information: Classes emitted by PastEventCard.
+Expected Response Information: A cover photo beside the event story, with a row of photo thumbnails.
+*/
+.pastEventCard {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    overflow: hidden;
+    border: 1px solid rgba($color-uw-purple, 0.14);
+    border-radius: $radius-card;
+    background: white;
+    box-shadow: 0 6px 18px rgba(black, 0.1);
+
+    &--reversed .pastEventCard__cover {
+        order: 2;
+    }
+
+    h3 {
+        margin: 0 0 10px;
+        color: $color-uw-purple;
+        font-family: $sans-serif;
+        font-size: clamp(1.6rem, 2.6vw, 2.1rem);
+        font-weight: 800;
+        letter-spacing: -0.035em;
+        line-height: 1.1;
+    }
+
+    p {
+        margin: 0 0 22px;
+        color: $color-dark-gray;
+        line-height: 1.6;
+    }
+}
+
+.pastEventCard__cover {
+    min-height: 340px;
+    height: 100%;
+    border-radius: 0;
+}
+
+.pastEventCard__body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 36px;
+}
+
+.pastEventCard__thumbs {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    width: 100%;
+    margin-bottom: 22px;
+
+    .pastEventCard__photo {
+        aspect-ratio: 1;
+        border-radius: 12px;
+    }
+}
+
+.pastEventCard__more {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: rgba(15, 15, 15, 0.6);
+    color: white;
+    font-family: $sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+.pastEventCard__viewPhotos {
+    display: inline-flex;
+    font-family: inherit;
+    align-items: center;
+    gap: 10px;
+    min-height: $pill-height;
+    padding: $pill-padding-y $pill-padding-x;
+    border: $pill-border-width solid $color-primary;
+    border-radius: $radius-pill;
+    background: white;
+    color: $color-primary;
+
+    &:hover,
+    &:focus-visible {
+        background: $color-primary;
+        color: white;
+        outline: none;
+    }
+}
+
+.pastEventCard__photo {
+    position: relative;
+    font-family: inherit;
+    display: block;
+    overflow: hidden;
+    width: 100%;
+    padding: 0;
+    border-radius: $radius-card-media;
+    background: $color-lavender;
+    cursor: zoom-in;
+
+    img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 320ms ease;
+    }
+
+    &:hover img {
+        transform: scale(1.04);
+    }
+
+    &:focus-visible {
+        outline: 3px solid $color-primary;
+        outline-offset: 3px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pastEventCard__photo img {
+        transition: none;
+    }
+
+    .pastEventCard__photo:hover img {
+        transform: none;
+    }
+}
+
+@include media("screen", "<sm-desktop") {
+    .pastEventCard {
+        grid-template-columns: 1fr;
+
+        &--reversed .pastEventCard__cover {
+            order: 0;
+        }
+    }
+
+    .pastEventCard__cover {
+        min-height: 0;
+        aspect-ratio: 16 / 10;
+    }
+
+    .pastEventCard__body {
+        padding: 24px;
+    }
+}

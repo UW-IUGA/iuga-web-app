@@ -1,38 +1,78 @@
-import { format } from "date-fns";
 import { useCallback, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { toast } from "react-toastify";
+import { pastEvents } from "../assets/data/PastEventsData";
 import { mockCalendarData, mockEvent } from "../assets/mock-data/MockCalendarData";
-import EventDetailsCard from "../components/EventDetailsCard";
-import EventDetailsLoader from "../components/EventDetailsLoader";
+import { mockUpcomingEvents } from "../assets/mock-data/MockUpcomingEvents";
+import EventAgenda from "../components/EventAgenda";
+import EventDialog from "../components/EventDialog";
 import EventOperations from "../components/EventOperations";
-import EventStream from "../components/EventStream";
-import WeeklyCalendar from "../components/WeeklyCalendar";
+import PastEventCard from "../components/PastEventCard";
+import PhotoCollage from "../components/PhotoCollage";
+import PhotoLightbox from "../components/PhotoLightbox";
 import { useAuthContext } from "../context/AuthContext";
 import { isProduction } from "../runtime";
 
-const EVENT_CATEGORIES = ["Academic", "Social", "Professional"];
+const DEV_EVENTS = [...mockCalendarData, ...mockUpcomingEvents];
+
+// The hero collage previews past events, drawing on the first two photos of each.
+const HERO_PHOTOS = pastEvents.flatMap((event) => event.photos.slice(0, 2));
+
+const pastEventEyebrow = (event) => [event.when, event.time, event.location].filter(Boolean).join(" · ");
+
+// The fields the list leaves out: description, photo, and RSVP settings.
+const loadEventDetails = async (event) => {
+    if (!isProduction) {
+        return { ...mockEvent, ...event, ...DEV_EVENTS.find((devEvent) => devEvent.eId === event.eId) };
+    }
+
+    const res = await fetch(`/api/v1/events/id/${event.eId}`, { method: "GET" });
+    if (!res.ok) throw new Error(`${res.status}, ${res.statusText}`);
+    return res.json();
+};
 
 function EventsPage() {
     const { isAuthenticated, isAdmin } = useAuthContext();
     const { state, pathname } = useLocation();
     const [calendarEvents, setCalendarEvents] = useState([]);
-    const [selectedEvent, setSelectedEvent] = useState(null);
-    const [isDetailsActive, setDetailsActive] = useState(false);
-    const [showLoader, setShowLoader] = useState(false);
+    // "loading" until the list arrives, then "ready"; "failed" if it could not be fetched.
+    const [eventsStatus, setEventsStatus] = useState("loading");
+    // Bumped to fetch the list again after a failure.
+    const [eventsRequest, setEventsRequest] = useState(0);
+    // The open event dialog: the event as it was opened (a list record, or the eId and date
+    // another page linked to) and its details, which are null until they load.
+    const [dialog, setDialog] = useState(null);
+    const openEvent = dialog?.event;
+    const openEventDetails = useCallback((event) => setDialog({ event, details: null }), []);
+    const closeEventDetails = useCallback(() => setDialog(null), []);
+    // Events RSVPd to in the current sign-in session; the list itself only knows what the
+    // server said when it loaded. The session number changes whenever sign-in state does.
+    const [rsvps, setRsvps] = useState({ session: 0, eventIds: new Set() });
+    // The past event whose photos are open in the viewer, and which photo is showing.
+    const [openPhoto, setOpenPhoto] = useState(null);
 
     useEffect(() => {
         window.scrollTo(0, 0);
     }, [pathname]);
 
+    // RSVPs belong to whoever was signed in when they were made, so a new session starts empty.
+    useEffect(() => {
+        setRsvps((current) => ({ session: current.session + 1, eventIds: new Set() }));
+    }, [isAuthenticated]);
+
     useEffect(() => {
         let isCurrent = true;
 
         if (!isProduction) {
-            setCalendarEvents(mockCalendarData);
+            setCalendarEvents(DEV_EVENTS);
+            setEventsStatus("ready");
             return () => {
                 isCurrent = false;
             };
         }
+
+        // A list that is already showing stays up while it is refreshed, for example after signing in.
+        setEventsStatus((status) => (status === "ready" ? status : "loading"));
 
         fetch("/api/v1/events/", { method: "GET" })
             .then((res) => {
@@ -40,122 +80,110 @@ function EventsPage() {
                 return res.json();
             })
             .then((events) => {
-                if (isCurrent) setCalendarEvents(events);
+                if (!isCurrent) return;
+                setCalendarEvents(events);
+                setEventsStatus("ready");
             })
             .catch((error) => {
                 console.error("Unable to load events", error);
+                if (isCurrent) setEventsStatus("failed");
             });
 
         return () => {
             isCurrent = false;
         };
-    }, [isAuthenticated]);
+    }, [isAuthenticated, eventsRequest]);
 
-    const openEventDetails = useCallback((event) => {
-        setDetailsActive(true);
-        setShowLoader(true);
+    // The dialog opens straight away with what is already known; this fills in the rest.
+    useEffect(() => {
+        if (!openEvent) return undefined;
+        let isCurrent = true;
 
-        if (!isProduction) {
-            setSelectedEvent({
-                ...mockEvent,
-                eId: event.eId,
-                eName: event.eName,
-                eStartDate: event.eStartDate,
-                eLocation: event.eLocation,
-                eLabels: event.eLabels,
-            });
-            setShowLoader(false);
-            return;
-        }
-
-        fetch(`/api/v1/events/id/${event.eId}`, { method: "GET" })
-            .then((res) => {
-                if (!res.ok) throw new Error(`${res.status}, ${res.statusText}`);
-                return res.json();
-            })
-            .then((eventDetails) => {
-                setSelectedEvent({
-                    ...eventDetails,
-                    eStartDateFormatted: format(new Date(eventDetails.eStartDate), "LLL dd, hh:mm aa"),
-                });
-                setShowLoader(false);
+        loadEventDetails(openEvent)
+            .then((details) => {
+                if (isCurrent) setDialog({ event: openEvent, details });
             })
             .catch((error) => {
                 console.error("Unable to load event details", error);
-                setShowLoader(false);
-                setDetailsActive(false);
+                if (!isCurrent) return;
+                toast.error("We couldn't load this event's details. Please try again.");
+                setDialog(null);
             });
-    }, []);
+
+        return () => {
+            isCurrent = false;
+        };
+    }, [openEvent]);
 
     useEffect(() => {
-        if (state?.eId) {
-            openEventDetails({ eId: state.eId, eStartDate: state.eStartDate });
-        }
+        if (state?.eId) openEventDetails({ eId: state.eId, eStartDate: state.eStartDate });
     }, [openEventDetails, state]);
 
-    const deselectEventDetails = useCallback(() => {
-        setDetailsActive(false);
-        setSelectedEvent(null);
-    }, []);
+    // An RSVP can finish after someone else has signed in on the same computer; it only
+    // counts for the session it was sent in.
+    const markRsvpd = (eId, sentInSession) => {
+        setRsvps((current) =>
+            current.session === sentInSession ? { ...current, eventIds: new Set(current.eventIds).add(eId) } : current,
+        );
+    };
 
-    const handleRSVP = useCallback(() => {
-        if (!selectedEvent) return;
+    // An event counts as RSVPd if the server said so or the student RSVPd since, and only while signed in.
+    const withRsvpState = (event) => ({
+        ...event,
+        hasRSVPd: isAuthenticated && (Boolean(event.hasRSVPd) || rsvps.eventIds.has(event.eId)),
+    });
+    const agendaEvents = calendarEvents.map(withRsvpState);
+    const dialogEvent = dialog && withRsvpState({ ...dialog.event, ...dialog.details });
 
-        setSelectedEvent((currentEvent) => ({ ...currentEvent, hasRSVPd: true }));
-        setCalendarEvents((events) => events.map((event) => (
-            event.eId === selectedEvent.eId ? { ...event, hasRSVPd: true } : event
-        )));
-    }, [selectedEvent]);
+    const closePhoto = useCallback(() => setOpenPhoto(null), []);
 
     return (
         <div className="baseContainer eventsPage">
             <header className="eventsHero">
                 <div>
-                    <span className="eventsEyebrow">IUGA EVENTS</span>
+                    <span className="eventsHero__kicker">IUGA EVENTS</span>
                     <h1>Find what&apos;s happening this week.</h1>
-                    <p>
-                        Find your events, your community, that help create your story at UW.
-                    </p>
-		</div>
+                </div>
+                <PhotoCollage photos={HERO_PHOTOS} />
             </header>
 
-            <WeeklyCalendar
-                events={calendarEvents}
+            <EventAgenda
+                events={agendaEvents}
                 initialDate={state?.eStartDate}
+                status={eventsStatus}
+                onRetry={() => setEventsRequest((request) => request + 1)}
                 onSelectEvent={openEventDetails}
             />
 
-            <section className="eventStreamsSection" aria-labelledby="event-streams-heading">
-                <div className="eventStreamsIntro">
-                    <div>
-                        <span className="eventsEyebrow">KEEP EXPLORING</span>
-                        <h2 id="event-streams-heading">Something for every kind of week.</h2>
-                    </div>
-                    <p>Three ways to find your people, build your toolkit, or simply show up.</p>
-                </div>
-                <div className="eventStreamsGrid">
-                    {EVENT_CATEGORIES.map((category) => (
-                        <div className={`eventStreamColumn eventStreamColumn-${category.toLowerCase()}`} key={category}>
-                            <h3>{category} events</h3>
-                            <EventStream category={category} events={calendarEvents} />
-                        </div>
+            <section className="eventsPast" aria-labelledby="past-events-heading">
+                <h2 id="past-events-heading">Previous events.</h2>
+                <div className="eventsPast__list">
+                    {pastEvents.map((event, position) => (
+                        <PastEventCard
+                            event={event}
+                            key={event.id}
+                            reversed={position % 2 === 1}
+                            onOpenPhoto={(index) => setOpenPhoto({ event, index })}
+                        />
                     ))}
                 </div>
             </section>
 
-            {isDetailsActive && (
-                <aside className="eventsDetailsPanel" aria-label="Event details">
-                    {showLoader ? (
-                        <EventDetailsLoader />
-                    ) : (
-                        <EventDetailsCard
-                            selectedEvent={selectedEvent}
-                            handleRSVP={handleRSVP}
-                            deselectEventDetails={deselectEventDetails}
-                        />
-                    )}
-                </aside>
-            )}
+            <PhotoLightbox
+                photos={openPhoto?.event.photos}
+                index={openPhoto?.index ?? null}
+                title={openPhoto?.event.name}
+                eyebrow={openPhoto ? pastEventEyebrow(openPhoto.event) : undefined}
+                onIndexChange={(index) => setOpenPhoto((current) => ({ ...current, index }))}
+                onClose={closePhoto}
+            />
+
+            <EventDialog
+                event={dialogEvent}
+                isLoading={Boolean(dialog) && !dialog.details}
+                onRsvp={(eId) => markRsvpd(eId, rsvps.session)}
+                onClose={closeEventDetails}
+            />
 
             <EventOperations isAdmin={isAdmin} />
         </div>

@@ -48,6 +48,20 @@ function readRsvpAnswers(value) {
 
 //-------------------------------Event Endpoints----------------------------------------------
 
+// One event as the list endpoint returns it, for signed-in and signed-out visitors alike.
+const toEventSummary = (event, hasRSVPd) => ({
+  eId: event._id,
+  eName: event.eName,
+  eStartDate: event.eStartDate,
+  eEndDate: event.eEndDate,
+  eLocation: event.eLocation,
+  eOrganizers: event.eOrganizers,
+  eDescription: event.eDescription,
+  eLabels: event.eLabels,
+  eThumbnailPath: event.eThumbnailPath,
+  hasRSVPd,
+});
+
 /*
 Purpose: Get information for events to display on the calendar for a given month/year.
 Authentication/Authorization Requirements: None
@@ -66,7 +80,9 @@ Expected Response Information:
             eLocation: String event location,
             eOrganizers: String event organizer(s),
             eDescription: String event description,
-            eLabels: Array of String event category label(s)
+            eLabels: Array of String event category label(s),
+            eThumbnailPath: String event thumbnail URL, when the event has one,
+            hasRSVPd: Boolean whether the signed-in user has RSVPd
         }]
 */
 router.get("/", async function (req, res) {
@@ -76,46 +92,16 @@ router.get("/", async function (req, res) {
         .populate("eParticipants")
         .exec();
       const userObjectId = new mongoose.Types.ObjectId(req.session.userId);
+      const hasRSVPd = (event) =>
+        event.eParticipants.some((participant) =>
+          participant.pUID.equals(userObjectId),
+        );
 
-      const eventsData = await Promise.all(
-        events.map(async (event) => {
-          const hasRSVPd = event.eParticipants.some((participant) =>
-            participant.pUID.equals(userObjectId),
-          );
-          return {
-            eId: event._id,
-            eName: event.eName,
-            eStartDate: event.eStartDate,
-            eEndDate: event.eEndDate,
-            eLocation: event.eLocation,
-            eOrganizers: event.eOrganizers,
-            eDescription: event.eDescription,
-            eLabels: event.eLabels,
-            hasRSVPd: hasRSVPd,
-          };
-        }),
-      );
-
-      res.json(eventsData);
+      res.json(events.map((event) => toEventSummary(event, hasRSVPd(event))));
     } else {
       const events = await req.models.Events.find({});
-      const eventsData = await Promise.all(
-        events.map(async (event) => {
-          return {
-            eId: event._id,
-            eName: event.eName,
-            eStartDate: event.eStartDate,
-            eEndDate: event.eEndDate,
-            eLocation: event.eLocation,
-            eOrganizers: event.eOrganizers,
-            eDescription: event.eDescription,
-            eLabels: event.eLabels,
-            hasRSVPd: false,
-          };
-        }),
-      );
 
-      res.json(eventsData);
+      res.json(events.map((event) => toEventSummary(event, false)));
     }
   } catch (error) {
     console.log(error);

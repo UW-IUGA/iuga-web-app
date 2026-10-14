@@ -1,0 +1,80 @@
+/*
+Purpose: Show one photo from a set at full size, with controls to move through the set.
+
+Expected Request Information:
+- photos: array of { src, alt }.
+- index: position of the photo to show, or null to keep the viewer closed.
+- title: name shown over the photo; also labels the dialog.
+- eyebrow: optional short line shown above the title.
+- onIndexChange: called with the position of the photo to show next.
+- onClose: called when the visitor closes the viewer.
+
+Expected Response Information:
+- A modal dialog. The arrow buttons, the arrow keys, and a click on the right
+  or left half of the photo move forward or back, wrapping around the set.
+  Escape, the close button, and a click outside the photo close it.
+*/
+
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowLeft, faArrowRight, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { useModalDialog } from "../hooks/useModalDialog";
+
+function PhotoLightbox({ photos = [], index = null, title, eyebrow, onIndexChange, onClose }) {
+    const photo = index === null ? null : photos[index];
+    const { dialogProps, close } = useModalDialog(Boolean(photo), onClose);
+
+    const step = (direction) => onIndexChange((index + direction + photos.length) % photos.length);
+
+    // Clicking the photo's right half goes forward and its left half goes back.
+    // The buttons are drawn over the photo but sit outside it, so they keep their own behavior.
+    const handleStageClick = (clickEvent) => {
+        const { left, width } = clickEvent.currentTarget.getBoundingClientRect();
+        step(clickEvent.clientX - left < width / 2 ? -1 : 1);
+    };
+
+    const handleKeyDown = (keyEvent) => {
+        if (!photo) return;
+        if (keyEvent.key === "ArrowRight") step(1);
+        if (keyEvent.key === "ArrowLeft") step(-1);
+    };
+
+    return (
+        <dialog
+            className="photoLightbox"
+            aria-label={title ? `${title} photos` : "Photos"}
+            onKeyDown={handleKeyDown}
+            {...dialogProps}
+        >
+            {photo && (
+                <figure>
+                    <div className="photoLightbox__stage" onClick={handleStageClick}>
+                        <img src={photo.src} alt={photo.alt} />
+                        <span className="photoLightbox__count" aria-live="polite">
+                            {index + 1} / {photos.length}
+                        </span>
+                        <figcaption>
+                            {eyebrow && <span>{eyebrow}</span>}
+                            {title && <strong>{title}</strong>}
+                        </figcaption>
+                    </div>
+                    <button className="photoLightbox__close" type="button" aria-label="Close photos" onClick={close}>
+                        <FontAwesomeIcon icon={faXmark} aria-hidden="true" />
+                    </button>
+                    <button
+                        className="photoLightbox__previous"
+                        type="button"
+                        aria-label="Previous photo"
+                        onClick={() => step(-1)}
+                    >
+                        <FontAwesomeIcon icon={faArrowLeft} aria-hidden="true" />
+                    </button>
+                    <button className="photoLightbox__next" type="button" aria-label="Next photo" onClick={() => step(1)}>
+                        <FontAwesomeIcon icon={faArrowRight} aria-hidden="true" />
+                    </button>
+                </figure>
+            )}
+        </dialog>
+    );
+}
+
+export default PhotoLightbox;

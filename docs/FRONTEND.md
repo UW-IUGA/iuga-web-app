@@ -26,29 +26,33 @@ frontend/src/
 │   └── icons/         ← SVG icons (career, social, academic)
 ├── components/        ← Reusable UI components
 │   ├── Button.jsx
-│   ├── Calendar.jsx
 │   ├── CharacterCard.jsx
 │   ├── Dropdown.jsx
 │   ├── ElectionFAQCard.jsx
 │   ├── EmailContactDialog.jsx ← Mail-provider compose dialog for committee and shop contact
-│   ├── EventCard.jsx
-│   ├── EventDetailsCard.jsx
-│   ├── EventDetailsLoader.jsx
+│   ├── EventAgenda.jsx        ← One week of events: day buttons above a list of event rows
+│   ├── EventCategoryPills.jsx ← Compact category labels for an event
+│   ├── EventDialog.jsx        ← Event details and RSVP in a modal dialog
+│   ├── EventThumbnail.jsx     ← An event's photo, or a category tile when it has none
 │   ├── GradientLine.jsx
+│   ├── PastEventCard.jsx      ← Past event recap with a cover photo and thumbnails
+│   ├── PhotoCollage.jsx       ← Up to three overlapping photos
+│   ├── PhotoLightbox.jsx      ← Full-size photo viewer for a set of photos
 │   ├── ResourceCard.jsx
 │   ├── RolePage.jsx
 │   ├── ShopMaintenanceBanner.jsx ← Site-wide maintenance countdown for students with items in their cart
-│   └── Tag.jsx
+│   └── WeekNavigation.jsx     ← Previous/next week control
 ├── context/
 │   └── AuthContext.jsx   ← Authentication state (React Context)
 ├── hooks/
-│   └── useAuth.jsx       ← MSAL token acquisition + backend handshake
+│   ├── useAuth.jsx       ← MSAL token acquisition + backend handshake
+│   └── useModalDialog.js ← Opens and closes a native <dialog> from an isOpen flag
 ├── layouts/
 │   ├── Navbar.jsx        ← Shared top navigation and temporary mobile menu
 │   └── Footer.jsx
 ├── pages/
 │   ├── Home.jsx          ← Homepage hero, upcoming events, support destinations, and community links
-│   ├── Events.jsx        ← Calendar view (desktop only; mobile shows "under construction")
+│   ├── Events.jsx        ← Weekly event agenda, event details and RSVP, and past event photos
 │   ├── Resources.jsx     ← Resource links list
 │   ├── About.jsx         ← Team member cards by year
 │   ├── GetInvolved.jsx   ← Committee leaders, committees, and the Creative application status
@@ -125,6 +129,47 @@ Defined in `src/App.jsx`:
 
 The backend also serves `index.html` for each of these paths to enable deep linking (see [BACKEND.md](./BACKEND.md#spa-routes)).
 
+### Events page
+
+`pages/Events.jsx` loads the event list, owns which event and which photo are
+open, and composes these pieces:
+
+- **Hero** — the heading beside a `PhotoCollage` of past event photos.
+- **`EventAgenda`** — shows one week at a time. `WeekNavigation` moves a week
+  backward or forward. Seven day buttons show which days have events; choosing
+  a day filters the list to that day, and choosing it again shows the whole
+  week. Each event row shows its date, `EventThumbnail`, time, location, host,
+  and `EventCategoryPills`, and is marked "Going" once the student has RSVPd.
+  A week with no events offers a button that jumps to the next upcoming event.
+- **`EventDialog`** — opens when a student chooses an event. It opens at once
+  with the fields the list already has, then fills in the rest from
+  `GET /api/v1/events/id/{eId}`. An upcoming event with RSVP enabled shows its
+  questions and an RSVP button, which posts to `POST /api/v1/events/rsvp` and
+  requires sign-in. An event with its own sign-up link shows that link instead.
+  Past events cannot be RSVPd to.
+- **Previous events** — one `PastEventCard` per entry in
+  `assets/data/PastEventsData.js`. Any photo, or "View Photos", opens
+  `PhotoLightbox` on that event's photos; the viewer shows the event's name
+  with its date, time, and location. The arrow buttons, the arrow keys, and a
+  click on the right or left half of the photo move through the set, wrapping
+  around at both ends.
+
+To add a past event, run `scripts/past-event-photo.sh <original-photo> <name>`
+for each photo (it needs `ffmpeg` and `cwebp`), then add an entry to
+`PastEventsData.js` that lists them with `photo("<name>", "<alt text>")`. The
+script writes two WebP files to `assets/gallery/past-events/`: `<name>.webp`,
+2000px on its long edge, for the viewer, and `<name>-small.webp`, 800px, for
+cards, thumbnails, and the hero collage. The page loads the small files until
+a student opens a photo, except that each card's cover uses the full-size file
+on high-density screens so it stays sharp. The first photo is the cover, and the first two
+photos of each event feed the hero collage.
+
+`EventDialog` and `PhotoLightbox` are native `<dialog>` elements driven by
+`hooks/useModalDialog.js`. Pass it whether the dialog should be open and what
+to do when it closes; spread the `dialogProps` it returns onto the `<dialog>`
+and call its `close()` from a close button. Escape, the close button, and a
+click on the dimmed area all close the dialog and call your handler once.
+
 ### Venmo checkout hold
 
 Checkout from the bag calls `POST /api/v1/shop/holds` and navigates to `/shop/checkout/<holdId>`. The bag stays open on every failure and is kept until a purchase is confirmed. Removing a line on the checkout page also removes it from the bag. Cancelling returns to `/shop` with the bag unchanged. A student who leaves the checkout page can press Checkout again: the server cancels their earlier hold and starts a new one. In the bag, the steppers and typed quantities stop at a product's `perStudentLimit` from the catalog, counted across sizes; the `+` button and the product's Add button are disabled at the limit, and each bag line shows the limit. Lines keep the units they already hold, so lowering a quantity is never blocked. Before calling the hold route, checkout is still blocked when a product's units across sizes exceed the limit, which covers a limit lowered after items were added. The bag names the product and its limit, and the server enforces the same limit against the student's existing holds and purchases. An expired hold shows an email option that opens a prefilled message to `iuga@uw.edu` for students who already paid on Venmo but could not confirm; IUGA verifies those payments by hand.
@@ -171,8 +216,8 @@ tracking or proof of payment.
 In Vite dev mode, the frontend uses **mock data**:
 
 - **Homepage events**: `MockCalendarData.js`
-- **Calendar events**: `MockCalendarData.js` (imported directly, no fetch)
-- **Single event details**: `mockEvent` from `MockCalendarData.js`
+- **Calendar events**: `MockCalendarData.js` plus `MockUpcomingEvents.js` (imported directly, no fetch). The latter mirrors the real events in `backend/publishedEvents.js` and adds sample events dated relative to today, so the agenda always has something upcoming
+- **Single event details**: the listed mock event, with `mockEvent` from `MockCalendarData.js` supplying any RSVP fields it lacks. The RSVP button still calls the API, so it needs the backend running and a signed-in student
 
 No backend is required for frontend development. The exception is the shop: it reads its catalog and prices from the API in both dev and production, because prices and sizes must never be duplicated in the frontend — in dev that means the Vite `/api` proxy to the backend must be running for the page to load.
 
@@ -223,7 +268,6 @@ The backend creates **server-side sessions** (express-session), so the frontend 
 - Fonts: **NotoSans** (body) and **PlayfairDisplay** (headings), served from `public/font/`
 - Responsive breakpoints: the navigation drawer appears below `1024px` to keep
   links readable; page layout also uses the tablet breakpoint at `768px`
-- Some pages (Events calendar) are desktop-only with a "under construction" message on mobile
 - Toast notifications: `react-toastify` for user feedback
 
 ---

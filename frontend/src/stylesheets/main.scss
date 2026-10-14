@@ -16,20 +16,24 @@
 
 @import 'components/buttons';
 @import 'components/alertDialog';
-@import 'components/calendar';
 @import 'components/dropdown';
 @import 'components/emailContactDialog';
 @import 'components/electionfaqCard';
-@import 'components/eventCard';
+@import 'components/eventAgenda';
+@import 'components/eventCategoryPills';
+@import 'components/eventDialog';
+@import 'components/eventThumbnail';
 @import 'components/gradientLine';
 @import 'components/imageCarousel';
+@import 'components/pastEventCard';
+@import 'components/photoCollage';
+@import 'components/photoLightbox';
 @import 'components/resourceCard';
 @import 'components/rolePage';
 @import 'components/shopMaintenanceBanner';
 @import 'components/studentProfileCard';
 @import 'components/sidebar';
-@import 'components/tag';
-@import 'components/weeklyCalendar';
+@import 'components/weekNavigation';
 
 @import 'pages/about';
 @import 'pages/elections';

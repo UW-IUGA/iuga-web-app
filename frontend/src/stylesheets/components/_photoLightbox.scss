@@ -1,0 +1,154 @@
+/*
+Purpose: Style the full-size photo viewer.
+Expected Request Information: Classes emitted by PhotoLightbox.
+Expected Response Information: One photo on a dimmed page with its caption and controls inside the photo.
+*/
+.photoLightbox {
+    // Just the photo on the dimmed page, with every control inside it.
+    width: fit-content;
+    max-width: min(1040px, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
+    padding: 0;
+    overflow: visible;
+    border: 0;
+    background: transparent;
+
+    &::backdrop {
+        background: rgba(black, 0.45);
+    }
+
+    figure {
+        position: relative;
+        margin: 0;
+    }
+
+    // Same treatment as the About page's profile photos: white text over a dark fade.
+    figcaption {
+        position: absolute;
+        inset: auto 0 0;
+        padding: 64px 140px 22px 24px;
+        background: linear-gradient(to top, rgba(15, 15, 15, 0.82), rgba(15, 15, 15, 0.4) 64%, transparent);
+        color: white;
+        text-align: left;
+        pointer-events: none;
+
+        span,
+        strong {
+            display: block;
+        }
+
+        span {
+            margin-bottom: 6px;
+            color: rgba(255, 255, 255, 0.92);
+            font-size: 0.76rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            line-height: 1.35;
+            text-transform: uppercase;
+        }
+
+        strong {
+            font-family: $sans-serif;
+            font-size: clamp(1.25rem, 2vw, 1.6rem);
+            font-weight: 800;
+            line-height: 1.12;
+        }
+    }
+
+    button {
+        position: absolute;
+        font-family: inherit;
+        display: grid;
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        place-items: center;
+        border: 0;
+        border-radius: $radius-pill;
+        background: white;
+        box-shadow: 0 4px 14px rgba(black, 0.22);
+        color: black;
+
+        &:hover {
+            background: #e4e4e4;
+        }
+
+        &:focus-visible {
+            outline: 2px solid white;
+            outline-offset: 3px;
+        }
+    }
+}
+
+.photoLightbox__stage {
+    position: relative;
+    // Clicking either half of the photo moves through the set.
+    cursor: pointer;
+    display: block;
+    overflow: hidden;
+    border-radius: $radius-card-media;
+    box-shadow: 0 24px 60px rgba(black, 0.3);
+
+    img {
+        display: block;
+        max-width: 100%;
+        max-height: calc(100vh - 48px);
+        object-fit: contain;
+    }
+}
+
+.photoLightbox__count {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    padding: 6px 14px;
+    border-radius: $radius-pill;
+    background: rgba(15, 15, 15, 0.6);
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    transform: translateX(-50%);
+}
+
+.photoLightbox .photoLightbox__close {
+    top: 12px;
+    right: 12px;
+}
+
+// Arrows sit in the bottom-right corner, on the dark fade and level with the text.
+.photoLightbox .photoLightbox__previous,
+.photoLightbox .photoLightbox__next {
+    bottom: 18px;
+}
+
+.photoLightbox .photoLightbox__previous {
+    right: 74px;
+}
+
+.photoLightbox .photoLightbox__next {
+    right: 20px;
+}
+
+@include media("screen", "<tablet") {
+    .photoLightbox {
+        max-width: calc(100vw - 24px);
+
+        figcaption {
+            padding: 56px 124px 16px 16px;
+        }
+    }
+
+    .photoLightbox .photoLightbox__previous,
+    .photoLightbox .photoLightbox__next {
+        bottom: 12px;
+    }
+
+    .photoLightbox .photoLightbox__previous {
+        right: 66px;
+    }
+
+    .photoLightbox .photoLightbox__next {
+        right: 12px;
+    }
+}

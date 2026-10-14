@@ -17,6 +17,11 @@ $color-academic-primary: #ca8f3d;
 $color-academic-secondary: #FEEFCD;
 $color-academic-light: #fbf5e7;
 
+// Lighter end of each category's gradient, paired with its primary colour.
+$color-academic-gradient-end: #e9b45c;
+$color-social-gradient-end: #e05ef0;
+$color-career-gradient-end: #7d8af2;
+
 // Shared type colors; keep these separate for quick theme experiments.
 $color-career: #356eff;
 $color-academic: #ca8f3d;

@@ -130,6 +130,15 @@ already live, edit its record in the database; editing its entry here has no
 effect once it has been inserted. Removing an entry does not delete the
 record.
 
+For weekly events, `shared/recurringEvents.mjs` exports `createRecurringEvents`.
+Provide common `event` fields, inclusive `startsOn`/`endsOn` dates (`YYYY-MM-DD`),
+and `schedule` entries such as `{ weekday: 2, startTime: "12:00", endTime: "13:15" }`.
+Weekdays run from Sunday (0) through Saturday (6). Times use 24-hour `HH:mm` and
+end times, when supplied, must be on the same day. `excludeDates` skips local
+dates; `timeZone` defaults to `America/Los_Angeles` and preserves local session
+times across daylight-saving changes. Use ordinary daytime hours, not ambiguous
+or nonexistent times during a daylight-saving transition.
+
 ### User (`/api/v1/user`)
 
 | Method | Path | Auth | Description |

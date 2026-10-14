@@ -217,6 +217,7 @@ In Vite dev mode, the frontend uses **mock data**:
 
 - **Homepage events**: `MockCalendarData.js`
 - **Calendar events**: `MockCalendarData.js` plus `MockUpcomingEvents.js` (imported directly, no fetch). The latter mirrors the real events in `backend/publishedEvents.js` and adds sample events dated relative to today, so the agenda always has something upcoming
+- **Snack & Build**: `MockUpcomingEvents.js` imports the same dated occurrences from `shared/snackAndBuild.mjs` that production publishes. Weekdays, times, quarter bounds, and excluded dates are maintained there, not duplicated in mock data.
 - **Single event details**: the listed mock event, with `mockEvent` from `MockCalendarData.js` supplying any RSVP fields it lacks. The RSVP button still calls the API, so it needs the backend running and a signed-in student
 
 No backend is required for frontend development. The exception is the shop: it reads its catalog and prices from the API in both dev and production, because prices and sizes must never be duplicated in the frontend — in dev that means the Vite `/api` proxy to the backend must be running for the page to load.

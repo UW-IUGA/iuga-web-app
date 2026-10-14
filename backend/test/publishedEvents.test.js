@@ -5,6 +5,28 @@ import { publishedEvents, seedPublishedEvents } from "../publishedEvents.js";
 import { eventsSchema } from "../schemas/schemas.js";
 
 describe("published events", () => {
+  it("publishes drop-in Snack & Build through finals, skipping Thanksgiving", () => {
+    const sessions = publishedEvents.filter((event) => event.eName === "Snack & Build");
+    assert.equal(sessions.length, 19);
+    assert.equal(sessions[0].eStartDate.toISOString(), "2026-10-13T19:00:00.000Z");
+    assert.equal(sessions.at(-1).eStartDate.toISOString(), "2026-12-17T23:30:00.000Z");
+    assert.ok(!sessions.some((event) => event.eStartDate.toISOString().startsWith("2026-11-26")));
+    assert.ok(sessions.some((event) => event.eStartDate.toISOString() === "2026-12-15T20:00:00.000Z"));
+    for (const event of sessions) {
+      assert.equal(event.eOrganizers, "iStartup Lab");
+      assert.equal(event.eLocation, "iStartup Lab, MGH 310");
+      assert.equal(event.eRsvpEnabled, false);
+      assert.match(event.eDescription, /Drop in; no RSVP required/);
+      assert.equal(event.eThumbnailPath, "/assets/events/snack-and-build-page-1.webp");
+      if (event.eStartDate.getUTCDay() === 2) {
+        assert.equal(event.eEndDate - event.eStartDate, 75 * 60_000);
+      } else {
+        assert.equal(event.eStartDate.getUTCDay(), 4);
+        assert.equal(event.eEndDate, undefined);
+      }
+    }
+  });
+
   it("inserts each event only when its id is not in the database yet", async () => {
     const calls = [];
     const events = {

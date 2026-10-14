@@ -11,6 +11,7 @@ WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci
 COPY frontend/ ./
+COPY shared/ /app/shared/
 
 RUN npm run build
 
@@ -24,6 +25,7 @@ COPY backend/package*.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev
 
 COPY backend/ ./
+COPY shared/ /app/shared/
 COPY --from=build /app/frontend/build /app/frontend/build
 EXPOSE $PORT
 CMD ["npm", "run", "deploy"]

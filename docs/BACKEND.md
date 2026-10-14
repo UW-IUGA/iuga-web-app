@@ -130,6 +130,26 @@ already live, edit its record in the database; editing its entry here has no
 effect once it has been inserted. Removing an entry does not delete the
 record.
 
+For weekly events, `shared/recurringEvents.mjs` exports `createRecurringEvents`.
+Provide common `event` fields, inclusive `startsOn`/`endsOn` dates (`YYYY-MM-DD`),
+and `schedule` entries such as `{ weekday: 2, startTime: "12:00", endTime: "13:15" }`.
+Weekdays run from Sunday (0) through Saturday (6). Times use 24-hour `HH:mm` and
+end times, when supplied, must be on the same day. `excludeDates` skips local
+dates; `timeZone` defaults to `America/Los_Angeles` and preserves local session
+times across daylight-saving changes. Use ordinary daytime hours, not ambiguous
+or nonexistent times during a daylight-saving transition.
+
+`shared/snackAndBuild.mjs` is the single schedule source for production publishing
+and frontend development: October 13–December 18, 2026, Tuesdays noon–1:15 p.m.
+and Thursdays 3:30 p.m. onward, excluding Thanksgiving (November 26).
+Finals-week sessions are included; the last session is December 17.
+The cutoff comes from the [UW 2026–2027 calendar](https://www.washington.edu/students/reg/2627cal.html).
+Each occurrence gets a stable id in `publishedEvents.js` based on the series and
+date, so restarting the server does not create duplicate events. The insert-only
+rules above still apply: changing a schedule does not update or remove occurrences
+already in the database. The title poster is the event thumbnail; both poster
+pages are retained in `frontend/public/assets/events/snack-and-build-page-{1,2}.webp`.
+
 ### User (`/api/v1/user`)
 
 | Method | Path | Auth | Description |

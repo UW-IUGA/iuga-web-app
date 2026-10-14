@@ -62,7 +62,7 @@ Expected Response Information: A white dialog with the event photo beside its de
     width: 100%;
     height: 100%;
     min-height: 360px;
-    object-fit: cover;
+    object-fit: contain;
 }
 
 .eventDialog__body {

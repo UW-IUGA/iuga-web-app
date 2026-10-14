@@ -33,6 +33,7 @@ backend/
 │   └── spaRoutes.js         ← SPA shell routes served from the compiled frontend
 ├── models.js                ← Database connection + model registration
 ├── committeeRecruitment.js  ← Local recruitment campaign schema and Creative seed
+├── publishedEvents.js       ← Events inserted at startup, with poster, categories, and RSVP link
 ├── schemas/                 ← Git submodule → UW-IUGA/iuga-web-schemas
 ├── routes/
 │   └── api/v1/
@@ -91,6 +92,43 @@ Express also serves:
 | `POST` | `/rsvp` | Yes | RSVP to an event. Requires a valid event ID and an array of string answers; also checks event state and duplicate participation. |
 | `DELETE` | `/withdraw/:eId/:pId` | Yes | Withdraw only the caller's participant from the matching event. Admins may withdraw any participant. |
 | `GET` | `/:pId` | Yes | Return protected participant details only to the participant owner or an admin. |
+
+#### Publishing an event
+
+Events normally become public when leadership approves an event request (see
+Event administration). That path cannot set a poster, categories, or an
+outside RSVP link, so events that need them are listed in
+`backend/publishedEvents.js`. At startup the server inserts each listed event
+whose `_id` is not in the database yet, using `$setOnInsert`, the same way the
+Creative recruitment record is seeded. It never updates an existing record, so
+edits and RSVPs made after publishing are kept.
+
+To publish an event:
+
+1. Convert the poster to WebP and put it in `frontend/public/assets/events/`,
+   named in lowercase words joined by hyphens:
+   `cwebp -q 86 -resize 900 0 poster.png -o frontend/public/assets/events/<name>.webp`.
+   The image ships with the frontend; the database stores only its path.
+2. Add an entry to `publishedEvents` with a new `_id`
+   (`node -e 'console.log(new (require("mongoose").Types.ObjectId)().toString())'`
+   from `backend/`), the event's name, host, start and end, location,
+   description, `eLabels`, and `eThumbnailPath: "/assets/events/<name>.webp"`.
+   Write times with their UTC offset, for example `2026-10-26T17:30:00-07:00`.
+3. Choose how students sign up. Set `eRsvpEnabled: true` with `rsvpQuestions`
+   to use the site's RSVP, or `eRsvpEnabled: false` with `eAltLink` (`title`
+   and `url`) to send them to an outside form. Use `eRsvpEnabled: false`
+   alone when no sign-up exists.
+4. Run `npm test --prefix backend`; `test/publishedEvents.test.js` checks each
+   entry against the Events schema and these rules.
+
+Take every detail from the event's announcement. Name the real host in
+`eOrganizers`, use the public category names (Academic, Social, Professional),
+leave out emojis, and omit a field rather than guessing it.
+
+The event goes live when the change is deployed. To change an event that is
+already live, edit its record in the database; editing its entry here has no
+effect once it has been inserted. Removing an entry does not delete the
+record.
 
 ### User (`/api/v1/user`)
 

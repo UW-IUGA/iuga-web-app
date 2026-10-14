@@ -6,6 +6,7 @@ import path from "path";
 
 import { models, connectToDatabase } from "./models.js";
 import { seedCreativeRecruitment } from "./committeeRecruitment.js";
+import { seedPublishedEvents } from "./publishedEvents.js";
 import { createSessionOptions, readSessionSecret } from "./http/session.js";
 import apiv1Router from "./routes/api/v1/apiv1.js";
 import {
@@ -35,6 +36,7 @@ if (!sessionSecret) {
 
 await connectToDatabase();
 await seedCreativeRecruitment(models.CommitteeRecruitment);
+await seedPublishedEvents(models.Events);
 const app = express();
 configureTrustedProxy(app);
 

@@ -57,6 +57,7 @@ describe("event Mongoose boundaries", () => {
 
   it("returns the documented event shape with RSVP state", async () => {
     const event = makeEvent({
+      eThumbnailPath: "https://example.test/baseline.jpg",
       eParticipants: [
         { pUID: new mongoose.Types.ObjectId(userId) },
       ],
@@ -77,10 +78,66 @@ describe("event Mongoose boundaries", () => {
         eOrganizers: "IUGA",
         eDescription: "A baseline event",
         eLabels: ["community"],
+        eThumbnailPath: "https://example.test/baseline.jpg",
         hasRSVPd: true,
       },
     ]);
   });
+
+  it("returns the thumbnail to signed-out visitors without an RSVP state", async () => {
+    const event = makeEvent({ eThumbnailPath: "https://example.test/baseline.jpg" });
+    const result = await api.request("GET", "/api/v1/events", undefined, {
+      session: { isAuthenticated: false },
+      models: {
+        Events: { find: async () => [event] },
+      },
+    });
+
+    assert.equal(result.status, 200);
+    assert.deepEqual(result.body, [
+      {
+        eId: eventId,
+        eName: "Baseline event",
+        eStartDate: event.eStartDate.toISOString(),
+        eLocation: "Campus",
+        eOrganizers: "IUGA",
+        eDescription: "A baseline event",
+        eLabels: ["community"],
+        eThumbnailPath: "https://example.test/baseline.jpg",
+        hasRSVPd: false,
+      },
+    ]);
+  });
+  it("reports each event's own RSVP state in a signed-in list", async () => {
+    const someoneElse = new mongoose.Types.ObjectId("507f1f77bcf86cd799439099");
+    const result = await api.request("GET", "/api/v1/events", undefined, {
+      models: {
+        Events: {
+          find: () =>
+            query([
+              makeEvent({
+                _id: "507f1f77bcf86cd799439021",
+                eParticipants: [{ pUID: someoneElse }],
+              }),
+              makeEvent({
+                _id: "507f1f77bcf86cd799439022",
+                eParticipants: [{ pUID: new mongoose.Types.ObjectId(userId) }],
+              }),
+            ]),
+        },
+      },
+    });
+
+    assert.equal(result.status, 200);
+    assert.deepEqual(
+      result.body.map((event) => [event.eId, event.hasRSVPd]),
+      [
+        ["507f1f77bcf86cd799439021", false],
+        ["507f1f77bcf86cd799439022", true],
+      ],
+    );
+  });
+
   it("queries the nearest three future events in chronological order", async () => {
     let pipeline;
     const upcomingEvents = [

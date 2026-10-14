@@ -22,6 +22,11 @@ describe("displayLabel", () => {
         expect(displayLabel("Academic")).toBe("Academic");
         expect(displayLabel("Social")).toBe("Social");
     });
+
+    test("leaves a label named like an object property unchanged", () => {
+        expect(displayLabel("constructor")).toBe("constructor");
+        expect(displayLabel("toString")).toBe("toString");
+    });
 });
 
 describe("eventsForCategory", () => {

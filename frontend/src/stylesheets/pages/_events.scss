@@ -10,139 +10,55 @@
     p {
         margin-top: 0;
     }
+}
 
-    .calendar-tag-wrapper .tagText {
-        background-color: white;
-        border-width: $pill-border-width;
-        color: black;
-    }
+.eventsHero__kicker {
+    display: inline-block;
+    margin-bottom: 8px;
+    color: $color-primary;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
 }
 
 .eventsHero {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 32px;
-    padding: 10px 0 20px;
+    display: grid;
+    align-items: center;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+    gap: 40px;
+    padding: 8px 0 4px;
 
+    // Same heading face as the shop page: heavy sans, uppercase, tight tracking.
     h1 {
-        max-width: 760px;
-        margin-bottom: 16px;
-        color: $color-uw-purple;
-        font-size: clamp(2.8rem, 6vw, 5.5rem);
-        letter-spacing: -0.045em;
-        line-height: 0.98;
-    }
-
-    p {
-        max-width: 600px;
         margin-bottom: 0;
-        color: $color-dark-gray;
-        font-size: 1.05rem;
-        line-height: 1.65;
+        color: $color-uw-purple;
+        font-family: $sans-serif;
+        font-size: clamp(2.6rem, 5.4vw, 4.6rem);
+        font-weight: 900;
+        letter-spacing: -0.055em;
+        line-height: 1;
+        text-transform: uppercase;
     }
 }
 
-.eventStreamsSection {
-    margin-top: 72px;
-}
-
-.eventStreamsIntro {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 24px;
-    margin-bottom: 28px;
+.eventsPast {
+    margin-top: 64px;
 
     h2 {
-        margin-bottom: 0;
+        margin-bottom: 28px;
         color: $color-uw-purple;
-        font-size: clamp(2rem, 4vw, 3.2rem);
+        font-family: $sans-serif;
+        font-size: clamp(1.9rem, 3.4vw, 2.8rem);
+        font-weight: 800;
+        letter-spacing: -0.035em;
         line-height: 1.05;
     }
-
-    >p {
-        max-width: 300px;
-        margin-bottom: 3px;
-        color: $color-dark-gray;
-        line-height: 1.5;
-    }
 }
 
-.eventStreamsGrid {
+.eventsPast__list {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: $grid-gap;
-}
-
-.eventStreamColumn {
-    min-width: 0;
-
-    >h3 {
-        margin-bottom: 12px;
-        color: $color-uw-purple;
-        font-size: 1rem;
-        letter-spacing: 0.02em;
-    }
-
-    .eventStream {
-        margin: 0;
-    }
-
-    .streamHeader {
-        margin-bottom: 14px;
-
-        h1 {
-            margin: 0;
-            color: $color-dark-gray;
-            font-family: $sans-serif;
-            font-size: 0.72rem;
-            letter-spacing: 0.12em;
-        }
-    }
-
-    .eventStreamCards {
-        grid-template-columns: 1fr;
-    }
-
-    .eventStreamEmpty {
-        min-height: 220px;
-        padding: 28px 18px;
-
-        h2 {
-            font-size: 1.2rem;
-        }
-    }
-}
-
-.eventStreamColumn-academic {
-    .eventStreamEmptyIcon {
-        background-color: $color-academic-primary;
-    }
-}
-
-.eventStreamColumn-social {
-    .eventStreamEmptyIcon {
-        background-color: $color-social-primary;
-    }
-}
-
-.eventStreamColumn-professional {
-    .eventStreamEmptyIcon {
-        background-color: $color-career-primary;
-    }
-}
-
-.eventsDetailsPanel {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 24px;
-
-    .event-details-container {
-        width: min(100%, 360px);
-        height: auto;
-        max-height: 700px;
-    }
 }
 
 @include media("screen", "<sm-desktop") {
@@ -151,11 +67,6 @@
     }
 
     .eventsHero {
-        align-items: flex-start;
-        flex-direction: column;
-    }
-
-    .eventStreamsGrid {
         grid-template-columns: 1fr;
     }
 }
@@ -166,21 +77,8 @@
         padding-left: 12px;
     }
 
-    .eventsHero {
-        padding-top: 8px;
-
-        h1 {
-            font-size: 3rem;
-        }
-    }
-
-    .eventStreamsSection {
-        margin-top: 52px;
-    }
-
-    .eventStreamsIntro {
-        align-items: flex-start;
-        flex-direction: column;
+    .eventsPast {
+        margin-top: 48px;
     }
 }
 

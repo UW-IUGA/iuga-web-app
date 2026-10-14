@@ -1,0 +1,34 @@
+/*
+Purpose: Style the compact event category labels.
+Expected Request Information: Classes emitted by EventCategoryPills.
+Expected Response Information: A wrapping row of small coloured pills, one per category.
+*/
+.eventCategoryPills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 2px;
+}
+
+.eventCategoryPills__pill {
+    padding: 3px 7px;
+    border-radius: $radius-pill;
+    font-size: 0.62rem;
+    font-weight: 700;
+    line-height: 1.2;
+
+    &--academic {
+        background: $color-academic-secondary;
+        color: $color-academic-capsule;
+    }
+
+    &--social {
+        background: $color-social-secondary;
+        color: $color-social-capsule;
+    }
+
+    &--professional {
+        background: $color-career-secondary;
+        color: $color-career-primary;
+    }
+}

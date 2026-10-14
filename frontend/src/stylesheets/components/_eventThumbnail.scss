@@ -1,0 +1,29 @@
+/*
+Purpose: Style an event's photo, or the category tile shown when it has none.
+Expected Request Information: Classes emitted by EventThumbnail.
+Expected Response Information: A cover-fitted image or a coloured tile with the category icon; the parent sets the size.
+*/
+.eventThumbnail {
+    display: block;
+    width: 100%;
+    object-fit: cover;
+
+    &--fallback {
+        display: grid;
+        place-items: center;
+        color: white;
+        font-size: 2rem;
+    }
+
+    &--academic {
+        background: linear-gradient(135deg, $color-academic-primary 0%, $color-academic-gradient-end 100%);
+    }
+
+    &--social {
+        background: linear-gradient(135deg, $color-social-primary 0%, $color-social-gradient-end 100%);
+    }
+
+    &--professional {
+        background: linear-gradient(135deg, $color-career-primary 0%, $color-career-gradient-end 100%);
+    }
+}

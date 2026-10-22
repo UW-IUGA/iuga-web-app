@@ -41,7 +41,13 @@ const nextEventAfter = (events, day) =>
         .filter((event) => new Date(event.eStartDate) > day && new Date(event.eStartDate) >= new Date())
         .sort((first, second) => new Date(first.eStartDate) - new Date(second.eStartDate))[0];
 
-function EventAgenda({ events = [], initialDate, status = "ready", onRetry, onSelectEvent }) {
+function EventAgenda({events = [],
+    initialDate,
+    status = "ready",
+    onRetry,
+    onSelectEvent,
+    homeMode = false,
+}) {
     const headingId = useId();
     const [weekAnchor, setWeekAnchor] = useState(() => safeDate(initialDate));
     const [selectedDay, setSelectedDay] = useState(null);
@@ -65,10 +71,24 @@ function EventAgenda({ events = [], initialDate, status = "ready", onRetry, onSe
     );
     const nextEvent = visibleDays.length === 0 ? nextEventAfter(events, weekDays[6]) : null;
 
+    const upcomingHomeEvents = events
+        .filter((event) => {
+            const start = new Date(event.eStartDate);
+            return !Number.isNaN(start.getTime()) && start > new Date();
+        })
+        .sort(
+            (a, b) =>
+                new Date(a.eStartDate) - new Date(b.eStartDate)
+        )
+        .slice(0, 3);
+    const displayedEvents = homeMode
+        ? upcomingHomeEvents
+        : visibleDays.flatMap(({ events: dayEvents }) => dayEvents);
+
     return (
         <section className="eventAgenda" aria-labelledby={headingId}>
             <div className="eventAgenda__header">
-                <h2 id={headingId}>Find your next event.</h2>
+                <h2 id={headingId}>Upcoming Events</h2>
                 <WeekNavigation weekStart={weekStart} onChange={showWeekOf} />
             </div>
 
@@ -84,10 +104,16 @@ function EventAgenda({ events = [], initialDate, status = "ready", onRetry, onSe
                             className={classes}
                             type="button"
                             key={day.toISOString()}
-                            disabled={dayEvents.length === 0}
+                            disabled={!homeMode && dayEvents.length === 0}
                             aria-pressed={isSelected}
                             aria-label={`${format(day, "EEEE, MMMM d")}${isToday(day) ? ", today" : ""}: ${countLabel(dayEvents.length)}`}
-                            onClick={() => setSelectedDay(isSelected ? null : day)}
+                            onClick={() => {
+                                if (!homeMode) {
+                                    setSelectedDay(isSelected ? null : day);
+                                } else {
+                                    showWeekOf(day);
+                                }
+                            }}
                         >
                             <span>{isToday(day) ? "Today" : format(day, "EEE")}</span>
                             <strong>{format(day, "d")}</strong>
@@ -114,59 +140,89 @@ function EventAgenda({ events = [], initialDate, status = "ready", onRetry, onSe
                     </button>
                 </div>
             )}
-            {status === "ready" && (visibleDays.length === 0 ? (
-                <div className="eventAgenda__empty">
-                    <p>Nothing is scheduled this week.</p>
-                    {nextEvent && (
-                        <button type="button" onClick={() => showWeekOf(new Date(nextEvent.eStartDate))}>
-                            Next event: {format(new Date(nextEvent.eStartDate), "EEE, MMM d")}
-                            <FontAwesomeIcon icon={faArrowRight} aria-hidden="true" />
-                        </button>
-                    )}
-                </div>
-            ) : (
-                <ol className="eventAgenda__list">
-                    {visibleDays.flatMap(({ day, events: dayEvents }) =>
-                        dayEvents.map((event) => (
-                            <li key={event.eId}>
-                                <button
-                                    className="eventAgenda__event"
-                                    type="button"
-                                    aria-label={`${event.eName}, ${format(day, "EEEE, MMMM d")} at ${eventTime(event)}. View details`}
-                                    onClick={() => onSelectEvent?.(event)}
-                                >
-                                    <span className="eventAgenda__date" aria-hidden="true">
-                                        <span>{format(day, "EEE")}</span>
-                                        <strong>{format(day, "d")}</strong>
-                                    </span>
-                                    <EventThumbnail event={event} />
-                                    <span className="eventAgenda__body">
-                                        <span className="eventAgenda__meta">
-                                            {eventTime(event)} · {event.eLocation || "Location to be announced"}
+            {status === "ready" && (
+                displayedEvents.length === 0 ? (
+                    <div className="eventAgenda__empty">
+                        <p>
+                            {homeMode
+                                ? "No upcoming events right now."
+                                : "Nothing is scheduled this week."}
+                        </p>
+
+                        {!homeMode && nextEvent && (
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    showWeekOf(new Date(nextEvent.eStartDate))
+                                }
+                            >
+                                Next event:{" "}
+                                {format(
+                                    new Date(nextEvent.eStartDate),
+                                    "EEE, MMM d"
+                                )}
+                                <FontAwesomeIcon
+                                    icon={faArrowRight}
+                                    aria-hidden="true"
+                                />
+                            </button>
+                        )}
+                    </div>
+                ) : (
+                    <ol className="eventAgenda__list">
+                        {displayedEvents.map((event) => {
+                            const day = new Date(event.eStartDate);
+
+                            return (
+                                <li key={event.eId}>
+                                    <button
+                                        className="eventAgenda__event"
+                                        type="button"
+                                        aria-label={`${event.eName}, ${format(day, "EEEE, MMMM d")} at ${eventTime(event)}. View details`}
+                                        onClick={() => onSelectEvent?.(event)}
+                                    >
+                                        <span
+                                            className="eventAgenda__date"
+                                            aria-hidden="true"
+                                        >
+                                            <span>{format(day, "EEE")}</span>
+                                            <strong>{format(day, "d")}</strong>
                                         </span>
-                                        <strong>{event.eName}</strong>
-                                        {event.eOrganizers && (
-                                            <span className="eventAgenda__host">Hosted by {event.eOrganizers}</span>
+
+                                        <EventThumbnail event={event} />
+
+                                        <span className="eventAgenda__body">
+                                            <strong>{event.eName}</strong>
+
+                                            <span className="eventAgenda__meta">
+                                                {eventTime(event)} · {event.eLocation || "Location to be announced"}
+                                            </span>
+                                            {event.eOrganizers && (
+                                                <span className="eventAgenda__host">
+                                                    Hosted by {event.eOrganizers}
+                                                </span>
+                                            )}
+
+                                            <EventCategoryPills event={event} />
+                                        </span>
+                                        {event.hasRSVPd ? (
+                                            <span className="eventAgenda__going">
+                                                <FontAwesomeIcon icon={faCheck} aria-hidden="true" />
+                                                Going
+                                            </span>
+                                        ) : (
+                                            <span className="eventAgenda__details" aria-hidden="true">
+                                                Details
+                                                <FontAwesomeIcon icon={faChevronRight} />
+                                            </span>
                                         )}
-                                        <EventCategoryPills event={event} />
-                                    </span>
-                                    {event.hasRSVPd ? (
-                                        <span className="eventAgenda__going">
-                                            <FontAwesomeIcon icon={faCheck} aria-hidden="true" />
-                                            Going
-                                        </span>
-                                    ) : (
-                                        <span className="eventAgenda__details" aria-hidden="true">
-                                            Details
-                                            <FontAwesomeIcon icon={faChevronRight} />
-                                        </span>
-                                    )}
-                                </button>
-                            </li>
-                        )),
-                    )}
-                </ol>
-            ))}
+                                    </button>
+                                </li>
+                            );
+                        })}
+                    </ol>
+                )
+            )}
         </section>
     );
 }

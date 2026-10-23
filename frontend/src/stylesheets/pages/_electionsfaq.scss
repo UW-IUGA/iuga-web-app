@@ -94,6 +94,21 @@
     &:hover {
       font-weight: bold;
     }
+
+    button {
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+
+      &:focus-visible {
+        outline: 2px solid $color-uw-purple;
+        outline-offset: 3px;
+      }
+    }
   }
 }
 

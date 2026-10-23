@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import ShopPage from "./Shop";
 import { ShopCartProvider } from "../context/ShopCartContext";
@@ -22,8 +22,21 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+    vi.useRealTimers();
     vi.restoreAllMocks();
     sessionStorage.clear();
+});
+
+test("students can pause product rotation indefinitely and resume it", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    render(<MemoryRouter><ShopCartProvider><ShopPage /></ShopCartProvider></MemoryRouter>);
+    const carousel = within(screen.getByRole("region", { name: "Featured merchandise" }));
+    fireEvent.click(carousel.getByRole("button", { name: "Pause product rotation" }));
+    await act(() => vi.advanceTimersByTimeAsync(15000));
+    expect(carousel.getByRole("img", { name: "Hoodie product mockup" })).toBeInTheDocument();
+    fireEvent.click(carousel.getByRole("button", { name: "Resume product rotation" }));
+    await act(() => vi.advanceTimersByTimeAsync(5000));
+    expect(carousel.getByRole("img", { name: "Crewneck product mockup" })).toBeInTheDocument();
 });
 
 test("loads the shop with canonical catalog products and their real images", async () => {

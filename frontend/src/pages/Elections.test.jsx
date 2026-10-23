@@ -20,6 +20,16 @@ test("students can choose election positions using the keyboard", async () => {
     expect(position).toHaveAttribute("aria-pressed", "true");
 });
 
+test("students can read another candidate's platform using the keyboard", async () => {
+    render(<ElectionPage candidates={candidates} />);
+    const candidate = screen.getByRole("button", { name: "Sam" });
+    candidate.focus();
+    await userEvent.keyboard(" ");
+    expect(await screen.findByText("Sam's platform")).toBeInTheDocument();
+    expect(screen.queryByText("Alex's platform")).not.toBeInTheDocument();
+    expect(candidate).toHaveAttribute("aria-pressed", "true");
+});
+
 test("students can select an election year with the labelled native year control", async () => {
     render(<ElectionPage candidates={candidates} />);
     userEvent.selectOptions(screen.getByRole("combobox", { name: "Election year" }), "2025");

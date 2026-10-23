@@ -201,8 +201,14 @@
     }
 
     .resourcesControls {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
         padding: 18px;
+    }
+
+    .resourceFilters button {
+        max-width: 100%;
+        white-space: normal;
+        overflow-wrap: anywhere;
     }
 
     .resourceResultCount {

@@ -34,10 +34,18 @@ iframe {
 }
 
 .tab {
+  border: 0;
+  color: inherit;
+  font: inherit;
   padding: 10px 20px;
   border-radius: 5px;
   background: white;
   cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid $color-uw-purple;
+    outline-offset: 3px;
+  }
 }
 
 .tab:hover {

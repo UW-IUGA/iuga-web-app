@@ -14,7 +14,8 @@ function ElectionsFAQPage({ electionFAQ }) {
         if (categoryRef) {
             const yOffset = -100;
             const y = categoryRef.getBoundingClientRect().top + window.pageYOffset + yOffset;
-            window.scrollTo({ top: y, behavior: "smooth" });
+            categoryRef.focus({ preventScroll: true });
+            window.scrollTo({ top: y, behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
         }
     };
 
@@ -46,8 +47,8 @@ function ElectionsFAQPage({ electionFAQ }) {
                             <h3 className="legendHeader">Categories</h3>
                             <ul>
                                 {Object.values(electionfaqTags).map((category) => (
-                                    <li key={category} onClick={() => handleClick(category)}>
-                                        {category === "Campaign Rules" ? "Campaign Rules" : category}
+                                    <li key={category}>
+                                        <button type="button" onClick={() => handleClick(category)}>{category}</button>
                                     </li>
                                 ))}
                             </ul>
@@ -55,9 +56,9 @@ function ElectionsFAQPage({ electionFAQ }) {
                     </div>
                     <div className="resourcesWrapper">
                         {Object.values(electionfaqTags).map((category) => (
-                            <div className="resourceBoxContainer" key={category} ref={(el) => (categoryRefs.current[category] = el)}>
+                            <div className="resourceBoxContainer" key={category}>
                                 <div className="resourceCategoryHeader">
-                                    <h2>{category}</h2>
+                                    <h2 tabIndex={-1} ref={(el) => (categoryRefs.current[category] = el)}>{category}</h2>
                                 </div>
                                 { electionFAQ[category]
                                     .map((filteredFAQ) => (<ElectionFAQCard key={filteredFAQ.rName} electionFAQ={filteredFAQ} />))}

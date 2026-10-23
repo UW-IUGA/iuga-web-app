@@ -109,7 +109,12 @@ function ShopPage() {
                     </div>
                     <div className="shopPage__heroContent">
                         <div className="shopPage__heroIntro">
-                            <h1 id="shop-title">The Informatics <span>Fall Collection.</span></h1>
+                            <h1 id="shop-title">
+                                <span>The</span>{" "}
+                                <span>Informatics</span>{" "}
+                                <span>Fall</span>{" "}
+                                <span>Collection.</span>
+                            </h1>
                             <div className="shopPage__saleInfo" role="status">
                                 {catalog && catalog.saleState !== "open" && (
                                     <span>

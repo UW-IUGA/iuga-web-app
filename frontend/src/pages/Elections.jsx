@@ -48,13 +48,15 @@ function ElectionPage({ candidates }) {
           <div className="roleSidebar">
             <h2>Select a Position</h2>
             {Object.entries(candidatePositions).map(([key, roleName]) => (
-              <div
+              <button
+                type="button"
+                aria-pressed={roleName === selectedRole}
                 key={key}
                 className={`roleItem ${roleName === selectedRole ? "active" : ""}`}
                 onClick={() => handleRoleChange(roleName)}
               >
                 {roleName}
-              </div>
+              </button>
             ))}
           </div>
 

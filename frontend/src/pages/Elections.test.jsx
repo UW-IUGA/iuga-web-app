@@ -11,6 +11,15 @@ const candidates = {
     "2025": [],
 };
 
+test("students can choose election positions using the keyboard", async () => {
+    render(<ElectionPage candidates={candidates} />);
+    const position = screen.getByRole("button", { name: "Vice President" });
+    position.focus();
+    await userEvent.keyboard("{Enter}");
+    expect(await screen.findByText("Jordan's platform")).toBeInTheDocument();
+    expect(position).toHaveAttribute("aria-pressed", "true");
+});
+
 test("students can select an election year with the labelled native year control", async () => {
     render(<ElectionPage candidates={candidates} />);
     userEvent.selectOptions(screen.getByRole("combobox", { name: "Election year" }), "2025");

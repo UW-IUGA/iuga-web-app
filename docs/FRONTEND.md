@@ -116,6 +116,9 @@ Wide screens get balanced gutters, not a wider column.
 
 Defined in `src/App.jsx`:
 
+Each route sets a descriptive document title, including signed-out pages and
+checkout, and updates it after client-side navigation.
+
 | Path | Page Component | Data Source |
 |---|---|---|
 | `/` | `HomePage` | `upcomingEvents` (prop — mock or API) |

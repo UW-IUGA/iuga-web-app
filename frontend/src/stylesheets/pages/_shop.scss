@@ -12,11 +12,11 @@
         h1 {
             margin: 10px 0 50px;
             font-family: $sans-serif;
-            font-size: clamp(3rem, 5.5vw, 6rem);
-            font-weight: 900;
-            line-height: 1;
-            letter-spacing: -0.055em;
-            text-transform: uppercase;
+            font-size: clamp(2.125rem, 4vw, 3.25rem);
+            font-weight: 700;
+            line-height: 1.08;
+            letter-spacing: -0.04em;
+            text-transform: none;
 
             span { display: block; }
         }
@@ -154,8 +154,10 @@
 
         h2 {
             margin: 0;
+            font-family: $sans-serif;
             font-size: clamp(1.8rem, 3vw, 2.6rem);
-            letter-spacing: -0.045em;
+            font-weight: 700;
+            letter-spacing: -0.035em;
         }
 
         >p {

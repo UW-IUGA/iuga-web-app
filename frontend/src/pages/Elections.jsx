@@ -39,7 +39,7 @@ function ElectionPage({ candidates }) {
       {}
       <div className="candidateHeader">
         <h2>{hasAnyCandidates ? "Candidates" : "Archive"}</h2>
-        <Dropdown options={years} defaultOption={years[0]} onSelect={handleSelectYear} />
+        <Dropdown label="Election year" options={years} defaultOption={years[0]} onSelect={handleSelectYear} />
       </div>
 
       {}

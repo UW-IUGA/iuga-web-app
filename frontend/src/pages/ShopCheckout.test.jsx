@@ -336,29 +336,26 @@ describe("ShopCheckoutPage", () => {
         expect(screen.getByText(/Your cart has not changed/)).toBeInTheDocument();
     });
 
-    it("counts down on a cancelled checkout, then returns the student to the shop", async () => {
+    it("keeps cancelled checkout details available until the student chooses to return", async () => {
         vi.useFakeTimers({ shouldAdvanceTime: true });
         try {
             mockApi({ [`GET /api/v1/shop/holds/${holdId}`]: response({ status: "success", hold: hold({ status: "cancelled", lines: [], totalCents: 0 }) }) });
             renderCheckout();
 
-            expect(await screen.findByText(/Returning you to the shop in 5 seconds\./)).toBeInTheDocument();
-            expect(screen.getByRole("link", { name: "Go to the shop now" })).toHaveAttribute("href", "/shop");
-
-            // Each second schedules the next, so the clock moves one second at a time.
-            for (let second = 0; second < 4; second += 1) {
+            const returnLink = await screen.findByRole("link", { name: "Go to the shop now" });
+            for (let second = 0; second < 30; second += 1) {
                 await act(() => vi.advanceTimersByTimeAsync(1000));
             }
-            expect(screen.getByText(/Returning you to the shop in 1 second\./)).toBeInTheDocument();
-
-            await act(() => vi.advanceTimersByTimeAsync(1000));
+            expect(screen.queryByText("Shop page")).not.toBeInTheDocument();
+            expect(returnLink).toBeInTheDocument();
+            fireEvent.click(returnLink);
             expect(screen.getByText("Shop page")).toBeInTheDocument();
         } finally {
             vi.useRealTimers();
         }
     });
 
-    it("returns the student to the shop after they remove the last item", async () => {
+    it("lets the student read the cancellation after removing the last item", async () => {
         vi.useFakeTimers({ shouldAdvanceTime: true });
         try {
             mockApi({
@@ -369,11 +366,11 @@ describe("ShopCheckoutPage", () => {
             fireEvent.click(await screen.findByRole("button", { name: "Remove Hoodie, size M" }));
 
             expect(await screen.findByText("That was the last item, so your hold is cancelled. Your cart is empty.")).toBeInTheDocument();
-            expect(screen.getByText(/Returning you to the shop in 5 seconds\./)).toBeInTheDocument();
-
-            for (let second = 0; second < 5; second += 1) {
+            for (let second = 0; second < 30; second += 1) {
                 await act(() => vi.advanceTimersByTimeAsync(1000));
             }
+            expect(screen.queryByText("Shop page")).not.toBeInTheDocument();
+            fireEvent.click(screen.getByRole("link", { name: "Go to the shop now" }));
             expect(screen.getByText("Shop page")).toBeInTheDocument();
         } finally {
             vi.useRealTimers();

@@ -1,3 +1,6 @@
+@use "../abstracts" as *;
+@use "../base/misc";
+
 .about {
     @extend %pageFrame;
     padding: 0 0 64px;

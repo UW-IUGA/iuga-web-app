@@ -3,6 +3,8 @@ Purpose: Style the weekly event agenda.
 Expected Request Information: Classes emitted by EventAgenda.
 Expected Response Information: A strip of day buttons above a list of event rows.
 */
+@use "../abstracts" as *;
+
 .eventAgenda {
     margin-top: 36px;
 }

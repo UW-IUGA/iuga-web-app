@@ -3,6 +3,8 @@ Purpose: Style the previous/next week control.
 Expected Request Information: Classes emitted by WeekNavigation.
 Expected Response Information: Two round arrow buttons around the current week's date range.
 */
+@use "../abstracts" as *;
+
 .weekNavigation {
     display: flex;
     align-items: center;

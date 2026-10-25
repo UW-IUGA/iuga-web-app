@@ -3,6 +3,8 @@ Purpose: Style the event details dialog.
 Expected Request Information: Classes emitted by EventDialog.
 Expected Response Information: A white dialog with the event photo beside its details and RSVP form.
 */
+@use "../abstracts" as *;
+
 .eventDialog {
     width: min(860px, calc(100vw - 32px));
     max-width: none;

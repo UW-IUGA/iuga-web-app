@@ -1,3 +1,6 @@
+@use "../abstracts" as *;
+@use "../base/misc";
+
 .eventsPage {
     @extend %pageFrame;
     max-width: 1200px;

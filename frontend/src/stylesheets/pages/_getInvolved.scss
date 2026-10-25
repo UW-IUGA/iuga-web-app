@@ -5,6 +5,9 @@ Expected Request Information: Classes emitted by the Get Involved page.
 Expected Response Information: Responsive styles for the hero, leader profile
          grid, committee list, and application/contact actions.
 */
+@use "../abstracts" as *;
+@use "../base/misc";
+
 .getInvolved {
     @extend %pageFrame;
     box-sizing: border-box;

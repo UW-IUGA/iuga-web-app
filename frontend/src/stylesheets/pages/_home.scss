@@ -1,3 +1,5 @@
+@use "../abstracts" as *;
+
 #rootContainer:has(.homePage),
 .homePage {
     color-scheme: light;

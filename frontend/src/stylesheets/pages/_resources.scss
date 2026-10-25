@@ -1,3 +1,6 @@
+@use "../abstracts" as *;
+@use "../base/misc";
+
 .resourcesPage {
     @extend %pageFrame;
     margin-bottom: 96px;

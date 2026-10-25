@@ -3,6 +3,8 @@ Purpose: Style the compact event category labels.
 Expected Request Information: Classes emitted by EventCategoryPills.
 Expected Response Information: A wrapping row of small coloured pills, one per category.
 */
+@use "../abstracts" as *;
+
 .eventCategoryPills {
     display: flex;
     flex-wrap: wrap;

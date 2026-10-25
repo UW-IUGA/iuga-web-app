@@ -3,6 +3,8 @@ Purpose: Style the shared student profile card.
 Expected Request Information: Classes emitted by StudentProfileCard.
 Expected Response Information: Responsive portrait cards with readable identity and profile links.
 */
+@use "../abstracts" as *;
+
 .studentProfileCard {
     position: relative;
     display: block;

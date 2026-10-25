@@ -3,6 +3,8 @@ Purpose: Style the full-size photo viewer.
 Expected Request Information: Classes emitted by PhotoLightbox.
 Expected Response Information: One photo on a dimmed page with its caption and controls inside the photo.
 */
+@use "../abstracts" as *;
+
 .photoLightbox {
     // Just the photo on the dimmed page, with every control inside it.
     width: fit-content;

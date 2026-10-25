@@ -1,3 +1,5 @@
+@use "../abstracts" as *;
+
 // A slim notice under the navigation on every page, shown only to students with items in their cart.
 .shopMaintenanceBanner {
     display: flex;

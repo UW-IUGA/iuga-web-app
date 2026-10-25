@@ -3,6 +3,8 @@ Purpose: Style the past event card.
 Expected Request Information: Classes emitted by PastEventCard.
 Expected Response Information: A cover photo beside the event story, with a row of photo thumbnails.
 */
+@use "../abstracts" as *;
+
 .pastEventCard {
     display: grid;
     grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);

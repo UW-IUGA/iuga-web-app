@@ -1,3 +1,6 @@
+@use "../abstracts" as *;
+@use "../base/misc";
+
 // Venmo checkout page for one held cart (ShopCheckout.jsx).
 .shopCheckout {
     @extend %pageFrame;

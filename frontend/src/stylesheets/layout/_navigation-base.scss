@@ -1,3 +1,5 @@
+@use "../abstracts" as *;
+
 // Campus navigation: sticky primary bar with links and account controls.
 .site-navigation {
     position: sticky;

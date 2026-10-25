@@ -1,3 +1,6 @@
+@use "../abstracts" as *;
+@use "../base/misc";
+
 .studentVoice {
     @extend %pageFrame;
     margin-bottom: 96px;
@@ -48,7 +51,9 @@
         line-height: 1.55;
     }
 
-    .pill-button {
+    // .standard-button extends .pill-button in _buttons; Sass modules only apply that upstream, so list it here.
+    .pill-button,
+    .standard-button {
         margin-top: auto;
     }
 }
@@ -58,7 +63,9 @@
     grid-column: 1 / -1;
 
     // The fallback link sits above the panel, so it must not be pushed to the card's bottom.
-    .pill-button {
+    // .standard-button extends .pill-button in _buttons; Sass modules only apply that upstream, so list it here.
+    .pill-button,
+    .standard-button {
         margin-top: 0;
     }
 }

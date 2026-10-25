@@ -1,0 +1,7 @@
+// Everything a partial needs to compile: tokens, mixins, and include-media configured with our breakpoints.
+@use "variables";
+@forward "variables";
+@forward "mixins";
+@forward "../vendors/include-media" hide $breakpoints with (
+    $breakpoints: variables.$breakpoints
+);

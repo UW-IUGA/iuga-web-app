@@ -2,6 +2,9 @@
 Purpose: The shared top of every page (PageHeader.jsx). Every page uses the same spacing,
          alignment, and colors, so students find the title in the same place each time.
 */
+@use "../abstracts" as *;
+@use "../base/misc";
+
 .pageHeader {
     display: grid;
     gap: 48px;

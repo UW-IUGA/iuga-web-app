@@ -3,6 +3,8 @@
  * Authentication/Authorization Requirements: None; callers decide when it is shown.
  * Expected Response: A responsive dialog with a neutral page scrim.
  */
+@use "../abstracts" as *;
+
 .alert-dialog-overlay {
     position: fixed;
     inset: 0;

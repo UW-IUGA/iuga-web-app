@@ -1,3 +1,5 @@
+@use "../abstracts" as *;
+
 @include media(">=tablet") {
     .nav-container {
         width: min(1200px, calc(100% - $page-margin * 2));

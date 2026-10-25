@@ -171,7 +171,7 @@ Expected Response Information: A white dialog with the event photo beside its de
     }
 }
 
-@include media("screen", "<tablet") {
+@include media("<tablet") {
     .eventDialog__layout {
         grid-template-columns: 1fr;
     }

@@ -187,7 +187,7 @@ Expected Response Information: Responsive styles for the hero, leader profile
     }
 }
 
-@include media("screen", "<phone") {
+@include media("<phone") {
     .getInvolved__leaderProfileGrid {
         height: auto;
         grid-template-columns: repeat(2, minmax(0, 1fr));

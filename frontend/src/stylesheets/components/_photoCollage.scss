@@ -45,13 +45,13 @@ Expected Response Information: Up to three tilted, overlapping photos.
     }
 }
 
-@include media("screen", "<sm-desktop") {
+@include media("<sm-desktop") {
     .photoCollage {
         height: 280px;
     }
 }
 
-@include media("screen", "<phone") {
+@include media("<phone") {
     .photoCollage {
         height: 230px;
     }

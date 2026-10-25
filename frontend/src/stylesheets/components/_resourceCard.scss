@@ -70,7 +70,7 @@
     font-weight: $font-weight-medium;
 }
 
-@include media("screen", "<tablet") {
+@include media("<tablet") {
     .resourceCard {
         min-height: 0;
         padding: 18px;

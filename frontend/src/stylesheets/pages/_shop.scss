@@ -700,7 +700,7 @@
     }
 }
 
-@media (max-width: 420px) {
+@include media("<=420px") {
     .shopCartDropdown__line {
         grid-template-columns: 64px minmax(0, 1fr) auto;
 
@@ -858,7 +858,7 @@
     }
 }
 
-@media (max-width: 900px) {
+@include media("<=900px") {
     .shopPage {
         &__heroContent {
             grid-template-columns: 1fr;

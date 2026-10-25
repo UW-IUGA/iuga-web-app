@@ -1,6 +1,6 @@
 @use "../abstracts" as *;
 
-@include media("screen", "<sm-desktop") {
+@include media("<sm-desktop") {
     .nav-container {
         min-height: 66px;
         padding: 8px 18px;

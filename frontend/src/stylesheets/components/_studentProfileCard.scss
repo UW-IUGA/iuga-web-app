@@ -126,7 +126,7 @@ Expected Response Information: Responsive portrait cards with readable identity 
     }
 }
 
-@include media("screen", "<tablet") {
+@include media("<tablet") {
     .studentProfileCard__body {
         padding: 56px 16px 16px;
     }

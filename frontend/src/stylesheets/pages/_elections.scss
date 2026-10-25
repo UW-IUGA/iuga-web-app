@@ -216,7 +216,7 @@
     }
 }
 
-@include media("screen", "<sm-desktop") {
+@include media("<sm-desktop") {
     .electionContainer {
         width: 90vw;
     }
@@ -265,7 +265,7 @@
     }
 }
 
-@include media("screen", "<tablet") {
+@include media("<tablet") {
     .electionContainer {
         width: 100%;
     }

@@ -132,7 +132,7 @@ Expected Response Information: A cover photo beside the event story, with a row 
     }
 }
 
-@include media("screen", "<sm-desktop") {
+@include media("<sm-desktop") {
     .pastEventCard {
         grid-template-columns: 1fr;
 

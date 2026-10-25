@@ -62,7 +62,7 @@ Expected Response Information: Two round arrow buttons around the current week's
     }
 }
 
-@include media("screen", "<phone") {
+@include media("<phone") {
     .weekNavigation__range {
         min-width: 0;
     }

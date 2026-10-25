@@ -462,7 +462,7 @@
         background: $color-lavender;
     }
 
-    @include media("screen", "<sm-desktop") {
+    @include media("<sm-desktop") {
         .nav-items-wrapper {
             background: white;
             border-color: $color-border-lavender;
@@ -474,7 +474,7 @@
     }
 }
 
-@media (min-width: 768px) and (max-width: 1100px) {
+@include media(">=tablet", "<=1100px") {
     .homeOpening {
         grid-template-columns: minmax(0, 1.12fr) minmax(250px, 0.88fr);
         gap: 24px 36px;
@@ -491,7 +491,7 @@
     }
 }
 
-@media (min-width: 1500px) {
+@include media(">=1500px") {
     .homeOpening {
         grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
         gap: 32px 88px;
@@ -511,7 +511,7 @@
     }
 }
 
-@include media("screen", "<tablet") {
+@include media("<tablet") {
     .homePage {
         padding-block: 32px $grid-gap;
     }
@@ -623,7 +623,7 @@
     }
 }
 
-@include media("screen", "<phone") {
+@include media("<phone") {
     .homeDestinations {
         grid-template-columns: minmax(0, 1fr);
     }

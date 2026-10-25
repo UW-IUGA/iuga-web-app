@@ -34,13 +34,13 @@
     gap: $grid-gap;
 }
 
-@include media("screen", "<sm-desktop") {
+@include media("<sm-desktop") {
     .eventsPage {
         padding: 0 $padding-content 56px;
     }
 }
 
-@include media("screen", "<phone") {
+@include media("<phone") {
     .eventsPage {
         padding-right: 12px;
         padding-left: 12px;
@@ -411,7 +411,7 @@
     }
 }
 
-@include media("screen", "<sm-desktop") {
+@include media("<sm-desktop") {
     .event-operations {
         width: calc(100% - 24px);
     }
@@ -489,7 +489,7 @@
     }
 }
 
-@include media("screen", "<phone") {
+@include media("<phone") {
     .event-ops-form-grid,
     .event-ops-inline-fields,
     .event-ops-filters {

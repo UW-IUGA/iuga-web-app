@@ -200,7 +200,7 @@
     }
 }
 
-@include media("screen", "<tablet") {
+@include media("<tablet") {
     .studentVoice {
         margin-bottom: 64px;
     }

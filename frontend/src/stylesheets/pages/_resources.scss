@@ -161,7 +161,7 @@
     }
 }
 
-@include media("screen", "<tablet") {
+@include media("<tablet") {
     .resourcesPage {
         width: 100%;
         margin-bottom: 64px;

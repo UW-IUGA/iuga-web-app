@@ -204,7 +204,7 @@
     }
 }
 
-@include media("screen", "<sm-desktop") {
+@include media("<sm-desktop") {
     .resourceContainer {
         width: 90vw;
     }
@@ -257,7 +257,7 @@
     }
 }
 
-@include media("screen", "<tablet") {
+@include media("<tablet") {
     .resourceContainer {
         width: 100%;
     }

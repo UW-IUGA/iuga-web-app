@@ -29,7 +29,7 @@
     }
 }
 
-@include media("screen", "<tablet") {
+@include media("<tablet") {
     .baseContainer {
         box-sizing: border-box;
         width: 100vw;

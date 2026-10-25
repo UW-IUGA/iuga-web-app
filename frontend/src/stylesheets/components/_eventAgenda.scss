@@ -274,7 +274,7 @@ Expected Response Information: A strip of day buttons above a list of event rows
     }
 }
 
-@include media("screen", "<sm-desktop") {
+@include media("<sm-desktop") {
     .eventAgenda__event {
         grid-template-columns: 52px 120px minmax(0, 1fr);
         gap: 16px;
@@ -295,7 +295,7 @@ Expected Response Information: A strip of day buttons above a list of event rows
     }
 }
 
-@include media("screen", "<tablet") {
+@include media("<tablet") {
     .eventAgenda__header {
         align-items: flex-start;
         flex-direction: column;
@@ -333,7 +333,7 @@ Expected Response Information: A strip of day buttons above a list of event rows
     }
 }
 
-@include media("screen", "<phone") {
+@include media("<phone") {
     // The week control spans the full width once the header stacks.
     .eventAgenda__header .weekNavigation {
         width: 100%;

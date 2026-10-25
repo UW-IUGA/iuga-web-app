@@ -49,14 +49,14 @@ Purpose: The shared top of every page (PageHeader.jsx). Every page uses the same
     min-width: 0;
 }
 
-@include media("screen", "<sm-desktop") {
+@include media("<sm-desktop") {
     .pageHeader--withVisual {
         grid-template-columns: minmax(0, 1fr);
         gap: 32px;
     }
 }
 
-@include media("screen", "<tablet") {
+@include media("<tablet") {
     .pageHeader {
         padding-top: 32px;
         margin-bottom: 32px;

@@ -132,7 +132,7 @@ Expected Response Information: One photo on a dimmed page with its caption and c
     right: 20px;
 }
 
-@include media("screen", "<tablet") {
+@include media("<tablet") {
     .photoLightbox {
         max-width: calc(100vw - 24px);
 

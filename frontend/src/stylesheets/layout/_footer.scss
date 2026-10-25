@@ -119,7 +119,7 @@ footer {
     }
 }
 
-@include media("screen", "<tablet") {
+@include media("<tablet") {
     .footerContainer {
         gap: $grid-gap;
         padding: $padding-content * 2 24px;

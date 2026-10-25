@@ -1,6 +1,7 @@
 import { useState } from "react";
 import StudentProfileCard from "../components/StudentProfileCard";
 import { groupType } from "../assets/data/Enum";
+import PageHeader from "../components/PageHeader";
 
 function AboutPage({ teams }) {
     const years = Object.keys(teams);
@@ -10,18 +11,14 @@ function AboutPage({ teams }) {
     return (
         <div className="baseContainer">
             <main className="about">
-                <section className="about__summary">
-                    <div className="about__summaryText">
-                        <p className="about__kicker">Meet the {selectedYear} Team</p>
-                        <h1>About Us</h1>
-                        <p>
-                            IUGA is a student-led organization run by Informatics undergraduates, for Informatics
-                            undergraduates. We create space for students to connect, build community, and shape the iSchool experience.
-                        </p>
-                    </div>
-                </section>
+                <PageHeader
+                    label="About"
+                    title="About Us"
+                    intro="IUGA is a student-led organization run by Informatics undergraduates, for Informatics undergraduates. We create space for students to connect, build community, and shape the iSchool experience."
+                />
 
-                <section className="about__section" aria-label={`Meet the ${selectedYear} Team`}>
+                <section className="about__section" aria-labelledby="about-team-heading">
+                    <h2 id="about-team-heading">{selectedYear} team</h2>
                     <div className="about__yearFilter" role="group" aria-label="Team year">
                         {years.map((year) => (
                             <button

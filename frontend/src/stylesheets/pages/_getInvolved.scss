@@ -8,43 +8,8 @@ Expected Response Information: Responsive styles for the hero, leader profile
 .getInvolved {
     @extend %pageFrame;
     box-sizing: border-box;
-    padding: clamp(36px, 6vw, 76px) 0 96px;
+    padding: 0 0 96px;
     color: $color-uw-purple;
-}
-
-.getInvolved__hero {
-    display: grid;
-    grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
-    align-items: center;
-    gap: clamp(34px, 5vw, 72px);
-    margin-bottom: clamp(64px, 9vw, 112px);
-}
-
-.getInvolved__intro {
-    max-width: 590px;
-}
-
-.getInvolved__introLabel {
-    @extend %pageKicker;
-    margin: 0 0 16px;
-}
-
-.getInvolved__title {
-    max-width: 11ch;
-    margin: 0;
-    font-family: $font-family-base;
-    font-size: clamp(3.2rem, 6vw, 5.5rem);
-    font-weight: 900;
-    letter-spacing: -0.04em;
-    line-height: 0.98;
-}
-
-.getInvolved__introDescription {
-    max-width: 48ch;
-    margin: 22px 0 0;
-    color: $color-dark-gray;
-    font-size: clamp(1rem, 1.5vw, 1.18rem);
-    line-height: 1.65;
 }
 
 .getInvolved__leaderProfileGrid {
@@ -168,11 +133,6 @@ Expected Response Information: Responsive styles for the hero, leader profile
 }
 
 @include media("<desktop") {
-    .getInvolved__hero {
-        grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
-        gap: 32px;
-    }
-
     .getInvolved__committee {
         grid-template-columns: minmax(160px, 0.9fr) minmax(210px, 1.4fr);
         gap: 16px;
@@ -184,15 +144,6 @@ Expected Response Information: Responsive styles for the hero, leader profile
 }
 
 @include media("<tablet") {
-    .getInvolved {
-        padding-top: 34px;
-    }
-
-    .getInvolved__hero {
-        grid-template-columns: 1fr;
-        gap: 30px;
-    }
-
     .getInvolved__leaderProfileGrid {
         height: 420px;
     }
@@ -234,9 +185,6 @@ Expected Response Information: Responsive styles for the hero, leader profile
 }
 
 @include media("screen", "<phone") {
-    .getInvolved__title {
-        font-size: clamp(2.8rem, 13vw, 4rem);
-    }
 
     .getInvolved__leaderProfileGrid {
         height: auto;

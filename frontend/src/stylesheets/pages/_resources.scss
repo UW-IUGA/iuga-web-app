@@ -1,36 +1,8 @@
 .resourcesPage {
     @extend %pageFrame;
-    max-width: 1120px;
     margin-bottom: 96px;
 }
 
-.resourcesHero {
-    padding: 72px 0 44px;
-    text-align: center;
-}
-
-.resourcesHeroCopy {
-    max-width: 760px;
-    margin: 0 auto;
-
-    h1 {
-        margin: 8px 0 18px;
-        color: black;
-        font-size: clamp(3rem, 6vw, 4.6rem);
-        line-height: 1;
-        text-transform: uppercase;
-    }
-
-    >p:last-child {
-        max-width: 680px;
-        margin: 0 auto;
-        color: $color-dark-gray;
-        font-size: 1.05rem;
-        line-height: 1.65;
-    }
-}
-
-.resourcesKicker,
 .resourceCardCategory {
     @extend %pageKicker;
 }
@@ -190,10 +162,6 @@
     .resourcesPage {
         width: 100%;
         margin-bottom: 64px;
-    }
-
-    .resourcesHero {
-        padding: 48px 0 32px;
     }
 
     .resourcesControls {

@@ -10,6 +10,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock } from "@fortawesome/free-solid-svg-icons";
 import { useAuthContext } from "../context/AuthContext";
+import PageHeader from "./PageHeader";
 
 const previewRows = [0, 1, 2];
 const previewChoices = [0, 1, 2, 3, 4];
@@ -23,14 +24,11 @@ function LockedPreview({ onSignIn }) {
     return (
         <div className="baseContainer">
             <main className="studentVoice">
-                <section className="studentVoice__hero" aria-labelledby="student-voice-title">
-                    <p className="studentVoice__kicker">IUGA listening</p>
-                    <h1 id="student-voice-title">Student Voice</h1>
-                    <p>
-                        Your perspective helps IUGA advocate for Informatics students and shape the programs, events,
-                        and issues we bring forward throughout the year.
-                    </p>
-                </section>
+                <PageHeader
+                    label="Student Voice"
+                    title="Student Voice"
+                    intro="Your perspective helps IUGA advocate for Informatics students and shape the programs, events, and issues we bring forward throughout the year."
+                />
 
                 <section className="studentVoice__surveys" aria-labelledby="open-feedback-heading">
                     <div className="studentVoice__sectionHeader">

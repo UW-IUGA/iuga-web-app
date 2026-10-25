@@ -269,25 +269,48 @@ The backend uses **server-side sessions** with `express-session`.
    - Sets `req.session.isAuthenticated = true`
    - Stores profile data (displayName, email, firstName, lastName) in session
    - Looks up or creates a `Users` document in MongoDB
-   - Stores `userId`, `memberType`, and `isAdmin` in session
+   - Stores `userId` and `memberType` in session (`memberType` is a label; it grants no access)
 4. Responds with the user document
 
-### Session check
+### Session check and permissions
 
-`utils/auth.js` provides session and permission middleware:
+`utils/auth.js` decides who may use protected endpoints. Signing in proves who a
+user is; everything beyond that is a named **permission**. A user holds a
+permission only through an active, unexpired role assignment to an active role
+that lists it. The account type (`uType`) grants nothing. Permissions are read
+from the database on every check, so granting or removing a role takes effect
+on the user's next request without signing in again.
 
-- `requireAuth` — requires a logged-in session
-- `requireAdmin` — requires a logged-in admin/officer session
-- `requireOfficerRolePermission("users.roles.manage")` — requires an active role assignment granting the permission.
-
-The permission middleware loads active role assignments for the session user and checks the populated role permissions before calling `next()`.
+- `requireAuth` — requires a logged-in session.
+- `requirePermission(name)` — requires the permission. Building it with a name
+  that is not in the permission list throws when routes load, so a typo fails
+  loudly instead of refusing everyone.
+- `isOwnerOrPermitted(req, ownerId, name)` — for records a student owns: the
+  owner, or a user with the permission.
+- `permissionsOf(req)` — the session user's permissions; `GET /api/v1/user/permissions`
+  returns them so the frontend can offer the matching officer tools.
 
 | Middleware | Blocks when | Returns |
 |---|---|---|
 | `requireAuth` | No session (`req.session.isAuthenticated` falsy) | `401` not authenticated |
-| `requireAdmin` | No session, or logged in but not an officer (`req.session.isAdmin` falsy) | `401` not authenticated / `403` not authorized |
+| `requirePermission(name)` | No session, or no active role granting `name`; role lookup failure | `401` / `403` not authorized / `500` |
 
-Attach them in the route chain, e.g. `router.post("/", requireAuth, handler)` or `router.post("/:id/approve", requireAdmin, handler)`. They run before the route handler; `next()` passes the request through.
+Attach them in the route chain, e.g. `router.post("/", requireAuth, handler)` or
+`router.post("/:id/approve", requirePermission("events.leadership.approve"), handler)`.
+
+| Permission | Allows |
+|---|---|
+| `users.roles.manage` | Creating roles and assigning them through `/api/v1/roles` |
+| `events.requests.manage` | The event request workspace: submitting, listing, editing, booking, reviews, completion |
+| `events.leadership.approve` | Approving, denying, or requesting changes to event requests |
+| `events.finance.manage` | Event budgets and the finance checkpoint |
+| `events.purchases.complete` | The event purchases checkpoint |
+| `events.participants.manage` | Viewing or withdrawing another student's RSVP |
+| `feedback.manage` | Deleting feedback |
+| `shop.purchases.review` | The shop Orders dashboard and its order changes |
+
+To add a permission, add it to the list in `utils/auth.js` and protect its
+routes with `requirePermission`. The roles API accepts only names on that list.
 
 ### Session destruction
 
@@ -373,7 +396,7 @@ Based on controller usage, the schemas include these fields:
 
 **Participants**: `pUID` (ref → Users), `eID` (ref → Events), `rsvpAnswers` (array of `{ qId, aString }`), `isAnon`
 
-**Users**: `uFirstName`, `uLastName`, `uDisplayName`, `uEmail`, `uNetId`, `uType` (e.g., "Admin")
+**Users**: `uFirstName`, `uLastName`, `uDisplayName`, `uEmail`, `uNetId`, `uType` (a label such as "Member"; grants no access)
 
 **Roles**: `roleName`, `roleKey`, `roleDescription`, `permissions`, `isActive`, `createdBy`, `updatedBy`
 

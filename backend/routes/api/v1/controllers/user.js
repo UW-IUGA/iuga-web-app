@@ -156,7 +156,6 @@ router.post("/login", loginRateLimiter, async function (req, res) {
     req.session.lastName = profile.lastName;
     req.session.userId = user._id;
     req.session.memberType = user.uType;
-    req.session.isAdmin = user.uType === "Admin";
     return res.status(200).json(user);
   } catch (error) {
     console.error("Login persistence failed:", error?.message);

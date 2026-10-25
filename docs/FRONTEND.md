@@ -12,6 +12,7 @@
 | `src/index.jsx` | React bootstrap — MSAL provider, auth context, browser router |
 | `src/App.jsx` | Layout wrapper — navbar, toast notifications, route definitions |
 | `src/authConfig.js` | MSAL client ID, tenant authority, redirect URI |
+| `src/adminSections.js` | The officer admin sections, their pages and permissions, and the admin path helpers |
 
 ---
 
@@ -82,10 +83,10 @@ The header holds the logo on the left and one centered group of page links:
 Events, Resources, Student Voice, Shop, About, and Get Involved. The account
 control sits to the right of the group. On smaller desktops the link spacing
 tightens to keep the navigation on one line; below the sm-desktop breakpoint
-the links collapse into a hamburger panel. Escape closes the account menu and
-the mobile panel. Signed-in students see their name, a "Signed in with UW
-NetID" line, and a text Sign out action in the account menu, without an avatar
-or role badge. The mobile menu closes after navigation. The shop cart mounts in
+the links collapse into a hamburger panel. Only one dropdown is open at a time,
+and Escape closes it and the mobile panel. Signed-in students see their name, a
+"Signed in with UW NetID" line, and a text Sign out action in the account menu,
+without an avatar or role badge. The mobile menu closes after navigation. The shop cart mounts in
 the header on both layouts.
 
 **Archived, not deleted:** the Elections and Election FAQ pages are still routed

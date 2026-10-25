@@ -49,7 +49,7 @@
 }
 
 .nav-primary-links > a,
-.nav-account-toggle {
+.nav-toggle {
     box-sizing: border-box;
     display: inline-flex;
     min-height: 44px;
@@ -69,9 +69,9 @@
     &.active { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 8px; }
 }
 
-.nav-account-toggle svg { width: 10px; }
+.nav-toggle svg { width: 10px; }
 
-.nav-account-actions {
+.nav-dropdown-menu {
     position: absolute;
     top: calc(100% + 6px);
     left: -12px;
@@ -80,12 +80,12 @@
     width: 185px;
     padding: 8px;
     border: 1px solid $color-border-lavender;
-    border-radius: 16px;
+    border-radius: $radius-card;
     background: white;
     color: $color-uw-purple;
     box-shadow: 0 14px 30px rgba($color-shadow, 0.13);
 
-    button {
+    button, a {
         box-sizing: border-box;
         display: block;
         width: 100%;
@@ -105,10 +105,10 @@
 }
 
 .nav-account { padding-left: 16px; }
-.nav-account-dropdown { position: relative; }
-.nav-account-toggle { max-width: 165px; overflow: hidden; text-overflow: ellipsis; }
-.nav-account-actions { display: flex; flex-direction: column; left: auto; right: 0; width: 205px; }
-.nav-account-actions span { padding: 9px 10px; color: #605775; font: 400 11px/1.4 $sans-serif; }
+.nav-dropdown { position: relative; }
+.nav-toggle { max-width: 165px; overflow: hidden; text-overflow: ellipsis; }
+.nav-dropdown-menu { display: flex; flex-direction: column; left: auto; right: 0; width: 205px; }
+.nav-dropdown-menu span { padding: 9px 10px; color: #605775; font: 400 11px/1.4 $sans-serif; }
 .nav-account-cart-slot { display: flex; flex: none; align-items: center; }
 
 @media (prefers-reduced-motion: reduce) {

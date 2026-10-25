@@ -334,12 +334,12 @@
 
     .nav-primary-links > a:hover,
     .nav-primary-links > a.active,
-    .nav-account-toggle:hover { color: $color-primary; }
+    .nav-toggle:hover { color: $color-primary; }
 
     .site-navigation a:focus-visible,
     .site-navigation button:focus-visible { outline-color: $color-uw-purple; }
 
-    .nav-account-actions {
+    .nav-dropdown-menu {
         background: white;
         color: #241a32;
         border-color: $color-border-lavender;

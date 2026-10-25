@@ -1,0 +1,71 @@
+@use "../abstracts" as *;
+
+// Site-wide defaults for bare HTML elements. Every rule here styles each matching element on
+// every page, so component styles should use classes rather than adding element rules elsewhere.
+
+button {
+    position: relative;
+    border-radius: $radius;
+    background-color: $color-primary;
+    color: $color-white;
+    border: 0px;
+    padding: $padding-box-y $padding-box-x;
+    font-weight: $font-weight-medium;
+    font-size: $font-size-small;
+    text-shadow: none;
+    transition: all 150ms cubic-bezier(0.19, 1, 0.22, 1);
+
+    .right-arrow {
+        padding: 0;
+        width: 14px;
+        margin-left: 6px;
+        margin-bottom: -3px;
+        filter: invert(29%) sepia(85%) saturate(616%) hue-rotate(225deg) brightness(93%) contrast(88%);
+    }
+}
+
+button:hover:before {
+    opacity: 0.5;
+}
+
+button:hover {
+    cursor: pointer;
+}
+
+button:disabled,
+button[disabled] {
+    border: 1px solid #999999;
+    background: #e8e8e8;
+    color: #464646;
+    border: 1px solid #464646;
+    outline-width: 0px;
+    cursor: not-allowed;
+}
+
+button:before {
+    content: "";
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    z-index: -1;
+    filter: blur(5px);
+    width: calc(100% + 5px);
+    height: calc(100% + 5px);
+    opacity: 0;
+    transition: opacity 350ms cubic-bezier(0.19, 1, 0.22, 1);
+    border-radius: $radius;
+}
+
+// Candidate media embeds on role pages; applies to every iframe on the site.
+iframe {
+    width: 100%;
+    height: 500px;
+    border-radius: 8px;
+    margin-top: 15px;
+    border: none;
+}
+
+input:disabled {
+    background-color: #f4f4f4 !important;
+    cursor: not-allowed;
+}

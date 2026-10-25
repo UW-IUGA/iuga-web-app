@@ -28,11 +28,6 @@
     margin-bottom: 6px;
 }
 
-input:disabled {
-    background-color: #f4f4f4 !important;
-    cursor: not-allowed;
-}
-
 @include media(">=sm-desktop", "<desktop") {
     .form-input {
         padding: 10px $space-4;

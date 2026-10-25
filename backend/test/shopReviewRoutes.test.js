@@ -34,7 +34,7 @@ function reviewRecord(overrides = {}) {
     followUpUpdatedByName: "Olive Officer",
     buyer: { id: "64b0000000000000000000bb", name: "Example Student", email: "example@uw.edu" },
     recentHistory: [
-      { actorId: OFFICER_ID, actorName: "Olive Officer", at: new Date("2030-02-28T09:00:00Z"), kind: "follow_up", from: "none", to: "will_pay", note: "Paying Friday." },
+      { changedBy: OFFICER_ID, actorName: "Olive Officer", at: new Date("2030-02-28T09:00:00Z"), kind: "follow_up", from: "none", to: "will_pay", note: "Paying Friday." },
     ],
     ...overrides,
   };
@@ -330,7 +330,7 @@ describe("shop purchase review routes", () => {
       const result = await api.request("PATCH", `/api/v1/shop/purchases/${PURCHASE_ID}/payment`, {
         status: "paid",
         expectedRevision: 3,
-        actorId: "64b0000000000000000000cc",
+        changedBy: "64b0000000000000000000cc",
       });
 
       assert.equal(result.status, 200);
@@ -340,7 +340,7 @@ describe("shop purchase review routes", () => {
         status: "paid",
         note: undefined,
         expectedRevision: 3,
-        actorId: OFFICER_ID,
+        changedBy: OFFICER_ID,
         nowMs: NOW_MS,
       });
     });
@@ -402,7 +402,7 @@ describe("shop purchase review routes", () => {
         pickedUpBy: OFFICER_ID,
         pickedUpByName: "Olive Officer",
         recentHistory: [{
-          actorId: OFFICER_ID,
+          changedBy: OFFICER_ID,
           actorName: "Olive Officer",
           at: new Date("2030-03-01T18:10:00Z"),
           kind: "payment",
@@ -453,7 +453,7 @@ describe("shop purchase review routes", () => {
         followUpStatus: "will_pay",
         note: "Paying Friday.",
         expectedRevision: 3,
-        actorId: OFFICER_ID,
+        changedBy: OFFICER_ID,
         nowMs: NOW_MS,
       });
 
@@ -475,7 +475,7 @@ describe("shop purchase review routes", () => {
         title: "Venmo name changed",
         note: "Now pays from @priya-r.",
         expectedRevision: 3,
-        actorId: OFFICER_ID,
+        changedBy: OFFICER_ID,
         nowMs: NOW_MS,
       });
 
@@ -512,7 +512,7 @@ describe("shop purchase review routes", () => {
         purchaseId: PURCHASE_ID,
         amountReceivedCents: 5000,
         expectedRevision: 3,
-        actorId: OFFICER_ID,
+        changedBy: OFFICER_ID,
         nowMs: NOW_MS,
       });
     });
@@ -529,7 +529,7 @@ describe("shop purchase review routes", () => {
         purchaseId: PURCHASE_ID,
         pickedUp: true,
         expectedRevision: 3,
-        actorId: OFFICER_ID,
+        changedBy: OFFICER_ID,
         nowMs: NOW_MS,
       });
       assert.equal(result.body.purchase.pickup.pickedUpBy, "Olive Officer");

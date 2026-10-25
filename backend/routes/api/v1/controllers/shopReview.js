@@ -267,7 +267,7 @@ export function createShopReviewRouter({ reviewStore = defaultReviewStore, now =
         status,
         note: note?.trim() || undefined,
         expectedRevision,
-        actorId: req.session.userId,
+        changedBy: req.session.userId,
         nowMs: now(),
       });
       return sendSuccess(res, { purchase: publicOrder(record) });
@@ -293,7 +293,7 @@ export function createShopReviewRouter({ reviewStore = defaultReviewStore, now =
         followUpStatus,
         note: note?.trim() || undefined,
         expectedRevision,
-        actorId: req.session.userId,
+        changedBy: req.session.userId,
         nowMs: now(),
       });
       return sendSuccess(res, { purchase: publicOrder(record) });
@@ -320,7 +320,7 @@ export function createShopReviewRouter({ reviewStore = defaultReviewStore, now =
         title: topic,
         note: note?.trim() || undefined,
         expectedRevision,
-        actorId: req.session.userId,
+        changedBy: req.session.userId,
         nowMs: now(),
       });
       return sendSuccess(res, { purchase: publicOrder(record) });
@@ -342,7 +342,7 @@ export function createShopReviewRouter({ reviewStore = defaultReviewStore, now =
         purchaseId: req.params.purchaseId,
         pickedUp,
         expectedRevision,
-        actorId: req.session.userId,
+        changedBy: req.session.userId,
         nowMs: now(),
       });
       return sendSuccess(res, { purchase: publicOrder(record) });
@@ -364,7 +364,7 @@ export function createShopReviewRouter({ reviewStore = defaultReviewStore, now =
         purchaseId: req.params.purchaseId,
         amountReceivedCents,
         expectedRevision,
-        actorId: req.session.userId,
+        changedBy: req.session.userId,
         nowMs: now(),
       });
       return sendSuccess(res, { purchase: publicOrder(record) });

@@ -385,6 +385,7 @@ Mongoose models are registered at startup:
 | `EventReviews` | `eventReviewsSchema` | `eventreviews` |
 | `Committees` | `committeesSchema` | `committees` |
 | `CommitteeRecruitment` | `committeeRecruitmentSchema` (local) | `committeerecruitments` |
+| `ShopPurchases` | `shopPurchasesSchema` | `shoppurchases` |
 
 The schemas live in a **separate GitHub repository** (`UW-IUGA/iuga-web-schemas`) mounted as a submodule at `backend/schemas/`. If the submodule is not initialized, the backend will fail to start. `CommitteeRecruitment` is the exception: its schema lives in `backend/committeeRecruitment.js` so the campaign model stays out of the shared submodule.
 
@@ -409,6 +410,8 @@ Based on controller usage, the schemas include these fields:
 **EventRequests**: session-derived requester/organizer, requesting group, event details, lifecycle status, ordered checkpoints, finance and booking data, selected slide template, external review link/receipt, published event link, and actor/timestamp audit fields.
 
 **EventReviews**: request id, session-derived reviewer, enforced `organizer` or `member` role, review responses, attendee count, and integer-cent total spend.
+
+**ShopPurchases**: `holdId`, `userId`, `catalogId`, `catalogVersion`, `venmoUsername`, `lines`, `totalCents`, `status` (`pending`, `paid`, `not_paid`, or `refunded`), `confirmedAt`, and the review fields: `reviewRevision` (starts at 0 and rises with every officer change; writes send it back as `expectedRevision`), `amountReceivedCents` (`null` until an amount is recorded), `followUpStatus` (`contacted`, `will_pay`, `says_paid`, or `null`), `awaitingStudentReply` (true while a follow-up is open), `followUpUpdatedBy`, `followUpUpdatedAt`, and `reviewHistory` (officer entries of kind `payment`, `follow_up`, `amount_received`, or `note`, each with actor, time, `from` and `to`, and an optional `title` and `note`). Purchases saved before review existed have none of these fields and read as revision 0 with no history.
 
 ---
 

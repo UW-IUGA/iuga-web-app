@@ -19,7 +19,7 @@ const cases = [
   { setting: "", enabled: undefined },
 ];
 for (const { setting, inherited, enabled } of cases) {
-  it(`selects the database from resolved checkout setting: ${setting || "unset"}, inherited ${inherited || "unset"}`, (t) => {
+  it(`uses the replica set and passes the resolved checkout setting through: ${setting || "unset"}, inherited ${inherited || "unset"}`, (t) => {
     const root = mkdtempSync(path.join(tmpdir(), "shop-startup-"));
     t.after(() => rmSync(root, { recursive: true, force: true }));
     mkdirSync(path.join(root, "scripts"));
@@ -45,6 +45,6 @@ for (const { setting, inherited, enabled } of cases) {
     assert.equal(result.status, 0, result.stderr);
     const settings = JSON.parse(result.stdout.trim().split("\n").at(-1));
     assert.equal(settings.enabled, enabled, "backend must use dotenv's resolved setting");
-    assert.equal(settings.uri, `mongodb://127.0.0.1/${enabled === "true" ? "replica-set" : "standalone"}`);
+    assert.equal(settings.uri, "mongodb://127.0.0.1/replica-set", "order review needs transactions whatever the checkout setting");
   });
 }

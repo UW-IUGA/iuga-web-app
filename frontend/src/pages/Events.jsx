@@ -32,7 +32,7 @@ const loadEventDetails = async (event) => {
 };
 
 function EventsPage() {
-    const { isAuthenticated, isAdmin } = useAuthContext();
+    const { isAuthenticated, can } = useAuthContext();
     const { state, pathname } = useLocation();
     const [calendarEvents, setCalendarEvents] = useState([]);
     // "loading" until the list arrives, then "ready"; "failed" if it could not be fetched.
@@ -185,7 +185,12 @@ function EventsPage() {
                 onClose={closeEventDetails}
             />
 
-            <EventOperations isAdmin={isAdmin} />
+            <EventOperations
+                canManageRequests={can("events.requests.manage")}
+                canApproveLeadership={can("events.leadership.approve")}
+                canManageFinance={can("events.finance.manage")}
+                canCompletePurchases={can("events.purchases.complete")}
+            />
         </div>
     );
 }

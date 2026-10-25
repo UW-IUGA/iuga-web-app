@@ -1,8 +1,8 @@
 /*
- * Purpose: Global authentication state provider coordinating MSAL, backend sessions, and role checks.
+ * Purpose: Global authentication state provider coordinating MSAL, backend sessions, and officer permissions.
  * Authentication/Authorization Requirements: Handles sign-in, session synchronization, and local sign-out.
- * Expected Request: React subtree consumers via useAuthContext() hook invoking signIn(), signOut(), or reading state.
- * Expected Response: AuthContext value exposing user, isAuthenticated, isAdmin, authLoading, authError, signIn, and signOut.
+ * Expected Request: React subtree consumers via useAuthContext() hook invoking signIn(), signOut(), can(permission), or reading state.
+ * Expected Response: AuthContext value exposing user, isAuthenticated, can, authLoading, authError, signIn, and signOut.
  */
 import React, { createContext, useState, useEffect, useContext, useRef } from 'react';
 import { useMsal } from '@azure/msal-react';
@@ -209,7 +209,27 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const isAdmin = user?.uType === "Admin";
+  const [permissions, setPermissions] = useState([]);
+
+  // The signed-in user's permissions from their roles, which decide the officer tools the site offers.
+  // A response for an earlier account or session is ignored, and a failure offers no officer tools.
+  useEffect(() => {
+    setPermissions([]);
+    if (!isAuthenticated) return undefined;
+    let current = true;
+    fetch('/api/v1/user/permissions')
+      .then((response) => (response.ok ? response.json() : null))
+      .then((body) => {
+        if (current && Array.isArray(body?.permissions)) setPermissions(body.permissions);
+      })
+      .catch(() => {});
+    return () => {
+      current = false;
+    };
+  }, [isAuthenticated, user]);
+
+  // Whether the signed-in user may use an officer tool. The tool's API checks again on every request.
+  const can = (permission) => permissions.includes(permission);
 
   const isLocalBackendError = authError?.message === LOCAL_BACKEND_MESSAGE;
 
@@ -235,7 +255,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, isAdmin, authLoading, authError, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, can, authLoading, authError, signIn, signOut }}>
       {authError ? (
         <AlertDialog
           eyebrow={isLocalBackendError ? "Local environment" : "Sign-in"}

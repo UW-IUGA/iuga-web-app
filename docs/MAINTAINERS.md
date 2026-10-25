@@ -163,7 +163,7 @@ db.shoppurchases.aggregate([
 ])
 ```
 
-No route or screen records paid, not paid, or refunded yet; every purchase stays `pending`.
+This lists only purchases still `pending` (Unconfirmed). Officers with the `shop.purchases.review` permission record paid, dropped, and refunded orders on `/admin/shop/orders`; see `docs/FRONTEND.md`.
 
 ### 2.6 Pause new shop checkouts before an update
 

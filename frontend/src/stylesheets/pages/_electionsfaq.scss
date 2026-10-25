@@ -101,7 +101,12 @@
 
 /* Blobs styling, in chronological order */
 .blob1 {
-    background: radial-gradient(ellipse at center, #f8a6ff 0%, #fae5ff 40%, rgba(109, 37, 100, 0) 70%);
+    background: radial-gradient(
+        ellipse at center,
+        $color-gradient-pink 0%,
+        $color-social-secondary 40%,
+        rgba(109, 37, 100, 0) 70%
+    );
     position: absolute;
     width: 500px;
     left: -110px;
@@ -174,7 +179,12 @@
 
     /* Blobs styling, in chronological order */
     .blob1 {
-        background: radial-gradient(ellipse at center, #f8a6ffc3 0%, #fae5ff 40%, rgba(109, 37, 100, 0) 70%);
+        background: radial-gradient(
+            ellipse at center,
+            #f8a6ffc3 0%,
+            $color-social-secondary 40%,
+            rgba(109, 37, 100, 0) 70%
+        );
         position: absolute;
         width: 300px;
         left: -80px;

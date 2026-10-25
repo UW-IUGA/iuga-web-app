@@ -4,7 +4,7 @@ button {
     position: relative;
     border-radius: $radius;
     background-color: $color-primary;
-    color: white;
+    color: $color-white;
     border: 0px;
     padding: $padding-box-y $padding-box-x;
     font-weight: $font-weight-medium;
@@ -63,7 +63,12 @@ button:before {
 
 .primary-button {
     color: #8458ca;
-    background: linear-gradient(90deg, #fae5ff 0%, #feefcd 50%, #cfdff5 100%);
+    background: linear-gradient(
+        90deg,
+        $color-social-secondary 0%,
+        $color-academic-secondary 50%,
+        $color-gradient-blue 100%
+    );
     border: 2px solid #a276e9;
 }
 
@@ -83,8 +88,8 @@ button:before {
     white-space: nowrap;
     border: $pill-border-width solid $color-primary;
     border-radius: $radius-pill;
-    background-color: white;
-    color: black;
+    background-color: $color-white;
+    color: $color-black;
     font-size: $font-size-body;
     font-weight: $font-weight-medium;
     line-height: 1.2;
@@ -97,14 +102,14 @@ button:before {
     align-items: center;
     gap: 12px;
     padding: 11px 16px;
-    border: 1px solid rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba($color-white, 0.78);
     border-radius: $radius-pill;
-    background: rgba(255, 255, 255, 0.52);
+    background: rgba($color-white, 0.52);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     box-shadow:
         0 14px 30px rgba($color-uw-purple, 0.12),
-        inset 0 1px 0 rgba(255, 255, 255, 0.88);
+        inset 0 1px 0 rgba($color-white, 0.88);
     color: $color-uw-purple;
     font-size: $font-size-small;
     font-weight: $font-weight-medium;
@@ -143,7 +148,7 @@ button:before {
 
     &[aria-pressed="true"] {
         background-color: $color-primary;
-        color: white;
+        color: $color-white;
     }
 
     &:disabled,
@@ -177,7 +182,7 @@ button:before {
 }
 
 .cta-primary {
-    background-color: white;
+    background-color: $color-white;
     color: $color-primary;
 }
 
@@ -203,7 +208,7 @@ button:before {
 }
 
 .editorial-card {
-    background-color: white;
+    background-color: $color-white;
     border-radius: $radius-card;
     border: 1px solid rgba($color-uw-purple, 0.12);
     box-shadow: 0 2px 10px rgba($color-uw-purple, 0.08);

@@ -11,8 +11,8 @@ Expected Response Information: A cover photo beside the event story, with a row 
     overflow: hidden;
     border: 1px solid rgba($color-uw-purple, 0.14);
     border-radius: $radius-card;
-    background: white;
-    box-shadow: 0 6px 18px rgba(black, 0.1);
+    background: $color-white;
+    box-shadow: 0 6px 18px rgba($color-black, 0.1);
 
     &--reversed .pastEventCard__cover {
         order: 2;
@@ -67,7 +67,7 @@ Expected Response Information: A cover photo beside the event story, with a row 
     display: grid;
     place-items: center;
     background: rgba(15, 15, 15, 0.6);
-    color: white;
+    color: $color-white;
     font-family: $font-family-base;
     font-size: 1.3rem;
     font-weight: $font-weight-bold;
@@ -82,13 +82,13 @@ Expected Response Information: A cover photo beside the event story, with a row 
     padding: $pill-padding-y $pill-padding-x;
     border: $pill-border-width solid $color-primary;
     border-radius: $radius-pill;
-    background: white;
+    background: $color-white;
     color: $color-primary;
 
     &:hover,
     &:focus-visible {
         background: $color-primary;
-        color: white;
+        color: $color-white;
         outline: none;
     }
 }

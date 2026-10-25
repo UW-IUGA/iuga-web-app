@@ -2,6 +2,6 @@
 
 .gradient-line {
     height: 2px;
-    background: linear-gradient(to right, #f8a6ff, #ffc93f, #a4a9db);
+    background: linear-gradient(to right, $color-gradient-pink, $color-gradient-gold, #a4a9db);
     width: 90%;
 }

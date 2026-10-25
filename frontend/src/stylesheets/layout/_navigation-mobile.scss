@@ -40,8 +40,8 @@
         gap: 0;
         overflow-y: auto;
         border: 1px solid #e7ddef;
-        background: white;
-        box-shadow: 0 18px 30px rgba(#190b2c, 0.15);
+        background: $color-white;
+        box-shadow: 0 18px 30px rgba($color-shadow, 0.15);
 
         &.nav-show-items {
             display: flex;

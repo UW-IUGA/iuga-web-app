@@ -2,10 +2,10 @@
 
 .roleSidebar {
     width: 250px;
-    background: white;
+    background: $color-white;
     padding: 20px;
     border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba($color-black, 0.1);
 }
 
 .roleSidebar h2 {
@@ -29,6 +29,6 @@
 
 .roleItem.active {
     background: #58077b;
-    color: white;
+    color: $color-white;
     font-weight: $font-weight-medium;
 }

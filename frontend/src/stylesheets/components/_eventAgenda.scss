@@ -42,7 +42,7 @@ Expected Response Information: A strip of day buttons above a list of event rows
     padding: 12px 4px 10px;
     border: 1px solid rgba($color-uw-purple, 0.14);
     border-radius: $radius-card-media;
-    background: white;
+    background: $color-white;
     color: $color-uw-purple;
     transition:
         background-color 180ms ease,
@@ -91,10 +91,10 @@ Expected Response Information: A strip of day buttons above a list of event rows
     &.isSelected {
         border-color: $color-uw-purple;
         background: $color-uw-purple;
-        color: white;
+        color: $color-white;
 
         > span:first-child {
-            color: rgba(white, 0.82);
+            color: rgba($color-white, 0.82);
         }
     }
 }
@@ -139,8 +139,8 @@ Expected Response Information: A strip of day buttons above a list of event rows
     padding: 14px 24px 14px 14px;
     border: 1px solid rgba($color-uw-purple, 0.14);
     border-radius: $radius-card;
-    background: white;
-    box-shadow: 0 6px 18px rgba(black, 0.1);
+    background: $color-white;
+    box-shadow: 0 6px 18px rgba($color-black, 0.1);
     color: $color-uw-purple;
     font-weight: $font-weight-regular;
     text-align: left;
@@ -151,7 +151,7 @@ Expected Response Information: A strip of day buttons above a list of event rows
 
     &:hover,
     &:focus-visible {
-        box-shadow: 0 9px 22px rgba(black, 0.14);
+        box-shadow: 0 9px 22px rgba($color-black, 0.14);
         transform: translateY(-2px);
     }
 
@@ -254,13 +254,13 @@ Expected Response Information: A strip of day buttons above a list of event rows
         padding: $pill-padding-y $pill-padding-x;
         border: $pill-border-width solid $color-primary;
         border-radius: $radius-pill;
-        background: white;
+        background: $color-white;
         color: $color-primary;
 
         &:hover,
         &:focus-visible {
             background: $color-primary;
-            color: white;
+            color: $color-white;
             outline: none;
         }
     }

@@ -82,7 +82,7 @@
         overflow: hidden;
         border: 1px dashed currentColor;
         border-radius: $radius-card;
-        background: white;
+        background: $color-white;
     }
 
     &__heroSlide {
@@ -153,7 +153,7 @@
         text-align: center;
         border: 1px solid rgba($color-uw-purple, 0.12);
         border-radius: $radius-card;
-        background: white;
+        background: $color-white;
 
         p {
             margin: 0 0 20px;
@@ -214,7 +214,7 @@
     overflow: hidden;
     border: 1px solid rgba($color-uw-purple, 0.1);
     border-radius: $radius-card;
-    background: white;
+    background: $color-white;
     box-shadow: 0 2px 10px rgba($color-uw-purple, 0.05);
     transition:
         transform 220ms ease,
@@ -315,7 +315,7 @@
         place-items: center;
         border: 1px solid rgba($color-uw-purple, 0.24);
         border-radius: $radius-pill;
-        background: white;
+        background: $color-white;
         color: $color-uw-purple;
         cursor: pointer;
         font: inherit;
@@ -332,7 +332,7 @@
         &.is-selected {
             border-color: $color-uw-purple;
             background: $color-uw-purple;
-            color: white;
+            color: $color-white;
         }
 
         &.is-selected {
@@ -377,7 +377,7 @@
 
     &__addToCart {
         background: $color-uw-purple;
-        color: white;
+        color: $color-white;
         cursor: pointer;
 
         &:hover {
@@ -397,7 +397,7 @@
     }
 
     &__cartPill {
-        background: white;
+        background: $color-white;
         color: $color-uw-purple;
 
         .shopQuantity {
@@ -492,7 +492,7 @@
         &:focus-visible {
             outline: 3px solid rgba($color-uw-purple, 0.28);
             outline-offset: 2px;
-            background: white;
+            background: $color-white;
         }
     }
 }
@@ -536,8 +536,8 @@
         place-items: center;
         border-radius: $radius-pill;
         background: $color-uw-purple;
-        box-shadow: 0 0 0 2px white;
-        color: white;
+        box-shadow: 0 0 0 2px $color-white;
+        color: $color-white;
         font-size: 0.68rem;
         font-weight: $font-weight-bold;
         animation: shop-cart-count-pop 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -577,7 +577,7 @@
     flex-direction: column;
     border-radius: 16px;
     padding: 18px 18px 14px;
-    background: white;
+    background: $color-white;
     border: 1px solid $color-border-lavender;
     box-shadow: 0 14px 30px rgba($color-shadow, 0.13);
     overflow-y: auto;

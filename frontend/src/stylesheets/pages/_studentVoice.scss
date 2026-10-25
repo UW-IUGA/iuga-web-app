@@ -13,7 +13,7 @@
     gap: 20px;
     margin-bottom: 20px;
     padding-bottom: 12px;
-    border-bottom: 2px solid black;
+    border-bottom: 2px solid $color-black;
 
     h2 {
         margin: 0;
@@ -40,7 +40,7 @@
 
     h3 {
         margin: 18px 0 10px;
-        color: black;
+        color: $color-black;
         font-size: $font-size-subheading;
         line-height: 1.2;
     }
@@ -76,7 +76,7 @@
     height: min(78vh, 860px);
     margin-bottom: 16px;
     border: 1px solid $color-dark-gray;
-    background: white;
+    background: $color-white;
 }
 
 .studentVoiceCard__note {
@@ -127,7 +127,7 @@
     width: 30%;
     height: 28px;
     border-radius: 4px;
-    background: black;
+    background: $color-black;
 }
 
 .studentVoicePreview__row {
@@ -165,7 +165,7 @@
     gap: 10px;
     padding: 32px;
     text-align: center;
-    background: rgba(255, 255, 255, 0.78);
+    background: rgba($color-white, 0.78);
 
     h2 {
         margin: 0;

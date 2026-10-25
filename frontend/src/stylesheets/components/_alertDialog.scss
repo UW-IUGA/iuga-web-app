@@ -20,7 +20,7 @@
     padding: 28px 24px 24px;
     border: 1px solid #e4e4e4;
     border-radius: 16px;
-    background: #fff;
+    background: $color-white;
     box-shadow: 0 16px 40px rgba(17, 18, 22, 0.18);
     color: #1a1a1a;
     font-family: $font-family-base;
@@ -87,7 +87,7 @@
         padding: 11px 24px;
         border: 2px solid $color-primary;
         border-radius: $radius-pill;
-        background: #fff;
+        background: $color-white;
         color: $color-primary;
         font-size: $font-size-small;
         font-weight: $font-weight-medium;

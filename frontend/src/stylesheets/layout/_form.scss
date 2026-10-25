@@ -6,7 +6,7 @@
     padding: 13px 22px;
     border-radius: 5px;
     border: 1px solid #dde3ec;
-    background: #ffffff;
+    background: $color-white;
     font-size: $font-size-small;
     color: #536387;
     outline: none;
@@ -16,7 +16,7 @@
 
 .form-input:focus {
     border-color: $color-primary;
-    box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0px 3px 8px rgba($color-black, 0.05);
 }
 
 .form-label {

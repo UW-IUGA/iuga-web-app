@@ -11,7 +11,7 @@
     border: 1px solid $color-uw-purple;
     border-radius: $radius-pill;
     background: $color-uw-purple;
-    color: white;
+    color: $color-white;
     font-family: inherit;
     font-size: $font-size-small;
     font-weight: $font-weight-medium;
@@ -45,7 +45,7 @@
     padding: clamp(22px, 4vw, 34px);
     border: 1px solid rgba($color-uw-purple, 0.18);
     border-radius: $radius-card;
-    background: white;
+    background: $color-white;
     color: $color-uw-purple;
     box-shadow: 0 24px 80px rgba(15, 15, 15, 0.26);
 
@@ -87,7 +87,7 @@
     padding: 0;
     border: 1px solid rgba($color-uw-purple, 0.22);
     border-radius: 50%;
-    background: white;
+    background: $color-white;
     color: $color-uw-purple;
     font-size: 1.8rem;
     line-height: 1;
@@ -187,11 +187,11 @@
 
     &--gmail {
         background: $color-uw-purple;
-        color: white;
+        color: $color-white;
 
         &:hover {
             background: $color-primary;
-            color: white;
+            color: $color-white;
         }
     }
 }

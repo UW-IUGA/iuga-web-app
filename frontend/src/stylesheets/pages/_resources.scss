@@ -36,7 +36,7 @@
         padding: 11px 14px;
         border: 1px solid rgba($color-uw-purple, 0.25);
         border-radius: $radius-pill;
-        color: black;
+        color: $color-black;
         font: #{$font-size-body} $font-family-base;
 
         &:focus {
@@ -61,7 +61,7 @@
 
 .resourceCategory {
     margin-bottom: 18px;
-    border-bottom: 2px solid black;
+    border-bottom: 2px solid $color-black;
 }
 
 .resourceCategoryHeader {

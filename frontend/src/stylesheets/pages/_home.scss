@@ -3,14 +3,14 @@
 #rootContainer:has(.homePage),
 .homePage {
     color-scheme: light;
-    background: #fff;
+    background: $color-white;
 }
 
 .homePage {
     box-sizing: border-box;
     flex: none;
     padding-block: 56px $section-divider-gap;
-    color: #241a32;
+    color: $color-ink;
     font: $font-weight-regular #{$font-size-body}/#{$line-height-body} $font-family-base;
 
     *,
@@ -117,7 +117,7 @@
 
 .homePrimaryLink {
     background: $color-uw-purple;
-    color: white !important;
+    color: $color-white !important;
 
     &:hover {
         border-color: $color-primary;
@@ -126,7 +126,7 @@
 }
 
 .homeSecondaryLink {
-    background: white;
+    background: $color-white;
     color: $color-uw-purple !important;
 
     &:hover {
@@ -253,7 +253,7 @@
     margin-top: 48px;
     padding: 18px 20px;
     border-radius: $radius-card-media;
-    background: white;
+    background: $color-white;
     box-shadow: 0 6px 18px rgba($color-shadow, 0.12);
 
     h3 {
@@ -314,7 +314,7 @@
     padding: 20px;
     border: 1px solid transparent;
     border-radius: $radius-card-media;
-    background: white;
+    background: $color-white;
     box-shadow: 0 6px 18px rgba($color-shadow, 0.12);
 
     h3 {
@@ -389,7 +389,7 @@
     padding: 18px 20px;
 
     h3 {
-        color: white;
+        color: $color-white;
         font-size: $font-size-subheading;
         line-height: 1.15;
         text-decoration-line: underline;
@@ -399,13 +399,13 @@
 }
 
 .homeCommunityLink:hover .homePhotoLabel h3 {
-    color: white;
+    color: $color-white;
     text-underline-offset: 4px;
 }
 
 #rootContainer:has(.homePage) {
     .site-navigation {
-        background: white;
+        background: $color-white;
         color: $color-uw-purple;
         border-color: $color-border-lavender;
     }
@@ -422,8 +422,8 @@
     }
 
     .nav-account-actions {
-        background: white;
-        color: #241a32;
+        background: $color-white;
+        color: $color-ink;
         border-color: $color-border-lavender;
 
         span {
@@ -444,7 +444,7 @@
 
     footer {
         border-top: 1px solid $color-border-lavender;
-        background: white;
+        background: $color-white;
         box-shadow: none;
 
         &::before {
@@ -464,7 +464,7 @@
 
     @include media("<sm-desktop") {
         .nav-items-wrapper {
-            background: white;
+            background: $color-white;
             border-color: $color-border-lavender;
         }
 

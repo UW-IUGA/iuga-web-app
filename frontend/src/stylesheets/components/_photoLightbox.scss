@@ -16,7 +16,7 @@ Expected Response Information: One photo on a dimmed page with its caption and c
     background: transparent;
 
     &::backdrop {
-        background: rgba(black, 0.45);
+        background: rgba($color-black, 0.45);
     }
 
     figure {
@@ -30,7 +30,7 @@ Expected Response Information: One photo on a dimmed page with its caption and c
         inset: auto 0 0;
         padding: 64px 140px 22px 24px;
         background: linear-gradient(to top, rgba(15, 15, 15, 0.82), rgba(15, 15, 15, 0.4) 64%, transparent);
-        color: white;
+        color: $color-white;
         text-align: left;
         pointer-events: none;
 
@@ -41,7 +41,7 @@ Expected Response Information: One photo on a dimmed page with its caption and c
 
         span {
             margin-bottom: 6px;
-            color: rgba(255, 255, 255, 0.92);
+            color: rgba($color-white, 0.92);
             font-size: $font-size-label;
             font-weight: $font-weight-medium;
             letter-spacing: $letter-spacing-label;
@@ -67,16 +67,16 @@ Expected Response Information: One photo on a dimmed page with its caption and c
         place-items: center;
         border: 0;
         border-radius: $radius-pill;
-        background: white;
-        box-shadow: 0 4px 14px rgba(black, 0.22);
-        color: black;
+        background: $color-white;
+        box-shadow: 0 4px 14px rgba($color-black, 0.22);
+        color: $color-black;
 
         &:hover {
             background: #e4e4e4;
         }
 
         &:focus-visible {
-            outline: 2px solid white;
+            outline: 2px solid $color-white;
             outline-offset: 3px;
         }
     }
@@ -89,7 +89,7 @@ Expected Response Information: One photo on a dimmed page with its caption and c
     display: block;
     overflow: hidden;
     border-radius: $radius-card-media;
-    box-shadow: 0 24px 60px rgba(black, 0.3);
+    box-shadow: 0 24px 60px rgba($color-black, 0.3);
 
     img {
         display: block;
@@ -106,7 +106,7 @@ Expected Response Information: One photo on a dimmed page with its caption and c
     padding: 6px 14px;
     border-radius: $radius-pill;
     background: rgba(15, 15, 15, 0.6);
-    color: white;
+    color: $color-white;
     font-size: $font-size-small;
     font-weight: $font-weight-medium;
     font-variant-numeric: tabular-nums;

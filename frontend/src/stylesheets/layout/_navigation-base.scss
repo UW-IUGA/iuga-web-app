@@ -5,7 +5,7 @@
     position: sticky;
     top: 0;
     z-index: 100;
-    background: white;
+    background: $color-white;
     color: $color-uw-purple;
     border-bottom: 1px solid #e4dce9;
 }
@@ -100,7 +100,7 @@
     padding: 8px;
     border: 1px solid $color-border-lavender;
     border-radius: 16px;
-    background: white;
+    background: $color-white;
     color: $color-uw-purple;
     box-shadow: 0 14px 30px rgba($color-shadow, 0.13);
 

@@ -50,6 +50,17 @@ $color-social: #bd55d8;
 $color-academic-capsule: #8a5a1f;
 $color-social-capsule: #8d1fa8;
 
+// Pure white and black for surfaces, text on photos, and translucent overlays.
+$color-white: #fff;
+$color-black: #000;
+// Body text on Home.
+$color-ink: #241a32;
+
+// Stops of the brand gradient below.
+$color-gradient-pink: #f8a6ff;
+$color-gradient-gold: #ffc93f;
+$color-gradient-blue: #cfdff5;
+
 // Neutral grays.
 $color-light-gray: #fafafa;
 $color-gray: #f9f9f9;
@@ -75,9 +86,9 @@ $color-social-calendar-selected: #d843e5;
 
 $gradient: linear-gradient(
     226deg,
-    rgba(248, 166, 255, 0.59) 0%,
-    rgba(255, 201, 63, 1) 50%,
-    rgba(207, 223, 245, 1) 100%
+    rgba($color-gradient-pink, 0.59) 0%,
+    $color-gradient-gold 50%,
+    $color-gradient-blue 100%
 );
 
 $radius: 8px;

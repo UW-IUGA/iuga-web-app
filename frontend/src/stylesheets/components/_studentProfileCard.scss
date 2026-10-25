@@ -61,7 +61,7 @@ Expected Response Information: Responsive portrait cards with readable identity 
         justify-content: space-between;
         gap: 16px;
         padding: 64px 20px 20px;
-        color: white;
+        color: $color-white;
         text-align: left;
         background: linear-gradient(to top, rgba(15, 15, 15, 0.82), rgba(15, 15, 15, 0.4) 64%, transparent);
     }
@@ -71,7 +71,7 @@ Expected Response Information: Responsive portrait cards with readable identity 
 
         h3 {
             margin: 0;
-            color: white;
+            color: $color-white;
             font-family: $font-family-base;
             font-size: $font-size-subheading;
             font-weight: $font-weight-bold;
@@ -80,7 +80,7 @@ Expected Response Information: Responsive portrait cards with readable identity 
 
         p {
             margin: 0 0 6px;
-            color: rgba(255, 255, 255, 0.92);
+            color: rgba($color-white, 0.92);
             font-size: $font-size-label;
             font-weight: $font-weight-medium;
             letter-spacing: $letter-spacing-label;
@@ -102,7 +102,7 @@ Expected Response Information: Responsive portrait cards with readable identity 
             height: 40px;
             align-items: center;
             justify-content: center;
-            color: white;
+            color: $color-white;
             transition: transform 150ms ease;
 
             &:hover {
@@ -114,7 +114,7 @@ Expected Response Information: Responsive portrait cards with readable identity 
             }
 
             &:focus-visible {
-                outline: 2px solid white;
+                outline: 2px solid $color-white;
                 outline-offset: 3px;
             }
         }

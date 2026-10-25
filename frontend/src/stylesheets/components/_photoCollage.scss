@@ -11,9 +11,9 @@ Expected Response Information: Up to three tilted, overlapping photos.
 
     img {
         position: absolute;
-        border: 5px solid white;
+        border: 5px solid $color-white;
         border-radius: $radius-card;
-        box-shadow: 0 10px 26px rgba(black, 0.18);
+        box-shadow: 0 10px 26px rgba($color-black, 0.18);
         object-fit: cover;
     }
 

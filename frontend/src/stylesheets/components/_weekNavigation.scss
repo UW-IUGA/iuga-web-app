@@ -22,7 +22,7 @@ Expected Response Information: Two round arrow buttons around the current week's
     place-items: center;
     border: 1px solid rgba($color-primary, 0.24);
     border-radius: $radius-pill;
-    background: white;
+    background: $color-white;
     color: $color-primary;
     cursor: pointer;
     transition:
@@ -32,7 +32,7 @@ Expected Response Information: Two round arrow buttons around the current week's
 
     &:hover {
         background: $color-primary;
-        color: white;
+        color: $color-white;
         transform: translateY(-2px);
     }
 

@@ -100,14 +100,14 @@
         min-height: 48px;
         min-width: 190px;
         padding: 0 24px;
-        background: white;
+        background: $color-white;
         color: $color-uw-purple;
         font-size: $font-size-body;
 
         &:hover {
             border-color: $color-uw-purple;
             background: $color-uw-purple;
-            color: white;
+            color: $color-white;
             transform: none;
         }
     }
@@ -136,7 +136,7 @@
             width: auto;
             min-width: 190px;
             padding: 0 24px;
-            color: white;
+            color: $color-white;
             text-decoration: none;
         }
 
@@ -216,7 +216,7 @@
         margin: 0 auto;
         overflow: hidden;
         border-radius: $radius-card-media;
-        background: #fff;
+        background: $color-white;
         box-shadow: 0 14px 30px rgba($color-shadow, 0.13);
 
         img {
@@ -256,7 +256,7 @@
                 height: 26px;
                 border-radius: $radius-pill;
                 background: $color-primary;
-                color: #fff;
+                color: $color-white;
                 font-size: 0.85rem;
                 font-weight: $font-weight-bold;
             }
@@ -313,7 +313,7 @@
         margin-top: 1px;
         border-radius: $radius-pill;
         background: $color-error;
-        color: #fff;
+        color: $color-white;
         font-size: 0.75rem;
         font-weight: $font-weight-bold;
         line-height: 1;
@@ -362,7 +362,7 @@
         text-decoration: none;
         border-radius: $radius-card;
         background: $color-primary;
-        color: #fff;
+        color: $color-white;
         font: inherit;
         font-weight: $font-weight-medium;
         cursor: pointer;

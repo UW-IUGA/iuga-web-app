@@ -88,7 +88,7 @@
 
 .homeSummary {
     max-width: 52ch;
-    margin-top: $space-4 !important;
+    margin-top: $space-4;
     font-size: $font-size-body;
 }
 
@@ -117,7 +117,7 @@
 
 .homePrimaryLink {
     background: $color-uw-purple;
-    color: $color-white !important;
+    color: $color-white;
 
     &:hover {
         border-color: $color-primary;
@@ -127,7 +127,7 @@
 
 .homeSecondaryLink {
     background: $color-white;
-    color: $color-uw-purple !important;
+    color: $color-uw-purple;
 
     &:hover {
         background: $color-lavender;

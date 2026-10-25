@@ -101,8 +101,8 @@ Expected Response Information: Responsive styles for the hero, leader profile
         max-width: 22ch;
         margin: 0;
         font-family: $font-family-base;
-        font-size: clamp(1.8rem, 3vw, 2.55rem);
-        letter-spacing: -0.035em;
+        font-size: $font-size-section;
+        letter-spacing: $letter-spacing-heading;
         line-height: 1.12;
     }
 }
@@ -124,21 +124,21 @@ Expected Response Information: Responsive styles for the hero, leader profile
     h3 {
         margin: 0 0 7px;
         font-family: $font-family-base;
-        font-size: 1.35rem;
+        font-size: $font-size-subheading;
         line-height: 1.2;
     }
 
     p {
         margin: 0;
         color: $color-dark-gray;
-        font-size: 0.82rem;
+        font-size: $font-size-small;
     }
 }
 
 .getInvolved__description {
     margin: 0;
     color: $color-dark-gray;
-    font-size: 0.98rem;
+    font-size: $font-size-body;
     line-height: 1.65;
 }
 
@@ -162,7 +162,7 @@ Expected Response Information: Responsive styles for the hero, leader profile
     max-width: 30ch;
     margin: 0;
     color: $color-dark-gray;
-    font-size: 0.76rem;
+    font-size: $font-size-small;
     line-height: 1.4;
     text-align: right;
 }
@@ -254,13 +254,7 @@ Expected Response Information: Responsive styles for the hero, leader profile
         padding: 20px 8px 8px;
     }
 
-    .getInvolved__leaderProfile .studentProfileCard__identity .studentProfileCard__position {
-        font-size: 0.62rem;
-    }
 
-    .getInvolved__leaderProfile .studentProfileCard__identity h3 {
-        font-size: 1rem;
-    }
 
     .getInvolved__leaderProfile .studentProfileCard__socials a {
         width: 28px;

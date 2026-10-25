@@ -51,9 +51,9 @@
     display: grid;
     gap: 8px;
     color: $color-uw-purple;
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
+    font-size: $font-size-label;
+    font-weight: $font-weight-medium;
+    letter-spacing: $letter-spacing-label;
     text-transform: uppercase;
 
     input {
@@ -62,7 +62,7 @@
         border: 1px solid rgba($color-uw-purple, 0.25);
         border-radius: $radius-pill;
         color: black;
-        font: 0.95rem $font-family-base;
+        font: #{$font-size-body} $font-family-base;
 
         &:focus {
             outline: 2px solid $color-primary;
@@ -80,7 +80,7 @@
 .resourceResultCount {
     margin: 24px 0 34px;
     color: $color-dark-gray;
-    font-size: 0.9rem;
+    font-size: $font-size-small;
     text-align: right;
 }
 
@@ -107,7 +107,7 @@
     gap: 20px;
     padding: 18px 0;
     color: black;
-    font: 700 clamp(1.35rem, 2.5vw, 2rem) / 1.15 $font-family-base;
+    font: $font-weight-bold #{$font-size-section}/#{$line-height-heading} $font-family-base;
     text-align: left;
     background: transparent;
     border: 0;
@@ -136,8 +136,8 @@
 
 .resourceCategoryCount {
     color: $color-dark-gray;
-    font: 700 0.78rem / 1 $font-family-base;
-    letter-spacing: 0.06em;
+    font: $font-weight-medium #{$font-size-label}/1 $font-family-base;
+    letter-spacing: $letter-spacing-label;
     text-transform: uppercase;
 }
 
@@ -215,11 +215,9 @@
 
     .resourceCategoryToggle {
         gap: 12px;
-        font-size: 1.35rem;
     }
 
     .resourceCategoryMeta {
         gap: 8px;
-        font-size: 0.7rem;
     }
 }

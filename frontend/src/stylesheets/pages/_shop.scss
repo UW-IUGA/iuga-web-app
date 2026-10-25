@@ -1,6 +1,6 @@
 .shopPage {
     @extend %pageFrame;
-    padding: 48px 0 88px;
+    padding: 56px 0 88px;
 
     &__hero {
         margin-bottom: clamp(40px, 6vw, 72px);
@@ -26,9 +26,9 @@
         display: flex;
         justify-content: space-between;
         gap: 16px;
-        font-size: 0.72rem;
-        font-weight: 800;
-        letter-spacing: 0.13em;
+        font-size: $font-size-label;
+        font-weight: $font-weight-medium;
+        letter-spacing: $letter-spacing-label;
         text-transform: uppercase;
     }
 
@@ -55,9 +55,9 @@
         flex-direction: column;
         gap: 8px;
         margin-top: 30px;
-        font-size: 0.76rem;
-        font-weight: 800;
-        letter-spacing: 0.1em;
+        font-size: $font-size-label;
+        font-weight: $font-weight-medium;
+        letter-spacing: $letter-spacing-label;
         text-transform: uppercase;
 
         strong {
@@ -91,8 +91,8 @@
         right: 12px;
         padding: 8px 12px;
         border-radius: $radius;
-        font-size: 0.8rem;
-        font-weight: 700;
+        font-size: $font-size-small;
+        font-weight: $font-weight-medium;
     }
 
     &__banner {
@@ -100,7 +100,7 @@
         margin: 0 auto 36px;
         padding: 18px 24px;
         border-radius: $radius-card;
-        font-size: 0.98rem;
+        font-size: $font-size-body;
         line-height: 1.5;
 
         p {
@@ -139,7 +139,7 @@
         p {
             margin: 0 0 20px;
             color: $color-dark-gray;
-            font-size: 1.1rem;
+            font-size: $font-size-body;
         }
     }
 
@@ -155,15 +155,15 @@
         h2 {
             margin: 0;
             font-family: $font-family-base;
-            font-size: clamp(1.8rem, 3vw, 2.6rem);
-            font-weight: 700;
-            letter-spacing: -0.035em;
+            font-size: $font-size-section;
+            font-weight: $font-weight-bold;
+            letter-spacing: $letter-spacing-heading;
         }
 
         >p {
             margin: 0 0 7px;
             color: $color-dark-gray;
-            font-size: 0.9rem;
+            font-size: $font-size-small;
             white-space: nowrap;
         }
     }
@@ -176,7 +176,7 @@
         p {
             margin: 0;
             color: $color-dark-gray;
-            font-size: 0.9rem;
+            font-size: $font-size-small;
             white-space: nowrap;
         }
     }
@@ -231,13 +231,13 @@
 
         h3 {
             margin: 0 0 7px;
-            font-size: 1.25rem;
+            font-size: $font-size-subheading;
         }
 
         p {
             margin: 0;
             color: $color-dark-gray;
-            font-size: 0.94rem;
+            font-size: $font-size-body;
             line-height: 1.5;
         }
     }
@@ -245,9 +245,8 @@
     &__price {
         margin: 12px 0 0;
         color: $color-uw-purple;
-        font-size: 1.35rem;
-        font-weight: 700;
-        letter-spacing: -0.02em;
+        font-size: $font-size-subheading;
+        font-weight: $font-weight-bold;
     }
 
     &__controls {
@@ -265,21 +264,20 @@
 
     &__label {
         color: $color-dark-gray;
-        font-size: 0.82rem;
-        font-weight: 600;
-        letter-spacing: 0.02em;
+        font-size: $font-size-label;
+        font-weight: $font-weight-medium;
+        letter-spacing: $letter-spacing-label;
         text-transform: uppercase;
     }
 
     &__material {
         margin: 0;
-        font-size: 0.94rem;
+        font-size: $font-size-body;
         line-height: 1.5;
     }
 
     &__info h3 {
-        font-size: 1.3rem;
-        letter-spacing: -0.02em;
+        font-size: $font-size-subheading;
     }
 
     &__sizeOptions {
@@ -300,8 +298,8 @@
         color: $color-uw-purple;
         cursor: pointer;
         font: inherit;
-        font-size: 0.92rem;
-        font-weight: 650;
+        font-size: $font-size-small;
+        font-weight: $font-weight-medium;
         transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease, transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 180ms ease;
 
         &:hover,
@@ -327,8 +325,8 @@
         border-radius: 10px;
         background: $color-lavender;
         color: $color-uw-purple;
-        font-size: 0.9rem;
-        font-weight: 600;
+        font-size: $font-size-small;
+        font-weight: $font-weight-medium;
     }
 
     &__addToCart,
@@ -342,7 +340,7 @@
         border: 1px solid $color-uw-purple;
         border-radius: $radius-pill;
         font: inherit;
-        font-weight: 700;
+        font-weight: $font-weight-medium;
     }
 
     &__addToCart {
@@ -370,8 +368,6 @@
 
 @include media(">=tablet") {
     .shopPage {
-        padding-top: 64px;
-
         &__heroContent { grid-template-columns: minmax(0, 1fr) minmax(200px, 400px); }
 
         &__grid {
@@ -432,7 +428,7 @@
         background: transparent;
         color: $color-uw-purple;
         font: inherit;
-        font-weight: 700;
+        font-weight: $font-weight-medium;
         text-align: center;
 
         &:focus-visible { outline: 3px solid rgba($color-uw-purple, 0.28); outline-offset: 2px; background: white; }
@@ -474,7 +470,7 @@
         box-shadow: 0 0 0 2px white;
         color: white;
         font-size: 0.68rem;
-        font-weight: 700;
+        font-weight: $font-weight-bold;
         animation: shop-cart-count-pop 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
     }
 }
@@ -554,8 +550,7 @@
     gap: 10px;
     margin: 0;
     font-family: $font-family-base;
-    font-size: 1.25rem;
-    letter-spacing: -0.01em;
+    font-size: $font-size-subheading;
     color: $color-uw-purple;
 
     svg { font-size: 1.4rem; }
@@ -563,8 +558,8 @@
 
 .shopCartDropdown__status--plain {
     font-family: $font-family-base;
-    font-weight: 700;
-    font-size: 1.1rem;
+    font-weight: $font-weight-medium;
+    font-size: $font-size-body;
     letter-spacing: 0;
 }
 
@@ -582,7 +577,7 @@
 .shopCartDropdown__notice {
     margin: 12px 0 0;
     color: $color-dark-gray;
-    font-size: 0.85rem;
+    font-size: $font-size-small;
     text-align: right;
 }
 
@@ -618,7 +613,7 @@
         gap: 0;
 
         button { font-size: 1rem; }
-        > input { width: 3ch; font-size: 0.875rem; }
+        > input { width: 3ch; font-size: $font-size-small; }
     }
 }
 
@@ -655,15 +650,15 @@
 
 .shopCartDropdown__lineName {
     margin: 0 0 2px;
-    font-size: 0.92rem;
-    font-weight: 700;
+    font-size: $font-size-small;
+    font-weight: $font-weight-medium;
     line-height: 1.3;
 }
 
 .shopCartDropdown__lineMeta {
     margin: 0;
     color: $color-dark-gray;
-    font-size: 0.82rem;
+    font-size: $font-size-small;
 }
 
 // Right rail holds price + delete only — always visible, no hover swap.
@@ -678,8 +673,8 @@
 
 .shopCartDropdown__linePrice {
     margin: 0;
-    font-size: 0.9rem;
-    font-weight: 800;
+    font-size: $font-size-small;
+    font-weight: $font-weight-bold;
     color: $color-uw-purple;
     white-space: nowrap;
 }
@@ -690,8 +685,8 @@
     padding: 2px;
     color: $color-error;
     font: inherit;
-    font-size: 0.8rem;
-    font-weight: 600;
+    font-size: $font-size-small;
+    font-weight: $font-weight-medium;
     text-decoration: underline;
     cursor: pointer;
 
@@ -703,7 +698,7 @@
     margin: 12px 0 0;
     padding-top: 12px;
     border-top: 1px solid rgba($color-uw-purple, 0.14);
-    font-weight: 800;
+    font-weight: $font-weight-bold;
     text-align: right;
     color: $color-uw-purple;
 }
@@ -728,8 +723,8 @@
 .shopCartDropdown__emptyTitle {
     margin: 0 0 24px;
     color: $color-uw-purple;
-    font-size: clamp(1.35rem, 3vw, 1.65rem);
-    font-weight: 700;
+    font-size: $font-size-subheading;
+    font-weight: $font-weight-bold;
     line-height: 1.25;
 }
 
@@ -761,8 +756,8 @@
 
 @include media("<tablet") {
     .shopPage {
-        &__hero h1 { font-size: clamp(2rem, 9vw, 4.5rem); }
-        &__heroTop, &__heroBottom { font-size: 0.6rem; }
+        padding-top: 32px;
+
         &__collectionHeader { align-items: flex-start; }
         &__collectionCount { align-items: flex-end; flex-direction: column; gap: 8px; }
     }

@@ -49,9 +49,9 @@
         margin-bottom: 28px;
         color: $color-uw-purple;
         font-family: $font-family-base;
-        font-size: clamp(1.9rem, 3.4vw, 2.8rem);
-        font-weight: 800;
-        letter-spacing: -0.035em;
+        font-size: $font-size-section;
+        font-weight: $font-weight-bold;
+        letter-spacing: $letter-spacing-heading;
         line-height: 1.05;
     }
 }
@@ -113,7 +113,7 @@
 
     h2 {
         color: $color-uw-purple;
-        font-size: 2.25rem;
+        font-size: $font-size-section;
     }
 
     p {
@@ -125,9 +125,9 @@
 .event-ops-kicker {
     color: $color-primary;
     display: block;
-    font-size: 0.75rem;
-    font-weight: bold;
-    letter-spacing: 0.12em;
+    font-size: $font-size-label;
+    font-weight: $font-weight-medium;
+    letter-spacing: $letter-spacing-label;
     margin-bottom: 6px;
     text-transform: uppercase;
 }
@@ -147,8 +147,8 @@
         color: $color-uw-purple;
         display: flex;
         flex-direction: column;
-        font-size: 0.75rem;
-        font-weight: bold;
+        font-size: $font-size-small;
+        font-weight: $font-weight-medium;
         gap: 6px;
     }
 
@@ -212,8 +212,8 @@
     }
 
     thead th {
-        font-size: 0.75rem;
-        letter-spacing: 0.04em;
+        font-size: $font-size-label;
+        letter-spacing: $letter-spacing-label;
         white-space: nowrap;
     }
 
@@ -251,16 +251,16 @@
 
     span:not(.event-ops-status) {
         color: $color-dark-gray;
-        font-size: 0.75rem;
-        font-weight: normal;
+        font-size: $font-size-small;
+        font-weight: $font-weight-regular;
     }
 }
 
 .event-ops-status {
     border-radius: $radius-pill;
     display: inline-block;
-    font-size: 0.68rem;
-    font-weight: bold;
+    font-size: $font-size-small;
+    font-weight: $font-weight-medium;
     padding: 4px 8px;
     text-transform: capitalize;
     white-space: nowrap;
@@ -385,7 +385,7 @@
 
 .event-ops-detail-meta {
     color: $color-dark-gray;
-    font-size: 0.85rem;
+    font-size: $font-size-small;
 }
 
 .event-ops-detail-section {
@@ -412,7 +412,7 @@
     align-items: center;
     color: $color-dark-gray;
     display: flex;
-    font-size: 0.85rem;
+    font-size: $font-size-small;
     justify-content: space-between;
     gap: 12px;
 
@@ -516,8 +516,7 @@
     .event-ops-mobile-label {
         color: $color-dark-gray;
         display: inline;
-        font-size: 0.75rem;
-        font-weight: bold;
+        font-weight: $font-weight-medium;
     }
 }
 

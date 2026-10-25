@@ -14,9 +14,9 @@
     h1 {
         margin: 0 0 20px;
         font-family: $font-family-base;
-        font-size: clamp(2rem, 4vw, 3rem);
-        font-weight: 900;
-        letter-spacing: -0.035em;
+        font-size: $font-size-title;
+        font-weight: $font-weight-bold;
+        letter-spacing: $letter-spacing-heading;
     }
 
     p {
@@ -51,7 +51,7 @@
     }
 
     &__total {
-        font-size: 1.1rem;
+        font-size: $font-size-body;
     }
 
     // Title row: the page heading with the hold countdown beside it.
@@ -82,9 +82,8 @@
 
         strong {
             font-size: clamp(2rem, 4vw, 3rem);
-            font-weight: 900;
+            font-weight: $font-weight-bold;
             font-variant-numeric: tabular-nums;
-            letter-spacing: -0.035em;
             line-height: 1;
         }
 
@@ -100,7 +99,7 @@
         padding: 0 24px;
         background: white;
         color: $color-uw-purple;
-        font-size: 1rem;
+        font-size: $font-size-body;
 
         &:hover {
             border-color: $color-uw-purple;
@@ -123,9 +122,8 @@
         h2 {
             margin: 0 0 12px;
             font-family: $font-family-base;
-            font-size: 1.35rem;
-            font-weight: 800;
-            letter-spacing: -0.02em;
+            font-size: $font-size-subheading;
+            font-weight: $font-weight-bold;
         }
 
         // The shop's filled pill (.shopCard__addToCart). Two classes: the page link rule (.shopCheckout a)
@@ -169,7 +167,7 @@
 
         .shopCheckout__expiredQuestion {
             margin-bottom: 4px;
-            font-weight: 700;
+            font-weight: $font-weight-medium;
         }
     }
 
@@ -184,9 +182,8 @@
         h2 {
             margin: 0 0 20px;
             font-family: $font-family-base;
-            font-size: 1.35rem;
-            font-weight: 800;
-            letter-spacing: -0.02em;
+            font-size: $font-size-subheading;
+            font-weight: $font-weight-bold;
         }
 
         // Two classes: the shared paragraph rule (.shopCheckout p) outranks a single class.
@@ -227,7 +224,7 @@
     }
 
     &__payTo {
-        font-size: 1.05rem;
+        font-size: $font-size-body;
     }
 
     &__steps {
@@ -258,7 +255,7 @@
                 background: $color-primary;
                 color: #fff;
                 font-size: 0.85rem;
-                font-weight: 700;
+                font-weight: $font-weight-bold;
             }
         }
     }
@@ -271,7 +268,7 @@
     }
 
     label {
-        font-weight: 700;
+        font-weight: $font-weight-medium;
     }
 
     input {
@@ -288,7 +285,7 @@
 
     &__error {
         color: $color-error-dark;
-        font-weight: 600;
+        font-weight: $font-weight-medium;
     }
 
     // Field message under an input: a red marker beside the reason.
@@ -299,8 +296,8 @@
         gap: 8px;
         margin: -4px 0 0;
         color: $color-error-dark;
-        font-size: 0.95rem;
-        font-weight: 600;
+        font-size: $font-size-body;
+        font-weight: $font-weight-medium;
         line-height: 1.4;
     }
 
@@ -315,7 +312,7 @@
         background: $color-error;
         color: #fff;
         font-size: 0.75rem;
-        font-weight: 800;
+        font-weight: $font-weight-bold;
         line-height: 1;
     }
 
@@ -324,7 +321,7 @@
         content: " *";
         color: $color-error;
         font-size: 1.2em;
-        font-weight: 800;
+        font-weight: $font-weight-bold;
         line-height: 1;
     }
 
@@ -343,7 +340,7 @@
         span {
             color: $color-error;
             font-size: 1.2em;
-            font-weight: 800;
+            font-weight: $font-weight-bold;
             line-height: 1;
         }
     }
@@ -364,7 +361,7 @@
         background: $color-primary;
         color: #fff;
         font: inherit;
-        font-weight: 700;
+        font-weight: $font-weight-medium;
         cursor: pointer;
 
         &:disabled {

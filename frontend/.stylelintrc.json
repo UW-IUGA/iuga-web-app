@@ -1,0 +1,51 @@
+{
+  "extends": ["stylelint-config-standard-scss"],
+  "ignoreFiles": ["src/stylesheets/vendors/**"],
+  "rules": {
+    "selector-class-pattern": [
+      "^[a-z][a-zA-Z0-9]*(__[a-z][a-zA-Z0-9]*)?(--[a-z][a-zA-Z0-9-]*)?$",
+      {
+        "severity": "warning",
+        "message": "Name classes as camelCase BEM: block__element--modifier"
+      }
+    ],
+    "selector-id-pattern": "^[a-z][a-zA-Z0-9-]*$",
+    "keyframes-name-pattern": "^[a-z][a-zA-Z0-9-]*$",
+    "scss/percent-placeholder-pattern": "^[a-z][a-zA-Z0-9-]*$",
+    "no-descending-specificity": [
+      true,
+      {
+        "severity": "warning"
+      }
+    ],
+    "no-duplicate-selectors": [
+      true,
+      {
+        "severity": "warning"
+      }
+    ],
+    "at-rule-disallowed-list": [
+      ["import"],
+      {
+        "message": "Use @use instead of @import"
+      }
+    ],
+    "media-feature-name-disallowed-list": [
+      ["width", "min-width", "max-width"],
+      {
+        "message": "Use the include-media mixin, e.g. @include media(\"<tablet\")"
+      }
+    ],
+    "color-named": "never",
+    "declaration-no-important": true,
+    "alpha-value-notation": null,
+    "color-function-notation": null,
+    "scss/operator-no-unspaced": null,
+    "rule-empty-line-before": null,
+    "at-rule-empty-line-before": null,
+    "declaration-empty-line-before": null,
+    "scss/double-slash-comment-empty-line-before": null,
+    "scss/dollar-variable-empty-line-before": null,
+    "selector-not-notation": null
+  }
+}

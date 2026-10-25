@@ -157,6 +157,7 @@
 
 @media (prefers-reduced-motion: reduce) {
     .site-navigation * {
+        /* stylelint-disable-next-line declaration-no-important */
         transition: none !important;
     }
 }

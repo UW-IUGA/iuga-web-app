@@ -52,6 +52,8 @@
 }
 
 .standard-button {
+    // Same look as .pill-button for older markup; .pill-button has no placeholder to extend.
+    // stylelint-disable-next-line scss/at-extend-no-missing-placeholder
     @extend .pill-button;
 }
 

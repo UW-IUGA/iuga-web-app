@@ -65,6 +65,7 @@ iframe {
 }
 
 input:disabled {
+    /* stylelint-disable-next-line declaration-no-important */
     background-color: #f4f4f4 !important;
     cursor: not-allowed;
 }

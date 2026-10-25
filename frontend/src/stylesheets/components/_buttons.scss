@@ -1,30 +1,5 @@
 @use "../abstracts" as *;
 
-.primary-button:before {
-    background: linear-gradient(45deg, $color-social-primary, $color-academic-primary, $color-career-primary);
-}
-
-.secondary-button:before {
-    background: $color-primary;
-}
-
-.primary-button {
-    color: #8458ca;
-    background: linear-gradient(
-        90deg,
-        $color-social-secondary 0%,
-        $color-academic-secondary 50%,
-        $color-gradient-blue 100%
-    );
-    border: 2px solid #a276e9;
-}
-
-.secondary-button {
-    color: $color-primary;
-    background-color: $color-lavender;
-    border: 2px solid $color-primary;
-}
-
 %pill-surface {
     display: inline-flex;
     align-items: center;
@@ -41,34 +16,6 @@
     font-weight: $font-weight-medium;
     line-height: 1.2;
     text-align: center;
-}
-
-// Shared category treatment used by the Home hero and the Events page.
-%category-pill-surface {
-    display: inline-flex;
-    align-items: center;
-    gap: $space-3;
-    padding: 11px $space-4;
-    border: 1px solid rgba($color-white, 0.78);
-    border-radius: $radius-pill;
-    background: rgba($color-white, 0.52);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    box-shadow:
-        0 14px 30px rgba($color-uw-purple, 0.12),
-        inset 0 1px 0 rgba($color-white, 0.88);
-    color: $color-uw-purple;
-    font-size: $font-size-small;
-    font-weight: $font-weight-medium;
-    text-decoration: none;
-    transition:
-        transform 180ms ease,
-        background-color 180ms ease,
-        box-shadow 180ms ease;
-}
-
-.category-pill {
-    @extend %category-pill-surface;
 }
 
 .pill-button {

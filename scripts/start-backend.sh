@@ -23,5 +23,12 @@ if [[ -z "$DB_URI" ]]; then
 fi
 
 export DB_URI IUGA_LOCAL_DEV=1
+
+# Opt-in local seed for the Orders dashboard. --if-empty keeps restarts from resetting changes
+# made to seeded orders. A failed seed stops startup, so the error is not hidden.
+if [[ "${SEED_SHOP:-}" == "1" ]]; then
+    node "$REPO_ROOT/backend/scripts/seed-shop-orders.mjs" --if-empty
+fi
+
 cd "$REPO_ROOT/backend"
 exec node ./bin/www.cjs

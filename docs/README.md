@@ -11,6 +11,7 @@ This directory contains the full documentation set for the **Informatics Undergr
 | [Quickstart](QUICKSTART.md) | New developers | Prerequisites, installation, environment setup, running the app, verification |
 | [Architecture](ARCHITECTURE.md) | All | Repository structure, system architecture, request flow, authentication flow, deployment boundary |
 | [Development](DEVELOPMENT.md) | Developers | Setup, scripts, environment configuration, code conventions, common tasks, testing |
+| [Scripts](SCRIPTS.md) | Developers | Writing project scripts: where they go, safety rules for data scripts, testing |
 | [Frontend](FRONTEND.md) | Frontend devs | Tech stack, directory layout, routing, data flow, authentication, styling, dependencies |
 | [Backend](BACKEND.md) | Backend devs | Entry points, directory layout, SPA routes, API routes, authentication, database, middleware stack, dependencies |
 | [Deployment](DEPLOYMENT.md) | Maintainers | Pipeline overview, Jenkinsfile comparison, credentials, Docker build, runtime architecture, verification, rollback |

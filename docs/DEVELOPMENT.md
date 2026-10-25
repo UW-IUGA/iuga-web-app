@@ -110,6 +110,54 @@ The root `npm run dev` command passes the backend's selected URL to Vite. Develo
 | `npm run backend` | Start backend (dev env) |
 | `npm run backend-dev` | Same as above |
 | `npm run backend-debug` | Start backend (debug env) |
+| `npm run seed:shop` | Seed local shop orders and students for the Orders dashboard. Needs `DB_URI`; see [Development Data](#development-data) |
+
+To add a script, see [Writing Project Scripts](SCRIPTS.md).
+
+---
+
+## Development Data
+
+### Shop orders for the Orders dashboard
+
+The Orders dashboard (`/admin/shop/orders`) reads purchases from the database, so a fresh database shows nothing. The seed writes realistic fictional data into your local database so you can work on the dashboard straight away.
+
+The script writes five students (logins `seed-*`, emails on `example.com`, phone numbers in the fictional 555-01xx range) and eleven orders that cover every status, one short payment, and one order whose buyer has no user record. Stock for seeded orders is kept on a separate seed drop (`seed-fall-2026`), so seeding never changes the counts real checkout uses.
+
+#### Seed on `npm start` (recommended)
+
+Add this line to `backend/env/.env.dev`:
+
+```
+SEED_SHOP=1
+```
+
+On each `npm start`, the backend checks the local database after it is up. If a previous seed stopped partway, it adds the missing orders; if the seed is complete, it leaves orders alone, so your edits survive restarts. Set `SEED_SHOP=0` or remove the line to turn it off. A seed failure stops startup, so the error is visible.
+
+#### Seed by hand
+
+Run this from the repository root, with `DB_URI` set to your local MongoDB:
+
+```bash
+DB_URI='mongodb://127.0.0.1:<port>/iuga?replicaSet=rs0&directConnection=true' npm run seed:shop
+```
+
+A manual run always resets the seeded rows: it removes them first, then writes a fresh set. Use it when you want the original data back.
+
+- **Port:** find it with `docker ps`, in the mapping for your MongoDB container. Docker can assign a new port after a restart, so check again if the connection is refused.
+- **Replica set:** local startup always uses the replica-set container, so keep `?replicaSet=rs0&directConnection=true`.
+- **Standalone MongoDB:** the seed script itself uses sequential writes and does not need transactions. It also works with the standalone container; the app uses a replica set because shop checkout needs transactions.
+
+To add more pending orders, pass `--extra N` (0–500). Use more than 25 to test "Load more". If that run is interrupted, resume it with `--if-empty` and the same `--extra N` value:
+
+```bash
+DB_URI='...' npm run seed:shop -- --extra 200
+DB_URI='...' npm run seed:shop -- --if-empty --extra 200 # resume this run if interrupted
+```
+
+Seeded orders that are Pending or Paid hold stock on the seed drop, and the stock counts match those orders. Dropping or refunding one returns its units, and changing it back takes them again. If the drop has no room for them, that change is refused with a "Not enough ... left in this drop" message and nothing changes. The eleven base orders fit within the drop's cap and the per-student limit. `--extra` adds orders without that check, so with a large count, taking extra orders back can be refused for lack of room. Marking paid, recording amounts, and follow-ups work as usual.
+
+The script refuses any database that is not on this machine. See [Writing Project Scripts](SCRIPTS.md) for the rules that apply to scripts like this one.
 
 ---
 

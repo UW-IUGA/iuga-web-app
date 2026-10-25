@@ -113,6 +113,13 @@ $space-18: 72px;
 $space-22: 88px;
 $space-24: 96px;
 
+// Stacking layers for elements that float above the page. Values inside one component
+// (-1 to 3) stay local because they only order that component's own children.
+$z-nav-menu: 10;
+$z-nav: 100;
+$z-cart-dropdown: 150;
+$z-overlay: 1000;
+
 $padding-content: 18px;
 $padding-box-x: 18px;
 $padding-box-y: 12px;

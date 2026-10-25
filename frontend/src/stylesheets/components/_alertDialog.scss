@@ -8,7 +8,7 @@
 .alert-dialog-overlay {
     position: fixed;
     inset: 0;
-    z-index: 1000;
+    z-index: $z-overlay;
     display: grid;
     place-items: center;
     padding: $padding-content;

@@ -4,7 +4,7 @@
 .site-navigation {
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: $z-nav;
     background: $color-white;
     color: $color-uw-purple;
     border-bottom: 1px solid #e4dce9;
@@ -94,7 +94,7 @@
     position: absolute;
     top: calc(100% + 6px);
     left: -12px;
-    z-index: 10;
+    z-index: $z-nav-menu;
     display: none;
     width: 185px;
     padding: $space-2;

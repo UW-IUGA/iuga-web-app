@@ -546,7 +546,7 @@
 
 .shopCartDropdown {
     position: fixed;
-    z-index: 150;
+    z-index: $z-cart-dropdown;
     inset: 0;
     pointer-events: none;
 }

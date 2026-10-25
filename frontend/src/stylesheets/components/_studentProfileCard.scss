@@ -12,7 +12,9 @@ Expected Response Information: Responsive portrait cards with readable identity 
     padding: 0;
     border: 0;
     border-radius: $radius-card-media;
-    transition: transform 250ms cubic-bezier(0.19, 1, 0.22, 1), box-shadow 250ms ease;
+    transition:
+        transform 250ms cubic-bezier(0.19, 1, 0.22, 1),
+        box-shadow 250ms ease;
 
     &:hover {
         transform: translateY(-4px);

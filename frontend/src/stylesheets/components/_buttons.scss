@@ -28,20 +28,20 @@ button:hover {
 }
 
 button:disabled,
-button[disabled]{
-  border: 1px solid #999999;
-  background: #e8e8e8;
-  color: #464646;
-  border: 1px solid #464646;
-  outline-width: 0px;
-  cursor: not-allowed;
+button[disabled] {
+    border: 1px solid #999999;
+    background: #e8e8e8;
+    color: #464646;
+    border: 1px solid #464646;
+    outline-width: 0px;
+    cursor: not-allowed;
 }
 
 button:before {
-    content: '';
+    content: "";
     position: absolute;
     top: -2px;
-    left:-2px;
+    left: -2px;
     z-index: -1;
     filter: blur(5px);
     width: calc(100% + 5px);
@@ -60,9 +60,9 @@ button:before {
 }
 
 .primary-button {
-    color: #8458CA;
-    background: linear-gradient(90deg, #FAE5FF 0%, #FEEFCD 50%, #CFDFF5 100%);
-    border: 2px solid #A276E9;
+    color: #8458ca;
+    background: linear-gradient(90deg, #fae5ff 0%, #feefcd 50%, #cfdff5 100%);
+    border: 2px solid #a276e9;
 }
 
 .secondary-button {
@@ -100,12 +100,17 @@ button:before {
     background: rgba(255, 255, 255, 0.52);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    box-shadow: 0 14px 30px rgba($color-uw-purple, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.88);
+    box-shadow:
+        0 14px 30px rgba($color-uw-purple, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.88);
     color: $color-uw-purple;
     font-size: $font-size-small;
     font-weight: $font-weight-medium;
     text-decoration: none;
-    transition: transform 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+    transition:
+        transform 180ms ease,
+        background-color 180ms ease,
+        box-shadow 180ms ease;
 }
 
 .category-pill {

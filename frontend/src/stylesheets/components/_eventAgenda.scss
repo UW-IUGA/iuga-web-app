@@ -42,9 +42,12 @@ Expected Response Information: A strip of day buttons above a list of event rows
     border-radius: $radius-card-media;
     background: white;
     color: $color-uw-purple;
-    transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
+    transition:
+        background-color 180ms ease,
+        border-color 180ms ease,
+        transform 180ms ease;
 
-    >span:first-child {
+    > span:first-child {
         color: $color-dark-gray;
         font-size: $font-size-label;
         font-weight: $font-weight-medium;
@@ -78,7 +81,7 @@ Expected Response Information: A strip of day buttons above a list of event rows
     &.isToday {
         border-color: $color-primary;
 
-        >span:first-child {
+        > span:first-child {
             color: $color-primary;
         }
     }
@@ -88,7 +91,7 @@ Expected Response Information: A strip of day buttons above a list of event rows
         background: $color-uw-purple;
         color: white;
 
-        >span:first-child {
+        > span:first-child {
             color: rgba(white, 0.82);
         }
     }
@@ -139,7 +142,10 @@ Expected Response Information: A strip of day buttons above a list of event rows
     color: $color-uw-purple;
     font-weight: $font-weight-regular;
     text-align: left;
-    transition: border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+    transition:
+        border-color 180ms ease,
+        transform 180ms ease,
+        box-shadow 180ms ease;
 
     &:hover,
     &:focus-visible {
@@ -183,7 +189,7 @@ Expected Response Information: A strip of day buttons above a list of event rows
     gap: 5px;
     min-width: 0;
 
-    >strong {
+    > strong {
         font-size: $font-size-subheading;
         font-weight: $font-weight-bold;
         line-height: 1.15;
@@ -259,7 +265,6 @@ Expected Response Information: A strip of day buttons above a list of event rows
 }
 
 @media (prefers-reduced-motion: reduce) {
-
     .eventAgenda__day,
     .eventAgenda__event {
         transition: none;
@@ -302,7 +307,7 @@ Expected Response Information: A strip of day buttons above a list of event rows
         padding: 10px 0 8px;
         border-radius: 12px;
 
-        >span:first-child {
+        > span:first-child {
             letter-spacing: $letter-spacing-label;
         }
 

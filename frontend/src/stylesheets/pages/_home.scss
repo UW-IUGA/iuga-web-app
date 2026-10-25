@@ -13,14 +13,36 @@
 
     *,
     *::before,
-    *::after { box-sizing: border-box; }
+    *::after {
+        box-sizing: border-box;
+    }
 
-    :where(h1, h2, h3, p) { margin: 0; }
-    h1, h2, h3 { font-weight: $font-weight-bold; }
-    :where(p) { color: $color-dark-gray; }
-    :where(a) { color: inherit; text-decoration: none; }
-    img { display: block; width: 100%; height: auto; object-fit: cover; }
-    svg { flex: none; width: 16px; height: 16px; }
+    :where(h1, h2, h3, p) {
+        margin: 0;
+    }
+    h1,
+    h2,
+    h3 {
+        font-weight: $font-weight-bold;
+    }
+    :where(p) {
+        color: $color-dark-gray;
+    }
+    :where(a) {
+        color: inherit;
+        text-decoration: none;
+    }
+    img {
+        display: block;
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+    }
+    svg {
+        flex: none;
+        width: 16px;
+        height: 16px;
+    }
 
     a:focus-visible {
         outline: 3px solid $color-uw-purple;
@@ -37,7 +59,7 @@
 .homeOpening {
     display: grid;
     grid-template-columns: minmax(0, 1.28fr) minmax(0, 0.72fr);
-    grid-template-areas: 'intro photos' 'events photos';
+    grid-template-areas: "intro photos" "events photos";
     gap: 24px 72px;
 }
 
@@ -105,7 +127,9 @@
     background: white;
     color: $color-uw-purple !important;
 
-    &:hover { background: $color-lavender; }
+    &:hover {
+        background: $color-lavender;
+    }
 }
 
 .homeHeroPhotoSlot {
@@ -148,7 +172,9 @@
     gap: 20px;
     margin-bottom: 4px;
 
-    h2 { font-size: $font-size-subheading; }
+    h2 {
+        font-size: $font-size-subheading;
+    }
 }
 
 .homeEventList {
@@ -158,8 +184,12 @@
     padding: 0;
     list-style: none;
 
-    li { min-width: 0; }
-    li + li { border-top: 1px solid $color-border-lavender; }
+    li {
+        min-width: 0;
+    }
+    li + li {
+        border-top: 1px solid $color-border-lavender;
+    }
 }
 
 .homeEventLink {
@@ -189,15 +219,29 @@
     color: $color-uw-purple;
     line-height: 1;
 
-    span { font-size: $font-size-label; font-weight: $font-weight-medium; letter-spacing: $letter-spacing-label; text-transform: uppercase; }
-    strong { margin-top: 6px; font-size: 26px; font-variant-numeric: tabular-nums; }
+    span {
+        font-size: $font-size-label;
+        font-weight: $font-weight-medium;
+        letter-spacing: $letter-spacing-label;
+        text-transform: uppercase;
+    }
+    strong {
+        margin-top: 6px;
+        font-size: 26px;
+        font-variant-numeric: tabular-nums;
+    }
 }
 
 .homeEventDetails {
     min-width: 0;
 
-    h3 { font-size: $font-size-subheading; }
-    p { margin-top: 5px; font-size: $font-size-small; }
+    h3 {
+        font-size: $font-size-subheading;
+    }
+    p {
+        margin-top: 5px;
+        font-size: $font-size-small;
+    }
 }
 
 .homeEmptyEventCard {
@@ -210,10 +254,17 @@
     background: white;
     box-shadow: 0 6px 18px rgba($color-shadow, 0.12);
 
-    h3 { font-size: $font-size-subheading; }
-    p { margin-top: 4px; font-size: $font-size-small; }
+    h3 {
+        font-size: $font-size-subheading;
+    }
+    p {
+        margin-top: 4px;
+        font-size: $font-size-small;
+    }
 
-    &:hover h3 { color: $color-primary; }
+    &:hover h3 {
+        color: $color-primary;
+    }
 }
 
 .homeEventIcon {
@@ -224,7 +275,10 @@
     place-items: center;
     color: $color-uw-purple;
 
-    svg { width: 28px; height: 28px; }
+    svg {
+        width: 28px;
+        height: 28px;
+    }
 }
 
 .homeExplore {
@@ -236,8 +290,14 @@
 .homeSectionHeading {
     margin-bottom: 16px;
 
-    h2 { font-size: $font-size-section; }
-    p { max-width: none; margin-top: 8px; font-size: $font-size-small; }
+    h2 {
+        font-size: $font-size-section;
+    }
+    p {
+        max-width: none;
+        margin-top: 8px;
+        font-size: $font-size-small;
+    }
 }
 
 .homeDestinations {
@@ -262,13 +322,18 @@
         text-underline-offset: 0.22em;
     }
 
-    p { margin-top: 7px; font-size: $font-size-small; }
+    p {
+        margin-top: 7px;
+        font-size: $font-size-small;
+    }
 
     &:hover {
         border-color: $color-primary;
         box-shadow: 0 9px 22px rgba($color-shadow, 0.16);
 
-        h3 { color: $color-primary; }
+        h3 {
+            color: $color-primary;
+        }
     }
 }
 
@@ -284,7 +349,9 @@
     gap: 36px;
 }
 
-.homeCommunityLink { min-width: 0; }
+.homeCommunityLink {
+    min-width: 0;
+}
 
 .homeCommunityPhoto {
     position: relative;
@@ -292,11 +359,18 @@
     overflow: hidden;
     border-radius: $radius-card-media;
 
-    img { height: 100%; object-position: 50% 55%; }
+    img {
+        height: 100%;
+        object-position: 50% 55%;
+    }
 }
 
-.homeInvolvedLink img { object-position: 50% 22%; }
-.homeShopLink img { object-position: 50% 0%; }
+.homeInvolvedLink img {
+    object-position: 50% 22%;
+}
+.homeShopLink img {
+    object-position: 50% 0%;
+}
 
 .homeCommunityPhoto::after {
     position: absolute;
@@ -322,7 +396,10 @@
     }
 }
 
-.homeCommunityLink:hover .homePhotoLabel h3 { color: white; text-underline-offset: 4px; }
+.homeCommunityLink:hover .homePhotoLabel h3 {
+    color: white;
+    text-underline-offset: 4px;
+}
 
 #rootContainer:has(.homePage) {
     .site-navigation {
@@ -333,35 +410,55 @@
 
     .nav-primary-links > a:hover,
     .nav-primary-links > a.active,
-    .nav-account-toggle:hover { color: $color-primary; }
+    .nav-account-toggle:hover {
+        color: $color-primary;
+    }
 
     .site-navigation a:focus-visible,
-    .site-navigation button:focus-visible { outline-color: $color-uw-purple; }
+    .site-navigation button:focus-visible {
+        outline-color: $color-uw-purple;
+    }
 
     .nav-account-actions {
         background: white;
         color: #241a32;
         border-color: $color-border-lavender;
 
-        span { color: $color-dark-gray; }
-        button:hover { background: $color-lavender; }
+        span {
+            color: $color-dark-gray;
+        }
+        button:hover {
+            background: $color-lavender;
+        }
     }
 
-    .nav-mobile-menu { color: $color-uw-purple; }
+    .nav-mobile-menu {
+        color: $color-uw-purple;
+    }
 
-    footer a:focus-visible { outline-color: $color-uw-purple; }
+    footer a:focus-visible {
+        outline-color: $color-uw-purple;
+    }
 
     footer {
         border-top: 1px solid $color-border-lavender;
         background: white;
         box-shadow: none;
 
-        &::before { background: none; }
+        &::before {
+            background: none;
+        }
     }
 
-    .footerBottomRow { padding-top: 0; }
-    .footerCopyright { color: $color-dark-gray; }
-    .footerSocials a:hover { background: $color-lavender; }
+    .footerBottomRow {
+        padding-top: 0;
+    }
+    .footerCopyright {
+        color: $color-dark-gray;
+    }
+    .footerSocials a:hover {
+        background: $color-lavender;
+    }
 
     @include media("screen", "<sm-desktop") {
         .nav-items-wrapper {
@@ -369,7 +466,9 @@
             border-color: $color-border-lavender;
         }
 
-        .nav-primary-links > a { border-color: $color-border-lavender; }
+        .nav-primary-links > a {
+            border-color: $color-border-lavender;
+        }
     }
 }
 
@@ -379,9 +478,15 @@
         gap: 24px 36px;
     }
 
-    .homeDestinations { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .homeCommunityLinks { gap: 24px; }
-    .homeCommunityPhoto { height: 320px; }
+    .homeDestinations {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .homeCommunityLinks {
+        gap: 24px;
+    }
+    .homeCommunityPhoto {
+        height: 320px;
+    }
 }
 
 @media (min-width: 1500px) {
@@ -390,33 +495,53 @@
         gap: 32px 88px;
     }
 
-    .homeDestinations { gap: 20px; }
-    .homeDestination { padding: 24px; }
-    .homeCommunityLinks { gap: 44px; }
-    .homeCommunityPhoto { height: 420px; }
+    .homeDestinations {
+        gap: 20px;
+    }
+    .homeDestination {
+        padding: 24px;
+    }
+    .homeCommunityLinks {
+        gap: 44px;
+    }
+    .homeCommunityPhoto {
+        height: 420px;
+    }
 }
 
 @include media("screen", "<tablet") {
-    .homePage { padding-block: 32px $grid-gap; }
+    .homePage {
+        padding-block: 32px $grid-gap;
+    }
 
     .homeOpening {
         grid-template-columns: minmax(0, 1fr);
-        grid-template-areas: 'intro' 'photos' 'events';
+        grid-template-areas: "intro" "photos" "events";
         gap: 28px;
     }
 
     .homeIntro {
         padding: 0;
 
-        h1 { max-width: 18ch; }
+        h1 {
+            max-width: 18ch;
+        }
     }
 
-    .homeActions { flex-wrap: wrap; gap: 10px; }
+    .homeActions {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
 
     .homePrimaryLink,
-    .homeSecondaryLink { min-height: 46px; padding: 11px 18px; }
+    .homeSecondaryLink {
+        min-height: 46px;
+        padding: 11px 18px;
+    }
 
-    .homeHeroPhotoSlot { position: static; }
+    .homeHeroPhotoSlot {
+        position: static;
+    }
 
     .homeHeroPhotos {
         position: static;
@@ -426,9 +551,11 @@
         grid-template-rows: clamp(220px, 68vw, 320px);
         height: auto;
 
-        img { height: 100%; border-radius: $radius-card-media; }
+        img {
+            height: 100%;
+            border-radius: $radius-card-media;
+        }
     }
-
 
     .homeEvents {
         padding: 20px 0 0;
@@ -439,16 +566,18 @@
         flex-direction: row;
         align-items: center;
         gap: 12px;
-
     }
 
-    .homeEventList { grid-template-columns: 1fr; }
-    .homeEventLink { min-height: 86px; }
+    .homeEventList {
+        grid-template-columns: 1fr;
+    }
+    .homeEventLink {
+        min-height: 86px;
+    }
 
     .homeEmptyEventCard {
         gap: 16px;
         padding: 18px;
-
     }
 
     .homeExplore {
@@ -459,7 +588,10 @@
     .homeSectionHeading {
         margin-bottom: 8px;
 
-        p { max-width: 40ch; margin-top: 10px; }
+        p {
+            max-width: 40ch;
+            margin-top: 10px;
+        }
     }
 
     .homeDestinations {
@@ -467,7 +599,9 @@
         gap: 12px;
     }
 
-    .homeDestination { padding: 16px; }
+    .homeDestination {
+        padding: 16px;
+    }
 
     .homeCommunity {
         margin-top: 40px;
@@ -479,19 +613,31 @@
         gap: 30px;
     }
 
-    .homeCommunityPhoto { height: clamp(300px, 86vw, 360px); }
-    .homePhotoLabel { padding: 16px 18px; }
-
+    .homeCommunityPhoto {
+        height: clamp(300px, 86vw, 360px);
+    }
+    .homePhotoLabel {
+        padding: 16px 18px;
+    }
 }
 
 @include media("screen", "<phone") {
-    .homeDestinations { grid-template-columns: minmax(0, 1fr); }
+    .homeDestinations {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }
 
 @media (prefers-reduced-motion: no-preference) {
     .homePage a {
-        transition: color 160ms ease, background-color 160ms ease, transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+        transition:
+            color 160ms ease,
+            background-color 160ms ease,
+            transform 160ms ease,
+            border-color 160ms ease,
+            box-shadow 160ms ease;
 
-        &:active { transform: scale(0.985); }
+        &:active {
+            transform: scale(0.985);
+        }
     }
 }

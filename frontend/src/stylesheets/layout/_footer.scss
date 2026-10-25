@@ -11,14 +11,13 @@ footer {
         bottom: 0;
         left: 0;
         z-index: 0;
-        background:
-            linear-gradient(to bottom,
+        background: linear-gradient(
+                to bottom,
                 transparent 0,
                 rgba($color-social-light, 0.16) 42%,
-                rgba($color-social-light, 0.42) 100%),
-            radial-gradient(ellipse 80% 100% at 50% 100%,
-                rgba($color-primary, 0.13),
-                transparent 78%);
+                rgba($color-social-light, 0.42) 100%
+            ),
+            radial-gradient(ellipse 80% 100% at 50% 100%, rgba($color-primary, 0.13), transparent 78%);
         content: "";
         pointer-events: none;
     }
@@ -104,7 +103,6 @@ footer {
     }
 
     .footerBottomRow {
-
         .footerSocials img {
             width: 24px;
         }

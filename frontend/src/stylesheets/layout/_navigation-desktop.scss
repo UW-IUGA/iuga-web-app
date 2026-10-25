@@ -1,5 +1,8 @@
 @include media(">=tablet") {
-    .nav-container { width: min(1200px, calc(100% - $page-margin * 2)); padding-inline: 0; }
+    .nav-container {
+        width: min(1200px, calc(100% - $page-margin * 2));
+        padding-inline: 0;
+    }
 }
 
 @include media(">=sm-desktop") {
@@ -14,12 +17,24 @@
         max-width: 100%;
         transform: translate(-50%, -50%);
     }
-    .nav-items-wrapper { justify-content: flex-end; }
+    .nav-items-wrapper {
+        justify-content: flex-end;
+    }
 }
 
 @include media(">=sm-desktop", "<desktop") {
-    .nav-container { width: min(1000px, calc(100% - $page-margin * 2)); gap: 12px; padding-inline: 0; }
-    .nav-items-wrapper { gap: 10px; }
-    .nav-primary-links { gap: 12px; }
-    .nav-account-toggle { max-width: 120px; }
+    .nav-container {
+        width: min(1000px, calc(100% - $page-margin * 2));
+        gap: 12px;
+        padding-inline: 0;
+    }
+    .nav-items-wrapper {
+        gap: 10px;
+    }
+    .nav-primary-links {
+        gap: 12px;
+    }
+    .nav-account-toggle {
+        max-width: 120px;
+    }
 }

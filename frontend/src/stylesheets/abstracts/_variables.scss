@@ -1,10 +1,10 @@
-$font-family-base: 'Rubik', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+$font-family-base: "Rubik", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 
 // Type scale by role. Larger roles shrink smoothly from desktop to phone.
-$font-size-title: clamp(2.25rem, 1.6rem + 2.6vw, 3.5rem);        // 36px → 56px
-$font-size-section: clamp(1.75rem, 1.4rem + 1.4vw, 2.25rem);     // 28px → 36px
+$font-size-title: clamp(2.25rem, 1.6rem + 2.6vw, 3.5rem); // 36px → 56px
+$font-size-section: clamp(1.75rem, 1.4rem + 1.4vw, 2.25rem); // 28px → 36px
 $font-size-subheading: clamp(1.25rem, 1.15rem + 0.4vw, 1.375rem); // 20px → 22px
-$font-size-body: clamp(1rem, 0.95rem + 0.2vw, 1.0625rem);         // 16px → 17px
+$font-size-body: clamp(1rem, 0.95rem + 0.2vw, 1.0625rem); // 16px → 17px
 $font-size-nav: 1rem;
 $font-size-small: 0.875rem;
 // Smallest size; only for short all-caps labels.
@@ -21,19 +21,19 @@ $line-height-heading: 1.15;
 $line-height-body: 1.6;
 
 // Brand colors; the primary UI accent and supporting tones.
-$color-primary: #704AAC;
+$color-primary: #704aac;
 $color-uw-purple: #32006e;
-$color-lavender: #F1E8FF;
+$color-lavender: #f1e8ff;
 
 // Category palettes: primary action, secondary surface, and light background.
-$color-social-primary: #C133E1;
-$color-social-secondary: #FAE5FF;
+$color-social-primary: #c133e1;
+$color-social-secondary: #fae5ff;
 $color-social-light: #fdf3ff;
-$color-career-primary: #4E5FEB;
-$color-career-secondary: #CFDFF5;
+$color-career-primary: #4e5feb;
+$color-career-secondary: #cfdff5;
 $color-career-light: #dfe7f3;
 $color-academic-primary: #ca8f3d;
-$color-academic-secondary: #FEEFCD;
+$color-academic-secondary: #feefcd;
 $color-academic-light: #fbf5e7;
 
 // Lighter end of each category's gradient, paired with its primary colour.
@@ -52,7 +52,7 @@ $color-social-capsule: #8d1fa8;
 
 // Neutral grays.
 $color-light-gray: #fafafa;
-$color-gray: #F9F9F9;
+$color-gray: #f9f9f9;
 $color-dark-gray: #595959;
 
 // Shared lavender border used by dropdown panels (nav + shop cart).
@@ -70,10 +70,15 @@ $color-error-dark: #7f1d1d;
 
 // Calendar selected-state accents per category.
 $color-academic-calendar-selected: #f7c052;
-$color-career-calendar-selected: #356EFF;
+$color-career-calendar-selected: #356eff;
 $color-social-calendar-selected: #d843e5;
 
-$gradient: linear-gradient(226deg, rgba(248, 166, 255, 0.59) 0%, rgba(255, 201, 63, 1) 50%, rgba(207, 223, 245, 1) 100%);
+$gradient: linear-gradient(
+    226deg,
+    rgba(248, 166, 255, 0.59) 0%,
+    rgba(255, 201, 63, 1) 50%,
+    rgba(207, 223, 245, 1) 100%
+);
 
 $radius: 8px;
 $radius-pill: 999px;
@@ -99,4 +104,5 @@ $breakpoints: (
     phone: 460px,
     tablet: 768px,
     sm-desktop: 1024px,
-    desktop: 1300px) !default;
+    desktop: 1300px,
+) !default;

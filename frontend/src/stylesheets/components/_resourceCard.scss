@@ -3,7 +3,9 @@
     min-height: 230px;
     gap: $margin-content;
     padding: 22px;
-    transition: transform 150ms ease, box-shadow 150ms ease;
+    transition:
+        transform 150ms ease,
+        box-shadow 150ms ease;
 
     &:hover {
         box-shadow: 0 8px 20px rgba($color-uw-purple, 0.13);
@@ -46,7 +48,7 @@
         line-height: 1.25;
     }
 
-    >p:not(.resourceCardCategory) {
+    > p:not(.resourceCardCategory) {
         margin: 0 0 20px;
         color: $color-dark-gray;
         font-size: $font-size-small;

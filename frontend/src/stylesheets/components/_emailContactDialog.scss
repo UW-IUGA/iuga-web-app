@@ -14,7 +14,10 @@
     font-weight: $font-weight-medium;
     line-height: 1.2;
     text-align: center;
-    transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
+    transition:
+        background-color 180ms ease,
+        color 180ms ease,
+        transform 180ms ease;
     white-space: nowrap;
     cursor: pointer;
 
@@ -164,7 +167,10 @@
     line-height: 1.2;
     text-align: center;
     text-decoration: none;
-    transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
+    transition:
+        background-color 180ms ease,
+        color 180ms ease,
+        transform 180ms ease;
 
     &:hover {
         background: rgba($color-uw-purple, 0.07);

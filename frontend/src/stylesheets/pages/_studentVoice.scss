@@ -42,7 +42,7 @@
         line-height: 1.2;
     }
 
-    >p {
+    > p {
         margin: 0 0 22px;
         color: $color-dark-gray;
         line-height: 1.55;
@@ -89,7 +89,7 @@
         text-transform: uppercase;
     }
 
-    span+span::before {
+    span + span::before {
         margin-right: 8px;
         content: "•";
     }

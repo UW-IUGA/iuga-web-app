@@ -85,7 +85,7 @@
     border: 0;
     cursor: pointer;
 
-    &:hover>span:first-child {
+    &:hover > span:first-child {
         color: $color-primary;
     }
 
@@ -108,7 +108,7 @@
 
 .resourceCategoryCount {
     color: $color-dark-gray;
-    font: $font-weight-medium #{$font-size-label}/1 $font-family-base;
+    font: $font-weight-medium #{$font-size-label}/ 1 $font-family-base;
     letter-spacing: $letter-spacing-label;
     text-transform: uppercase;
 }

@@ -23,7 +23,10 @@ Expected Response Information: Two round arrow buttons around the current week's
     background: white;
     color: $color-primary;
     cursor: pointer;
-    transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
+    transition:
+        background-color 180ms ease,
+        color 180ms ease,
+        transform 180ms ease;
 
     &:hover {
         background: $color-primary;

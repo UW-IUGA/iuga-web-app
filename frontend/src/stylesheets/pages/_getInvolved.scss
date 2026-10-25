@@ -185,7 +185,6 @@ Expected Response Information: Responsive styles for the hero, leader profile
 }
 
 @include media("screen", "<phone") {
-
     .getInvolved__leaderProfileGrid {
         height: auto;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -202,11 +201,8 @@ Expected Response Information: Responsive styles for the hero, leader profile
         padding: 20px 8px 8px;
     }
 
-
-
     .getInvolved__leaderProfile .studentProfileCard__socials a {
         width: 28px;
         height: 28px;
     }
-
 }

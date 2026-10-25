@@ -27,9 +27,9 @@ Expected Response Information: A white dialog with the event photo beside its de
         margin-bottom: 14px;
         color: $color-uw-purple;
         font-family: $font-family-base;
-        font-size: clamp(1.6rem, 3vw, 2.1rem);
-        font-weight: 800;
-        letter-spacing: -0.035em;
+        font-size: $font-size-section;
+        font-weight: $font-weight-bold;
+        letter-spacing: $letter-spacing-heading;
         line-height: 1.1;
     }
 
@@ -44,7 +44,7 @@ Expected Response Information: A white dialog with the event photo beside its de
 
     .eventCategoryPills__pill {
         padding: 4px 10px;
-        font-size: 0.72rem;
+        font-size: $font-size-small;
     }
 }
 
@@ -81,7 +81,7 @@ Expected Response Information: A white dialog with the event photo beside its de
         align-items: baseline;
         gap: 10px;
         color: $color-uw-purple;
-        font-weight: 600;
+        font-weight: $font-weight-medium;
     }
 
     svg {
@@ -107,13 +107,13 @@ Expected Response Information: A white dialog with the event photo beside its de
     min-height: $pill-height;
     box-sizing: border-box;
     font-family: inherit;
-    font-weight: bold;
+    font-weight: $font-weight-medium;
     text-decoration: none;
     padding: $pill-padding-y 36px;
     border-radius: $radius-pill;
     background: $color-primary;
     color: white;
-    font-size: 0.95rem;
+    font-size: $font-size-body;
 
     &:hover,
     &:focus-visible {
@@ -138,7 +138,7 @@ Expected Response Information: A white dialog with the event photo beside its de
 
     .eventDialog & {
         color: $color-uw-purple;
-        font-weight: 700;
+        font-weight: $font-weight-medium;
     }
 }
 

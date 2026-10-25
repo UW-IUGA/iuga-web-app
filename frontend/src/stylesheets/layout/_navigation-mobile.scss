@@ -13,7 +13,6 @@
         border: 0;
         background: transparent;
         color: $color-uw-purple;
-        font-size: 20px;
         cursor: pointer;
         @include focus-ring;
     }
@@ -46,7 +45,6 @@
         padding: 15px 4px;
         justify-content: space-between;
         border-bottom: 1px solid #e8deee;
-        font-size: 15px;
         text-align: left;
     }
 

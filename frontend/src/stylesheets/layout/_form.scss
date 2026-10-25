@@ -5,7 +5,7 @@
     border-radius: 5px;
     border: 1px solid #dde3ec;
     background: #ffffff;
-    font-size: 14px;
+    font-size: $font-size-small;
     color: #536387;
     outline: none;
     resize: none;
@@ -19,8 +19,8 @@
 
 .form-label {
     color: #07074d;
-    font-size: 14px;
-    font-weight: bold;
+    font-size: $font-size-small;
+    font-weight: $font-weight-medium;
     line-height: 24px;
     display: block;
     margin-bottom: 6px;
@@ -34,12 +34,10 @@ input:disabled {
 @include media(">=sm-desktop", "<desktop") {
     .form-input {
         padding: 10px 16px;
-        font-size: 12px;
         margin-bottom: 12px;
     }
 
     .form-label {
-        font-size: 12px;
         margin-bottom: 4px;
     }
 }

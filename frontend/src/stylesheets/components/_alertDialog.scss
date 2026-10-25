@@ -35,7 +35,7 @@
         background: $color-lavender;
         color: $color-uw-purple;
         font-size: 1.1rem;
-        font-weight: 700;
+        font-weight: $font-weight-bold;
     }
 
     .alert-dialog-eyebrow {
@@ -46,9 +46,9 @@
         border-radius: $radius-pill;
         background: #f2f2f2;
         color: $color-dark-gray;
-        font-size: 0.7rem;
-        font-weight: 700;
-        letter-spacing: 0.08em;
+        font-size: $font-size-label;
+        font-weight: $font-weight-medium;
+        letter-spacing: $letter-spacing-label;
         line-height: 1.4;
         text-transform: uppercase;
         vertical-align: super;
@@ -57,22 +57,22 @@
     h2 {
         margin: 0 0 8px;
         font-family: $font-family-base;
-        font-size: 1.2rem;
-        font-weight: 700;
+        font-size: $font-size-subheading;
+        font-weight: $font-weight-bold;
         line-height: 1.3;
     }
 
     p {
         margin: 0 0 20px;
         color: $color-dark-gray;
-        font-size: 0.9rem;
+        font-size: $font-size-small;
         line-height: 1.55;
         overflow-wrap: anywhere;
     }
 
     a {
         color: $color-primary;
-        font-weight: 600;
+        font-weight: $font-weight-medium;
         text-underline-offset: 2px;
 
         &:hover {
@@ -87,8 +87,8 @@
         border-radius: $radius-pill;
         background: #fff;
         color: $color-primary;
-        font-size: 0.9rem;
-        font-weight: 700;
+        font-size: $font-size-small;
+        font-weight: $font-weight-medium;
         @include focus-ring;
 
         &::before {

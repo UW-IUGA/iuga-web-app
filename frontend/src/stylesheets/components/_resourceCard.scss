@@ -24,7 +24,7 @@
     color: $color-uw-purple;
     font-family: $font-family-base;
     font-size: 1.6rem;
-    font-weight: 700;
+    font-weight: $font-weight-bold;
 
     img {
         width: 100%;
@@ -42,14 +42,14 @@
     h3 {
         margin: 4px 0 8px;
         color: black;
-        font-size: 1.2rem;
+        font-size: $font-size-subheading;
         line-height: 1.25;
     }
 
     >p:not(.resourceCardCategory) {
         margin: 0 0 20px;
         color: $color-dark-gray;
-        font-size: 0.92rem;
+        font-size: $font-size-small;
         line-height: 1.55;
     }
 }
@@ -62,8 +62,8 @@
 
 .resourceCardPending {
     color: $color-dark-gray;
-    font-size: 0.88rem;
-    font-weight: 700;
+    font-size: $font-size-small;
+    font-weight: $font-weight-medium;
 }
 
 @include media("screen", "<tablet") {

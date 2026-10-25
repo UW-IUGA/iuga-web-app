@@ -40,17 +40,17 @@ Expected Response Information: One photo on a dimmed page with its caption and c
         span {
             margin-bottom: 6px;
             color: rgba(255, 255, 255, 0.92);
-            font-size: 0.76rem;
-            font-weight: 700;
-            letter-spacing: 0.1em;
+            font-size: $font-size-label;
+            font-weight: $font-weight-medium;
+            letter-spacing: $letter-spacing-label;
             line-height: 1.35;
             text-transform: uppercase;
         }
 
         strong {
             font-family: $font-family-base;
-            font-size: clamp(1.25rem, 2vw, 1.6rem);
-            font-weight: 800;
+            font-size: $font-size-subheading;
+            font-weight: $font-weight-bold;
             line-height: 1.12;
         }
     }
@@ -105,8 +105,8 @@ Expected Response Information: One photo on a dimmed page with its caption and c
     border-radius: $radius-pill;
     background: rgba(15, 15, 15, 0.6);
     color: white;
-    font-size: 0.85rem;
-    font-weight: 700;
+    font-size: $font-size-small;
+    font-weight: $font-weight-medium;
     font-variant-numeric: tabular-nums;
     transform: translateX(-50%);
 }

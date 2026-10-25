@@ -69,17 +69,17 @@ Expected Response Information: Responsive portrait cards with readable identity 
             margin: 0;
             color: white;
             font-family: $font-family-base;
-            font-size: clamp(1.25rem, 2vw, 1.6rem);
-            font-weight: 800;
+            font-size: $font-size-subheading;
+            font-weight: $font-weight-bold;
             line-height: 1.12;
         }
 
         p {
             margin: 0 0 6px;
             color: rgba(255, 255, 255, 0.92);
-            font-size: 0.76rem;
-            font-weight: 700;
-            letter-spacing: 0.1em;
+            font-size: $font-size-label;
+            font-weight: $font-weight-medium;
+            letter-spacing: $letter-spacing-label;
             line-height: 1.35;
             text-transform: uppercase;
         }

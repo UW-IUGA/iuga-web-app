@@ -7,12 +7,12 @@
 }
 
 .aboutMe h3 {
-  font-size: 18px;
-  font-weight: bold;
+  font-size: $font-size-subheading;
+  font-weight: $font-weight-bold;
 }
 
 .aboutMe p {
-  font-size: 14px;
+  font-size: $font-size-small;
   color: #555;
 }
 
@@ -46,7 +46,7 @@ iframe {
 }
 
 .tab.active {
-  font-weight: bold;
+  font-weight: $font-weight-medium;
   text-decoration: underline;
   transform: scale(1.05);
 }

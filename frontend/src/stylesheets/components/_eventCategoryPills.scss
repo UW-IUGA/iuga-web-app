@@ -13,8 +13,8 @@ Expected Response Information: A wrapping row of small coloured pills, one per c
 .eventCategoryPills__pill {
     padding: 3px 7px;
     border-radius: $radius-pill;
-    font-size: 0.62rem;
-    font-weight: 700;
+    font-size: $font-size-small;
+    font-weight: $font-weight-medium;
     line-height: 1.2;
 
     &--academic {

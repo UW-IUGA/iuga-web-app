@@ -58,7 +58,7 @@ footer {
 
     .footerCopyright {
         margin: 0;
-        font-size: 0.9rem;
+        font-size: $font-size-small;
         color: $color-dark-gray;
         text-align: center;
     }
@@ -104,9 +104,6 @@ footer {
     }
 
     .footerBottomRow {
-        .footerCopyright {
-            font-size: 0.8rem;
-        }
 
         .footerSocials img {
             width: 24px;

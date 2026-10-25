@@ -20,9 +20,8 @@ Expected Response Information: A cover photo beside the event story, with a row 
         margin: 0 0 10px;
         color: $color-uw-purple;
         font-family: $font-family-base;
-        font-size: clamp(1.6rem, 2.6vw, 2.1rem);
-        font-weight: 800;
-        letter-spacing: -0.035em;
+        font-size: $font-size-subheading;
+        font-weight: $font-weight-bold;
         line-height: 1.1;
     }
 
@@ -69,7 +68,7 @@ Expected Response Information: A cover photo beside the event story, with a row 
     color: white;
     font-family: $font-family-base;
     font-size: 1.3rem;
-    font-weight: 700;
+    font-weight: $font-weight-bold;
 }
 
 .pastEventCard__viewPhotos {

@@ -18,9 +18,9 @@ Expected Response Information: A strip of day buttons above a list of event rows
         margin: 0;
         color: $color-uw-purple;
         font-family: $font-family-base;
-        font-size: clamp(1.9rem, 3.4vw, 2.8rem);
-        font-weight: 800;
-        letter-spacing: -0.035em;
+        font-size: $font-size-section;
+        font-weight: $font-weight-bold;
+        letter-spacing: $letter-spacing-heading;
         line-height: 1.05;
     }
 }
@@ -46,15 +46,15 @@ Expected Response Information: A strip of day buttons above a list of event rows
 
     >span:first-child {
         color: $color-dark-gray;
-        font-size: 0.68rem;
-        font-weight: 700;
-        letter-spacing: 0.1em;
+        font-size: $font-size-label;
+        font-weight: $font-weight-medium;
+        letter-spacing: $letter-spacing-label;
         text-transform: uppercase;
     }
 
     strong {
         font-size: 1.35rem;
-        font-weight: 800;
+        font-weight: $font-weight-bold;
         line-height: 1.1;
     }
 
@@ -137,7 +137,7 @@ Expected Response Information: A strip of day buttons above a list of event rows
     background: white;
     box-shadow: 0 6px 18px rgba(black, 0.1);
     color: $color-uw-purple;
-    font-weight: 400;
+    font-weight: $font-weight-regular;
     text-align: left;
     transition: border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
 
@@ -165,16 +165,15 @@ Expected Response Information: A strip of day buttons above a list of event rows
 
     span {
         color: $color-primary;
-        font-size: 0.7rem;
-        font-weight: 700;
-        letter-spacing: 0.12em;
+        font-size: $font-size-label;
+        font-weight: $font-weight-medium;
+        letter-spacing: $letter-spacing-label;
         text-transform: uppercase;
     }
 
     strong {
         font-size: 2rem;
-        font-weight: 900;
-        letter-spacing: -0.04em;
+        font-weight: $font-weight-bold;
         line-height: 1;
     }
 }
@@ -185,22 +184,21 @@ Expected Response Information: A strip of day buttons above a list of event rows
     min-width: 0;
 
     >strong {
-        font-size: 1.3rem;
-        font-weight: 800;
-        letter-spacing: -0.03em;
+        font-size: $font-size-subheading;
+        font-weight: $font-weight-bold;
         line-height: 1.15;
     }
 }
 
 .eventAgenda__meta {
     color: $color-primary;
-    font-size: 0.82rem;
-    font-weight: 700;
+    font-size: $font-size-small;
+    font-weight: $font-weight-medium;
 }
 
 .eventAgenda__host {
     color: $color-dark-gray;
-    font-size: 0.9rem;
+    font-size: $font-size-small;
 }
 
 .eventAgenda__details,
@@ -208,8 +206,8 @@ Expected Response Information: A strip of day buttons above a list of event rows
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    font-size: 0.85rem;
-    font-weight: 700;
+    font-size: $font-size-small;
+    font-weight: $font-weight-medium;
     white-space: nowrap;
 }
 
@@ -305,8 +303,7 @@ Expected Response Information: A strip of day buttons above a list of event rows
         border-radius: 12px;
 
         >span:first-child {
-            font-size: 0.58rem;
-            letter-spacing: 0.04em;
+            letter-spacing: $letter-spacing-label;
         }
 
         strong {

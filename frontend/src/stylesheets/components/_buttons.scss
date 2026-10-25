@@ -5,8 +5,8 @@ button {
     color: white;
     border: 0px;
     padding: $padding-box-y $padding-box-x;
-    font-weight: bold;
-    font-size: 14px;
+    font-weight: $font-weight-medium;
+    font-size: $font-size-small;
     text-shadow: none;
     transition: all 150ms cubic-bezier(0.19, 1, 0.22, 1);
 
@@ -83,8 +83,8 @@ button:before {
     border-radius: $radius-pill;
     background-color: white;
     color: black;
-    font-size: 1rem;
-    font-weight: 700;
+    font-size: $font-size-body;
+    font-weight: $font-weight-medium;
     line-height: 1.2;
     text-align: center;
 }
@@ -102,8 +102,8 @@ button:before {
     -webkit-backdrop-filter: blur(16px);
     box-shadow: 0 14px 30px rgba($color-uw-purple, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.88);
     color: $color-uw-purple;
-    font-size: 0.84rem;
-    font-weight: 700;
+    font-size: $font-size-small;
+    font-weight: $font-weight-medium;
     text-decoration: none;
     transition: transform 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
 }
@@ -153,7 +153,7 @@ button:before {
 .cta-secondary {
     border: 2px solid $color-primary;
     border-radius: $radius-pill;
-    font-weight: bold;
+    font-weight: $font-weight-medium;
     text-shadow: none;
     text-decoration: none;
     display: inline-block;
@@ -166,7 +166,7 @@ button:before {
 .cta-primary,
 .cta-secondary {
     padding: 12px 28px;
-    font-size: 15px;
+    font-size: $font-size-body;
 }
 
 .cta-primary {
@@ -204,7 +204,6 @@ button:before {
 
 @include media(">=sm-desktop", "<desktop") {
     button:not(.pill-button):not(.standard-button) {
-        font-size: 12px;
         padding: 10px 16px;
 
         .right-arrow {

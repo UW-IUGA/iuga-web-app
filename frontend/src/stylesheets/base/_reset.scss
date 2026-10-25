@@ -8,3 +8,11 @@ body {
     position: relative;
     overflow-x: hidden;
 }
+
+// Browsers give form controls their own font; use the site font instead.
+button,
+input,
+select,
+textarea {
+    font-family: inherit;
+}

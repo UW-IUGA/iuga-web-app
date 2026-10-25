@@ -44,14 +44,14 @@
     flex-direction: column;
 
     h3 {
-        margin: 4px 0 8px;
+        margin: $space-1 0 $space-2;
         color: $color-black;
         font-size: $font-size-subheading;
         line-height: 1.25;
     }
 
     > p:not(.resourceCardCategory) {
-        margin: 0 0 20px;
+        margin: 0 0 $space-5;
         color: $color-dark-gray;
         font-size: $font-size-small;
         line-height: 1.55;

@@ -8,7 +8,7 @@ Expected Response Information: A wrapping row of small coloured pills, one per c
 .eventCategoryPills {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
+    gap: $space-1;
     margin-top: 2px;
 }
 

@@ -100,8 +100,8 @@ button:before {
 %category-pill-surface {
     display: inline-flex;
     align-items: center;
-    gap: 12px;
-    padding: 11px 16px;
+    gap: $space-3;
+    padding: 11px $space-4;
     border: 1px solid rgba($color-white, 0.78);
     border-radius: $radius-pill;
     background: rgba($color-white, 0.52);
@@ -177,7 +177,7 @@ button:before {
 
 .cta-primary,
 .cta-secondary {
-    padding: 12px 28px;
+    padding: $space-3 $space-7;
     font-size: $font-size-body;
 }
 
@@ -216,7 +216,7 @@ button:before {
 
 @include media(">=sm-desktop", "<desktop") {
     button:not(.pill-button):not(.standard-button) {
-        padding: 10px 16px;
+        padding: 10px $space-4;
 
         .right-arrow {
             width: 12px;

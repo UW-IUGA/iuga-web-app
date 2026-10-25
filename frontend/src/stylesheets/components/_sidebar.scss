@@ -3,7 +3,7 @@
 .roleSidebar {
     width: 250px;
     background: $color-white;
-    padding: 20px;
+    padding: $space-5;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba($color-black, 0.1);
 }
@@ -15,8 +15,8 @@
 }
 
 .roleItem {
-    padding: 12px;
-    margin-bottom: 8px;
+    padding: $space-3;
+    margin-bottom: $space-2;
     background: #eaeaea;
     border-radius: 5px;
     text-align: center;

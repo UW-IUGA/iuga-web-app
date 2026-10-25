@@ -7,10 +7,10 @@ Purpose: The shared top of every page (PageHeader.jsx). Every page uses the same
 
 .pageHeader {
     display: grid;
-    gap: 48px;
+    gap: $space-12;
     align-items: start;
-    padding-top: 56px;
-    margin-bottom: 48px;
+    padding-top: $space-14;
+    margin-bottom: $space-12;
 }
 
 // Text gets the wider column so titles stay within two lines beside a photo.
@@ -20,7 +20,7 @@ Purpose: The shared top of every page (PageHeader.jsx). Every page uses the same
 
 .pageHeader__label {
     @extend %pageKicker;
-    margin: 0 0 12px;
+    margin: 0 0 $space-3;
 }
 
 .pageHeader h1 {
@@ -32,7 +32,7 @@ Purpose: The shared top of every page (PageHeader.jsx). Every page uses the same
 // Doubled class so page-level `p { margin-top: 0 }` resets cannot remove the gap under the title.
 .pageHeader .pageHeader__intro {
     max-width: 52ch;
-    margin: 16px 0 0;
+    margin: $space-4 0 0;
     color: $color-dark-gray;
     font-size: $font-size-body;
     line-height: $line-height-body;
@@ -41,8 +41,8 @@ Purpose: The shared top of every page (PageHeader.jsx). Every page uses the same
 .pageHeader__actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
-    margin-top: 24px;
+    gap: $space-3;
+    margin-top: $space-6;
 }
 
 .pageHeader__visual {
@@ -52,13 +52,13 @@ Purpose: The shared top of every page (PageHeader.jsx). Every page uses the same
 @include media("<sm-desktop") {
     .pageHeader--withVisual {
         grid-template-columns: minmax(0, 1fr);
-        gap: 32px;
+        gap: $space-8;
     }
 }
 
 @include media("<tablet") {
     .pageHeader {
-        padding-top: 32px;
-        margin-bottom: 32px;
+        padding-top: $space-8;
+        margin-bottom: $space-8;
     }
 }

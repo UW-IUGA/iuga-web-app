@@ -10,7 +10,7 @@
     display: flex;
     justify-content: center;
     margin-top: 50px;
-    margin-bottom: 60px;
+    margin-bottom: $space-15;
     gap: 42px;
 }
 
@@ -52,13 +52,13 @@
     @include bottom-gradient-border-thick;
 
     h2 {
-        margin: 24px 0;
+        margin: $space-6 0;
     }
 }
 
 .resourcesWrapper {
     flex: 4;
-    margin-bottom: 60px;
+    margin-bottom: $space-15;
 }
 
 /* Resources section (where the components will go) styling */
@@ -142,7 +142,7 @@
 
     .resourceImg {
         height: 140px;
-        margin-bottom: 40px;
+        margin-bottom: $space-10;
     }
 
     .resourceHeader {
@@ -164,7 +164,7 @@
     }
 
     .resourcesWrapper {
-        margin-bottom: 60px;
+        margin-bottom: $space-15;
     }
 
     /* Resources section (where the components will go) styling */
@@ -222,7 +222,7 @@
     .resourceImg {
         display: none;
         height: 100px;
-        margin-bottom: 40px;
+        margin-bottom: $space-10;
     }
 
     .resourceHeader {
@@ -245,7 +245,7 @@
     }
 
     .resourcesWrapper {
-        margin-bottom: 60px;
+        margin-bottom: $space-15;
     }
 
     /* Resources section (where the components will go) styling */

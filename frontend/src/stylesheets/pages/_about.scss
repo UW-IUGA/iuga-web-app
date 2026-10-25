@@ -3,11 +3,11 @@
 
 .about {
     @extend %pageFrame;
-    padding: 0 0 64px;
+    padding: 0 0 $space-16;
 }
 
 .about__section h2 {
-    margin: 0 0 16px;
+    margin: 0 0 $space-4;
     font-size: $font-size-subheading;
 }
 
@@ -15,7 +15,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
-    margin-bottom: 32px;
+    margin-bottom: $space-8;
 }
 
 .about__teamGrid {

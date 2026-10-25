@@ -5,7 +5,7 @@
     @extend %pageFrame;
     max-width: 1200px;
     box-sizing: border-box;
-    padding: 0 0 64px;
+    padding: 0 0 $space-16;
 
     h1,
     h2,
@@ -16,10 +16,10 @@
 }
 
 .eventsPast {
-    margin-top: 64px;
+    margin-top: $space-16;
 
     h2 {
-        margin-bottom: 28px;
+        margin-bottom: $space-7;
         color: $color-uw-purple;
         font-family: $font-family-base;
         font-size: $font-size-section;
@@ -36,18 +36,18 @@
 
 @include media("<sm-desktop") {
     .eventsPage {
-        padding: 0 $padding-content 56px;
+        padding: 0 $padding-content $space-14;
     }
 }
 
 @include media("<phone") {
     .eventsPage {
-        padding-right: 12px;
-        padding-left: 12px;
+        padding-right: $space-3;
+        padding-left: $space-3;
     }
 
     .eventsPast {
-        margin-top: 48px;
+        margin-top: $space-12;
     }
 }
 
@@ -59,7 +59,7 @@
 
 .event-operations {
     width: min(1200px, calc(100% - 36px));
-    margin: 24px auto 64px;
+    margin: $space-6 auto $space-16;
 }
 
 .event-ops-header,
@@ -68,11 +68,11 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 24px;
+    gap: $space-6;
 }
 
 .event-ops-header {
-    margin-bottom: 24px;
+    margin-bottom: $space-6;
 
     h2,
     h3,
@@ -87,7 +87,7 @@
 
     p {
         color: $color-dark-gray;
-        margin-top: 8px;
+        margin-top: $space-2;
     }
 }
 
@@ -107,10 +107,10 @@
     border: 1px solid rgba($color-uw-purple, 0.12);
     border-radius: $radius-card;
     display: grid;
-    gap: 12px;
+    gap: $space-3;
     grid-template-columns: repeat(5, minmax(110px, 1fr)) minmax(160px, 1.5fr);
-    margin-bottom: 24px;
-    padding: 16px;
+    margin-bottom: $space-6;
+    padding: $space-4;
 
     label {
         color: $color-uw-purple;
@@ -129,7 +129,7 @@
         box-sizing: border-box;
         color: #333;
         min-height: 38px;
-        padding: 8px 10px;
+        padding: $space-2 10px;
     }
 
     select:focus,
@@ -142,7 +142,7 @@
 .event-ops-layout {
     align-items: start;
     display: grid;
-    gap: 24px;
+    gap: $space-6;
     grid-template-columns: minmax(0, 1fr) minmax(300px, 0.44fr);
 }
 
@@ -167,7 +167,7 @@
     th,
     td {
         border-bottom: 1px solid rgba($color-uw-purple, 0.1);
-        padding: 12px 10px;
+        padding: $space-3 10px;
         text-align: center;
         vertical-align: middle;
     }
@@ -230,7 +230,7 @@
     display: inline-block;
     font-size: $font-size-small;
     font-weight: $font-weight-medium;
-    padding: 4px 8px;
+    padding: $space-1 $space-2;
     text-transform: capitalize;
     white-space: nowrap;
 }
@@ -271,7 +271,7 @@
 .event-ops-empty,
 .event-ops-error {
     margin: 0;
-    padding: 28px;
+    padding: $space-7;
     text-align: center;
 }
 
@@ -280,13 +280,13 @@
     border: 1px solid #d88;
     border-radius: $radius-card;
     color: #7a1717;
-    margin-bottom: 16px;
+    margin-bottom: $space-4;
 }
 
 .event-ops-form,
 .event-ops-detail {
     box-sizing: border-box;
-    padding: 24px;
+    padding: $space-6;
 }
 
 .event-operations .form-input {
@@ -294,7 +294,7 @@
 }
 
 .event-ops-form {
-    margin-bottom: 24px;
+    margin-bottom: $space-6;
 
     h3,
     h4,
@@ -308,7 +308,7 @@
     background: transparent;
     border: 0;
     color: $color-primary;
-    padding: 4px;
+    padding: $space-1;
 }
 
 .event-ops-danger {
@@ -319,7 +319,7 @@
     display: grid;
     gap: 0 18px;
     grid-template-columns: 1fr 1fr;
-    margin-top: 20px;
+    margin-top: $space-5;
 }
 
 .event-ops-full-width {
@@ -359,7 +359,7 @@
 
 .event-ops-detail-section {
     border-top: 1px solid rgba($color-uw-purple, 0.12);
-    margin-top: 20px;
+    margin-top: $space-5;
     padding-top: 18px;
 
     h4 {
@@ -368,13 +368,13 @@
     }
 
     .form-input {
-        margin-bottom: 12px;
+        margin-bottom: $space-3;
     }
 }
 
 .event-ops-checkpoint-list {
     display: grid;
-    gap: 8px;
+    gap: $space-2;
 }
 
 .event-ops-checkpoint-edit {
@@ -383,7 +383,7 @@
     display: flex;
     font-size: $font-size-small;
     justify-content: space-between;
-    gap: 12px;
+    gap: $space-3;
 
     select {
         border: 1px solid rgba($color-uw-purple, 0.2);
@@ -394,14 +394,14 @@
 
 .event-ops-inline-fields {
     display: grid;
-    gap: 12px;
+    gap: $space-3;
     grid-template-columns: 1fr 1fr;
 }
 
 .event-ops-checkbox {
     align-items: center;
     display: flex;
-    gap: 8px;
+    gap: $space-2;
     margin-bottom: 14px;
 }
 

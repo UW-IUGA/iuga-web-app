@@ -27,14 +27,14 @@
 @include media(">=sm-desktop", "<desktop") {
     .nav-container {
         width: min(1000px, calc(100% - $page-margin * 2));
-        gap: 12px;
+        gap: $space-3;
         padding-inline: 0;
     }
     .nav-items-wrapper {
         gap: 10px;
     }
     .nav-primary-links {
-        gap: 12px;
+        gap: $space-3;
     }
     .nav-account-toggle {
         max-width: 120px;

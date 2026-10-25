@@ -12,10 +12,10 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 32px;
+    margin-bottom: $space-8;
 
     h2 {
-        margin: 24px 0;
+        margin: $space-6 0;
     }
 }
 
@@ -25,7 +25,7 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 32px;
+    margin-bottom: $space-8;
     @include bottom-gradient-border-thick;
 }
 
@@ -158,7 +158,7 @@
 
     .electionImg {
         height: 140px;
-        margin-bottom: 40px;
+        margin-bottom: $space-10;
     }
 
     .electionHeader {
@@ -234,7 +234,7 @@
     .electionImg {
         display: none;
         height: 100px;
-        margin-bottom: 40px;
+        margin-bottom: $space-10;
     }
 
     .electionHeader {

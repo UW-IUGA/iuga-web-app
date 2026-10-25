@@ -3,7 +3,7 @@
 
 .resourcesPage {
     @extend %pageFrame;
-    margin-bottom: 96px;
+    margin-bottom: $space-24;
 }
 
 .resourceCardCategory {
@@ -19,12 +19,12 @@
     grid-template-columns: minmax(250px, 350px) 1fr;
     gap: $grid-gap;
     align-items: end;
-    padding: 24px;
+    padding: $space-6;
 }
 
 .resourcesSearch {
     display: grid;
-    gap: 8px;
+    gap: $space-2;
     color: $color-uw-purple;
     font-size: $font-size-label;
     font-weight: $font-weight-medium;
@@ -49,11 +49,11 @@
 .resourceFilters {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: $space-2;
 }
 
 .resourceResultCount {
-    margin: 24px 0 34px;
+    margin: $space-6 0 34px;
     color: $color-dark-gray;
     font-size: $font-size-small;
     text-align: right;
@@ -79,7 +79,7 @@
     width: 100%;
     align-items: center;
     justify-content: space-between;
-    gap: 20px;
+    gap: $space-5;
     padding: 18px 0;
     color: inherit;
     font: $font-weight-bold #{$font-size-section}/#{$line-height-heading} $font-family-base;
@@ -106,7 +106,7 @@
     display: flex;
     flex: 0 0 auto;
     align-items: center;
-    gap: 12px;
+    gap: $space-3;
 }
 
 .resourceCategoryCount {
@@ -141,14 +141,14 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: $grid-gap;
-    padding: 2px 0 28px;
+    padding: 2px 0 $space-7;
 }
 
 .resourcesEmptyState {
     display: grid;
     justify-items: center;
-    gap: 12px;
-    padding: 56px 24px;
+    gap: $space-3;
+    padding: $space-14 $space-6;
     text-align: center;
 
     h2,
@@ -164,7 +164,7 @@
 @include media("<tablet") {
     .resourcesPage {
         width: 100%;
-        margin-bottom: 64px;
+        margin-bottom: $space-16;
     }
 
     .resourcesControls {
@@ -181,10 +181,10 @@
     }
 
     .resourceCategoryToggle {
-        gap: 12px;
+        gap: $space-3;
     }
 
     .resourceCategoryMeta {
-        gap: 8px;
+        gap: $space-2;
     }
 }

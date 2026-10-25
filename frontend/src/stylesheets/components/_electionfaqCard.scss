@@ -3,8 +3,8 @@
 .resourceBox {
     display: flex;
     flex-direction: row;
-    padding: 24px 0;
-    gap: 12px;
+    padding: $space-6 0;
+    gap: $space-3;
 }
 
 .resourceContent {
@@ -16,7 +16,7 @@
 }
 
 .resourceContent button {
-    margin-top: 12px;
+    margin-top: $space-3;
 }
 
 .resourceContent p {

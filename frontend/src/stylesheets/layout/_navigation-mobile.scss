@@ -3,7 +3,7 @@
 @include media("<sm-desktop") {
     .nav-container {
         min-height: 66px;
-        padding: 8px 18px;
+        padding: $space-2 18px;
         gap: 10px;
     }
     .nav-header {
@@ -34,7 +34,7 @@
         left: 0;
         display: none;
         max-height: calc(100vh - 66px);
-        padding: 12px 22px 22px;
+        padding: $space-3 22px 22px;
         flex-direction: column;
         align-items: stretch;
         gap: 0;
@@ -60,7 +60,7 @@
         display: flex;
         width: 100%;
         min-height: 54px;
-        padding: 15px 4px;
+        padding: 15px $space-1;
         justify-content: space-between;
         border-bottom: 1px solid #e8deee;
         text-align: left;

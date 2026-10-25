@@ -3,11 +3,11 @@
 
 .shopPage {
     @extend %pageFrame;
-    padding: 56px 0 88px;
+    padding: $space-14 0 $space-22;
 
     &__hero {
-        margin-bottom: clamp(40px, 6vw, 72px);
-        padding: 26px clamp(24px, 5vw, 64px);
+        margin-bottom: clamp($space-10, 6vw, $space-18);
+        padding: 26px clamp($space-6, 5vw, $space-16);
         border-radius: $radius-card;
         background: $color-shop-hero;
         color: $color-uw-purple;
@@ -29,7 +29,7 @@
     &__heroBottom {
         display: flex;
         justify-content: space-between;
-        gap: 16px;
+        gap: $space-4;
         font-size: $font-size-label;
         font-weight: $font-weight-medium;
         letter-spacing: $letter-spacing-label;
@@ -37,11 +37,11 @@
     }
 
     &__heroTop {
-        padding-bottom: 16px;
+        padding-bottom: $space-4;
         border-bottom: 2px solid currentColor;
     }
     &__heroBottom {
-        padding-top: 16px;
+        padding-top: $space-4;
         border-top: 2px solid currentColor;
     }
 
@@ -63,7 +63,7 @@
     &__saleInfo {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: $space-2;
         margin-top: 30px;
         font-size: $font-size-label;
         font-weight: $font-weight-medium;
@@ -78,7 +78,7 @@
     &__heroVisual {
         position: relative;
         min-width: 0;
-        margin: 20px 0;
+        margin: $space-5 0;
         overflow: hidden;
         border: 1px dashed currentColor;
         border-radius: $radius-card;
@@ -108,7 +108,7 @@
         position: absolute;
         top: 14px;
         right: 12px;
-        padding: 8px 12px;
+        padding: $space-2 $space-3;
         border-radius: $radius;
         font-size: $font-size-small;
         font-weight: $font-weight-medium;
@@ -116,8 +116,8 @@
 
     &__banner {
         max-width: 700px;
-        margin: 0 auto 36px;
-        padding: 18px 24px;
+        margin: 0 auto $space-9;
+        padding: 18px $space-6;
         border-radius: $radius-card;
         font-size: $font-size-body;
         line-height: 1.5;
@@ -148,15 +148,15 @@
     &__loading,
     &__error {
         max-width: 560px;
-        margin: 48px auto;
-        padding: 40px 24px;
+        margin: $space-12 auto;
+        padding: $space-10 $space-6;
         text-align: center;
         border: 1px solid rgba($color-uw-purple, 0.12);
         border-radius: $radius-card;
         background: $color-white;
 
         p {
-            margin: 0 0 20px;
+            margin: 0 0 $space-5;
             color: $color-dark-gray;
             font-size: $font-size-body;
         }
@@ -164,11 +164,11 @@
 
     &__collectionHeader {
         display: flex;
-        margin-bottom: 28px;
-        padding-bottom: 16px;
+        margin-bottom: $space-7;
+        padding-bottom: $space-4;
         align-items: flex-end;
         justify-content: space-between;
-        gap: 24px;
+        gap: $space-6;
         border-bottom: 1px solid rgba($color-uw-purple, 0.25);
 
         h2 {
@@ -203,7 +203,7 @@
     &__grid {
         display: grid;
         grid-template-columns: 1fr;
-        gap: 24px;
+        gap: $space-6;
     }
 }
 
@@ -264,7 +264,7 @@
     }
 
     &__price {
-        margin: 12px 0 0;
+        margin: $space-3 0 0;
         color: $color-uw-purple;
         font-size: $font-size-subheading;
         font-weight: $font-weight-bold;
@@ -304,14 +304,14 @@
     &__sizeOptions {
         display: flex;
         flex-wrap: wrap;
-        gap: 8px;
+        gap: $space-2;
     }
 
     &__sizePill {
         display: inline-grid;
         min-width: 44px;
         min-height: 42px;
-        padding: 0 12px;
+        padding: 0 $space-3;
         place-items: center;
         border: 1px solid rgba($color-uw-purple, 0.24);
         border-radius: $radius-pill;
@@ -402,7 +402,7 @@
 
         .shopQuantity {
             width: 100%;
-            padding: 0 4px;
+            padding: 0 $space-1;
             justify-content: space-between;
         }
     }
@@ -436,7 +436,7 @@
     display: inline-flex;
     min-height: 40px;
     align-items: center;
-    gap: 8px;
+    gap: $space-2;
 
     button {
         display: inline-flex;
@@ -593,7 +593,7 @@
     align-items: center;
     justify-content: space-between;
     flex-shrink: 0;
-    margin-bottom: 16px;
+    margin-bottom: $space-4;
 }
 
 .shopCartDropdown__close {
@@ -649,7 +649,7 @@
 }
 
 .shopCartDropdown__notice {
-    margin: 12px 0 0;
+    margin: $space-3 0 0;
     color: $color-dark-gray;
     font-size: $font-size-small;
     text-align: right;
@@ -658,11 +658,11 @@
 // Cart dropdown body: compact line list, subtotal, and empty state.
 .shopCartDropdown__lines {
     list-style: none;
-    margin: 0 -10px 4px 0;
+    margin: 0 -10px $space-1 0;
     padding: 0 10px 0 0;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: $space-3;
     flex: 1;
     min-height: 0;
     overflow-y: auto;
@@ -685,7 +685,7 @@
     display: grid;
     grid-template-columns: 64px minmax(0, 1fr) auto auto;
     align-items: center;
-    gap: 8px;
+    gap: $space-2;
 
     .shopQuantity {
         gap: 0;
@@ -725,7 +725,7 @@
 
 .shopCartDropdown__line--justAdded {
     border-left: 2px solid $color-uw-purple;
-    padding: 8px 0;
+    padding: $space-2 0;
 }
 
 .shopCartDropdown__lineImage {
@@ -762,7 +762,7 @@
     flex-direction: column;
     align-items: flex-end;
     justify-content: center;
-    gap: 4px;
+    gap: $space-1;
     min-width: 72px;
 }
 
@@ -795,8 +795,8 @@
 }
 
 .shopCartDropdown__subtotal {
-    margin: 12px 0 0;
-    padding-top: 12px;
+    margin: $space-3 0 0;
+    padding-top: $space-3;
     border-top: 1px solid rgba($color-uw-purple, 0.14);
     font-weight: $font-weight-bold;
     text-align: right;
@@ -809,19 +809,19 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding-bottom: 16px;
+    padding-bottom: $space-4;
     text-align: center;
 
     .shopCartDropdown__checkout {
         width: auto;
         min-width: 190px;
-        padding: 0 20px;
+        padding: 0 $space-5;
         text-decoration: none;
     }
 }
 
 .shopCartDropdown__emptyTitle {
-    margin: 0 0 24px;
+    margin: 0 0 $space-6;
     color: $color-uw-purple;
     font-size: $font-size-subheading;
     font-weight: $font-weight-bold;
@@ -865,11 +865,11 @@
             min-height: 0;
         }
         &__heroIntro {
-            padding: 32px 0;
+            padding: $space-8 0;
         }
         &__heroVisual {
             height: 280px;
-            margin: 0 0 24px;
+            margin: 0 0 $space-6;
             border: 1px dashed currentColor;
         }
     }
@@ -877,7 +877,7 @@
 
 @include media("<tablet") {
     .shopPage {
-        padding-top: 32px;
+        padding-top: $space-8;
 
         &__collectionHeader {
             align-items: flex-start;
@@ -885,7 +885,7 @@
         &__collectionCount {
             align-items: flex-end;
             flex-direction: column;
-            gap: 8px;
+            gap: $space-2;
         }
     }
 }

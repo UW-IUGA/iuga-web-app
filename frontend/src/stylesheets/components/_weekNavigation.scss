@@ -8,7 +8,7 @@ Expected Response Information: Two round arrow buttons around the current week's
 .weekNavigation {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: $space-3;
 }
 
 .weekNavigation__button {

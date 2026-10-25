@@ -41,11 +41,11 @@ Expected Response Information: A white dialog with the event photo beside its de
     }
 
     .eventCategoryPills {
-        margin: 0 0 12px;
+        margin: 0 0 $space-3;
     }
 
     .eventCategoryPills__pill {
-        padding: 4px 10px;
+        padding: $space-1 10px;
         font-size: $font-size-small;
     }
 }
@@ -68,12 +68,12 @@ Expected Response Information: A white dialog with the event photo beside its de
 }
 
 .eventDialog__body {
-    padding: 36px 36px 32px;
+    padding: $space-9 $space-9 $space-8;
 }
 
 .eventDialog__facts {
     display: grid;
-    gap: 8px;
+    gap: $space-2;
     margin: 0 0 18px;
     padding: 0;
     list-style: none;
@@ -97,7 +97,7 @@ Expected Response Information: A white dialog with the event photo beside its de
     margin-top: 22px;
 
     .form-input {
-        margin-bottom: 16px;
+        margin-bottom: $space-4;
         border-radius: $radius;
     }
 }
@@ -111,7 +111,7 @@ Expected Response Information: A white dialog with the event photo beside its de
     font-family: inherit;
     font-weight: $font-weight-medium;
     text-decoration: none;
-    padding: $pill-padding-y 36px;
+    padding: $pill-padding-y $space-9;
     border-radius: $radius-pill;
     background: $color-primary;
     color: $color-white;
@@ -134,7 +134,7 @@ Expected Response Information: A white dialog with the event photo beside its de
     align-items: center;
     gap: 10px;
     margin: 6px 0 0;
-    padding: 12px 18px;
+    padding: $space-3 18px;
     border-radius: $radius-card-media;
     background: $color-lavender;
 
@@ -182,6 +182,6 @@ Expected Response Information: A white dialog with the event photo beside its de
     }
 
     .eventDialog__body {
-        padding: 24px 20px;
+        padding: $space-6 $space-5;
     }
 }

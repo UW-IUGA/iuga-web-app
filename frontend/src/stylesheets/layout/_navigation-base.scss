@@ -55,7 +55,7 @@
     min-width: 0;
     align-items: center;
     justify-content: center;
-    gap: 28px;
+    gap: $space-7;
 }
 
 .nav-primary-links > a,
@@ -97,7 +97,7 @@
     z-index: 10;
     display: none;
     width: 185px;
-    padding: 8px;
+    padding: $space-2;
     border: 1px solid $color-border-lavender;
     border-radius: 16px;
     background: $color-white;
@@ -127,7 +127,7 @@
 }
 
 .nav-account {
-    padding-left: 16px;
+    padding-left: $space-4;
 }
 .nav-account-dropdown {
     position: relative;

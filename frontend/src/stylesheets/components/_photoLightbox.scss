@@ -28,7 +28,7 @@ Expected Response Information: One photo on a dimmed page with its caption and c
     figcaption {
         position: absolute;
         inset: auto 0 0;
-        padding: 64px 140px 22px 24px;
+        padding: $space-16 140px 22px $space-6;
         background: linear-gradient(to top, rgba(15, 15, 15, 0.82), rgba(15, 15, 15, 0.4) 64%, transparent);
         color: $color-white;
         text-align: left;
@@ -137,7 +137,7 @@ Expected Response Information: One photo on a dimmed page with its caption and c
         max-width: calc(100vw - 24px);
 
         figcaption {
-            padding: 56px 124px 16px 16px;
+            padding: $space-14 124px $space-4 $space-4;
         }
     }
 

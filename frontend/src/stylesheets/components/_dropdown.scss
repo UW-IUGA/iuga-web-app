@@ -17,7 +17,7 @@
     user-select: none;
     border: 1px solid #445568;
     border-radius: $radius;
-    padding: 10px 20px;
+    padding: 10px $space-5;
 
     & > span {
         margin-top: 2px;

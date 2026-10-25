@@ -11,7 +11,7 @@ Expected Response Information: Responsive styles for the hero, leader profile
 .getInvolved {
     @extend %pageFrame;
     box-sizing: border-box;
-    padding: 0 0 96px;
+    padding: 0 0 $space-24;
     color: $color-uw-purple;
 }
 
@@ -21,7 +21,7 @@ Expected Response Information: Responsive styles for the hero, leader profile
     height: clamp(370px, 42vw, 500px);
     grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
     grid-template-rows: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    gap: $space-3;
 }
 
 .getInvolved__leaderProfile {
@@ -43,12 +43,12 @@ Expected Response Information: Responsive styles for the hero, leader profile
     }
 
     .studentProfileCard__body {
-        padding-right: 12px;
+        padding-right: $space-3;
     }
 
     .studentProfileCard__socials {
         flex-direction: column;
-        gap: 4px;
+        gap: $space-1;
     }
 
     &:not(:first-child) .studentProfileCard__socials a {
@@ -79,8 +79,8 @@ Expected Response Information: Responsive styles for the hero, leader profile
     display: grid;
     grid-template-columns: minmax(180px, 0.9fr) minmax(240px, 1.6fr) auto;
     align-items: center;
-    gap: 20px;
-    padding: 24px 0;
+    gap: $space-5;
+    padding: $space-6 0;
     border-top: 1px solid rgba($color-uw-purple, 0.15);
 
     &:first-child {
@@ -114,7 +114,7 @@ Expected Response Information: Responsive styles for the hero, leader profile
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 8px;
+    gap: $space-2;
     justify-self: end;
 }
 
@@ -138,7 +138,7 @@ Expected Response Information: Responsive styles for the hero, leader profile
 @include media("<desktop") {
     .getInvolved__committee {
         grid-template-columns: minmax(160px, 0.9fr) minmax(210px, 1.4fr);
-        gap: 16px;
+        gap: $space-4;
     }
 
     .getInvolved__contactCell {
@@ -152,13 +152,13 @@ Expected Response Information: Responsive styles for the hero, leader profile
     }
 
     .getInvolved__leaderProfile .studentProfileCard__body {
-        gap: 8px;
-        padding: 40px 12px 12px;
+        gap: $space-2;
+        padding: $space-10 $space-3 $space-3;
     }
 
     .getInvolved__leaderProfile .studentProfileCard__socials {
         flex-direction: column;
-        gap: 4px;
+        gap: $space-1;
     }
 
     .getInvolved__leaderProfile .studentProfileCard__socials a {
@@ -168,7 +168,7 @@ Expected Response Information: Responsive styles for the hero, leader profile
 
     .getInvolved__committee {
         grid-template-columns: minmax(0, 1fr);
-        gap: 13px 16px;
+        gap: 13px $space-4;
         padding: 22px 0;
     }
 
@@ -201,7 +201,7 @@ Expected Response Information: Responsive styles for the hero, leader profile
     }
 
     .getInvolved__leaderProfile .studentProfileCard__body {
-        padding: 20px 8px 8px;
+        padding: $space-5 $space-2 $space-2;
     }
 
     .getInvolved__leaderProfile .studentProfileCard__socials a {

@@ -88,7 +88,7 @@ run("seed-shop-orders against a replica set", () => {
       purchaseId,
       status,
       expectedRevision: await revisionOf(purchaseId),
-      actorId: officerId,
+      changedBy: officerId,
       nowMs: Date.now(),
     });
   }

@@ -129,7 +129,7 @@ function currentFollowUp(purchase) {
 async function toReviewRecords(models, rows) {
   const actorIds = new Set();
   for (const row of rows) {
-    for (const entry of row.recentHistory ?? []) actorIds.add(String(entry.actorId));
+    for (const entry of row.recentHistory ?? []) actorIds.add(String(entry.changedBy));
     if (row.followUpUpdatedBy) actorIds.add(String(row.followUpUpdatedBy));
     if (row.pickedUpBy) actorIds.add(String(row.pickedUpBy));
   }
@@ -159,7 +159,7 @@ async function toReviewRecords(models, rows) {
     recentHistory: (recentHistory ?? []).map((entry) => ({
       ...entry,
       ...(entry.kind === "follow_up" && { from: legacyFollowUp(entry.from), to: legacyFollowUp(entry.to) }),
-      actorName: nameFor(entry.actorId),
+      actorName: nameFor(entry.changedBy),
     })),
   }));
 }
@@ -520,7 +520,7 @@ async function purchaseAtRevision(models, session, purchaseId, expectedRevision)
 // already recorded. A Pending or Not paid order never shows its total as received, so moving one there
 // restores the amount received from before the order reached its total. Any change clears an active
 // follow-up, and a reason is saved on the payment entry.
-async function paymentChange(models, session, purchase, status, actorId, at, note) {
+async function paymentChange(models, session, purchase, status, changedBy, at, note) {
   const heldStock = HOLDS_STOCK.has(purchase.status);
   if (heldStock && !HOLDS_STOCK.has(status)) await releaseStock(models, session, purchase);
   if (!heldStock && HOLDS_STOCK.has(status)) await retakeStock(models, session, purchase);
@@ -531,7 +531,7 @@ async function paymentChange(models, session, purchase, status, actorId, at, not
   if (status === "paid" && (received ?? 0) < purchase.totalCents) {
     changes.amountReceivedCents = purchase.totalCents;
     history.push({
-      actorId, at, kind: "amount_received", from: amountText(received), to: String(purchase.totalCents),
+      changedBy, at, kind: "amount_received", from: amountText(received), to: String(purchase.totalCents),
     });
   }
   if ((status === "pending" || status === "not_paid") && received != null && received >= purchase.totalCents) {
@@ -539,12 +539,12 @@ async function paymentChange(models, session, purchase, status, actorId, at, not
     if (restored !== received) {
       changes.amountReceivedCents = restored;
       history.push({
-        actorId, at, kind: "amount_received", from: amountText(purchase.amountReceivedCents), to: amountText(restored),
+        changedBy, at, kind: "amount_received", from: amountText(purchase.amountReceivedCents), to: amountText(restored),
       });
     }
   }
   history.push({
-    actorId,
+    changedBy,
     at,
     kind: "payment",
     from: purchase.status,
@@ -554,8 +554,8 @@ async function paymentChange(models, session, purchase, status, actorId, at, not
   });
   const followUp = currentFollowUp(purchase);
   if (followUp) {
-    history.push({ actorId, at, kind: "follow_up", from: followUp, to: "none" });
-    Object.assign(changes, { awaitingStudentReply: false, followUpStatus: null, followUpUpdatedBy: actorId, followUpUpdatedAt: at });
+    history.push({ changedBy, at, kind: "follow_up", from: followUp, to: "none" });
+    Object.assign(changes, { awaitingStudentReply: false, followUpStatus: null, followUpUpdatedBy: changedBy, followUpUpdatedAt: at });
   }
   return { changes, history };
 }
@@ -589,7 +589,7 @@ async function saveReview(models, session, purchase, expectedRevision, changes, 
  * @throws ShopReviewError 404 missing purchase; 409 stale revision, a picked-up order changed without a note, or
  *         no room to retake; 500 missing or inconsistent counters (nothing is changed)
  */
-export async function setPaymentStatus(models, { purchaseId, status, note, expectedRevision, actorId, nowMs }) {
+export async function setPaymentStatus(models, { purchaseId, status, note, expectedRevision, changedBy, nowMs }) {
   const afterPickup = await withTransaction(models, async (session) => {
     const purchase = await purchaseAtRevision(models, session, purchaseId, expectedRevision);
     if (purchase.status === status) {
@@ -598,7 +598,7 @@ export async function setPaymentStatus(models, { purchaseId, status, note, expec
     if (isAfterPickupChange(purchase, status) && !note) {
       throw new ShopReviewError(409, PICKED_UP_REASON_MESSAGE);
     }
-    const { changes, history } = await paymentChange(models, session, purchase, status, actorId, new Date(nowMs), note);
+    const { changes, history } = await paymentChange(models, session, purchase, status, changedBy, new Date(nowMs), note);
     await saveReview(models, session, purchase, expectedRevision, changes, history);
     return isAfterPickupChange(purchase, status) ? { from: purchase.status, to: status } : null;
   });
@@ -616,7 +616,7 @@ export async function setPaymentStatus(models, { purchaseId, status, note, expec
  * @throws ShopReviewError 404 missing purchase; 409 stale revision, a Paid or Refunded order, or no room to
  *         retake; 500 missing or inconsistent counters (nothing is changed)
  */
-export async function setAmountReceived(models, { purchaseId, amountReceivedCents, expectedRevision, actorId, nowMs }) {
+export async function setAmountReceived(models, { purchaseId, amountReceivedCents, expectedRevision, changedBy, nowMs }) {
   await withTransaction(models, async (session) => {
     const purchase = await purchaseAtRevision(models, session, purchaseId, expectedRevision);
     if ((purchase.amountReceivedCents ?? null) === amountReceivedCents) {
@@ -628,10 +628,10 @@ export async function setAmountReceived(models, { purchaseId, amountReceivedCent
     const at = new Date(nowMs);
     let changes = { amountReceivedCents };
     const history = [{
-      actorId, at, kind: "amount_received", from: amountText(purchase.amountReceivedCents), to: String(amountReceivedCents),
+      changedBy, at, kind: "amount_received", from: amountText(purchase.amountReceivedCents), to: String(amountReceivedCents),
     }];
     if (amountReceivedCents >= purchase.totalCents) {
-      const paid = await paymentChange(models, session, { ...purchase, amountReceivedCents }, "paid", actorId, at);
+      const paid = await paymentChange(models, session, { ...purchase, amountReceivedCents }, "paid", changedBy, at);
       changes = { ...changes, ...paid.changes };
       history.push(...paid.history);
     }
@@ -649,7 +649,7 @@ export async function setAmountReceived(models, { purchaseId, amountReceivedCent
  * @param note — trimmed note text, or undefined
  * @throws ShopReviewError 404 when the purchase does not exist, 409 when the revision is stale
  */
-export async function setFollowUp(models, { purchaseId, followUpStatus, note, expectedRevision, actorId, nowMs }) {
+export async function setFollowUp(models, { purchaseId, followUpStatus, note, expectedRevision, changedBy, nowMs }) {
   const purchase = await models.ShopPurchases.findById(
     purchaseId,
     { reviewRevision: 1, awaitingStudentReply: 1, followUpStatus: 1 },
@@ -672,12 +672,12 @@ export async function setFollowUp(models, { purchaseId, followUpStatus, note, ex
       $set: {
         awaitingStudentReply: open,
         followUpStatus: open ? followUpStatus : null,
-        followUpUpdatedBy: actorId,
+        followUpUpdatedBy: changedBy,
         followUpUpdatedAt: at,
         reviewRevision: expectedRevision + 1,
       },
       $push: {
-        reviewHistory: { actorId, at, kind: "follow_up", from: current, to: followUpStatus, ...(note && { note }) },
+        reviewHistory: { changedBy, at, kind: "follow_up", from: current, to: followUpStatus, ...(note && { note }) },
       },
     },
   );
@@ -697,7 +697,7 @@ export async function setFollowUp(models, { purchaseId, followUpStatus, note, ex
  * @throws ShopReviewError 404 when the purchase does not exist; 409 when the revision is stale, or when a
  *         purchase that is not paid is marked picked up
  */
-export async function setPickup(models, { purchaseId, pickedUp, expectedRevision, actorId, nowMs }) {
+export async function setPickup(models, { purchaseId, pickedUp, expectedRevision, changedBy, nowMs }) {
   const purchase = await models.ShopPurchases.findById(
     purchaseId,
     { reviewRevision: 1, status: 1, pickedUpAt: 1 },
@@ -720,12 +720,12 @@ export async function setPickup(models, { purchaseId, pickedUp, expectedRevision
     {
       $set: {
         pickedUpAt: pickedUp ? at : null,
-        pickedUpBy: pickedUp ? actorId : null,
+        pickedUpBy: pickedUp ? changedBy : null,
         reviewRevision: expectedRevision + 1,
       },
       $push: {
         reviewHistory: {
-          actorId,
+          changedBy,
           at,
           kind: "pickup",
           from: pickedUp ? "not_picked_up" : "picked_up",
@@ -748,7 +748,7 @@ export async function setPickup(models, { purchaseId, pickedUp, expectedRevision
  * @param note — trimmed description, or undefined
  * @throws ShopReviewError 404 when the purchase does not exist, 409 when the revision is stale
  */
-export async function addNote(models, { purchaseId, title, note, expectedRevision, actorId, nowMs }) {
+export async function addNote(models, { purchaseId, title, note, expectedRevision, changedBy, nowMs }) {
   const purchase = await models.ShopPurchases.findById(purchaseId, { reviewRevision: 1 }).lean();
   if (!purchase) {
     throw new ShopReviewError(404, "Order not found.");
@@ -757,7 +757,7 @@ export async function addNote(models, { purchaseId, title, note, expectedRevisio
     { _id: purchase._id, ...revisionFilter(expectedRevision) },
     {
       $set: { reviewRevision: expectedRevision + 1 },
-      $push: { reviewHistory: { actorId, at: new Date(nowMs), kind: "note", title, ...(note && { note }) } },
+      $push: { reviewHistory: { changedBy, at: new Date(nowMs), kind: "note", title, ...(note && { note }) } },
     },
   );
   if (updated.matchedCount !== 1) {

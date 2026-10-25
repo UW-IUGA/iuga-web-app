@@ -133,11 +133,11 @@ run("shop purchase review on a replica set", () => {
   }
 
   function pay(purchaseId, status, expectedRevision, note) {
-    return setPaymentStatus(models, { purchaseId, status, note, expectedRevision, actorId: officerId, nowMs: Date.now() });
+    return setPaymentStatus(models, { purchaseId, status, note, expectedRevision, changedBy: officerId, nowMs: Date.now() });
   }
 
   function receive(purchaseId, amountReceivedCents, expectedRevision) {
-    return setAmountReceived(models, { purchaseId, amountReceivedCents, expectedRevision, actorId: officerId, nowMs: Date.now() });
+    return setAmountReceived(models, { purchaseId, amountReceivedCents, expectedRevision, changedBy: officerId, nowMs: Date.now() });
   }
 
   describe("listing", () => {
@@ -210,7 +210,7 @@ run("shop purchase review on a replica set", () => {
       const student = await buyer({ uFirstName: "Follow", uLastName: "Filter" });
       const waiting = await legacyPurchase({ userId: student._id, catalogId, lines: [line("info-hoodie")] });
       await legacyPurchase({ userId: student._id, catalogId, lines: [line("info-hoodie")] });
-      await setFollowUp(models, { purchaseId: waiting, followUpStatus: "contacted", expectedRevision: 0, actorId: officerId, nowMs: Date.now() });
+      await setFollowUp(models, { purchaseId: waiting, followUpStatus: "contacted", expectedRevision: 0, changedBy: officerId, nowMs: Date.now() });
 
       const awaiting = await listPurchases(models, { status: "pending", followUp: "awaiting", q: "follow filter", limit: 5 });
       const none = await listPurchases(models, { status: "pending", followUp: "none", q: "follow filter", limit: 5 });
@@ -273,9 +273,9 @@ run("shop purchase review on a replica set", () => {
       await models.ShopPurchases.collection.updateOne({ _id: overpaid }, { $set: { amountReceivedCents: 4000 } });
       await receive(short, 1200, 0);
       await receive(dropped, 1000, 0);
-      await setFollowUp(models, { purchaseId: waiting, followUpStatus: "contacted", expectedRevision: 0, actorId: officerId, nowMs: Date.now() });
-      await setFollowUp(models, { purchaseId: saysPaid, followUpStatus: "says_paid", expectedRevision: 0, actorId: officerId, nowMs: Date.now() });
-      await setPickup(models, { purchaseId: handedOver, pickedUp: true, expectedRevision: 0, actorId: officerId, nowMs: Date.now() });
+      await setFollowUp(models, { purchaseId: waiting, followUpStatus: "contacted", expectedRevision: 0, changedBy: officerId, nowMs: Date.now() });
+      await setFollowUp(models, { purchaseId: saysPaid, followUpStatus: "says_paid", expectedRevision: 0, changedBy: officerId, nowMs: Date.now() });
+      await setPickup(models, { purchaseId: handedOver, pickedUp: true, expectedRevision: 0, changedBy: officerId, nowMs: Date.now() });
 
       const after = await countPurchases(models);
       const change = (group) => Object.fromEntries(Object.keys(after[group]).map((key) => [key, after[group][key] - before[group][key]]));
@@ -302,7 +302,7 @@ run("shop purchase review on a replica set", () => {
       const pickedUp = await order();
       const secondReady = await order();
       await order("pending");
-      await setPickup(models, { purchaseId: pickedUp, pickedUp: true, expectedRevision: 0, actorId: officerId, nowMs: Date.now() });
+      await setPickup(models, { purchaseId: pickedUp, pickedUp: true, expectedRevision: 0, changedBy: officerId, nowMs: Date.now() });
 
       const query = { status: "paid", balance: "all", followUp: "all", q: "pickup filter" };
       const first = await listPurchases(models, { ...query, pickup: "ready", limit: 1 });
@@ -512,7 +512,7 @@ run("shop purchase review on a replica set", () => {
         const student = await buyer();
         await seedCounters({ catalogId, userId: student._id, sku: "info-hoodie", reservedUnits: 2, units: 2 });
         const id = await legacyPurchase({ userId: student._id, catalogId, lines: [line("info-hoodie", 2)], status: "paid" });
-        const picked = await setPickup(models, { purchaseId: id, pickedUp: true, expectedRevision: 0, actorId: officerId, nowMs: Date.now() });
+        const picked = await setPickup(models, { purchaseId: id, pickedUp: true, expectedRevision: 0, changedBy: officerId, nowMs: Date.now() });
         return { catalogId, student, id, revision: picked.reviewRevision, pickedUpAt: picked.pickedUpAt };
       }
 
@@ -652,7 +652,7 @@ run("shop purchase review on a replica set", () => {
       const student = await buyer();
       await seedCounters({ catalogId, userId: student._id, sku: "info-hoodie", reservedUnits: 1, units: 1 });
       const id = await legacyPurchase({ userId: student._id, catalogId, lines: [line("info-hoodie")] });
-      await setFollowUp(models, { purchaseId: id, followUpStatus: "contacted", expectedRevision: 0, actorId: officerId, nowMs: Date.now() });
+      await setFollowUp(models, { purchaseId: id, followUpStatus: "contacted", expectedRevision: 0, changedBy: officerId, nowMs: Date.now() });
 
       const paid = await pay(id, "paid", 1);
 
@@ -734,7 +734,7 @@ run("shop purchase review on a replica set", () => {
           purchaseId: id,
           title: `Check ${check}`,
           expectedRevision: current.reviewRevision,
-          actorId: officerId,
+          changedBy: officerId,
           nowMs: Date.now(),
         });
       }
@@ -821,7 +821,7 @@ run("shop purchase review on a replica set", () => {
       const coveredBefore = await legacyPurchase({ userId: student._id, catalogId, lines: [line("info-hoodie")], status: "paid" });
       await models.ShopPurchases.collection.updateOne(
         { _id: coveredBefore },
-        { $set: { amountReceivedCents: 3200, reviewRevision: 1, reviewHistory: [{ actorId: officerId, at: new Date(), kind: "amount_received", from: "3500", to: "3200" }] } },
+        { $set: { amountReceivedCents: 3200, reviewRevision: 1, reviewHistory: [{ changedBy: officerId, at: new Date(), kind: "amount_received", from: "3500", to: "3200" }] } },
       );
       assert.equal((await pay(coveredBefore, "pending", 1)).amountReceivedCents, null);
     });
@@ -849,7 +849,7 @@ run("shop purchase review on a replica set", () => {
       await seedCounters({ catalogId, userId: student._id, sku: "info-hoodie", reservedUnits: 2, units: 2 });
       const id = await legacyPurchase({ userId: student._id, catalogId, lines: [line("info-hoodie", 2)] });
       await receive(id, 5000, 0);
-      await setFollowUp(models, { purchaseId: id, followUpStatus: "contacted", expectedRevision: 1, actorId: officerId, nowMs: Date.now() });
+      await setFollowUp(models, { purchaseId: id, followUpStatus: "contacted", expectedRevision: 1, changedBy: officerId, nowMs: Date.now() });
 
       const paid = await receive(id, 6400, 2);
 
@@ -918,7 +918,7 @@ run("shop purchase review on a replica set", () => {
 
   describe("follow-up", () => {
     function logFollowUp(purchaseId, followUpStatus, expectedRevision, { note, nowMs = Date.now() } = {}) {
-      return setFollowUp(models, { purchaseId, followUpStatus, note, expectedRevision, actorId: officerId, nowMs });
+      return setFollowUp(models, { purchaseId, followUpStatus, note, expectedRevision, changedBy: officerId, nowMs });
     }
 
     it("logs what happened with the student, with an optional note, without touching payment or stock", async () => {
@@ -976,7 +976,7 @@ run("shop purchase review on a replica set", () => {
       const id = await legacyPurchase({ userId: student._id, catalogId: testDrop(), lines: [line("info-hoodie")] });
       await models.ShopPurchases.collection.updateOne(
         { _id: id },
-        { $set: { awaitingStudentReply: true, reviewRevision: 1, reviewHistory: [{ actorId: officerId, at: new Date(), kind: "follow_up", from: "none", to: "awaiting" }] } },
+        { $set: { awaitingStudentReply: true, reviewRevision: 1, reviewHistory: [{ changedBy: officerId, at: new Date(), kind: "follow_up", from: "none", to: "awaiting" }] } },
       );
 
       const legacy = await getPurchase(models, id);
@@ -995,7 +995,7 @@ run("shop purchase review on a replica set", () => {
       const id = await legacyPurchase({ userId: student._id, catalogId, lines: [line("info-hoodie")] });
       await logFollowUp(id, "will_pay", 0);
       const note = (title, description, expectedRevision) => addNote(models, {
-        purchaseId: id, title, note: description, expectedRevision, actorId: officerId, nowMs: Date.now(),
+        purchaseId: id, title, note: description, expectedRevision, changedBy: officerId, nowMs: Date.now(),
       });
 
       const noted = await note("Venmo name changed", "Now pays from @priya-r.", 1);
@@ -1014,7 +1014,7 @@ run("shop purchase review on a replica set", () => {
       assert.equal(brief.recentHistory.at(-1).note, undefined);
       assert.deepEqual(await counts(catalogId, student._id, "info-hoodie"), { reserved: 1, units: 1 });
       await assertReviewError(note("Late", undefined, 2), 409, CONFLICT);
-      await assertReviewError(addNote(models, { purchaseId: new mongoose.Types.ObjectId(), title: "x", expectedRevision: 0, actorId: officerId, nowMs: Date.now() }), 404);
+      await assertReviewError(addNote(models, { purchaseId: new mongoose.Types.ObjectId(), title: "x", expectedRevision: 0, changedBy: officerId, nowMs: Date.now() }), 404);
     });
 
     it("shows the saved id when the officer's profile no longer exists", async () => {
@@ -1023,7 +1023,7 @@ run("shop purchase review on a replica set", () => {
       const goneOfficer = new mongoose.Types.ObjectId();
       const id = await legacyPurchase({ userId: student._id, catalogId, lines: [line("info-hoodie")] });
 
-      const set = await setFollowUp(models, { purchaseId: id, followUpStatus: "contacted", expectedRevision: 0, actorId: goneOfficer, nowMs: Date.now() });
+      const set = await setFollowUp(models, { purchaseId: id, followUpStatus: "contacted", expectedRevision: 0, changedBy: goneOfficer, nowMs: Date.now() });
 
       assert.equal(set.recentHistory[0].actorName, String(goneOfficer));
     });
@@ -1031,7 +1031,7 @@ run("shop purchase review on a replica set", () => {
 
   describe("pickup", () => {
     function markPickup(purchaseId, pickedUp, expectedRevision, { actor = officerId, nowMs = Date.now() } = {}) {
-      return setPickup(models, { purchaseId, pickedUp, expectedRevision, actorId: actor, nowMs });
+      return setPickup(models, { purchaseId, pickedUp, expectedRevision, changedBy: actor, nowMs });
     }
 
     it("records who picked a paid order up and when, leaving payment, amount, follow-up, and stock as they were", async () => {
@@ -1131,7 +1131,7 @@ run("shop purchase review on a replica set", () => {
       const older = await legacyPurchase({ userId: student._id, catalogId, lines: [line("info-hoodie")], status: "paid", confirmedAt: new Date("2030-03-01T10:00:00Z") });
       const unpaid = await legacyPurchase({ userId: student._id, catalogId, lines: [line("info-hoodie")], status: "pending", confirmedAt: new Date("2030-03-01T09:00:00Z") });
       const pickedUp = await legacyPurchase({ userId: student._id, catalogId, lines: [line("info-hoodie")], status: "paid", confirmedAt: new Date("2030-03-01T08:00:00Z") });
-      await setPickup(models, { purchaseId: pickedUp, pickedUp: true, expectedRevision: 0, actorId: officerId, nowMs: Date.now() });
+      await setPickup(models, { purchaseId: pickedUp, pickedUp: true, expectedRevision: 0, changedBy: officerId, nowMs: Date.now() });
 
       const board = await listReadyForPickup(models, { limit: 1000 });
       const ids = board.orders.map((order) => String(order._id));

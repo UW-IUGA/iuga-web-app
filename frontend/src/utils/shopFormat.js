@@ -2,7 +2,7 @@
  * Purpose: Pure display formatters shared by the shop storefront and the global cart.
  * Authentication/Authorization Requirements: None (pure functions, no browser or network access).
  * Expected Request Information: Integer cents or ISO date strings.
- * Expected Response Information: Formatted USD strings or US short dates ("" when unparseable).
+ * Expected Response Information: Formatted USD strings, US short dates, or Seattle date-times ("" when unparseable).
  */
 
 /**
@@ -32,4 +32,23 @@ export function formatDate(isoString) {
     } catch {
         return "";
     }
+}
+
+/**
+ * @behavior Formats an ISO timestamp as a short date and time in Seattle time (e.g. Oct 5, 9:30 AM),
+ *           so every officer sees the same time for an order.
+ * @param {string} isoString
+ * @returns {string}
+ */
+export function formatDateTime(isoString) {
+    if (!isoString) return "";
+    const date = new Date(isoString);
+    if (Number.isNaN(date.getTime())) return "";
+    return new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        timeZone: "America/Los_Angeles",
+    }).format(date);
 }

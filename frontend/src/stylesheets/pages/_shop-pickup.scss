@@ -1,0 +1,312 @@
+// Officer Pickup page (ShopPickup.jsx): one large search, then a card per matching order. It reuses the
+// Orders page's admin bar, buttons, status line, and color tokens from _shop-orders.scss, which main.scss
+// imports first, so this file holds only the pickup layout. Type is larger than on Orders so it reads
+// across a pickup table.
+
+// One narrow column, centered under the admin bar's page links, so a card's name and its Picked up
+// button sit close enough to read together. Replaces the Orders page's 1280px frame.
+.shopPickup__main {
+    max-width: 800px;
+}
+
+.shopPickup__search {
+    display: flex;
+}
+
+.shopPickup__searchField {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 56px;
+    padding: 0 16px;
+    background: $admin-surface;
+    border: 1px solid $admin-border-strong;
+    border-radius: $admin-radius;
+    color: $admin-muted;
+    font-size: 18px;
+
+    &:focus-within {
+        border-color: $admin-accent;
+        box-shadow: 0 0 0 3px rgba($admin-accent, 0.2);
+    }
+
+    input {
+        flex: 1;
+        min-width: 0;
+        height: 54px;
+        border: 0;
+        background: transparent;
+        color: $admin-text;
+        font: inherit;
+        outline: none;
+    }
+}
+
+.shopPickup__prompt {
+    padding: 8px 2px;
+    color: $admin-muted;
+    font-size: 16px;
+}
+
+.shopPickup__results {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+// Who and what on the left, the pickup action on the right of the same card, so it sits beside the name.
+// The name leads; the items are a step below it, and the button is the one solid color on the card.
+.shopPickup__card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px 20px;
+    padding: 18px 20px;
+    background: $admin-surface;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius;
+    box-shadow: $admin-shadow;
+}
+
+.shopPickup__who {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 14px;
+}
+
+.shopPickup__name {
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.shopPickup__venmo,
+.shopPickup__reference {
+    color: $admin-muted;
+    font-size: 15px;
+}
+
+.shopPickup__items {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 16px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+}
+
+.shopPickup__who,
+.shopPickup__items {
+    grid-column: 1;
+}
+
+.shopPickup__state {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    max-width: 240px;
+    gap: 8px;
+    text-align: right;
+}
+
+.shopPickup__blocked {
+    font-size: 16px;
+    font-weight: 700;
+    color: $admin-due;
+}
+
+.shopPickup__pickedUp {
+    font-size: 16px;
+    font-weight: 700;
+    color: $admin-received;
+}
+
+// Closes the confirmation. Its own class keeps the shared button look off it; the tap target stays 44px square.
+.shopAdmin button.shopPickup__dismiss {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    border: 0;
+    background: none;
+    color: $admin-muted;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+// Undo sits at the sort switch's size, not the small shared button size, so the page keeps one button scale.
+.shopAdmin button.shopPickup__undo {
+    min-height: 40px;
+    padding: 0 16px;
+    font-size: 15px;
+}
+
+.shopPickup__resultActions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+}
+
+// Beats the shared button rules (.shopAdmin button.shopAdmin__button), so the handoff button is the page's largest
+// control without outweighing the name beside it.
+.shopAdmin button.shopPickup__pickButton {
+    min-height: 48px;
+    padding: 10px 22px;
+    font-size: 16px;
+}
+
+// Phone: the card is one column, so the name and items get the full width, and the button spans the card below them.
+@include media("<tablet") {
+    .shopPickup__name {
+        font-size: 20px;
+    }
+
+    .shopPickup__card {
+        grid-template-columns: minmax(0, 1fr);
+        padding: 16px;
+    }
+
+    .shopPickup__state {
+        grid-column: 1;
+        grid-row: auto;
+        align-items: stretch;
+        max-width: none;
+        text-align: left;
+    }
+}
+
+// Search and the progress line stay at the top while the list scrolls.
+.shopPickup__stickyTop {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px 0 10px;
+    background: $admin-page;
+}
+
+.shopPickup__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 16px;
+    margin: 8px 0 4px;
+}
+
+.shopPickup__progress {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.shopPickup__sort {
+    display: inline-flex;
+    border: 1px solid $admin-border-strong;
+    border-radius: $admin-radius;
+    overflow: hidden;
+}
+
+.shopPickup__sortButton {
+    min-height: 40px;
+    padding: 0 14px;
+    border: 0;
+    background: $admin-surface;
+    color: $admin-muted;
+    font: inherit;
+    font-size: 15px;
+    cursor: pointer;
+
+    & + & {
+        border-left: 1px solid $admin-border-strong;
+    }
+
+    &--current {
+        background: $admin-accent-soft;
+        color: $admin-accent;
+        font-weight: 700;
+    }
+}
+
+// The list and the A to Z rail sit side by side; the rail is a column of letter buttons.
+.shopPickup__boardWrap {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.shopPickup__groups {
+    flex: 1;
+    min-width: 0;
+}
+
+.shopPickup__group {
+    scroll-margin-top: 170px;
+    margin-bottom: 18px;
+}
+
+.shopPickup__letter {
+    margin: 0 0 8px;
+    padding: 4px 2px;
+    color: $admin-accent;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.shopPickup__rail {
+    position: sticky;
+    top: 170px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    flex-shrink: 0;
+}
+
+.shopAdmin button.shopPickup__railLetter {
+    width: 26px;
+    min-height: 22px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: $admin-accent;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+
+    &:disabled {
+        color: $admin-border-strong;
+        cursor: default;
+    }
+}
+
+.shopPickup__preferred {
+    color: $admin-muted;
+    font-size: 15px;
+}
+
+@include media("<tablet") {
+    .shopPickup__group {
+        scroll-margin-top: 150px;
+    }
+
+    .shopPickup__rail {
+        top: 150px;
+    }
+}

@@ -1,0 +1,1496 @@
+// Officer Orders page (ShopOrders.jsx): a payments dashboard for matching orders to Venmo.
+// It deliberately leaves the public site theme: neutral white and cool gray surfaces, near-black text,
+// the system font, tabular figures, thin borders, a 6px radius, and one blue accent. The page brings its
+// admin bar (components/_adminBar.scss) above it. The site navbar and footer are hidden on admin pages.
+//
+// Button specificity: the global rules in components/_buttons.scss style every button purple, and between
+// 1024px and 1299px `button:not(.pill-button):not(.standard-button)` (specificity 0,2,1) shrinks them.
+// Every button here is selected as `.shopAdmin button.<class>` (also 0,2,1). This file is imported after
+// _buttons.scss, so these rules win at every width without editing the global rule.
+
+$admin-page: #f6f8fa;
+$admin-surface: #ffffff;
+$admin-hover: #f6f8fa;
+$admin-border: #e3e8ee;
+$admin-border-strong: #c9d1da;
+$admin-text: #1a1f36;
+$admin-muted: #5b6577;
+$admin-accent: #0a66d6;
+$admin-accent-hover: #0852ad;
+$admin-accent-soft: #e8f1fd;
+$admin-accent-tint: #f5f9ff;
+$admin-danger: #b42318;
+$admin-due: #9a3412;
+$admin-due-soft: #fff7ed;
+$admin-due-border: #fdba74;
+$admin-radius: 6px;
+$admin-shadow: 0 1px 2px rgba(26, 31, 54, 0.06);
+$admin-shadow-raised: 0 12px 32px rgba(26, 31, 54, 0.18);
+$admin-font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+$admin-received: #15803d;
+
+// Page frame: the admin bar and each page's main column share this content width and side gutter, so
+// the bar's brand and sign-out line up with the page's left and right edges at every window width.
+$admin-content-width: 1280px;
+$admin-gutter: 24px;
+$admin-gutter-phone: 16px;
+
+// Each color means one thing on this page. Blue: what the officer chose (the current filter, checked
+// orders, the order open in the drawer). Green: money that arrived. Amber: money still owed or an order
+// waiting on an officer. Red: actions that remove or return something. Gray: hover, closed orders, and
+// structure. Anything that marks no state stays neutral.
+
+// Payment status badges: dark text on a light tint, with a dot in the state's color. Text names the
+// state, so color only helps scanning. Amber: Unconfirmed, needs action. Green: Paid, money in. Gray: closed
+// with no money expected (Dropped) or returned (Refunded). Follow-up is not a payment state, so it has
+// no badge color. (tint, dot) per state.
+$admin-badges: (
+    pending: (#fef3c7, #d97706),
+    paid: (#dcfce7, #16a34a),
+    not_paid: (#f1f5f9, #64748b),
+    refunded: (#f1f5f9, #94a3b8),
+);
+
+@mixin admin-focus {
+    outline: 2px solid $admin-accent;
+    outline-offset: 2px;
+}
+
+.shopAdmin {
+    // The Write email dialog renders inside this page, so these variables give it the admin theme.
+    // components/_emailContactDialog.scss lists what each one sets.
+    --email-dialog-surface: #{$admin-surface};
+    --email-dialog-text: #{$admin-text};
+    --email-dialog-muted: #{$admin-muted};
+    --email-dialog-border: #{$admin-border};
+    --email-dialog-tint: #{$admin-hover};
+    --email-dialog-hover: #{$admin-hover};
+    --email-dialog-accent: #{$admin-accent};
+    --email-dialog-accent-hover: #{$admin-accent-hover};
+    --email-dialog-accent-text: white;
+    --email-dialog-radius: #{$admin-radius};
+    --email-dialog-button-radius: #{$admin-radius};
+    --email-dialog-font: #{$admin-font};
+    --email-dialog-heading-font: #{$admin-font};
+    --email-dialog-focus: #{$admin-accent};
+    --email-dialog-label: #{$admin-muted};
+    --email-dialog-label-font: #{$admin-font};
+    --email-dialog-shadow: #{$admin-shadow-raised};
+
+    min-height: 100vh;
+    background: $admin-page;
+    color: $admin-text;
+    font-family: $admin-font;
+    font-size: 14px;
+    line-height: 1.45;
+
+    h1,
+    h2,
+    h3 {
+        font-family: $admin-font;
+        color: $admin-text;
+        margin: 0;
+    }
+
+    p {
+        margin: 0;
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible {
+        @include admin-focus;
+    }
+
+    // Undo the site-wide button look for every button on this page.
+    button {
+        font-family: inherit;
+        text-shadow: none;
+        transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+
+        &::before {
+            content: none;
+        }
+    }
+}
+
+.shopAdmin__muted {
+    color: $admin-muted;
+}
+
+.shopAdmin__number {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+// ---------- Buttons ----------
+
+.shopAdmin button.shopAdmin__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 32px;
+    padding: 6px 12px;
+    border: 1px solid $admin-border-strong;
+    border-radius: $admin-radius;
+    background: $admin-surface;
+    color: $admin-text;
+    box-shadow: $admin-shadow;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+
+    &:hover:not(:disabled) {
+        background: $admin-hover;
+        border-color: $admin-muted;
+    }
+
+    &:disabled {
+        background: $admin-page;
+        border-color: $admin-border;
+        color: $admin-muted;
+        box-shadow: none;
+        cursor: not-allowed;
+    }
+}
+
+.shopAdmin button.shopAdmin__button--primary {
+    background: $admin-accent;
+    border-color: $admin-accent;
+    color: white;
+
+    &:hover:not(:disabled) {
+        background: $admin-accent-hover;
+        border-color: $admin-accent-hover;
+    }
+}
+
+.shopAdmin button.shopAdmin__button--danger {
+    background: $admin-danger;
+    border-color: $admin-danger;
+    color: white;
+
+    &:hover:not(:disabled) {
+        background: darken($admin-danger, 6%);
+        border-color: darken($admin-danger, 6%);
+    }
+}
+
+.shopAdmin button.shopAdmin__button--ghost {
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+}
+
+.shopAdmin button.shopAdmin__button--small {
+    min-height: 28px;
+    padding: 4px 10px;
+    font-size: 12px;
+}
+
+.shopAdmin button.shopAdmin__button--icon {
+    width: 32px;
+    min-height: 32px;
+    padding: 0;
+}
+
+.shopAdmin button.shopAdmin__textButton {
+    margin-left: 10px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: $admin-accent;
+    font-size: 13px;
+    font-weight: 600;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.shopAdmin__link {
+    color: $admin-accent;
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+// ---------- Page ----------
+
+.shopAdmin__main {
+    max-width: $admin-content-width;
+    margin: 0 auto;
+    padding: 28px $admin-gutter 120px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.shopAdmin__heading {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.shopAdmin__title {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.shopAdmin__panel {
+    padding: 24px;
+    background: $admin-surface;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+
+    h2 {
+        font-size: 17px;
+    }
+}
+
+// ---------- Overview ----------
+
+// The cards sit on a border-colored grid with a 1px gap, which draws the dividers, so cards can be buttons
+// without border rules fighting the shared button styles.
+.shopAdmin__overview {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1px;
+    overflow: hidden;
+    background: $admin-border;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius;
+    box-shadow: $admin-shadow;
+}
+
+.shopAdmin__stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 16px 20px;
+    background: $admin-surface;
+}
+
+// Unconfirmed and Follow-up open their tabs. Selected as .shopAdmin button.<class> to beat the shared
+// button rules (see the top of this file), so each looks like the other cards until hovered or focused.
+.shopAdmin button.shopAdmin__stat {
+    align-items: stretch;
+    min-height: 0;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    background: $admin-surface;
+    box-shadow: none;
+    color: inherit;
+    font: inherit;
+    line-height: inherit;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+        background: $admin-hover;
+    }
+
+    &:focus-visible {
+        @include admin-focus;
+    }
+}
+
+.shopAdmin__statLabel {
+    color: $admin-muted;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.shopAdmin__statValue {
+    font-size: 22px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.shopAdmin__statNote {
+    color: $admin-muted;
+    font-size: 12px;
+}
+
+// Color marks money only: green for what was confirmed, the due color for what is still unconfirmed. That
+// is the work left, so its card is tinted while anything is unconfirmed and turns neutral at $0.00.
+.shopAdmin__stat--received .shopAdmin__statValue {
+    color: $admin-received;
+}
+
+.shopAdmin__stat--owed,
+.shopAdmin button.shopAdmin__stat--owed {
+    background: $admin-due-soft;
+
+    .shopAdmin__statValue {
+        color: $admin-due;
+        font-size: 26px;
+    }
+}
+
+// ---------- Filters and search ----------
+
+// Search sits at the end of the tab row when both fit, and on its own line below when they do not.
+.shopAdmin__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px 24px;
+}
+
+// Filter tabs on one gray line; the current filter is the only blue thing in the row. The line is an
+// inset shadow, so each tab's underline paints over it and scrolling the row never clips the underline.
+.shopAdmin__filters {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 20px;
+    overflow-x: auto;
+    box-shadow: inset 0 -1px 0 $admin-border;
+}
+
+.shopAdmin button.shopAdmin__filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 2px 9px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    color: $admin-muted;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+
+    &:hover {
+        border-bottom-color: $admin-border-strong;
+        color: $admin-text;
+    }
+
+    &[aria-selected="true"] {
+        border-bottom-color: $admin-accent;
+        color: $admin-accent;
+    }
+
+    // Inside the outline, so the scrolling tab row on phones cannot clip it.
+    &:focus-visible {
+        outline-offset: -2px;
+    }
+}
+
+.shopAdmin__filterCount {
+    color: $admin-muted;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+
+    [aria-selected="true"] > & {
+        color: inherit;
+    }
+}
+
+// Orders with an open follow-up are waiting on an officer, so that count is amber while above zero.
+.shopAdmin__filterCount.shopAdmin__filterCount--waiting {
+    padding: 0 6px;
+    border-radius: 4px;
+    background: $admin-due-soft;
+    color: $admin-due;
+    font-weight: 600;
+}
+
+.shopAdmin__search {
+    display: flex;
+    flex: 0 1 320px;
+    min-width: 240px;
+    margin-bottom: 4px;
+}
+
+.shopAdmin__searchField {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 10px;
+    background: $admin-surface;
+    border: 1px solid $admin-border-strong;
+    border-radius: $admin-radius;
+    color: $admin-muted;
+
+    &:focus-within {
+        border-color: $admin-accent;
+        box-shadow: 0 0 0 3px rgba($admin-accent, 0.2);
+    }
+
+    input {
+        flex: 1;
+        min-width: 0;
+        height: 32px;
+        border: 0;
+        background: transparent;
+        color: $admin-text;
+        font: inherit;
+
+        &:focus-visible {
+            outline: none;
+        }
+    }
+}
+
+// ---------- Order table ----------
+
+// While the next orders load, the current ones stay readable but quieter.
+.shopAdmin__list--refreshing .shopAdmin__tableWrap {
+    opacity: 0.6;
+    transition: opacity 120ms ease;
+}
+
+.shopAdmin__tableWrap {
+    background: $admin-surface;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius;
+    box-shadow: $admin-shadow;
+}
+
+.shopAdmin__table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th {
+        padding: 10px 12px;
+        border-bottom: 1px solid $admin-border;
+        color: $admin-muted;
+        font-size: 12px;
+        font-weight: 600;
+        text-align: left;
+        white-space: nowrap;
+    }
+
+    td {
+        padding: 12px;
+        vertical-align: middle;
+    }
+}
+
+.shopAdmin__order + .shopAdmin__order {
+    border-top: 1px solid $admin-border;
+}
+
+.shopAdmin__row {
+    cursor: pointer;
+
+    &:hover,
+    &:focus-within {
+        background: $admin-hover;
+    }
+}
+
+// Checked orders are tinted blue, so the officer sees which ones the selection bar will act on.
+.shopAdmin__row--checked {
+    background: $admin-accent-tint;
+
+    &:hover,
+    &:focus-within {
+        background: $admin-accent-soft;
+    }
+}
+
+// While the drawer is open, its order has a blue edge in the list beside it, so the officer sees which
+// row they are working on.
+.shopAdmin__row--open {
+    background: $admin-accent-tint;
+
+    > td:first-child {
+        box-shadow: inset 3px 0 0 $admin-accent;
+    }
+}
+
+.shopAdmin__select {
+    width: 36px;
+    padding-right: 0;
+
+    input {
+        width: 16px;
+        height: 16px;
+        accent-color: $admin-accent;
+    }
+}
+
+// Amount, status, progress, and follow-up stack on their own lines, so nothing runs into the next column.
+.shopAdmin__amountCell {
+    min-width: 210px;
+}
+
+.shopAdmin__amountStack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+}
+
+// Amount, status, and any follow-up share a line, wrapping inside the column rather than past it.
+.shopAdmin__amountLine {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 8px;
+}
+
+// Right-aligned in a fixed width with equal-width digits, so amounts line up down the column.
+.shopAdmin__amount {
+    display: inline-block;
+    min-width: 76px;
+    font-size: 15px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+.shopAdmin__progressText {
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.shopAdmin__progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+// The share of the expected amount recorded as received, in the same green as Received above.
+.shopAdmin__progressBar {
+    display: block;
+    width: 76px;
+    height: 4px;
+    border-radius: 2px;
+    background: $admin-border;
+    overflow: hidden;
+
+    > span {
+        display: block;
+        height: 100%;
+        background: $admin-received;
+    }
+}
+
+.shopAdmin__progressBar--wide {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+}
+
+.shopAdmin__progress .shopAdmin__due {
+    font-size: 12px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+// Open follow-up: outlined and uncolored, since it is a note about the student, not a payment state.
+.shopAdmin__followUpTag {
+    display: inline-flex;
+    gap: 6px;
+    padding: 0 6px;
+    border: 1px solid $admin-border-strong;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 18px;
+    white-space: nowrap;
+}
+
+// A paid order handed over at pickup: a small green tag beside its Paid badge.
+.shopAdmin__pickupTag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 6px;
+    border: 1px solid #bbf7d0;
+    border-radius: 4px;
+    background: #f0fdf4;
+    color: $admin-received;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 18px;
+    white-space: nowrap;
+}
+
+// An order whose status changed after pickup: a solid warning tag, since the merch went out and came back.
+.shopAdmin__afterPickupTag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 6px;
+    border: 1px solid $admin-danger;
+    border-radius: 4px;
+    background: $admin-danger;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 18px;
+    white-space: nowrap;
+}
+
+// The drawer's line for the same case: the tag, then when and by whom the order was picked up.
+.shopAdmin__afterPickupNote {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+    font-size: 13px;
+
+    p {
+        margin: 0;
+    }
+}
+
+// Shown above a change to a picked-up order: the same warning colors as a failure, in a full block.
+.shopAdmin__pickupWarning {
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border: 1px solid #fecaca;
+    border-left: 4px solid $admin-danger;
+    border-radius: $admin-radius;
+    background: #fef2f2;
+    color: #7f1d1d;
+    font-weight: 600;
+}
+
+// A student who says they already paid is waiting on an officer to check Venmo, so that tag is amber.
+.shopAdmin__followUpTag--waiting {
+    border-color: $admin-due-border;
+    background: $admin-due-soft;
+    color: $admin-due;
+}
+
+.shopAdmin__followUpLine {
+    font-size: 13px;
+}
+
+.shopAdmin__venmo {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.shopAdmin button.shopAdmin__customerButton {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: $admin-text;
+    font-size: 14px;
+    font-weight: 400;
+    text-align: left;
+
+    &:hover {
+        color: $admin-accent;
+        text-decoration: underline;
+    }
+}
+
+.shopAdmin__items {
+    max-width: 280px;
+    color: $admin-muted;
+}
+
+.shopAdmin__date {
+    color: $admin-muted;
+    white-space: nowrap;
+}
+
+// Row actions appear on hover or keyboard focus, and stay visible on touch screens.
+.shopAdmin__rowActions {
+    width: 1%;
+    white-space: nowrap;
+
+    > * {
+        display: inline-flex;
+        vertical-align: middle;
+        margin-left: 6px;
+    }
+
+    @media (hover: hover) {
+        > * {
+            opacity: 0;
+        }
+
+        .shopAdmin__row:hover &,
+        .shopAdmin__row:focus-within & {
+            > * {
+                opacity: 1;
+            }
+        }
+    }
+}
+
+.shopAdmin__rowNotice td,
+.shopAdmin__resultRow td {
+    padding-top: 0;
+}
+
+.shopAdmin__resultRow td {
+    padding: 12px;
+    color: $admin-muted;
+}
+
+.shopAdmin__listFooter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 4px 0;
+}
+
+// ---------- Badges, notices ----------
+
+.shopAdmin__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 1px 7px;
+    border-radius: 4px;
+    color: $admin-text;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 18px;
+    white-space: nowrap;
+
+    &::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+}
+
+@each $state, $pair in $admin-badges {
+    .shopAdmin__badge--#{$state} {
+        background: nth($pair, 1);
+
+        &::before {
+            background: nth($pair, 2);
+        }
+    }
+}
+
+// The drawer's status badge doubles as the button that changes status, so it keeps the badge look with a
+// chevron and a border that shows it can be pressed.
+.shopAdmin button.shopAdmin__statusButton {
+    min-height: 24px;
+    padding: 2px 8px;
+    border: 1px solid $admin-border-strong;
+    font-family: inherit;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+        border-color: $admin-muted;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $admin-accent;
+        outline-offset: 2px;
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+}
+
+.shopAdmin__notice {
+    padding: 8px 12px;
+    border: 1px solid #fecaca;
+    border-left: 3px solid $admin-danger;
+    border-radius: $admin-radius;
+    background: #fef2f2;
+    color: #7f1d1d;
+}
+
+.shopAdmin__callout {
+    margin-top: 8px;
+    color: $admin-due;
+    font-weight: 600;
+}
+
+.shopAdmin__fieldError {
+    color: $admin-danger;
+    font-size: 13px;
+}
+
+// ---------- Result of the last change ----------
+
+// Shown above the list, where the officer is looking. One line of text, with Undo or a retry offer beside it.
+// While empty the slot has no box, so the page's gap doesn't open; the live region inside stays in the page.
+.shopAdmin__resultSlot {
+    display: contents;
+}
+
+.shopAdmin__result {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 12px;
+    padding: 10px 14px;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius;
+    background: $admin-surface;
+}
+
+.shopAdmin__resultText {
+    font-weight: 600;
+}
+
+// A handoff that saved, such as an order marked picked up. Green, like the card's own Picked up line.
+.shopAdmin__result--success {
+    border: 1px solid #bbf7d0;
+    border-left: 3px solid $admin-received;
+    background: #f0fdf4;
+    color: #14532d;
+}
+
+// A result that reports trouble, such as an Undo that didn't save or orders that weren't marked paid.
+// Same palette as .shopAdmin__notice, so a failure reads as the page's existing warning.
+.shopAdmin__result--warning {
+    border: 1px solid #fecaca;
+    border-left: 3px solid $admin-danger;
+    background: #fef2f2;
+    color: #7f1d1d;
+}
+
+// ---------- Selection bar ----------
+
+.shopAdmin__selectionBar {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    z-index: 6;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: min(640px, calc(100vw - 32px));
+    box-sizing: border-box;
+    padding: 10px 12px 10px 20px;
+    border-radius: 8px;
+    background: $admin-text;
+    color: white;
+    box-shadow: $admin-shadow-raised;
+    animation: shopAdminRise 160ms ease-out;
+}
+
+.shopAdmin__selectionCount {
+    font-weight: 700;
+}
+
+.shopAdmin__selectionTotal {
+    font-variant-numeric: tabular-nums;
+    opacity: 0.85;
+}
+
+.shopAdmin__selectionButtons {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+}
+
+// ---------- Popovers (Contact, "···") ----------
+
+.shopAdmin__popoverWrap {
+    position: relative;
+    display: inline-flex;
+}
+
+.shopAdmin__popover {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    z-index: 10;
+    min-width: 220px;
+    padding: 6px;
+    background: $admin-surface;
+    border: 1px solid $admin-border;
+    border-radius: $admin-radius;
+    box-shadow: $admin-shadow-raised;
+    text-align: left;
+}
+
+.shopAdmin__contact {
+    left: 0;
+    right: auto;
+    min-width: 300px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.shopAdmin__contactLine {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    color: $admin-muted;
+}
+
+.shopAdmin__contactValue {
+    color: $admin-text;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+}
+
+.shopAdmin__menu {
+    display: flex;
+    flex-direction: column;
+}
+
+.shopAdmin button.shopAdmin__menuItem {
+    display: block;
+    width: 100%;
+    padding: 8px 10px;
+    border: 0;
+    border-radius: 4px;
+    background: none;
+    color: $admin-text;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: left;
+    white-space: nowrap;
+
+    &:hover,
+    &:focus-visible {
+        background: $admin-hover;
+        outline: none;
+    }
+}
+
+.shopAdmin button.shopAdmin__menuItem--danger {
+    color: $admin-danger;
+}
+
+.shopAdmin__chevron {
+    font-size: 10px;
+}
+
+// ---------- Drawer ----------
+
+.shopAdmin__drawer {
+    position: fixed;
+    inset: 0 0 0 auto;
+    width: min(480px, 100vw);
+    max-width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    margin: 0 0 0 auto;
+    padding: 0;
+    border: 0;
+    border-left: 1px solid $admin-border;
+    background: $admin-surface;
+    color: $admin-text;
+    font-family: $admin-font;
+    box-shadow: $admin-shadow-raised;
+    // Only the drawer scrolls while it is open (the page behind is locked), with a thin, quiet scrollbar.
+    // The ::-webkit-scrollbar rules cover Safari, which does not support scrollbar-color.
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: $admin-border-strong transparent;
+
+    &::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        border: 2px solid $admin-surface;
+        border-radius: 4px;
+        background: $admin-border-strong;
+    }
+
+    &[open] {
+        animation: shopAdminSlideIn 180ms ease-out;
+    }
+
+    &::backdrop {
+        background: rgba(26, 31, 54, 0.25);
+    }
+}
+
+.shopAdmin__drawerBody {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px 24px 32px;
+}
+
+.shopAdmin__drawerHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    h2 {
+        font-size: 14px;
+        font-weight: 600;
+        color: $admin-muted;
+    }
+}
+
+.shopAdmin__drawerSummary {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.shopAdmin__drawerAmount {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+
+    > span:first-child {
+        font-size: 28px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+.shopAdmin__drawerActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    > .shopAdmin__popoverWrap--actions {
+        margin-left: auto;
+    }
+}
+
+.shopAdmin__section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 16px;
+    border-top: 1px solid $admin-border;
+
+    h3 {
+        font-size: 13px;
+        font-weight: 700;
+    }
+}
+
+.shopAdmin__balance,
+.shopAdmin__facts {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+
+    > div {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    dt {
+        color: $admin-muted;
+    }
+
+    dd {
+        margin: 0;
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+        overflow-wrap: anywhere;
+    }
+}
+
+.shopAdmin__balanceTotal {
+    padding-top: 8px;
+    border-top: 1px solid $admin-border;
+    font-weight: 700;
+
+    dt {
+        color: $admin-text;
+    }
+}
+
+.shopAdmin__due {
+    color: $admin-due;
+}
+
+.shopAdmin__lines {
+    width: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+
+    th,
+    td {
+        padding: 6px 0;
+        text-align: left;
+    }
+
+    thead th {
+        color: $admin-muted;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .shopAdmin__number {
+        text-align: right;
+        padding-left: 12px;
+    }
+
+    tfoot th,
+    tfoot td {
+        border-top: 1px solid $admin-border;
+        font-weight: 700;
+    }
+}
+
+.shopAdmin__activity {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    li {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding-left: 16px;
+
+        &::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 6px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: $admin-accent;
+        }
+
+        &:last-child::before {
+            background: $admin-surface;
+            border: 1px solid $admin-border-strong;
+            box-sizing: border-box;
+        }
+
+        > span {
+            flex-shrink: 0;
+            font-size: 12px;
+        }
+    }
+}
+
+.shopAdmin__sectionHeading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.shopAdmin__note {
+    margin-top: 2px;
+    color: $admin-muted;
+    font-style: italic;
+    overflow-wrap: anywhere;
+}
+
+.shopAdmin__followUpForm {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    fieldset {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin: 0 0 8px;
+        padding: 0;
+        border: 0;
+    }
+
+    legend,
+    > label {
+        margin-bottom: 4px;
+        font-weight: 600;
+    }
+
+    textarea,
+    input[type="text"] {
+        padding: 8px 10px;
+        border: 1px solid $admin-border-strong;
+        border-radius: $admin-radius;
+        font: inherit;
+        resize: vertical;
+    }
+}
+
+.shopAdmin__choice {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    input {
+        accent-color: $admin-accent;
+    }
+
+    .shopAdmin__muted {
+        margin-left: auto;
+        font-size: 12px;
+    }
+}
+
+// What the chosen status change will do, shown before the officer confirms it.
+.shopAdmin__statusNotes {
+    padding: 10px 12px;
+    border-radius: $admin-radius;
+    background: $admin-page;
+
+    p:last-child {
+        margin-bottom: 0;
+    }
+}
+
+// ---------- Confirmation dialog ----------
+
+.shopAdmin__modal {
+    width: min(440px, calc(100vw - 32px));
+    box-sizing: border-box;
+    padding: 24px;
+    border: 0;
+    border-radius: 8px;
+    background: $admin-surface;
+    color: $admin-text;
+    font-family: $admin-font;
+    font-size: 14px;
+    box-shadow: $admin-shadow-raised;
+
+    &::backdrop {
+        background: rgba(26, 31, 54, 0.35);
+    }
+
+    p {
+        margin: 0 0 10px;
+        line-height: 1.5;
+    }
+}
+
+.shopAdmin__modalTitle {
+    margin: 0 0 12px;
+    font-family: $admin-font;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.shopAdmin__modalButtons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.shopAdmin__amountForm {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    label {
+        font-weight: 600;
+    }
+
+    input {
+        height: 36px;
+        padding: 0 10px;
+        border: 1px solid $admin-border-strong;
+        border-radius: $admin-radius;
+        font: inherit;
+        font-variant-numeric: tabular-nums;
+
+        &[aria-invalid="true"] {
+            border-color: $admin-danger;
+        }
+    }
+}
+
+.shopAdmin__preview {
+    min-height: 1.5em;
+    color: $admin-muted;
+}
+
+@keyframes shopAdminSlideIn {
+    from {
+        transform: translateX(24px);
+        opacity: 0;
+    }
+}
+
+@keyframes shopAdminRise {
+    from {
+        transform: translate(-50%, 12px);
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .shopAdmin__drawer[open],
+    .shopAdmin__selectionBar {
+        animation: none;
+    }
+}
+
+// ---------- Narrow screens ----------
+
+@include media("<sm-desktop") {
+    .shopAdmin__items {
+        max-width: 180px;
+    }
+
+    .shopAdmin__date {
+        display: none;
+    }
+
+    .shopAdmin__table th:nth-child(6) {
+        display: none;
+    }
+}
+
+// Phone: overview cards stacked, filters scroll sideways, each order becomes a card,
+// and the drawer is a full-screen sheet.
+@include media("<tablet") {
+    .shopAdmin__main {
+        padding: 20px $admin-gutter-phone 120px;
+    }
+
+    .shopAdmin__overview {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .shopAdmin__stat,
+    .shopAdmin button.shopAdmin__stat {
+        padding: 12px 14px;
+    }
+
+    .shopAdmin__statValue {
+        font-size: 18px;
+    }
+
+    .shopAdmin__toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .shopAdmin__search {
+        flex-basis: auto;
+        min-width: 0;
+    }
+
+    .shopAdmin__filters {
+        margin: 0 -16px;
+        padding: 0 16px;
+    }
+
+    .shopAdmin__search {
+        margin-bottom: 0;
+    }
+
+    .shopAdmin__table {
+        thead {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+        }
+
+        td {
+            padding: 0;
+        }
+    }
+
+    .shopAdmin__order {
+        display: block;
+    }
+
+    .shopAdmin__row {
+        display: grid;
+        grid-template-columns: 28px minmax(0, 1fr) auto;
+        grid-template-areas:
+            "select amount actions"
+            "select venmo venmo"
+            "select items items";
+        column-gap: 8px;
+        row-gap: 4px;
+        padding: 12px;
+    }
+
+    .shopAdmin__select {
+        grid-area: select;
+        width: auto;
+    }
+
+    .shopAdmin__amountCell {
+        grid-area: amount;
+        white-space: normal;
+    }
+
+    .shopAdmin__venmo {
+        grid-area: venmo;
+        display: inline;
+    }
+
+    // Customer shares the Venmo line, at its right end.
+    .shopAdmin__customer {
+        grid-area: venmo;
+        justify-self: end;
+    }
+
+    .shopAdmin__items {
+        grid-area: items;
+        max-width: none;
+    }
+
+    .shopAdmin__rowActions {
+        grid-area: actions;
+        width: auto;
+    }
+
+    .shopAdmin__rowNotice,
+    .shopAdmin__resultRow {
+        display: block;
+
+        td {
+            display: block;
+            padding: 0 12px 12px;
+        }
+    }
+
+    .shopAdmin__drawer {
+        width: 100vw;
+        border-left: 0;
+    }
+
+    .shopAdmin__drawerBody {
+        padding: 16px;
+    }
+
+    .shopAdmin__selectionBar {
+        flex-wrap: wrap;
+        gap: 8px 12px;
+        bottom: 12px;
+    }
+
+    .shopAdmin__contact {
+        min-width: min(300px, calc(100vw - 48px));
+    }
+}

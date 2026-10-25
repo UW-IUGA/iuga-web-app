@@ -106,7 +106,7 @@
     justify-content: space-between;
     gap: 20px;
     padding: 18px 0;
-    color: black;
+    color: inherit;
     font: $font-weight-bold #{$font-size-section}/#{$line-height-heading} $font-family-base;
     text-align: left;
     background: transparent;
@@ -179,10 +179,6 @@
     h2,
     p {
         margin: 0;
-    }
-
-    h2 {
-        color: black;
     }
 
     p {

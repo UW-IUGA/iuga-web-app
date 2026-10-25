@@ -12,11 +12,10 @@
         h1 {
             margin: 10px 0 50px;
             font-family: $font-family-base;
-            font-size: clamp(3rem, 5.5vw, 6rem);
-            font-weight: 900;
+            font-size: $font-size-title;
+            font-weight: $font-weight-bold;
             line-height: 1;
-            letter-spacing: -0.055em;
-            text-transform: uppercase;
+            letter-spacing: $letter-spacing-heading;
 
             span { display: block; }
         }

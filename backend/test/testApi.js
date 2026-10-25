@@ -68,6 +68,7 @@ export async function makeTestApi({ router, mountPath, models, session = {} }) {
         const text = await response.text();
         return {
           status: response.status,
+          headers: Object.fromEntries(response.headers),
           body: text ? JSON.parse(text) : null,
           session: requestSession,
         };

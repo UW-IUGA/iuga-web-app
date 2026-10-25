@@ -8,7 +8,7 @@ button {
     border-radius: $radius;
     background-color: $color-primary;
     color: $color-white;
-    border: 0px;
+    border: 0;
     padding: $padding-box-y $padding-box-x;
     font-weight: $font-weight-medium;
     font-size: $font-size-small;
@@ -24,7 +24,7 @@ button {
     }
 }
 
-button:hover:before {
+button:hover::before {
     opacity: 0.5;
 }
 
@@ -34,15 +34,14 @@ button:hover {
 
 button:disabled,
 button[disabled] {
-    border: 1px solid #999999;
     background: #e8e8e8;
     color: #464646;
     border: 1px solid #464646;
-    outline-width: 0px;
+    outline-width: 0;
     cursor: not-allowed;
 }
 
-button:before {
+button::before {
     content: "";
     position: absolute;
     top: -2px;

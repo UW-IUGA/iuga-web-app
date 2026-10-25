@@ -1,4 +1,4 @@
-$font-family-base: "Rubik", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+$font-family-base: "Rubik", "Segoe UI", tahoma, geneva, verdana, sans-serif;
 
 // Type scale by role. Larger roles shrink smoothly from desktop to phone.
 $font-size-title: clamp(2.25rem, 1.6rem + 2.6vw, 3.5rem); // 36px → 56px

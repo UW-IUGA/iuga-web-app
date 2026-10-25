@@ -143,6 +143,7 @@ function EventsPage() {
             <PageHeader
                 label="Events"
                 title="Find what's happening this week."
+                intro="IUGA's academic, social, and professional events. Pick a day to narrow the week."
                 visual={<PhotoCollage photos={HERO_PHOTOS} />}
             />
 

@@ -98,8 +98,8 @@ function ResourcesPage({ resources }) {
             <main className="resourcesPage">
                 <PageHeader
                     label="Resources"
-                    title="Resources"
-                    intro="IUGA is just one of many RSOs and groups affiliated with the iSchool that makes the iSchool everything it is. Explore the resources below to take full advantage of everything the iSchool offers its students! From academic and career resources to personal mental health, the iSchool community does its best to support its students in every area it can."
+                    title="Find support at the iSchool and UW."
+                    intro="Academic, career, wellbeing, and community resources, plus student organizations. Each is run by its own group, not IUGA."
                 />
 
                 <section className="resourcesDirectory" aria-label="Resource directory">

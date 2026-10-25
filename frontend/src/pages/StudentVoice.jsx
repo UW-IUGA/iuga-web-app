@@ -37,8 +37,8 @@ function StudentVoicePage({ forms = studentVoiceForms }) {
             <main className="studentVoice">
                 <PageHeader
                     label="Student Voice"
-                    title="Student Voice"
-                    intro="Your perspective helps IUGA advocate for Informatics students and shape the programs, events, and issues we bring forward throughout the year."
+                    title="Tell IUGA what you think."
+                    intro="Your feedback helps IUGA advocate for Informatics students and plan its events and programs."
                 />
 
                 <section className="studentVoice__surveys" aria-labelledby="open-feedback-heading">

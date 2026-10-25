@@ -132,7 +132,7 @@ function GetInvolvedPage() {
             <main className="getInvolved">
                 <PageHeader
                     label="Get involved"
-                    title="Make your mark at IUGA"
+                    title="Make your mark at IUGA."
                     intro="Join a student-led committee and help shape what happens in the Informatics community."
                     visual={
                         <div className="getInvolved__leaderProfileGrid" role="group" aria-label="Committee lead profiles">

@@ -13,8 +13,8 @@ function AboutPage({ teams }) {
             <main className="about">
                 <PageHeader
                     label="About"
-                    title="About Us"
-                    intro="IUGA is a student-led organization run by Informatics undergraduates, for Informatics undergraduates. We create space for students to connect, build community, and shape the iSchool experience."
+                    title="Meet the students behind IUGA."
+                    intro="IUGA is a student-led association run by Informatics undergraduates, for Informatics undergraduates."
                 />
 
                 <section className="about__section" aria-labelledby="about-team-heading">

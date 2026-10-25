@@ -33,7 +33,7 @@
     h1 {
         margin-bottom: 0;
         color: $color-uw-purple;
-        font-family: $sans-serif;
+        font-family: $font-family-base;
         font-size: clamp(2.6rem, 5.4vw, 4.6rem);
         font-weight: 900;
         letter-spacing: -0.055em;
@@ -48,7 +48,7 @@
     h2 {
         margin-bottom: 28px;
         color: $color-uw-purple;
-        font-family: $sans-serif;
+        font-family: $font-family-base;
         font-size: clamp(1.9rem, 3.4vw, 2.8rem);
         font-weight: 800;
         letter-spacing: -0.035em;

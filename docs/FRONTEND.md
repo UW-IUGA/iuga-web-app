@@ -265,7 +265,7 @@ The backend creates **server-side sessions** (express-session), so the frontend 
 - Main entry: `src/stylesheets/main.scss` — imports only; no CSS rules
 - Import order in `main.scss` follows the 7-1 convention: abstracts → vendors → base → layout → components → pages
 - All design tokens (colors, fonts, spacing, radii, breakpoints) live in `abstracts/_variables.scss` and follow the `$[token-type]-*` naming convention
-- Fonts: **NotoSans** (body) and **PlayfairDisplay** (headings), served from `public/font/`
+- Font: **Rubik** for all text, served from `public/font/` as variable font files
 - Responsive breakpoints: the navigation drawer appears below `1024px` to keep
   links readable; page layout also uses the tablet breakpoint at `768px`
 - Toast notifications: `react-toastify` for user feedback

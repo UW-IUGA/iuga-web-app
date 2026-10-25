@@ -13,7 +13,7 @@
 
     h1 {
         margin: 0 0 20px;
-        font-family: $sans-serif;
+        font-family: $font-family-base;
         font-size: clamp(2rem, 4vw, 3rem);
         font-weight: 900;
         letter-spacing: -0.035em;
@@ -122,7 +122,7 @@
 
         h2 {
             margin: 0 0 12px;
-            font-family: $sans-serif;
+            font-family: $font-family-base;
             font-size: 1.35rem;
             font-weight: 800;
             letter-spacing: -0.02em;
@@ -183,7 +183,7 @@
 
         h2 {
             margin: 0 0 20px;
-            font-family: $sans-serif;
+            font-family: $font-family-base;
             font-size: 1.35rem;
             font-weight: 800;
             letter-spacing: -0.02em;

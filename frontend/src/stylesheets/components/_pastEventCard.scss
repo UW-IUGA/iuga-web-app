@@ -19,7 +19,7 @@ Expected Response Information: A cover photo beside the event story, with a row 
     h3 {
         margin: 0 0 10px;
         color: $color-uw-purple;
-        font-family: $sans-serif;
+        font-family: $font-family-base;
         font-size: clamp(1.6rem, 2.6vw, 2.1rem);
         font-weight: 800;
         letter-spacing: -0.035em;
@@ -67,7 +67,7 @@ Expected Response Information: A cover photo beside the event story, with a row 
     place-items: center;
     background: rgba(15, 15, 15, 0.6);
     color: white;
-    font-family: $sans-serif;
+    font-family: $font-family-base;
     font-size: 1.3rem;
     font-weight: 700;
 }

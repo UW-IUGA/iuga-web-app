@@ -59,7 +59,7 @@
     border: 0;
     background: transparent;
     color: inherit;
-    font: 700 13px/1.3 $sans-serif;
+    font: 700 13px/1.3 $font-family-base;
     text-decoration: none;
     white-space: nowrap;
     cursor: pointer;
@@ -94,7 +94,7 @@
         border-radius: $radius;
         background: transparent;
         color: inherit;
-        font: 400 13px/1.3 $sans-serif;
+        font: 400 13px/1.3 $font-family-base;
         text-align: left;
         text-decoration: none;
         cursor: pointer;
@@ -108,7 +108,7 @@
 .nav-account-dropdown { position: relative; }
 .nav-account-toggle { max-width: 165px; overflow: hidden; text-overflow: ellipsis; }
 .nav-account-actions { display: flex; flex-direction: column; left: auto; right: 0; width: 205px; }
-.nav-account-actions span { padding: 9px 10px; color: #605775; font: 400 11px/1.4 $sans-serif; }
+.nav-account-actions span { padding: 9px 10px; color: #605775; font: 400 11px/1.4 $font-family-base; }
 .nav-account-cart-slot { display: flex; flex: none; align-items: center; }
 
 @media (prefers-reduced-motion: reduce) {

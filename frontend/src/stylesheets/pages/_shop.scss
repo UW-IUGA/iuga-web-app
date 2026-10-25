@@ -11,7 +11,7 @@
 
         h1 {
             margin: 10px 0 50px;
-            font-family: $sans-serif;
+            font-family: $font-family-base;
             font-size: clamp(3rem, 5.5vw, 6rem);
             font-weight: 900;
             line-height: 1;
@@ -154,7 +154,7 @@
 
         h2 {
             margin: 0;
-            font-family: $sans-serif;
+            font-family: $font-family-base;
             font-size: clamp(1.8rem, 3vw, 2.6rem);
             font-weight: 700;
             letter-spacing: -0.035em;
@@ -553,7 +553,7 @@
     align-items: center;
     gap: 10px;
     margin: 0;
-    font-family: $serif;
+    font-family: $font-family-base;
     font-size: 1.25rem;
     letter-spacing: -0.01em;
     color: $color-uw-purple;
@@ -562,7 +562,7 @@
 }
 
 .shopCartDropdown__status--plain {
-    font-family: $sans-serif;
+    font-family: $font-family-base;
     font-weight: 700;
     font-size: 1.1rem;
     letter-spacing: 0;

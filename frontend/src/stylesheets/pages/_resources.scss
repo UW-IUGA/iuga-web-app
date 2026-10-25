@@ -62,7 +62,7 @@
         border: 1px solid rgba($color-uw-purple, 0.25);
         border-radius: $radius-pill;
         color: black;
-        font: 0.95rem $sans-serif;
+        font: 0.95rem $font-family-base;
 
         &:focus {
             outline: 2px solid $color-primary;
@@ -107,7 +107,7 @@
     gap: 20px;
     padding: 18px 0;
     color: black;
-    font: 700 clamp(1.35rem, 2.5vw, 2rem) / 1.15 $serif;
+    font: 700 clamp(1.35rem, 2.5vw, 2rem) / 1.15 $font-family-base;
     text-align: left;
     background: transparent;
     border: 0;
@@ -136,7 +136,7 @@
 
 .resourceCategoryCount {
     color: $color-dark-gray;
-    font: 700 0.78rem / 1 $sans-serif;
+    font: 700 0.78rem / 1 $font-family-base;
     letter-spacing: 0.06em;
     text-transform: uppercase;
 }

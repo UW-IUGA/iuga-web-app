@@ -8,10 +8,9 @@
     max-width: 640px;
     color: theme(heading);
 
-    // The base container's side margin only applies from tablet up, so phones need the gutter here.
+    // Its own padding drops the base container's gutter, so phones put it back.
     @include media("<tablet") {
-        padding-right: $page-margin;
-        padding-left: $page-margin;
+        padding-inline: var(--site-gutter);
     }
 
     h1 {

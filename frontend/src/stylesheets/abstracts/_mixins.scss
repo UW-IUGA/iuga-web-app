@@ -89,6 +89,15 @@
     }
 }
 
+// The site's frame (see $site-max-width): centred, with the shared gutter inside.
+@mixin site-frame {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: $site-max-width;
+    margin-inline: auto;
+    padding-inline: var(--site-gutter);
+}
+
 @mixin photo-frame($radius: $radius-card-media, $border-width: 5px) {
     border: $border-width solid theme(surface);
     border-radius: $radius;

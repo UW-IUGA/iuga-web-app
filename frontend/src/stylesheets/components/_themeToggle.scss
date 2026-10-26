@@ -1,0 +1,95 @@
+@use "../abstracts" as *;
+
+// The navbar's light/dark switch (components/ThemeToggle): a pill track with
+// the sun on the left and the moon on the right, and a thumb that slides under
+// the theme in use. The button is the 44px hit area; the track sits inside it.
+$track-width: 52px;
+$track-height: 28px;
+$thumb-size: 22px;
+$thumb-inset: 2px;
+
+.themeToggle {
+    display: grid;
+    flex: none;
+    width: $track-width + 8px;
+    height: 44px;
+    padding: 0;
+    place-items: center;
+    border: 0;
+    border-radius: $radius-pill;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    @include focus-ring;
+
+    // Not the site button's hover glow.
+    &::before {
+        display: none;
+    }
+}
+
+.themeToggle__track {
+    position: relative;
+    display: block;
+    box-sizing: border-box;
+    width: $track-width;
+    height: $track-height;
+    border: 1px solid theme(border-subtle);
+    border-radius: $radius-pill;
+    background: theme(tint);
+    transition: border-color 180ms ease;
+
+    .themeToggle:hover & {
+        border-color: theme(accent);
+    }
+}
+
+.themeToggle__thumb {
+    position: absolute;
+    top: $thumb-inset;
+    left: $thumb-inset;
+    width: $thumb-size;
+    height: $thumb-size;
+    border-radius: 50%;
+    background: theme(surface);
+    box-shadow: 0 1px 3px theme-alpha(shadow, 0.28);
+    transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+
+    .themeToggle[aria-checked="true"] & {
+        transform: translateX($track-width - $thumb-size - $thumb-inset * 2 - 2px);
+    }
+}
+
+// Both icons stay visible, so the switch shows what each side means; the one
+// on the thumb is the theme in use.
+.themeToggle__icon {
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+    width: 12px;
+    height: 12px;
+    color: theme(text-muted);
+    transform: translateY(-50%);
+    transition: color 180ms ease;
+
+    &--sun {
+        left: $thumb-inset + ($thumb-size - 12px) * 0.5;
+    }
+
+    &--moon {
+        right: $thumb-inset + ($thumb-size - 12px) * 0.5;
+    }
+
+    .themeToggle[aria-checked="false"] &--sun,
+    .themeToggle[aria-checked="true"] &--moon {
+        color: theme(accent);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .themeToggle__track,
+    .themeToggle__thumb,
+    .themeToggle__icon {
+        transition: none;
+    }
+}

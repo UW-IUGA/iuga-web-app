@@ -343,6 +343,36 @@ The backend creates **server-side sessions** (express-session), so the frontend 
   links readable; page layout also uses the tablet breakpoint at `768px`
 - Toast notifications: `react-toastify` for user feedback
 
+### Theme
+
+The site has a light theme (the site as it always looked) and a dark one (the
+events prototype's palette: `#1a1a1a` page, `#272727` surfaces, white headings).
+
+- **Which theme.** A visitor's own choice, stored in `localStorage` under
+  `iuga-theme`; until they choose, their system setting
+  (`prefers-color-scheme`), followed live. A choice in one tab reaches the
+  site's other open tabs.
+- **No flash.** An inline script in `index.html` sets `data-theme` on `<html>`
+  before the first paint. `src/utils/theme.js` (`useTheme`) applies the same
+  rule afterwards; `utils/theme.test.js` runs that script to keep them agreeing.
+- **The switch.** `components/ThemeToggle.jsx`, in the navbar's right end at
+  every width (outside the phone menu): a `role="switch"` button named "Dark
+  theme", 60×44 px, with a visible focus ring, and no slide under reduced motion.
+- **Colours.** Partials ask for a colour role, not a colour: `theme(heading)`
+  becomes `var(--color-heading)`, and `theme-alpha(brand, 0.12)` a see-through
+  shade of it. `abstracts/_theme.scss` lists every role's light and dark value
+  (each light value is the colour it replaced), and `base/_theme.scss` sets them
+  per `[data-theme]`. A few roles exist only in dark and take their light colour
+  in place: `theme(line, #e4dce9)`. Colours that look the same in both themes
+  (photo captions, the brand gradient) stay plain `$color-*` tokens.
+  `stylesheets/theme.test.js` fails on an unknown role, a role missing from one
+  theme, or a `theme()` call Sass left unresolved.
+- **Exceptions.** The officer pages (`/admin/*`) stay light: `App.jsx` sets
+  `data-theme="light"` on their root. Photos keep their own colours; the black
+  logo and footer icons turn white through `--artwork-filter`. The events
+  calendar keeps its own palette tokens (`docs/EVENTS.md`). The previous, unrouted
+  events components were not themed.
+
 ---
 
 ## Key Dependencies

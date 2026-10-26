@@ -110,4 +110,11 @@ describe("global navigation", () => {
         fireEvent.click(screen.getByRole("link", { name: "Events" }));
         expect(screen.getByRole("button", { name: "Open menu" })).toHaveAttribute("aria-expanded", "false");
     });
+
+    test("keeps the theme switch in the bar itself, outside the phone menu", () => {
+        renderNavigation();
+        const nav = screen.getByRole("navigation", { name: "Primary navigation" });
+        const themeSwitch = within(nav).getByRole("switch", { name: "Dark theme" });
+        expect(document.getElementById("nav-items")).not.toContainElement(themeSwitch);
+    });
 });

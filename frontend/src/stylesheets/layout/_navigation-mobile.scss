@@ -3,7 +3,7 @@
 @include media("<sm-desktop") {
     .nav-container {
         min-height: 66px;
-        padding: $space-2 18px;
+        padding-block: $space-2;
         gap: 10px;
     }
     .nav-header {
@@ -34,7 +34,8 @@
         left: 0;
         display: none;
         max-height: calc(100vh - 66px);
-        padding: $space-3 22px 22px;
+        // The menu's links start on the logo's edge.
+        padding: $space-3 var(--site-gutter) 22px;
         flex-direction: column;
         align-items: stretch;
         gap: 0;

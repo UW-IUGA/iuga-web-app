@@ -10,14 +10,13 @@
     border-bottom: 1px solid theme(line, #e4dce9);
 }
 
+// On the site's frame, so the logo and the last control line up with the page.
 .nav-container {
     position: relative;
-    box-sizing: border-box;
+    @include site-frame;
     display: flex;
-    width: min(100%, 1380px);
     min-height: 70px;
-    margin: 0 auto;
-    padding: 10px 30px;
+    padding-block: 10px;
     align-items: center;
     gap: 22px;
 }

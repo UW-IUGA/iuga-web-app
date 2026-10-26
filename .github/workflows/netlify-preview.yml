@@ -6,10 +6,9 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
 
 jobs:
-  deploy:
+  build:
     # Fork PRs do not receive repository secrets, so skip them instead of failing.
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
@@ -32,8 +31,27 @@ jobs:
         working-directory: frontend
         run: npm run build -- --mode development
 
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/build
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    # Secrets live only in this job, which never executes PR-controlled code.
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/build
+
       - name: Deploy preview to Netlify
-        uses: nwtgck/actions-netlify@v3
+        id: netlify
+        uses: nwtgck/actions-netlify@4cbaf4c08f1a7bfa537d6113472ef4424e4eb654 # v3.0.0
         with:
           publish-dir: frontend/build
           production-branch: dev

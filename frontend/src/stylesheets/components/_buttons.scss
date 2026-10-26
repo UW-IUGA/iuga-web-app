@@ -111,7 +111,10 @@
 }
 
 @include media(">=sm-desktop", "<desktop") {
-    button:not(.pill-button):not(.standard-button) {
+    // Not the theme toggle: it is a fixed-size switch, and this padding pushed
+    // its track out of its box and past the navbar's right edge. :where() keeps
+    // the rule's specificity as it was.
+    button:not(.pill-button):not(.standard-button):where(:not(.themeToggle)) {
         padding: 10px $space-4;
 
         .right-arrow {

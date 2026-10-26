@@ -36,7 +36,7 @@ describe("the site frame", () => {
         ]);
     });
 
-    it.each([".baseContainer", ".nav-container"])(
+    it.each([".baseContainer", ".nav-container", ".footerContainer"])(
         "gives %s the events page's width and gutter, at every breakpoint",
         (selector) => {
             expect(frameOf(selector)).toEqual([

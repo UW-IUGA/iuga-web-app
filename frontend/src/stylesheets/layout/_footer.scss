@@ -22,16 +22,15 @@ footer {
     }
 }
 
+// On the site's frame, so the logo and the last social link line up with the page.
 .footerContainer {
     position: relative;
     z-index: 1;
     display: flex;
     flex-direction: column;
     gap: $section-divider-gap;
-    box-sizing: border-box;
-    margin: 0 auto;
-    max-width: 1200px;
-    padding: $padding-content * 2 $padding-content * 2;
+    @include site-frame;
+    padding-block: $padding-content * 2;
 }
 
 .footerBottomRow {
@@ -99,10 +98,6 @@ footer {
 }
 
 @include media(">=sm-desktop", "<desktop") {
-    .footerContainer {
-        max-width: 1000px;
-    }
-
     .footerBottomRow {
         .footerSocials img {
             width: 24px;
@@ -121,7 +116,6 @@ footer {
 @include media("<tablet") {
     .footerContainer {
         gap: $grid-gap;
-        padding: $padding-content * 2 $space-6;
     }
 
     .footerBottomRow {

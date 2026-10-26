@@ -2,6 +2,7 @@
 @use "variables";
 @forward "variables";
 @forward "mixins";
+@forward "theme";
 @forward "../vendors/include-media" hide $breakpoints with (
     $breakpoints: variables.$breakpoints
 );

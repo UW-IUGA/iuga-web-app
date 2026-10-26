@@ -53,13 +53,15 @@ const RolePage = ({ role, year, candidates }) => {
           filteredCandidates.map((candidate) => {
             const key = `${candidate.name}-${candidate.position}`;
             return (
-              <div
+              <button
+                type="button"
+                aria-pressed={key === activeTab}
                 key={key}
                 className={`tab ${key === activeTab ? "active" : ""}`}
                 onClick={() => handleTabClick(candidate)}
               >
                 {candidate.name}
-              </div>
+              </button>
             );
           })
         )}

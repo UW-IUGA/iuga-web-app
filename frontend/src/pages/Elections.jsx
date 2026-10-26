@@ -39,7 +39,7 @@ function ElectionPage({ candidates }) {
       {}
       <div className="candidateHeader">
         <h2>{hasAnyCandidates ? "Candidates" : "Archive"}</h2>
-        <Dropdown options={years} defaultOption={years[0]} onSelect={handleSelectYear} />
+        <Dropdown label="Election year" options={years} defaultOption={years[0]} onSelect={handleSelectYear} />
       </div>
 
       {}
@@ -48,13 +48,15 @@ function ElectionPage({ candidates }) {
           <div className="roleSidebar">
             <h2>Select a Position</h2>
             {Object.entries(candidatePositions).map(([key, roleName]) => (
-              <div
+              <button
+                type="button"
+                aria-pressed={roleName === selectedRole}
                 key={key}
                 className={`roleItem ${roleName === selectedRole ? "active" : ""}`}
                 onClick={() => handleRoleChange(roleName)}
               >
                 {roleName}
-              </div>
+              </button>
             ))}
           </div>
 

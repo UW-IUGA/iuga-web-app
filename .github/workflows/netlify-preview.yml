@@ -63,3 +63,10 @@ jobs:
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+      - name: Smoke test deep link
+        run: |
+          base="${{ steps.netlify.outputs.deploy-url }}"
+          curl --fail --silent --show-error --location \
+            --retry 5 --retry-delay 3 \
+            "${base%/}/events" > /dev/null

@@ -6,8 +6,8 @@
 button {
     position: relative;
     border-radius: $radius;
-    background-color: $color-primary;
-    color: $color-white;
+    background-color: theme(accent);
+    color: theme(on-fill);
     border: 0;
     padding: $padding-box-y $padding-box-x;
     font-weight: $font-weight-medium;
@@ -34,9 +34,9 @@ button:hover {
 
 button:disabled,
 button[disabled] {
-    background: #e8e8e8;
-    color: #464646;
-    border: 1px solid #464646;
+    background: theme(fill-subtle, #e8e8e8);
+    color: theme(text-subtle, #464646);
+    border: 1px solid theme(text-subtle, #464646);
     outline-width: 0;
     cursor: not-allowed;
 }
@@ -66,6 +66,6 @@ iframe {
 
 input:disabled {
     /* stylelint-disable-next-line declaration-no-important */
-    background-color: #f4f4f4 !important;
+    background-color: theme(fill-subtle, #f4f4f4) !important;
     cursor: not-allowed;
 }

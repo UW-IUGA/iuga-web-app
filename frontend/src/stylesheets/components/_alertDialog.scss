@@ -18,11 +18,11 @@
 .alert-dialog {
     width: min(100%, 380px);
     padding: $space-7 $space-6 $space-6;
-    border: 1px solid #e4e4e4;
+    border: 1px solid theme(line, #e4e4e4);
     border-radius: 16px;
-    background: $color-white;
+    background: theme(surface);
     box-shadow: 0 16px 40px rgba(17, 18, 22, 0.18);
-    color: #1a1a1a;
+    color: theme(text-strong, #1a1a1a);
     font-family: $font-family-base;
     text-align: center;
 
@@ -34,8 +34,8 @@
         height: 36px;
         margin-bottom: $space-3;
         border-radius: 50%;
-        background: $color-lavender;
-        color: $color-uw-purple;
+        background: theme(tint);
+        color: theme(heading);
         font-size: 1.1rem;
         font-weight: $font-weight-bold;
     }
@@ -46,8 +46,8 @@
         margin-left: $space-2;
         padding: 3px 10px;
         border-radius: $radius-pill;
-        background: #f2f2f2;
-        color: $color-dark-gray;
+        background: theme(fill-subtle, #f2f2f2);
+        color: theme(text-muted);
         font-size: $font-size-label;
         font-weight: $font-weight-medium;
         letter-spacing: $letter-spacing-label;
@@ -66,29 +66,29 @@
 
     p {
         margin: 0 0 $space-5;
-        color: $color-dark-gray;
+        color: theme(text-muted);
         font-size: $font-size-small;
         line-height: 1.55;
         overflow-wrap: anywhere;
     }
 
     a {
-        color: $color-primary;
+        color: theme(accent);
         font-weight: $font-weight-medium;
         text-underline-offset: 2px;
 
         &:hover {
-            color: $color-uw-purple;
+            color: theme(heading);
         }
     }
 
     .alert-dialog-confirm {
         width: 100%;
         padding: 11px $space-6;
-        border: 2px solid $color-primary;
+        border: 2px solid theme(accent);
         border-radius: $radius-pill;
-        background: $color-white;
-        color: $color-primary;
+        background: theme(surface);
+        color: theme(accent);
         font-size: $font-size-small;
         font-weight: $font-weight-medium;
         @include focus-ring;
@@ -98,7 +98,7 @@
         }
 
         &:hover {
-            background: $color-lavender;
+            background: theme(tint);
         }
 
         &:active {

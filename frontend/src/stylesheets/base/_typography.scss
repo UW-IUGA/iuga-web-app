@@ -17,7 +17,7 @@ h3 {
 // Page titles and section headings share the brand purple on every page.
 h1,
 h2 {
-    color: $color-uw-purple;
+    color: theme(heading);
 }
 
 h1 {

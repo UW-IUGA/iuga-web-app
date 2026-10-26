@@ -55,7 +55,7 @@ export default function useCalendarView() {
     const anchor = useMemo(() => parseDateParam(dateParam) ?? new Date(), [dateParam]);
     const weekDates = useMemo(() => buildWeekDates(anchor), [anchor]);
 
-    const commit = useCallback(
+    const updateCalendarUrl = useCallback(
         (nextAnchor, nextMode) => {
             const view = nextMode ?? mode;
             const date = toISODate(nextAnchor);
@@ -72,21 +72,21 @@ export default function useCalendarView() {
         [mode, setParams],
     );
 
-    const goToDay = useCallback((date) => commit(date, "day"), [commit]);
+    const goToDay = useCallback((date) => updateCalendarUrl(date, "day"), [updateCalendarUrl]);
     // A date at the current resolution: the month view lands on its month, the
     // week view on its week, the day view on the day. Only the anchor moves, so
     // the view stays put.
-    const goToDate = useCallback((date) => commit(date), [commit]);
+    const goToDate = useCallback((date) => updateCalendarUrl(date), [updateCalendarUrl]);
     const goToToday = useCallback(() => goToDate(new Date()), [goToDate]);
     // Prev / next by the current view's unit: a month, a week, or a day.
     const step = useCallback(
         (amount) => {
             const by = STEP_BY[mode];
-            if (by) commit(by(anchor, amount));
+            if (by) updateCalendarUrl(by(anchor, amount));
         },
-        [anchor, commit, mode],
+        [anchor, updateCalendarUrl, mode],
     );
-    const setMode = useCallback((view) => commit(anchor, view), [anchor, commit]);
+    const setMode = useCallback((view) => updateCalendarUrl(anchor, view), [anchor, updateCalendarUrl]);
 
     return {
         mode,

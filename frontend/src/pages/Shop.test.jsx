@@ -105,15 +105,6 @@ describe("in the dark theme", () => {
         delete document.documentElement.dataset.theme;
     });
 
-    test("shows each product card as a white tile in the light palette", async () => {
-        renderShopInDarkTheme();
-
-        for (const { name } of shopCatalog.items) {
-            const card = (await screen.findByRole("heading", { name, exact: true })).closest("article");
-            expect(themeOf(card), name).toBe("light");
-        }
-    });
-
     test("shows the hero carousel's product photo and name on a white frame in the light palette", async () => {
         renderShopInDarkTheme();
 

@@ -9,7 +9,8 @@ Expected Response Information: A centred column holding the title, toolbar and c
 .eventsCalendar {
     .page {
         width: 100%;
-        max-width: 1400px;
+        // The site's frame: the navbar, footer and every other page share it.
+        max-width: $site-max-width;
         margin: 0 auto;
         padding: $calendar-space-xl;
     }
@@ -31,19 +32,13 @@ Expected Response Information: A centred column holding the title, toolbar and c
         flex-direction: column;
         gap: $calendar-space-lg;
 
-        // Phone first. On a phone the year grid is one card per row, so the side
-        // padding is all that stands between that card and the screen edge, and
-        // the shared 32px a side costs a day cell most of its width. From a tablet
-        // up there is room to spare, so the shared padding comes back.
-
-        // A custom property, so the calendar can step back out across exactly this
-        // much to run edge to edge on a phone (see .events__main).
-        --page-gutter: #{$calendar-space-md};
+        // The site's gutter (layout/container): 16px on a phone, where the year
+        // grid is one card per row and 32px a side would cost a day cell most of
+        // its width, and 32px from a tablet up. A custom property of its own, so
+        // the calendar can step back out across exactly this much to run edge to
+        // edge on a phone (see .events__main).
+        --page-gutter: var(--site-gutter);
         padding-inline: var(--page-gutter);
-
-        @include media(">=#{$calendar-tablet}") {
-            --page-gutter: #{$calendar-space-xl};
-        }
 
         // The column's gap spaces the title from the toolbar, as it spaces the
         // toolbar from the calendar. The title's own margin on top of it made that

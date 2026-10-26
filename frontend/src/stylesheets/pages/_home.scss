@@ -51,12 +51,6 @@
     }
 }
 
-@include media(">=tablet") {
-    .baseContainer.homePage {
-        width: min(1440px, calc(100% - $page-margin * 2));
-    }
-}
-
 .homeOpening {
     display: grid;
     grid-template-columns: minmax(0, 1.28fr) minmax(0, 0.72fr);

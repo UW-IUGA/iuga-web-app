@@ -6,7 +6,7 @@
  * Expected Request Information: Cart lines, catalog, counts, and callbacks from the provider.
  * Expected Response Information: Navbar trigger and cart dropdown markup.
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { NavLink } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCartShopping, faTrashCan } from "@fortawesome/free-solid-svg-icons";
@@ -144,6 +144,13 @@ export function ShopCartDropdown({
 
     const [leaving, setLeaving] = useState(false);
     const [paused, setPaused] = useState(false);
+    const panelRef = useRef(null);
+    const closePreview = useCallback(() => {
+        if (panelRef.current?.contains(document.activeElement)) {
+            document.querySelector('[aria-controls="shop-cart-dropdown"]')?.focus();
+        }
+        onClose?.();
+    }, [onClose]);
     useEffect(() => {
         setLeaving(false);
         if (!freshAdd || paused) return undefined;
@@ -157,18 +164,27 @@ export function ShopCartDropdown({
 
     useEffect(() => {
         const closeOnEscape = (event) => {
-            if (event.key === "Escape") onClose?.();
+            if (event.key === "Escape") closePreview();
+        };
+        const closeOutside = (event) => {
+            if (!panelRef.current?.contains(event.target) &&
+                !event.target.closest('[aria-controls="shop-cart-dropdown"]')) {
+                closePreview();
+            }
         };
         window.addEventListener("keydown", closeOnEscape);
-        return () => window.removeEventListener("keydown", closeOnEscape);
-    }, [onClose]);
+        document.addEventListener("pointerdown", closeOutside);
+        return () => {
+            window.removeEventListener("keydown", closeOnEscape);
+            document.removeEventListener("pointerdown", closeOutside);
+        };
+    }, [closePreview]);
 
     const catalogItems = catalog && Array.isArray(catalog.items) ? catalog.items : [];
     const productBySku = new Map(shopProducts.map((product) => [product.sku, product]));
     const catalogItemBySku = new Map(catalogItems.map((item) => [item.sku, item]));
     const isEmpty = cart.length === 0;
-  // The just-added line floats to the top so it is the first thing seen;
-  // everything else keeps its order. Similar to a stack visually.
+    // Show the just-added line first, preserving the order of the other lines.
     const isJustAdded = (line) => !!lastAdded && line.sku === lastAdded.sku && line.size === lastAdded.size;
     const orderedCart = [...cart].sort(
         (a, b) => Number(isJustAdded(b)) - Number(isJustAdded(a))
@@ -186,17 +202,18 @@ export function ShopCartDropdown({
             className={`shopCartDropdown${leaving ? " shopCartDropdown--leaving" : ""}`}
             data-testid="shop-cart-dropdown"
         >
-            <button type="button" className="shopCartDropdown__backdrop" aria-label="Dismiss cart preview" onClick={onClose} />
             <div
+                ref={panelRef}
                 id="shop-cart-dropdown"
                 className="shopCartDropdown__panel"
-                role="dialog"
-                aria-modal="true"
+                role="region"
                 aria-labelledby="shop-cart-dropdown-heading"
                 onMouseEnter={() => setPaused(true)}
                 onMouseLeave={() => setPaused(false)}
                 onFocus={() => setPaused(true)}
-                onBlur={() => setPaused(false)}
+                onBlur={(event) => {
+                    if (!event.currentTarget.contains(event.relatedTarget)) setPaused(false);
+                }}
             >
                 <div className="shopCartDropdown__header">
                     <p className="shopCartDropdown__status shopCartDropdown__status--plain">
@@ -204,7 +221,7 @@ export function ShopCartDropdown({
                             {isEmpty ? "Your cart" : `Your cart (${totalQuantity})`}
                         </span>
                     </p>
-                    <button type="button" className="shopCartDropdown__close" aria-label="Close cart" onClick={onClose}>
+                    <button type="button" className="shopCartDropdown__close" aria-label="Close cart" onClick={closePreview}>
                         <span aria-hidden="true">×</span>
                     </button>
                     {freshAdd && addedName && (

@@ -486,17 +486,6 @@
     pointer-events: none;
 }
 
-.shopCartDropdown__backdrop {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    border: 0;
-    background: transparent;
-    cursor: default;
-    pointer-events: auto;
-}
-
 .shopCartDropdown__panel {
     position: absolute;
     pointer-events: auto;
@@ -742,10 +731,6 @@
     animation: shop-cart-dropdown-leave 200ms ease-in forwards;
 }
 
-.shopCartDropdown--leaving .shopCartDropdown__backdrop {
-    animation: shop-cart-fade-out 200ms ease-in forwards;
-}
-
 @keyframes shop-cart-dropdown-leave {
     from { opacity: 1; transform: translateY(0); }
     to { opacity: 0; transform: translateY(-8px); }
@@ -775,11 +760,6 @@
     .shopQuantity button { transition: none; animation: none; }
 
     .shopCard__sizePill.is-selected { animation: none; }
-}
-
-@keyframes shop-cart-fade-out {
-    from { opacity: 1; }
-    to { opacity: 0; }
 }
 
 @keyframes shopMerchOut {
@@ -816,8 +796,7 @@
 
 @media (prefers-reduced-motion: reduce) {
     .shopCartDropdown__panel,
-    .shopCartDropdown--leaving .shopCartDropdown__panel,
-    .shopCartDropdown--leaving .shopCartDropdown__backdrop {
+    .shopCartDropdown--leaving .shopCartDropdown__panel {
         animation: none;
     }
 }

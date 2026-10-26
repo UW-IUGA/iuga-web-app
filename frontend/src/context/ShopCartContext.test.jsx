@@ -120,7 +120,7 @@ describe("starting checkout from the cart", () => {
             items: [{ sku: "info-tote-bag", size: "One Size", quantity: 1 }],
         });
         expect(currentPathname()).toBe(checkoutPath);
-        expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+        expect(screen.queryByRole("region", { name: /Your cart/ })).not.toBeInTheDocument();
         firstVisit.unmount();
 
         // The bag is kept until a purchase is confirmed, so the checkout page opens with the same cart.
@@ -138,7 +138,7 @@ describe("starting checkout from the cart", () => {
         fireEvent.click(await openCart());
 
         await waitFor(() => expect(screen.getByRole("button", { name: "Sign in to checkout" })).toBeEnabled());
-        expect(screen.getByRole("dialog")).toBeInTheDocument();
+        expect(screen.getByRole("region", { name: /Your cart/ })).toBeInTheDocument();
         expect(checkout).not.toHaveBeenCalled();
         expect(currentPathname()).toBe("/shop");
         expect(screen.getByRole("button", { name: "Cart, 1 item" })).toBeInTheDocument();
@@ -161,7 +161,7 @@ describe("starting checkout from the cart", () => {
         expect(auth.signIn).toHaveBeenCalledTimes(1);
         expect(checkout).toHaveBeenCalledTimes(2);
         expect(checkout.mock.calls[1][0].body).toBe(checkout.mock.calls[0][0].body);
-        expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+        expect(screen.queryByRole("region", { name: /Your cart/ })).not.toBeInTheDocument();
     });
 
     test("a second 401 ends recovery instead of looping and keeps the bag usable", async () => {
@@ -176,7 +176,7 @@ describe("starting checkout from the cart", () => {
         expect(auth.signIn).toHaveBeenCalledTimes(1);
         expect(checkout).toHaveBeenCalledTimes(2);
         expect(currentPathname()).toBe("/shop");
-        expect(screen.getByRole("dialog")).toBeInTheDocument();
+        expect(screen.getByRole("region", { name: /Your cart/ })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "Checkout" })).toBeEnabled();
         expect(screen.getByRole("button", { name: "Cart, 1 item" })).toBeInTheDocument();
     });
@@ -189,14 +189,14 @@ describe("starting checkout from the cart", () => {
         fireEvent.click(await openCart());
 
         expect(await screen.findByText(/temporarily unavailable/i)).toBeInTheDocument();
-        expect(screen.getByRole("dialog")).toBeInTheDocument();
+        expect(screen.getByRole("region", { name: /Your cart/ })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "Checkout" })).toBeEnabled();
         expect(currentPathname()).toBe("/shop");
         fireEvent.click(screen.getByRole("button", { name: "Checkout" }));
 
         await waitFor(() => expect(currentPathname()).toBe(checkoutPath));
         expect(checkout).toHaveBeenCalledTimes(2);
-        expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+        expect(screen.queryByRole("region", { name: /Your cart/ })).not.toBeInTheDocument();
     });
 
     test("a 503 from checkout shows the server's message and keeps the bag open without redirecting", async () => {
@@ -207,7 +207,7 @@ describe("starting checkout from the cart", () => {
         fireEvent.click(await openCart());
 
         expect(await screen.findByText("Checkout is paused for maintenance.")).toBeInTheDocument();
-        expect(screen.getByRole("dialog")).toBeInTheDocument();
+        expect(screen.getByRole("region", { name: /Your cart/ })).toBeInTheDocument();
         expect(currentPathname()).toBe("/shop");
     });
 
@@ -219,7 +219,7 @@ describe("starting checkout from the cart", () => {
         fireEvent.click(await openCart());
 
         expect(await screen.findByText("Unable to update your hold right now. Please try again.")).toBeInTheDocument();
-        expect(screen.getByRole("dialog")).toBeInTheDocument();
+        expect(screen.getByRole("region", { name: /Your cart/ })).toBeInTheDocument();
         expect(currentPathname()).toBe("/shop");
     });
 
@@ -245,7 +245,7 @@ describe("starting checkout from the cart", () => {
         expect(checkout).not.toHaveBeenCalled();
         expect(auth.signIn).not.toHaveBeenCalled();
         expect(currentPathname()).toBe("/shop");
-        expect(screen.getByRole("dialog")).toBeInTheDocument();
+        expect(screen.getByRole("region", { name: /Your cart/ })).toBeInTheDocument();
     });
 
     test("allows checkout when every product is within its limit", async () => {
@@ -281,7 +281,7 @@ describe("starting checkout from the cart", () => {
         expect(await screen.findByText(/catalog has updated or the sale status changed/i)).toBeInTheDocument();
         expect(api.mock.calls.filter(([url]) => url === "/api/v1/shop/catalog").length).toBe(initialCatalogRequests + 1);
         expect(screen.getByRole("button", { name: "Checkout" })).toBeDisabled();
-        expect(screen.getByRole("dialog")).toBeInTheDocument();
+        expect(screen.getByRole("region", { name: /Your cart/ })).toBeInTheDocument();
         expect(checkout).toHaveBeenCalledTimes(1);
         expect(currentPathname()).toBe("/shop");
         expect(screen.getByRole("button", { name: "Cart, 1 item" })).toBeInTheDocument();
@@ -296,7 +296,7 @@ describe("starting checkout from the cart", () => {
 
         expect(await screen.findByText("Hoodie is limited to 1 per student.")).toBeInTheDocument();
         expect(screen.queryByText(/catalog has updated/i)).not.toBeInTheDocument();
-        expect(screen.getByRole("dialog")).toBeInTheDocument();
+        expect(screen.getByRole("region", { name: /Your cart/ })).toBeInTheDocument();
     });
 
     test("both product and bag quantity controls stop at 100", async () => {
@@ -320,7 +320,7 @@ describe("per-student limit in the bag", () => {
         mockApi();
         renderShop();
         await openCart();
-        const dialog = screen.getByRole("dialog");
+        const dialog = screen.getByRole("region", { name: /Your cart/ });
         const quantity = within(dialog).getByRole("textbox", { name: "Hoodie size M quantity. Type a number from 1 to 100." });
 
         await waitFor(() => expect(within(dialog).getByRole("button", { name: "Increase Hoodie M" })).toBeDisabled());
@@ -345,7 +345,7 @@ describe("per-student limit in the bag", () => {
         renderShop();
         await openCart();
 
-        const dialog = within(screen.getByRole("dialog"));
+        const dialog = within(screen.getByRole("region", { name: /Your cart/ }));
         expect(await dialog.findByText("Limit 1 per student")).toBeInTheDocument();
         expect(dialog.queryByText("Limit 5 per student")).not.toBeInTheDocument();
     });

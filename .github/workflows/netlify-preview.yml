@@ -39,7 +39,8 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    # Secrets live only in this job, which never executes PR-controlled code.
+    # Runs with repository secrets for same-repository PRs. Only collaborators
+    # with write access can push those branches; treat that access as deploy access.
     permissions:
       contents: read
       pull-requests: write

@@ -18,9 +18,10 @@ import { formatCents, formatDate } from "../utils/shopFormat";
 
 function ShopHeroCarousel() {
     const [{ currentIndex, outgoingIndex }, setSlide] = useState({ currentIndex: 0, outgoingIndex: null });
+    const [paused, setPaused] = useState(() => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches || false);
 
     useEffect(() => {
-        if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+        if (paused) return;
 
         const interval = window.setInterval(() => {
             setSlide(({ currentIndex }) => ({
@@ -29,10 +30,10 @@ function ShopHeroCarousel() {
             }));
         }, 5000);
         return () => window.clearInterval(interval);
-    }, []);
+    }, [paused]);
 
     return (
-        <div className="shopPage__heroVisual">
+        <div className="shopPage__heroVisual" role="region" aria-label="Featured merchandise">
             {outgoingIndex !== null && (
                 <div className="shopPage__heroSlide shopPage__heroSlide--outgoing" aria-hidden="true">
                     <img src={shopProducts[outgoingIndex].image} alt="" decoding="async" />
@@ -44,6 +45,9 @@ function ShopHeroCarousel() {
                 <img src={shopProducts[currentIndex].image} alt={`${shopProducts[currentIndex].name} product mockup`} decoding="async" />
                 <span className="shopPage__heroCaption">{shopProducts[currentIndex].name}</span>
             </div>
+            <button type="button" className="shopPage__rotationControl" onClick={() => setPaused(value => !value)}>
+                {paused ? "Resume product rotation" : "Pause product rotation"}
+            </button>
         </div>
     );
 }

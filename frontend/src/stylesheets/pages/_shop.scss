@@ -75,6 +75,25 @@
         background: white;
     }
 
+    &__rotationControl {
+        position: absolute;
+        z-index: 1;
+        bottom: 12px;
+        left: 12px;
+        padding: 10px 14px;
+        border: 1px solid $color-uw-purple;
+        border-radius: $radius-pill;
+        background: white;
+        color: $color-uw-purple;
+        font: 700 0.8rem $sans-serif;
+        cursor: pointer;
+
+        &:focus-visible {
+            outline: 2px solid $color-uw-purple;
+            outline-offset: 3px;
+        }
+    }
+
     &__heroSlide {
         position: absolute;
         inset: 0;

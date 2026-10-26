@@ -9,7 +9,7 @@ import express from "express";
 import mongoose from "mongoose";
 import { sendError } from "../helpers/sendError.js";
 import { sendSuccess } from "../helpers/sendSuccess.js";
-import { requireAuth } from "../utils/auth.js";
+import { permissionsOf, requireAuth } from "../utils/auth.js";
 import { createRateLimiter } from "../utils/rateLimit.js";
 
 var router = express.Router();
@@ -156,7 +156,6 @@ router.post("/login", loginRateLimiter, async function (req, res) {
     req.session.lastName = profile.lastName;
     req.session.userId = user._id;
     req.session.memberType = user.uType;
-    req.session.isAdmin = user.uType === "Admin";
     return res.status(200).json(user);
   } catch (error) {
     console.error("Login persistence failed:", error?.message);
@@ -188,6 +187,28 @@ router.get("/", requireAuth, async function (req, res) {
     email: req.session.email,
     memberType: req.session.memberType,
   });
+});
+
+/*
+    @endpoint: /permissions
+    @method: GET
+    @description: List the signed-in user's permissions, read live from their
+                  role assignments, so the site can offer the officer tools they
+                  may use. Each tool's routes still check the permission themselves.
+
+    Expected Response Information:
+    - 200 { status: "success", permissions: string[] } in name order; empty for students without a role
+    - 401 { status: "error", message: "Not authenticated" } when not logged in
+    - 500 when role assignments cannot be read
+*/
+router.get("/permissions", requireAuth, async function (req, res) {
+  res.set("Cache-Control", "private, no-store");
+  try {
+    return sendSuccess(res, { permissions: [...(await permissionsOf(req))].sort() });
+  } catch (error) {
+    console.error(error);
+    return sendError(res, 500);
+  }
 });
 
 //Get the user's specific information from the user's perspective, from an outsider perspective, and from the admin perspective

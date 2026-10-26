@@ -86,3 +86,31 @@ test("offers XS through 2XL on the apparel cards and no size choice on the tote 
     }
     expect(sizeGroupOf(await cardFor("Tote Bag"))).toBeNull();
 });
+
+// The mockups are drawn on white, so a dark frame around one leaves a white box with the
+// item name lost over it. base/theme gives a data-theme="light" region the light colours.
+const themeOf = (element) => element.closest("[data-theme]").dataset.theme;
+
+function renderShopInDarkTheme() {
+    document.documentElement.dataset.theme = "dark";
+    render(
+        <MemoryRouter initialEntries={["/shop"]}>
+            <ShopCartProvider><ShopPage /></ShopCartProvider>
+        </MemoryRouter>,
+    );
+}
+
+describe("in the dark theme", () => {
+    afterEach(() => {
+        delete document.documentElement.dataset.theme;
+    });
+
+    test("shows each product card as a white tile in the light palette", async () => {
+        renderShopInDarkTheme();
+
+        for (const { name } of shopCatalog.items) {
+            const card = (await screen.findByRole("heading", { name, exact: true })).closest("article");
+            expect(themeOf(card), name).toBe("light");
+        }
+    });
+});

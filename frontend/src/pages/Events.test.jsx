@@ -11,11 +11,12 @@ import { toast } from "react-toastify";
 import EventsPage from "./Events";
 
 let isAuthenticated = true;
+let permissions = new Set();
 
 vi.mock("../runtime", () => ({ isProduction: true, apiBaseUrl: "" }));
 
 vi.mock("../context/AuthContext", () => ({
-    useAuthContext: () => ({ isAuthenticated, isAdmin: false }),
+    useAuthContext: () => ({ isAuthenticated, can: (permission) => permissions.has(permission) }),
 }));
 
 vi.mock("react-toastify", () => ({
@@ -89,6 +90,7 @@ const rsvpCalls = (fetchSpy) => fetchSpy.mock.calls.filter(([url]) => url === "/
 describe("Events page", () => {
     beforeEach(() => {
         isAuthenticated = true;
+        permissions = new Set();
         vi.useFakeTimers({ toFake: ["Date"] });
         vi.setSystemTime(NOW);
         vi.spyOn(window, "scrollTo").mockImplementation(() => {});
@@ -312,6 +314,45 @@ describe("Events page", () => {
 
             expect(await screen.findByRole("button", { name: /^Game Night,/ })).toBeInTheDocument();
             expect(screen.queryByText("We couldn't load events. Please try again.")).not.toBeInTheDocument();
+        });
+    });
+
+    describe("event operations permissions", () => {
+        test("the page grants only controls backed by the current permissions", async () => {
+            permissions = new Set(["events.requests.manage", "events.finance.manage"]);
+            const eventRequest = {
+                _id: "request-1",
+                eventName: "Autumn Workshop",
+                requestingGroup: "Tech Committee",
+                description: "A workshop for students.",
+                proposedStartDate: "2026-10-15T18:00:00.000Z",
+                status: "submitted",
+                checkpoints: ["proposal", "meeting", "finance", "room", "marketing", "purchases", "completion", "review"]
+                    .map((key) => ({ key, status: "pending" })),
+            };
+            vi.spyOn(global, "fetch").mockImplementation((url) => {
+                if (url === "/api/v1/events/") return Promise.resolve(jsonResponse([GAME_NIGHT]));
+                if (url === "/api/v1/event-requests") {
+                    return Promise.resolve(jsonResponse({ status: "success", eventRequests: [eventRequest] }));
+                }
+                if (url === "/api/v1/event-requests/request-1") {
+                    return Promise.resolve(jsonResponse({ status: "success", eventRequest }));
+                }
+                throw new Error(`Unexpected API request: ${url}`);
+            });
+
+            renderEvents();
+
+            expect(await screen.findByRole("button", { name: /^Game Night,/ })).toBeInTheDocument();
+            expect(await screen.findByRole("heading", { name: "Event operations" })).toBeInTheDocument();
+            fireEvent.click(screen.getByRole("button", { name: /autumn workshop/i }));
+            await screen.findByRole("heading", { name: "Autumn Workshop" });
+
+            expect(screen.getByRole("button", { name: "Save finance" })).toBeInTheDocument();
+            expect(screen.getByRole("combobox", { name: "Finance" })).toBeInTheDocument();
+            expect(screen.queryByRole("button", { name: "Approve & publish" })).not.toBeInTheDocument();
+            expect(screen.queryByRole("combobox", { name: "Proposal" })).not.toBeInTheDocument();
+            expect(screen.queryByRole("combobox", { name: "Purchases" })).not.toBeInTheDocument();
         });
     });
 

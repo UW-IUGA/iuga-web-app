@@ -9,8 +9,8 @@
         margin-bottom: clamp($space-10, 6vw, $space-18);
         padding: 26px clamp($space-6, 5vw, $space-16);
         border-radius: $radius-card;
-        background: $color-shop-hero;
-        color: $color-uw-purple;
+        background: theme(surface-shop-hero);
+        color: theme(heading);
 
         h1 {
             margin: 10px 0 50px;
@@ -82,7 +82,7 @@
         overflow: hidden;
         border: 1px dashed currentcolor;
         border-radius: $radius-card;
-        background: $color-white;
+        background: theme(surface);
     }
 
     &__heroSlide {
@@ -127,20 +127,20 @@
         }
 
         &--complete {
-            border: 1px solid rgba($color-uw-purple, 0.25);
-            background: $color-lavender;
-            color: $color-uw-purple;
+            border: 1px solid theme-alpha(brand, 0.25);
+            background: theme(tint);
+            color: theme(heading);
         }
 
         &--canceled {
-            border: 1px solid rgba($color-dark-gray, 0.25);
-            background: $color-gray;
-            color: $color-dark-gray;
+            border: 1px solid theme-alpha(text-muted, 0.25);
+            background: theme(surface-gray);
+            color: theme(text-muted);
         }
 
         &--warning {
-            border: 1px solid rgba($color-academic-primary, 0.4);
-            background: $color-academic-light;
+            border: 1px solid theme-alpha(academic-primary, 0.4);
+            background: theme(academic-light);
             color: $color-academic-capsule;
         }
     }
@@ -151,13 +151,13 @@
         margin: $space-12 auto;
         padding: $space-10 $space-6;
         text-align: center;
-        border: 1px solid rgba($color-uw-purple, 0.12);
+        border: 1px solid theme-alpha(brand, 0.12);
         border-radius: $radius-card;
-        background: $color-white;
+        background: theme(surface);
 
         p {
             margin: 0 0 $space-5;
-            color: $color-dark-gray;
+            color: theme(text-muted);
             font-size: $font-size-body;
         }
     }
@@ -169,7 +169,7 @@
         align-items: flex-end;
         justify-content: space-between;
         gap: $space-6;
-        border-bottom: 1px solid rgba($color-uw-purple, 0.25);
+        border-bottom: 1px solid theme-alpha(brand, 0.25);
 
         h2 {
             margin: 0;
@@ -181,7 +181,7 @@
 
         > p {
             margin: 0 0 7px;
-            color: $color-dark-gray;
+            color: theme(text-muted);
             font-size: $font-size-small;
             white-space: nowrap;
         }
@@ -194,7 +194,7 @@
 
         p {
             margin: 0;
-            color: $color-dark-gray;
+            color: theme(text-muted);
             font-size: $font-size-small;
             white-space: nowrap;
         }
@@ -212,23 +212,23 @@
     min-width: 0;
     flex-direction: column;
     overflow: hidden;
-    border: 1px solid rgba($color-uw-purple, 0.1);
+    border: 1px solid theme-alpha(brand, 0.1);
     border-radius: $radius-card;
-    background: $color-white;
-    box-shadow: 0 2px 10px rgba($color-uw-purple, 0.05);
+    background: theme(surface);
+    box-shadow: 0 2px 10px theme-alpha(brand, 0.05);
     transition:
         transform 220ms ease,
         box-shadow 220ms ease;
 
     &:hover {
-        box-shadow: 0 10px 26px rgba($color-uw-purple, 0.12);
+        box-shadow: 0 10px 26px theme-alpha(brand, 0.12);
         transform: translateY(-2px);
     }
 
     &__imageWrap {
         aspect-ratio: 4 / 5;
         overflow: hidden;
-        background: $color-shop-surface;
+        background: theme(surface-shop);
 
         img {
             display: block;
@@ -257,7 +257,7 @@
 
         p {
             margin: 0;
-            color: $color-dark-gray;
+            color: theme(text-muted);
             font-size: $font-size-body;
             line-height: 1.5;
         }
@@ -265,7 +265,7 @@
 
     &__price {
         margin: $space-3 0 0;
-        color: $color-uw-purple;
+        color: theme(heading);
         font-size: $font-size-subheading;
         font-weight: $font-weight-bold;
     }
@@ -284,7 +284,7 @@
     }
 
     &__label {
-        color: $color-dark-gray;
+        color: theme(text-muted);
         font-size: $font-size-label;
         font-weight: $font-weight-medium;
         letter-spacing: $letter-spacing-label;
@@ -313,10 +313,10 @@
         min-height: 42px;
         padding: 0 $space-3;
         place-items: center;
-        border: 1px solid rgba($color-uw-purple, 0.24);
+        border: 1px solid theme-alpha(brand, 0.24);
         border-radius: $radius-pill;
-        background: $color-white;
-        color: $color-uw-purple;
+        background: theme(surface);
+        color: theme(heading);
         cursor: pointer;
         font: inherit;
         font-size: $font-size-small;
@@ -330,23 +330,23 @@
 
         &:hover,
         &.is-selected {
-            border-color: $color-uw-purple;
-            background: $color-uw-purple;
-            color: $color-white;
+            border-color: theme(brand);
+            background: theme(brand);
+            color: theme(on-fill);
         }
 
         &.is-selected {
             animation: shop-size-pop 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
         }
         &.is-in-cart:not(.is-selected) {
-            border-color: $color-uw-purple;
+            border-color: theme(brand);
         }
         &:active {
             transform: scale(0.95);
         }
 
         &:focus-visible {
-            outline: 3px solid rgba($color-uw-purple, 0.3);
+            outline: 3px solid theme-alpha(brand, 0.3);
             outline-offset: 2px;
         }
     }
@@ -355,8 +355,8 @@
         margin: 0;
         padding: 10px 14px;
         border-radius: 10px;
-        background: $color-lavender;
-        color: $color-uw-purple;
+        background: theme(tint);
+        color: theme(heading);
         font-size: $font-size-small;
         font-weight: $font-weight-medium;
     }
@@ -369,22 +369,22 @@
         box-sizing: border-box;
         align-items: center;
         justify-content: center;
-        border: 1px solid $color-uw-purple;
+        border: 1px solid theme(brand);
         border-radius: $radius-pill;
         font: inherit;
         font-weight: $font-weight-medium;
     }
 
     &__addToCart {
-        background: $color-uw-purple;
-        color: $color-white;
+        background: theme(brand);
+        color: theme(on-fill);
         cursor: pointer;
 
         &:hover {
-            background: $color-primary;
+            background: theme(accent);
         }
         &:focus-visible {
-            outline: 3px solid rgba($color-uw-purple, 0.3);
+            outline: 3px solid theme-alpha(brand, 0.3);
             outline-offset: 2px;
         }
         &:disabled {
@@ -392,13 +392,13 @@
             cursor: not-allowed;
         }
         &:disabled:hover {
-            background: $color-uw-purple;
+            background: theme(brand);
         }
     }
 
     &__cartPill {
-        background: $color-white;
-        color: $color-uw-purple;
+        background: theme(surface);
+        color: theme(heading);
 
         .shopQuantity {
             width: 100%;
@@ -448,7 +448,7 @@
         border: 0;
         border-radius: 50%;
         background: transparent;
-        color: $color-uw-purple;
+        color: theme(heading);
         cursor: pointer;
         font-family: inherit;
         font-size: 1.25rem;
@@ -459,13 +459,13 @@
             transform 150ms ease;
 
         &:hover {
-            background: $color-lavender;
+            background: theme(tint);
         }
         &:active {
             transform: scale(0.92);
         }
         &:focus-visible {
-            outline: 3px solid rgba($color-uw-purple, 0.28);
+            outline: 3px solid theme-alpha(brand, 0.28);
             outline-offset: 2px;
         }
         &:disabled {
@@ -484,15 +484,15 @@
         border: 0;
         border-radius: 6px;
         background: transparent;
-        color: $color-uw-purple;
+        color: theme(heading);
         font: inherit;
         font-weight: $font-weight-medium;
         text-align: center;
 
         &:focus-visible {
-            outline: 3px solid rgba($color-uw-purple, 0.28);
+            outline: 3px solid theme-alpha(brand, 0.28);
             outline-offset: 2px;
-            background: $color-white;
+            background: theme(surface);
         }
     }
 }
@@ -508,16 +508,16 @@
     border: 0;
     border-radius: 50%;
     background: transparent;
-    color: $color-uw-purple;
+    color: theme(heading);
     cursor: pointer;
     font: inherit;
     white-space: nowrap;
 
     &:hover {
-        background: $color-lavender;
+        background: theme(tint);
     }
     &:focus-visible {
-        outline: 3px solid rgba($color-uw-purple, 0.28);
+        outline: 3px solid theme-alpha(brand, 0.28);
         outline-offset: 2px;
     }
 
@@ -535,9 +535,9 @@
         padding: 0 5px;
         place-items: center;
         border-radius: $radius-pill;
-        background: $color-uw-purple;
-        box-shadow: 0 0 0 2px $color-white;
-        color: $color-white;
+        background: theme(brand);
+        box-shadow: 0 0 0 2px theme(page);
+        color: theme(on-fill);
         font-size: 0.68rem;
         font-weight: $font-weight-bold;
         animation: shop-cart-count-pop 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -577,9 +577,9 @@
     flex-direction: column;
     border-radius: 16px;
     padding: 18px 18px 14px;
-    background: $color-white;
-    border: 1px solid $color-border-lavender;
-    box-shadow: 0 14px 30px rgba($color-shadow, 0.13);
+    background: theme(surface);
+    border: 1px solid theme(border-subtle);
+    box-shadow: 0 14px 30px theme-alpha(shadow, 0.13);
     overflow-y: auto;
     animation: shop-cart-dropdown-drop 220ms ease-out both;
 
@@ -604,14 +604,14 @@
     padding: 0;
     border: 0;
     background: transparent;
-    color: $color-uw-purple;
+    color: theme(heading);
     cursor: pointer;
     font: inherit;
     font-size: 1.7rem;
     line-height: 1;
 
     &:focus-visible {
-        outline: 3px solid rgba($color-uw-purple, 0.55);
+        outline: 3px solid theme-alpha(brand, 0.55);
         outline-offset: 2px;
     }
 }
@@ -623,7 +623,7 @@
     margin: 0;
     font-family: $font-family-base;
     font-size: $font-size-subheading;
-    color: $color-uw-purple;
+    color: theme(heading);
 
     svg {
         font-size: 1.4rem;
@@ -650,7 +650,7 @@
 
 .shopCartDropdown__notice {
     margin: $space-3 0 0;
-    color: $color-dark-gray;
+    color: theme(text-muted);
     font-size: $font-size-small;
     text-align: right;
 }
@@ -667,7 +667,7 @@
     min-height: 0;
     overflow-y: auto;
     scrollbar-width: thin;
-    scrollbar-color: rgba($color-uw-purple, 0.35) transparent;
+    scrollbar-color: theme-alpha(brand, 0.35) transparent;
 
     &::-webkit-scrollbar {
         width: 8px;
@@ -676,7 +676,7 @@
         background: transparent;
     }
     &::-webkit-scrollbar-thumb {
-        background: rgba($color-uw-purple, 0.25);
+        background: theme-alpha(brand, 0.25);
         border-radius: 8px;
     }
 }
@@ -724,7 +724,7 @@
 }
 
 .shopCartDropdown__line--justAdded {
-    border-left: 2px solid $color-uw-purple;
+    border-left: 2px solid theme(brand);
     padding: $space-2 0;
 }
 
@@ -752,7 +752,7 @@
 
 .shopCartDropdown__lineMeta {
     margin: 0;
-    color: $color-dark-gray;
+    color: theme(text-muted);
     font-size: $font-size-small;
 }
 
@@ -770,7 +770,7 @@
     margin: 0;
     font-size: $font-size-small;
     font-weight: $font-weight-bold;
-    color: $color-uw-purple;
+    color: theme(heading);
     white-space: nowrap;
 }
 
@@ -778,7 +778,7 @@
     border: 0;
     background: none;
     padding: 2px;
-    color: $color-error;
+    color: theme(error);
     font: inherit;
     font-size: $font-size-small;
     font-weight: $font-weight-medium;
@@ -786,10 +786,10 @@
     cursor: pointer;
 
     &:hover {
-        color: $color-error-dark;
+        color: theme(error-dark);
     }
     &:focus-visible {
-        outline: 2px solid rgba($color-uw-purple, 0.4);
+        outline: 2px solid theme-alpha(brand, 0.4);
         outline-offset: 1px;
     }
 }
@@ -797,10 +797,10 @@
 .shopCartDropdown__subtotal {
     margin: $space-3 0 0;
     padding-top: $space-3;
-    border-top: 1px solid rgba($color-uw-purple, 0.14);
+    border-top: 1px solid theme-alpha(brand, 0.14);
     font-weight: $font-weight-bold;
     text-align: right;
-    color: $color-uw-purple;
+    color: theme(heading);
 }
 
 .shopCartDropdown__empty {
@@ -822,7 +822,7 @@
 
 .shopCartDropdown__emptyTitle {
     margin: 0 0 $space-6;
-    color: $color-uw-purple;
+    color: theme(heading);
     font-size: $font-size-subheading;
     font-weight: $font-weight-bold;
     line-height: 1.25;

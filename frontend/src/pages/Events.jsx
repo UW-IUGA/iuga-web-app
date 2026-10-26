@@ -12,6 +12,7 @@ import PhotoCollage from "../components/PhotoCollage";
 import PhotoLightbox from "../components/PhotoLightbox";
 import { useAuthContext } from "../context/AuthContext";
 import { isProduction } from "../runtime";
+import PageHeader from "../components/PageHeader";
 
 const DEV_EVENTS = [...mockCalendarData, ...mockUpcomingEvents];
 
@@ -139,13 +140,12 @@ function EventsPage() {
 
     return (
         <div className="baseContainer eventsPage">
-            <header className="eventsHero">
-                <div>
-                    <span className="eventsHero__kicker">IUGA EVENTS</span>
-                    <h1>Find what&apos;s happening this week.</h1>
-                </div>
-                <PhotoCollage photos={HERO_PHOTOS} />
-            </header>
+            <PageHeader
+                label="Events"
+                title="Find what's happening this week."
+                intro="IUGA's academic, social, and professional events. Pick a day to narrow the week."
+                visual={<PhotoCollage photos={HERO_PHOTOS} />}
+            />
 
             <EventAgenda
                 events={agendaEvents}

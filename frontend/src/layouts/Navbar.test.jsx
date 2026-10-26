@@ -36,7 +36,6 @@ describe("global navigation", () => {
         render(<MemoryRouter><Navbar signIn={vi.fn()} signOut={signOut} /></MemoryRouter>);
         fireEvent.click(screen.getByRole("button", { name: "Yonie account" }));
         expect(screen.getByRole("button", { name: "Sign out" })).toBeInTheDocument();
-        expect(screen.getByText("Signed in with UW NetID")).toBeInTheDocument();
         expect(screen.queryByText("Member")).not.toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
         expect(signOut).toHaveBeenCalledOnce();

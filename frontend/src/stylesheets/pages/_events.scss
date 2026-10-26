@@ -1,8 +1,11 @@
+@use "../abstracts" as *;
+@use "../base/misc";
+
 .eventsPage {
     @extend %pageFrame;
     max-width: 1200px;
     box-sizing: border-box;
-    padding: 40px 0 64px;
+    padding: 0 0 $space-16;
 
     h1,
     h2,
@@ -12,46 +15,16 @@
     }
 }
 
-.eventsHero__kicker {
-    display: inline-block;
-    margin-bottom: 8px;
-    color: $color-primary;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-}
-
-.eventsHero {
-    display: grid;
-    align-items: center;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
-    gap: 40px;
-    padding: 8px 0 4px;
-
-    // Same heading face as the shop page: heavy sans, uppercase, tight tracking.
-    h1 {
-        margin-bottom: 0;
-        color: $color-uw-purple;
-        font-family: $sans-serif;
-        font-size: clamp(2.6rem, 5.4vw, 4.6rem);
-        font-weight: 900;
-        letter-spacing: -0.055em;
-        line-height: 1;
-        text-transform: uppercase;
-    }
-}
-
 .eventsPast {
-    margin-top: 64px;
+    margin-top: $space-16;
 
     h2 {
-        margin-bottom: 28px;
+        margin-bottom: $space-7;
         color: $color-uw-purple;
-        font-family: $sans-serif;
-        font-size: clamp(1.9rem, 3.4vw, 2.8rem);
-        font-weight: 800;
-        letter-spacing: -0.035em;
+        font-family: $font-family-base;
+        font-size: $font-size-section;
+        font-weight: $font-weight-bold;
+        letter-spacing: $letter-spacing-heading;
         line-height: 1.05;
     }
 }
@@ -61,24 +34,20 @@
     gap: $grid-gap;
 }
 
-@include media("screen", "<sm-desktop") {
+@include media("<sm-desktop") {
     .eventsPage {
-        padding: 28px $padding-content 56px;
-    }
-
-    .eventsHero {
-        grid-template-columns: 1fr;
+        padding: 0 $padding-content $space-14;
     }
 }
 
-@include media("screen", "<phone") {
+@include media("<phone") {
     .eventsPage {
-        padding-right: 12px;
-        padding-left: 12px;
+        padding-right: $space-3;
+        padding-left: $space-3;
     }
 
     .eventsPast {
-        margin-top: 48px;
+        margin-top: $space-12;
     }
 }
 
@@ -90,7 +59,7 @@
 
 .event-operations {
     width: min(1200px, calc(100% - 36px));
-    margin: 24px auto 64px;
+    margin: $space-6 auto $space-16;
 }
 
 .event-ops-header,
@@ -99,11 +68,11 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 24px;
+    gap: $space-6;
 }
 
 .event-ops-header {
-    margin-bottom: 24px;
+    margin-bottom: $space-6;
 
     h2,
     h3,
@@ -113,21 +82,21 @@
 
     h2 {
         color: $color-uw-purple;
-        font-size: 2.25rem;
+        font-size: $font-size-section;
     }
 
     p {
         color: $color-dark-gray;
-        margin-top: 8px;
+        margin-top: $space-2;
     }
 }
 
 .event-ops-kicker {
     color: $color-primary;
     display: block;
-    font-size: 0.75rem;
-    font-weight: bold;
-    letter-spacing: 0.12em;
+    font-size: $font-size-label;
+    font-weight: $font-weight-medium;
+    letter-spacing: $letter-spacing-label;
     margin-bottom: 6px;
     text-transform: uppercase;
 }
@@ -138,29 +107,29 @@
     border: 1px solid rgba($color-uw-purple, 0.12);
     border-radius: $radius-card;
     display: grid;
-    gap: 12px;
+    gap: $space-3;
     grid-template-columns: repeat(5, minmax(110px, 1fr)) minmax(160px, 1.5fr);
-    margin-bottom: 24px;
-    padding: 16px;
+    margin-bottom: $space-6;
+    padding: $space-4;
 
     label {
         color: $color-uw-purple;
         display: flex;
         flex-direction: column;
-        font-size: 0.75rem;
-        font-weight: bold;
+        font-size: $font-size-small;
+        font-weight: $font-weight-medium;
         gap: 6px;
     }
 
     select,
     input {
-        background: white;
+        background: $color-white;
         border: 1px solid rgba($color-uw-purple, 0.22);
         border-radius: $radius;
         box-sizing: border-box;
         color: #333;
         min-height: 38px;
-        padding: 8px 10px;
+        padding: $space-2 10px;
     }
 
     select:focus,
@@ -173,7 +142,7 @@
 .event-ops-layout {
     align-items: start;
     display: grid;
-    gap: 24px;
+    gap: $space-6;
     grid-template-columns: minmax(0, 1fr) minmax(300px, 0.44fr);
 }
 
@@ -182,7 +151,7 @@
 }
 
 .event-ops-table-wrapper {
-    background: white;
+    background: $color-white;
     border: 1px solid rgba($color-uw-purple, 0.12);
     border-radius: $radius-card;
     box-shadow: 0 2px 10px rgba($color-uw-purple, 0.08);
@@ -198,22 +167,22 @@
     th,
     td {
         border-bottom: 1px solid rgba($color-uw-purple, 0.1);
-        padding: 12px 10px;
+        padding: $space-3 10px;
         text-align: center;
         vertical-align: middle;
     }
 
     thead {
         background: $color-uw-purple;
-        color: white;
+        color: $color-white;
         position: sticky;
         top: 0;
         z-index: 1;
     }
 
     thead th {
-        font-size: 0.75rem;
-        letter-spacing: 0.04em;
+        font-size: $font-size-label;
+        letter-spacing: $letter-spacing-label;
         white-space: nowrap;
     }
 
@@ -251,17 +220,17 @@
 
     span:not(.event-ops-status) {
         color: $color-dark-gray;
-        font-size: 0.75rem;
-        font-weight: normal;
+        font-size: $font-size-small;
+        font-weight: $font-weight-regular;
     }
 }
 
 .event-ops-status {
     border-radius: $radius-pill;
     display: inline-block;
-    font-size: 0.68rem;
-    font-weight: bold;
-    padding: 4px 8px;
+    font-size: $font-size-small;
+    font-weight: $font-weight-medium;
+    padding: $space-1 $space-2;
     text-transform: capitalize;
     white-space: nowrap;
 }
@@ -302,7 +271,7 @@
 .event-ops-empty,
 .event-ops-error {
     margin: 0;
-    padding: 28px;
+    padding: $space-7;
     text-align: center;
 }
 
@@ -311,13 +280,13 @@
     border: 1px solid #d88;
     border-radius: $radius-card;
     color: #7a1717;
-    margin-bottom: 16px;
+    margin-bottom: $space-4;
 }
 
 .event-ops-form,
 .event-ops-detail {
     box-sizing: border-box;
-    padding: 24px;
+    padding: $space-6;
 }
 
 .event-operations .form-input {
@@ -325,7 +294,7 @@
 }
 
 .event-ops-form {
-    margin-bottom: 24px;
+    margin-bottom: $space-6;
 
     h3,
     h4,
@@ -339,7 +308,7 @@
     background: transparent;
     border: 0;
     color: $color-primary;
-    padding: 4px;
+    padding: $space-1;
 }
 
 .event-ops-danger {
@@ -350,7 +319,7 @@
     display: grid;
     gap: 0 18px;
     grid-template-columns: 1fr 1fr;
-    margin-top: 20px;
+    margin-top: $space-5;
 }
 
 .event-ops-full-width {
@@ -385,12 +354,12 @@
 
 .event-ops-detail-meta {
     color: $color-dark-gray;
-    font-size: 0.85rem;
+    font-size: $font-size-small;
 }
 
 .event-ops-detail-section {
     border-top: 1px solid rgba($color-uw-purple, 0.12);
-    margin-top: 20px;
+    margin-top: $space-5;
     padding-top: 18px;
 
     h4 {
@@ -399,22 +368,22 @@
     }
 
     .form-input {
-        margin-bottom: 12px;
+        margin-bottom: $space-3;
     }
 }
 
 .event-ops-checkpoint-list {
     display: grid;
-    gap: 8px;
+    gap: $space-2;
 }
 
 .event-ops-checkpoint-edit {
     align-items: center;
     color: $color-dark-gray;
     display: flex;
-    font-size: 0.85rem;
+    font-size: $font-size-small;
     justify-content: space-between;
-    gap: 12px;
+    gap: $space-3;
 
     select {
         border: 1px solid rgba($color-uw-purple, 0.2);
@@ -425,14 +394,14 @@
 
 .event-ops-inline-fields {
     display: grid;
-    gap: 12px;
+    gap: $space-3;
     grid-template-columns: 1fr 1fr;
 }
 
 .event-ops-checkbox {
     align-items: center;
     display: flex;
-    gap: 8px;
+    gap: $space-2;
     margin-bottom: 14px;
 }
 
@@ -442,7 +411,7 @@
     }
 }
 
-@include media("screen", "<sm-desktop") {
+@include media("<sm-desktop") {
     .event-operations {
         width: calc(100% - 24px);
     }
@@ -516,13 +485,11 @@
     .event-ops-mobile-label {
         color: $color-dark-gray;
         display: inline;
-        font-size: 0.75rem;
-        font-weight: bold;
+        font-weight: $font-weight-medium;
     }
 }
 
-@include media("screen", "<phone") {
-
+@include media("<phone") {
     .event-ops-form-grid,
     .event-ops-inline-fields,
     .event-ops-filters {

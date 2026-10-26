@@ -1,9 +1,13 @@
+@use "../abstracts" as *;
+
 .resourceCard {
     display: flex;
     min-height: 230px;
     gap: $margin-content;
     padding: 22px;
-    transition: transform 150ms ease, box-shadow 150ms ease;
+    transition:
+        transform 150ms ease,
+        box-shadow 150ms ease;
 
     &:hover {
         box-shadow: 0 8px 20px rgba($color-uw-purple, 0.13);
@@ -22,9 +26,9 @@
     border-radius: 50%;
     background: $color-lavender;
     color: $color-uw-purple;
-    font-family: $serif;
+    font-family: $font-family-base;
     font-size: 1.6rem;
-    font-weight: 700;
+    font-weight: $font-weight-bold;
 
     img {
         width: 100%;
@@ -40,16 +44,16 @@
     flex-direction: column;
 
     h3 {
-        margin: 4px 0 8px;
-        color: black;
-        font-size: 1.2rem;
+        margin: $space-1 0 $space-2;
+        color: $color-black;
+        font-size: $font-size-subheading;
         line-height: 1.25;
     }
 
-    >p:not(.resourceCardCategory) {
-        margin: 0 0 20px;
+    > p:not(.resourceCardCategory) {
+        margin: 0 0 $space-5;
         color: $color-dark-gray;
-        font-size: 0.92rem;
+        font-size: $font-size-small;
         line-height: 1.55;
     }
 }
@@ -62,11 +66,11 @@
 
 .resourceCardPending {
     color: $color-dark-gray;
-    font-size: 0.88rem;
-    font-weight: 700;
+    font-size: $font-size-small;
+    font-weight: $font-weight-medium;
 }
 
-@include media("screen", "<tablet") {
+@include media("<tablet") {
     .resourceCard {
         min-height: 0;
         padding: 18px;

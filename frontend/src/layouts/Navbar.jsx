@@ -64,7 +64,6 @@ function Navbar({ signIn, signOut }) {
                                     {userGreeting} <FontAwesomeIcon icon={faChevronDown} aria-hidden="true" />
                                 </button>
                                 {showAccount && <div className="nav-account-actions" id="nav-account-actions">
-                                    <span>Signed in with UW NetID</span>
                                     <button type="button" onClick={() => { closeMenu(); signOut(); }}>Sign out</button>
                                 </div>}
                             </div>

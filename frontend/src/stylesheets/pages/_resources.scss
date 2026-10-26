@@ -1,36 +1,11 @@
+@use "../abstracts" as *;
+@use "../base/misc";
+
 .resourcesPage {
     @extend %pageFrame;
-    max-width: 1120px;
-    margin-bottom: 96px;
+    margin-bottom: $space-24;
 }
 
-.resourcesHero {
-    padding: 72px 0 44px;
-    text-align: center;
-}
-
-.resourcesHeroCopy {
-    max-width: 760px;
-    margin: 0 auto;
-
-    h1 {
-        margin: 8px 0 18px;
-        color: black;
-        font-size: clamp(3rem, 6vw, 4.6rem);
-        line-height: 1;
-        text-transform: uppercase;
-    }
-
-    >p:last-child {
-        max-width: 680px;
-        margin: 0 auto;
-        color: $color-dark-gray;
-        font-size: 1.05rem;
-        line-height: 1.65;
-    }
-}
-
-.resourcesKicker,
 .resourceCardCategory {
     @extend %pageKicker;
 }
@@ -44,16 +19,16 @@
     grid-template-columns: minmax(250px, 350px) 1fr;
     gap: $grid-gap;
     align-items: end;
-    padding: 24px;
+    padding: $space-6;
 }
 
 .resourcesSearch {
     display: grid;
-    gap: 8px;
+    gap: $space-2;
     color: $color-uw-purple;
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
+    font-size: $font-size-label;
+    font-weight: $font-weight-medium;
+    letter-spacing: $letter-spacing-label;
     text-transform: uppercase;
 
     input {
@@ -61,8 +36,8 @@
         padding: 11px 14px;
         border: 1px solid rgba($color-uw-purple, 0.25);
         border-radius: $radius-pill;
-        color: black;
-        font: 0.95rem $sans-serif;
+        color: $color-black;
+        font: #{$font-size-body} $font-family-base;
 
         &:focus {
             outline: 2px solid $color-primary;
@@ -74,19 +49,19 @@
 .resourceFilters {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: $space-2;
 }
 
 .resourceResultCount {
-    margin: 24px 0 34px;
+    margin: $space-6 0 34px;
     color: $color-dark-gray;
-    font-size: 0.9rem;
+    font-size: $font-size-small;
     text-align: right;
 }
 
 .resourceCategory {
     margin-bottom: 18px;
-    border-bottom: 2px solid black;
+    border-bottom: 2px solid $color-black;
 }
 
 .resourceCategoryHeader {
@@ -104,16 +79,16 @@
     width: 100%;
     align-items: center;
     justify-content: space-between;
-    gap: 20px;
+    gap: $space-5;
     padding: 18px 0;
-    color: black;
-    font: 700 clamp(1.35rem, 2.5vw, 2rem) / 1.15 $serif;
+    color: inherit;
+    font: $font-weight-bold #{$font-size-section}/#{$line-height-heading} $font-family-base;
     text-align: left;
     background: transparent;
     border: 0;
     cursor: pointer;
 
-    &:hover>span:first-child {
+    &:hover > span:first-child {
         color: $color-primary;
     }
 
@@ -131,13 +106,13 @@
     display: flex;
     flex: 0 0 auto;
     align-items: center;
-    gap: 12px;
+    gap: $space-3;
 }
 
 .resourceCategoryCount {
     color: $color-dark-gray;
-    font: 700 0.78rem / 1 $sans-serif;
-    letter-spacing: 0.06em;
+    font: $font-weight-medium #{$font-size-label}/ 1 $font-family-base;
+    letter-spacing: $letter-spacing-label;
     text-transform: uppercase;
 }
 
@@ -156,8 +131,8 @@
         height: 8px;
         margin-top: -4px;
         content: "";
-        border-right: 2px solid currentColor;
-        border-bottom: 2px solid currentColor;
+        border-right: 2px solid currentcolor;
+        border-bottom: 2px solid currentcolor;
         transform: rotate(45deg);
     }
 }
@@ -166,14 +141,14 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: $grid-gap;
-    padding: 2px 0 28px;
+    padding: 2px 0 $space-7;
 }
 
 .resourcesEmptyState {
     display: grid;
     justify-items: center;
-    gap: 12px;
-    padding: 56px 24px;
+    gap: $space-3;
+    padding: $space-14 $space-6;
     text-align: center;
 
     h2,
@@ -181,23 +156,15 @@
         margin: 0;
     }
 
-    h2 {
-        color: black;
-    }
-
     p {
         color: $color-dark-gray;
     }
 }
 
-@include media("screen", "<tablet") {
+@include media("<tablet") {
     .resourcesPage {
         width: 100%;
-        margin-bottom: 64px;
-    }
-
-    .resourcesHero {
-        padding: 48px 0 32px;
+        margin-bottom: $space-16;
     }
 
     .resourcesControls {
@@ -214,12 +181,10 @@
     }
 
     .resourceCategoryToggle {
-        gap: 12px;
-        font-size: 1.35rem;
+        gap: $space-3;
     }
 
     .resourceCategoryMeta {
-        gap: 8px;
-        font-size: 0.7rem;
+        gap: $space-2;
     }
 }

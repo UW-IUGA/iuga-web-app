@@ -3,6 +3,8 @@ Purpose: Style an event's photo, or the category tile shown when it has none.
 Expected Request Information: Classes emitted by EventThumbnail.
 Expected Response Information: A cover-fitted image or a coloured tile with the category icon; the parent sets the size.
 */
+@use "../abstracts" as *;
+
 .eventThumbnail {
     display: block;
     width: 100%;
@@ -11,7 +13,7 @@ Expected Response Information: A cover-fitted image or a coloured tile with the 
     &--fallback {
         display: grid;
         place-items: center;
-        color: white;
+        color: $color-white;
         font-size: 2rem;
     }
 

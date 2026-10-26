@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import ResourceCard from "../components/ResourceCard";
 import { resourceTags } from "../assets/data/Enum";
+import PageHeader from "../components/PageHeader";
 
 const ALL_RESOURCES = "All resources";
 const categories = Object.values(resourceTags);
@@ -95,17 +96,11 @@ function ResourcesPage({ resources }) {
     return (
         <div className="baseContainer">
             <main className="resourcesPage">
-                <section className="resourcesHero" aria-labelledby="resources-title">
-                    <div className="resourcesHeroCopy">
-                        <p className="resourcesKicker">IUGA student guide</p>
-                        <h1 id="resources-title">Resources</h1>
-                        <p>
-                            IUGA is just one of many RSOs and groups affiliated with the iSchool that makes the iSchool everything it is.
-                            Explore the resources below to take full advantage of everything the iSchool offers its students! From academic and
-                            career resources to personal mental health, the iSchool community does its best to support its students in every area it can.
-                        </p>
-                    </div>
-                </section>
+                <PageHeader
+                    label="Resources"
+                    title="Find support at the iSchool and UW."
+                    intro="Academic, career, wellbeing, and community resources, plus student organizations. Each is run by its own group, not IUGA."
+                />
 
                 <section className="resourcesDirectory" aria-label="Resource directory">
                     <div className="resourcesControls editorial-card">

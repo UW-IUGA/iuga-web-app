@@ -2,7 +2,7 @@
 
 .roleSidebar {
     width: 250px;
-    background: $color-white;
+    background: theme(surface);
     padding: $space-5;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba($color-black, 0.1);
@@ -17,14 +17,14 @@
 .roleItem {
     padding: $space-3;
     margin-bottom: $space-2;
-    background: #eaeaea;
+    background: theme(fill-subtle, #eaeaea);
     border-radius: 5px;
     text-align: center;
     cursor: pointer;
 }
 
 .roleItem:hover {
-    background: #d6d6d6;
+    background: theme(fill-subtle, #d6d6d6);
 }
 
 .roleItem.active {

@@ -20,7 +20,7 @@ Expected Response Information: Responsive portrait cards with readable identity 
 
     &:hover {
         transform: translateY(-4px);
-        box-shadow: 0 8px 24px rgba($color-uw-purple, 0.14);
+        box-shadow: 0 8px 24px theme-alpha(brand, 0.14);
     }
 
     &__media {
@@ -28,7 +28,7 @@ Expected Response Information: Responsive portrait cards with readable identity 
         width: 100%;
         aspect-ratio: 3 / 4;
         border-radius: $radius-card-media;
-        background-color: $color-gray;
+        background-color: theme(surface-gray);
         overflow: hidden;
 
         img {
@@ -46,7 +46,7 @@ Expected Response Information: Responsive portrait cards with readable identity 
         justify-content: center;
         width: 100%;
         height: 100%;
-        color: $color-dark-gray;
+        color: theme(text-muted);
 
         svg {
             font-size: 48px;

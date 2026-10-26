@@ -1,22 +1,22 @@
 @use "../abstracts" as *;
 
 .social {
-    color: $color-social-primary;
+    color: theme(social-primary);
 }
 
 .career {
-    color: $color-career-primary;
+    color: theme(career-primary);
 }
 
 .academic {
-    color: $color-academic-primary;
+    color: theme(academic-primary);
 }
 
 .primary {
-    background-color: $color-primary;
-    outline-color: $color-primary;
+    background-color: theme(accent);
+    outline-color: theme(accent);
 }
 
 .professional {
-    color: $color-career-primary;
+    color: theme(career-primary);
 }

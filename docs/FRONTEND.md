@@ -111,9 +111,6 @@ changing its value.
   role. Distinct roles should not be merged merely because their values match.
 - Put rules targeting all elements of a kind in `base/_elements.scss`;
   component-specific rules belong with their component.
-- Use the shared `$z-*` tokens for page-level stacking. Small values that order
-  children inside a component stay local. Stacking contexts still determine
-  whether elements can overlap; a larger number alone does not override them.
 
 #### Formatting and linting
 

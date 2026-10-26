@@ -29,7 +29,7 @@ describe("useCalendarView", () => {
 
         expect(result.current.mode).toBe("month");
         expect(result.current.isDefaultMode).toBe(true);
-        expect(result.current.anchor.toDateString()).toBe(new Date().toDateString());
+        expect(result.current.selectedDate.toDateString()).toBe(new Date().toDateString());
     });
 
     it("reads the view out of the URL", () => {
@@ -39,10 +39,10 @@ describe("useCalendarView", () => {
         expect(result.current.isDefaultMode).toBe(false);
     });
 
-    it("rebuilds the anchor as local midnight of the stored day", () => {
+    it("rebuilds the selected date as local midnight of the stored day", () => {
         const { result } = setup("/events?view=day&date=2026-10-20");
 
-        expect(zonedParts(result.current.anchor)).toMatchObject({ year: 2026, month: 9, day: 20, hour: 0 });
+        expect(zonedParts(result.current.selectedDate)).toMatchObject({ year: 2026, month: 9, day: 20, hour: 0 });
     });
 
     it("falls back to month for an unknown view", () => {
@@ -54,7 +54,7 @@ describe("useCalendarView", () => {
     it("falls back to today for a malformed date", () => {
         const { result } = setup("/events?date=whenever");
 
-        expect(result.current.anchor.toDateString()).toBe(new Date().toDateString());
+        expect(result.current.selectedDate.toDateString()).toBe(new Date().toDateString());
     });
 
     it("writes a chosen view into the URL, keeping the page", () => {
@@ -76,7 +76,7 @@ describe("useCalendarView", () => {
         expect(written().get("date")).toBe("2026-10-20");
     });
 
-    it("keeps the anchor when switching view", () => {
+    it("keeps the selected date when switching view", () => {
         const { result, written } = setup("/events?view=week&date=2026-10-20");
 
         act(() => result.current.setMode("day"));
@@ -146,7 +146,7 @@ describe("useCalendarView", () => {
         expect(written().get("date")).toBe("2026-10-25");
         act(() => result.current.navigate(-1));
         expect(written().get("date")).toBe("2026-10-20");
-        expect(zonedParts(result.current.anchor)).toMatchObject({ month: 9, day: 20 });
+        expect(zonedParts(result.current.selectedDate)).toMatchObject({ month: 9, day: 20 });
     });
 
     it("moves to a date without changing the view", () => {
@@ -196,13 +196,13 @@ describe("useCalendarView", () => {
         expect(written().get("date")).toBe(todayISO());
     });
 
-    it("feeds a written URL back into the anchor", () => {
+    it("feeds a written URL back into the selected date", () => {
         const { result } = setup("/events?view=week&date=2026-10-20");
 
         act(() => result.current.goToDay(new Date("2026-10-20T20:00:00.000Z")));
 
         expect(result.current.mode).toBe("day");
-        expect(zonedParts(result.current.anchor)).toMatchObject({ month: 9, day: 20 });
+        expect(zonedParts(result.current.selectedDate)).toMatchObject({ month: 9, day: 20 });
     });
 
     it("jumps straight to day mode from a date", () => {
@@ -223,7 +223,7 @@ describe("useCalendarView", () => {
         expect(written().get("date")).toBe("2024-04-08");
     });
 
-    it("exposes the seven dates of the anchor week", () => {
+    it("exposes the seven dates of the selected week", () => {
         const { result } = setup("/events?view=week&date=2026-10-20");
 
         expect(result.current.weekDates).toHaveLength(7);

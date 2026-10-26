@@ -4,9 +4,9 @@ import { addDays, addMonths, addWeeks, buildWeekDates, zonedMidnight, zonedParts
 
 // The calendar's view and date live in the page's query string
 // (`/events?view=week&date=2026-10-20`), so a view can be shared or bookmarked
-// and Back retraces each step. Month/week/day are the same anchor rendered at
+// and Back retraces each step. Month/week/day are the same selected date rendered at
 // different resolutions, so only one date is ever stored and switching view
-// keeps it. Year view is the whole archive and ignores the anchor entirely.
+// keeps it. Year view is the whole archive and ignores the selected date entirely.
 
 export const VIEW_MODES = ["year", "month", "week", "day"];
 export const DEFAULT_VIEW = "month";
@@ -31,7 +31,7 @@ const STEP_BY = {
 const ISO_DAY = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 // Rebuild the instant for local midnight of `YYYY-MM-DD`. Storing the wall
-// date rather than an instant means the anchor survives a reload without
+// date rather than an instant means the selected date survives a reload without
 // sliding a day in another timezone.
 function parseDateParam(value) {
     const match = ISO_DAY.exec(value ?? "");
@@ -52,13 +52,13 @@ export default function useCalendarView() {
 
     const mode = VIEW_MODES.includes(viewParam) ? viewParam : DEFAULT_VIEW;
     // No stored date means today, which is what a first visit should open on.
-    const anchor = useMemo(() => parseDateParam(dateParam) ?? new Date(), [dateParam]);
-    const weekDates = useMemo(() => buildWeekDates(anchor), [anchor]);
+    const selectedDate = useMemo(() => parseDateParam(dateParam) ?? new Date(), [dateParam]);
+    const weekDates = useMemo(() => buildWeekDates(selectedDate), [selectedDate]);
 
     const updateCalendarUrl = useCallback(
-        (nextAnchor, nextMode) => {
+        (nextSelectedDate, nextMode) => {
             const view = nextMode ?? mode;
-            const date = toISODate(nextAnchor);
+            const date = toISODate(nextSelectedDate);
 
             // A new history entry per move, so Back steps back through the views.
             setParams((current) => {
@@ -74,7 +74,7 @@ export default function useCalendarView() {
 
     const goToDay = useCallback((date) => updateCalendarUrl(date, "day"), [updateCalendarUrl]);
     // A date at the current resolution: the month view lands on its month, the
-    // week view on its week, the day view on the day. Only the anchor moves, so
+    // week view on its week, the day view on the day. Only the selected date moves, so
     // the view stays put.
     const goToDate = useCallback((date) => updateCalendarUrl(date), [updateCalendarUrl]);
     const goToToday = useCallback(() => goToDate(new Date()), [goToDate]);
@@ -82,15 +82,15 @@ export default function useCalendarView() {
     const step = useCallback(
         (amount) => {
             const by = STEP_BY[mode];
-            if (by) updateCalendarUrl(by(anchor, amount));
+            if (by) updateCalendarUrl(by(selectedDate, amount));
         },
-        [anchor, updateCalendarUrl, mode],
+        [selectedDate, updateCalendarUrl, mode],
     );
-    const setMode = useCallback((view) => updateCalendarUrl(anchor, view), [anchor, updateCalendarUrl]);
+    const setMode = useCallback((view) => updateCalendarUrl(selectedDate, view), [selectedDate, updateCalendarUrl]);
 
     return {
         mode,
-        anchor,
+        selectedDate,
         weekDates,
         isDefaultMode: mode === DEFAULT_VIEW,
         goToDay,

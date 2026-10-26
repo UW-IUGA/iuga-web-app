@@ -568,10 +568,10 @@
     position: absolute;
     pointer-events: auto;
     top: 76px;
-    // Right edge tracks the app content margin at any viewport.
-    // max() picks the centered calc on wide screens, $page-margin on narrow.
-    // Position stays in CSS so scrollbars/resize can't desync it.
-    right: max(#{$page-margin}, calc((100vw - 1200px) / 2));
+    // Right edge on the site frame's content edge (abstracts/mixins site-frame),
+    // at any viewport. 100% is the fixed overlay's width, which leaves out the
+    // scrollbar as the frame does. Position stays in CSS so resize can't desync it.
+    right: calc((100% - min(100%, #{$site-max-width})) / 2 + var(--site-gutter));
     box-sizing: border-box;
     width: min(400px, calc(100vw - 32px));
     height: min(440px, calc(100dvh - 96px));
@@ -584,10 +584,6 @@
     box-shadow: 0 14px 30px theme-alpha(shadow, 0.13);
     overflow-y: auto;
     animation: shop-cart-dropdown-drop 220ms ease-out both;
-
-    @include media(">=sm-desktop", "<desktop") {
-        right: max(#{$page-margin}, calc((100vw - 1000px) / 2));
-    }
 }
 
 .shopCartDropdown__header {
@@ -962,8 +958,8 @@
 @include media("<tablet") {
     .shopCartDropdown__panel {
         top: 68px;
-        right: 16px;
-        left: 16px;
+        // The base rule's right edge is the gutter here; the left one matches it.
+        left: var(--site-gutter);
         width: auto;
         height: min(440px, calc(100dvh - 84px));
     }

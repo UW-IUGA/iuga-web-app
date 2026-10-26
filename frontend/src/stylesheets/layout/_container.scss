@@ -8,31 +8,19 @@
     overflow-x: clip;
 }
 
+// The side gutter of the site's frame (abstracts/mixins site-frame): the events
+// page's own, 16px on a phone and 32px from a tablet up.
+:root {
+    --site-gutter: 16px;
+
+    @include media(">=tablet") {
+        --site-gutter: 32px;
+    }
+}
+
 .baseContainer {
     flex: 1;
-    margin: 0 auto;
-    width: 1200px;
+    @include site-frame;
     min-height: 300px;
     z-index: 1;
-}
-
-@include media(">=tablet") {
-    .baseContainer {
-        box-sizing: border-box;
-        width: min(1200px, calc(100% - $page-margin * 2));
-    }
-}
-
-@include media(">=sm-desktop", "<desktop") {
-    .baseContainer {
-        width: min(1000px, calc(100% - $page-margin * 2));
-    }
-}
-
-@include media("<tablet") {
-    .baseContainer {
-        box-sizing: border-box;
-        width: 100vw;
-        padding-inline: $padding-content;
-    }
 }

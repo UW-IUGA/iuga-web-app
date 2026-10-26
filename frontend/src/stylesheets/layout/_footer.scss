@@ -4,7 +4,7 @@ footer {
     position: relative;
     overflow: hidden;
     background-color: transparent;
-    box-shadow: 0 -18px 48px rgba($color-primary, 0.08);
+    box-shadow: 0 -18px 48px theme-alpha(accent, 0.08);
 
     &::before {
         position: absolute;
@@ -13,10 +13,10 @@ footer {
         background: linear-gradient(
                 to bottom,
                 transparent 0,
-                rgba($color-social-light, 0.16) 42%,
-                rgba($color-social-light, 0.42) 100%
+                theme-alpha(social-light, 0.16) 42%,
+                theme-alpha(social-light, 0.42) 100%
             ),
-            radial-gradient(ellipse 80% 100% at 50% 100%, rgba($color-primary, 0.13), transparent 78%);
+            radial-gradient(ellipse 80% 100% at 50% 100%, theme-alpha(accent, 0.13), transparent 78%);
         content: "";
         pointer-events: none;
     }
@@ -51,13 +51,14 @@ footer {
             display: block;
             width: 82px;
             height: auto;
+            filter: var(--artwork-filter);
         }
     }
 
     .footerCopyright {
         margin: 0;
         font-size: $font-size-small;
-        color: $color-dark-gray;
+        color: theme(text-muted);
         text-align: center;
     }
 
@@ -77,13 +78,14 @@ footer {
             @include focus-ring;
 
             &:hover {
-                background-color: $color-lavender;
+                background-color: theme(tint);
             }
         }
 
         img {
             display: block;
             width: 32px;
+            filter: var(--artwork-filter);
         }
     }
 }

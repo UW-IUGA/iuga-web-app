@@ -15,7 +15,7 @@
 
 .aboutMe p {
     font-size: $font-size-small;
-    color: #555;
+    color: theme(text-subtle, #555);
 }
 
 .all-tabs {
@@ -29,12 +29,12 @@
 .tab {
     padding: 10px $space-5;
     border-radius: 5px;
-    background: $color-white;
+    background: theme(surface);
     cursor: pointer;
 }
 
 .tab:hover {
-    background: #ddd;
+    background: theme(fill-subtle, #ddd);
     text-decoration: underline;
 }
 

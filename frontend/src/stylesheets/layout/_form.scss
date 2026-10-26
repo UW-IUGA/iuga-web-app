@@ -5,22 +5,22 @@
     width: 100%;
     padding: 13px 22px;
     border-radius: 5px;
-    border: 1px solid #dde3ec;
-    background: $color-white;
+    border: 1px solid theme(line, #dde3ec);
+    background: theme(surface);
     font-size: $font-size-small;
-    color: #536387;
+    color: theme(text-subtle, #536387);
     outline: none;
     resize: none;
     margin-bottom: $space-6;
 }
 
 .form-input:focus {
-    border-color: $color-primary;
+    border-color: theme(accent);
     box-shadow: 0 3px 8px rgba($color-black, 0.05);
 }
 
 .form-label {
-    color: #07074d;
+    color: theme(text-strong, #07074d);
     font-size: $font-size-small;
     font-weight: $font-weight-medium;
     line-height: 24px;

@@ -22,7 +22,7 @@
         place-items: center;
         border: 0;
         background: transparent;
-        color: $color-uw-purple;
+        color: theme(heading);
         cursor: pointer;
         @include focus-ring;
     }
@@ -39,9 +39,9 @@
         align-items: stretch;
         gap: 0;
         overflow-y: auto;
-        border: 1px solid #e7ddef;
-        background: $color-white;
-        box-shadow: 0 18px 30px rgba($color-shadow, 0.15);
+        border: 1px solid theme(line, #e7ddef);
+        background: theme(page);
+        box-shadow: 0 18px 30px theme-alpha(shadow, 0.15);
 
         &.nav-show-items {
             display: flex;
@@ -62,7 +62,7 @@
         min-height: 54px;
         padding: 15px $space-1;
         justify-content: space-between;
-        border-bottom: 1px solid #e8deee;
+        border-bottom: 1px solid theme(line, #e8deee);
         text-align: left;
     }
 

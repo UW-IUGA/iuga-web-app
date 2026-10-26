@@ -116,6 +116,12 @@
 }
 
 /* Blobs styling, in chronological order */
+.blob1,
+.blob2,
+.blob3 {
+    opacity: var(--decor-opacity);
+}
+
 .blob1 {
     background: radial-gradient(
         ellipse at center,

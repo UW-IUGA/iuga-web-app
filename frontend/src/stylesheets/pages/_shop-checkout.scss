@@ -6,7 +6,7 @@
     @extend %pageFrame;
     padding: $space-12 0 $space-22;
     max-width: 640px;
-    color: $color-uw-purple;
+    color: theme(heading);
 
     // The base container's side margin only applies from tablet up, so phones need the gutter here.
     @include media("<tablet") {
@@ -37,7 +37,7 @@
         list-style: none;
         margin: 0 0 $space-5;
         padding: 0;
-        border-top: 1px solid rgba($color-uw-purple, 0.2);
+        border-top: 1px solid theme-alpha(brand, 0.2);
     }
 
     &__line {
@@ -46,7 +46,7 @@
         align-items: center;
         gap: $space-2 $space-4;
         padding: 14px 0;
-        border-bottom: 1px solid rgba($color-uw-purple, 0.2);
+        border-bottom: 1px solid theme-alpha(brand, 0.2);
 
         > span:first-child {
             flex: 1 1 200px;
@@ -91,7 +91,7 @@
         }
 
         &--urgent strong {
-            color: $color-error;
+            color: theme(error);
         }
     }
 
@@ -100,14 +100,14 @@
         min-height: 48px;
         min-width: 190px;
         padding: 0 $space-6;
-        background: $color-white;
-        color: $color-uw-purple;
+        background: theme(surface);
+        color: theme(heading);
         font-size: $font-size-body;
 
         &:hover {
-            border-color: $color-uw-purple;
-            background: $color-uw-purple;
-            color: $color-white;
+            border-color: theme(brand);
+            background: theme(brand);
+            color: theme(on-fill);
             transform: none;
         }
     }
@@ -118,9 +118,9 @@
     &__submitted {
         margin: 0 0 $space-7;
         padding: $space-7;
-        border: 1px solid $color-border-lavender;
+        border: 1px solid theme(border-subtle);
         border-radius: $radius-card;
-        background: $color-lavender;
+        background: theme(tint);
 
         h2 {
             margin: 0 0 $space-3;
@@ -136,7 +136,7 @@
             width: auto;
             min-width: 190px;
             padding: 0 $space-6;
-            color: $color-white;
+            color: theme(on-fill);
             text-decoration: none;
         }
 
@@ -155,14 +155,14 @@
     &__submitted .shopCheckout__submittedNote {
         margin: $space-5 0;
         padding-top: $space-5;
-        border-top: 1px solid rgba($color-uw-purple, 0.14);
+        border-top: 1px solid theme-alpha(brand, 0.14);
     }
 
     // Already-paid path, set apart by the same hairline.
     &__expiredPaid {
         margin-top: $space-6;
         padding-top: $space-5;
-        border-top: 1px solid rgba($color-uw-purple, 0.14);
+        border-top: 1px solid theme-alpha(brand, 0.14);
 
         p {
             margin-bottom: $space-3;
@@ -178,9 +178,9 @@
     &__pay {
         margin: $space-7 0 $space-2;
         padding: $space-7;
-        border: 1px solid $color-border-lavender;
+        border: 1px solid theme(border-subtle);
         border-radius: $radius-card;
-        background: $color-lavender;
+        background: theme(tint);
 
         h2 {
             margin: 0 0 $space-5;
@@ -217,7 +217,7 @@
         overflow: hidden;
         border-radius: $radius-card-media;
         background: $color-white;
-        box-shadow: 0 14px 30px rgba($color-shadow, 0.13);
+        box-shadow: 0 14px 30px theme-alpha(shadow, 0.13);
 
         img {
             display: block;
@@ -255,8 +255,8 @@
                 width: 26px;
                 height: 26px;
                 border-radius: $radius-pill;
-                background: $color-primary;
-                color: $color-white;
+                background: theme(accent);
+                color: theme(on-fill);
                 font-size: 0.85rem;
                 font-weight: $font-weight-bold;
             }
@@ -276,18 +276,18 @@
 
     input {
         padding: $space-3 14px;
-        border: 1px solid rgba($color-uw-purple, 0.4);
+        border: 1px solid theme-alpha(brand, 0.4);
         border-radius: $radius-card;
         font: inherit;
         color: inherit;
 
         &[aria-invalid="true"] {
-            border-color: $color-error;
+            border-color: theme(error);
         }
     }
 
     &__error {
-        color: $color-error-dark;
+        color: theme(error-dark);
         font-weight: $font-weight-medium;
     }
 
@@ -298,7 +298,7 @@
         align-items: flex-start;
         gap: $space-2;
         margin: -4px 0 0;
-        color: $color-error-dark;
+        color: theme(error-dark);
         font-size: $font-size-body;
         font-weight: $font-weight-medium;
         line-height: 1.4;
@@ -312,8 +312,8 @@
         height: 18px;
         margin-top: 1px;
         border-radius: $radius-pill;
-        background: $color-error;
-        color: $color-white;
+        background: theme(error);
+        color: theme(on-fill);
         font-size: 0.75rem;
         font-weight: $font-weight-bold;
         line-height: 1;
@@ -322,7 +322,7 @@
     // Required fields: a red asterisk after the label, explained once on the first label's row.
     .shopCheckout__required::after {
         content: " *";
-        color: $color-error;
+        color: theme(error);
         font-size: 1.2em;
         font-weight: $font-weight-bold;
         line-height: 1;
@@ -337,11 +337,11 @@
 
     .shopCheckout__requiredNote {
         margin: 0;
-        color: $color-dark-gray;
+        color: theme(text-muted);
         font-size: 0.9rem;
 
         span {
-            color: $color-error;
+            color: theme(error);
             font-size: 1.2em;
             font-weight: $font-weight-bold;
             line-height: 1;
@@ -361,8 +361,8 @@
         border: 0;
         text-decoration: none;
         border-radius: $radius-card;
-        background: $color-primary;
-        color: $color-white;
+        background: theme(accent);
+        color: theme(on-fill);
         font: inherit;
         font-weight: $font-weight-medium;
         cursor: pointer;
@@ -374,8 +374,8 @@
 
         &--quiet {
             background: transparent;
-            color: $color-uw-purple;
-            border: 1px solid rgba($color-uw-purple, 0.4);
+            color: theme(heading);
+            border: 1px solid theme-alpha(brand, 0.4);
         }
     }
 }

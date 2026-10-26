@@ -1,0 +1,157 @@
+@use "../abstracts" as *;
+
+// Page-to-page transitions (src/prototype). Every rule hangs off a prototype class or the
+// data-prototype-transition flag, so without the v parameter none of this applies.
+
+// The routed page's own box: it fills the space between navbar and footer like the page did.
+.prototypePageStage {
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+    min-width: 0;
+}
+
+// A heading that only receives focus from a page change is not a control, so it shows no ring.
+[data-prototype-heading]:focus {
+    outline: none;
+}
+
+// One travelling underline replaces each link's own underline on the desktop bar, where the
+// links' row is already positioned and so places the bar.
+.prototypeNavIndicator {
+    display: none;
+}
+
+@include media(">=sm-desktop") {
+    .prototypeNavLinks > a.active {
+        text-decoration: none;
+    }
+    .prototypeNavIndicator {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: block;
+        height: 2px;
+        border-radius: 1px;
+        background: theme(accent);
+        opacity: 0;
+        pointer-events: none;
+        transition:
+            transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1),
+            width 240ms cubic-bezier(0.2, 0.8, 0.2, 1),
+            opacity 180ms ease-out;
+    }
+    .prototypeNavIndicator--visible {
+        opacity: 1;
+    }
+    // The morph moves the bar through a view transition instead.
+    :root[data-prototype-transition] .prototypeNavIndicator {
+        transition: none;
+    }
+}
+
+// View transitions: only the page area changes. The navbar and footer swap instantly, unanimated.
+:root[data-prototype-transition] {
+    .site-navigation {
+        view-transition-name: prototype-nav;
+    }
+    .prototypePageStage {
+        view-transition-name: prototype-page;
+    }
+}
+
+:root[data-prototype-transition]::view-transition-group(root),
+:root[data-prototype-transition]::view-transition-new(root),
+:root[data-prototype-transition]::view-transition-group(prototype-nav),
+:root[data-prototype-transition]::view-transition-new(prototype-nav) {
+    animation: none;
+}
+:root[data-prototype-transition]::view-transition-old(root),
+:root[data-prototype-transition]::view-transition-old(prototype-nav) {
+    display: none;
+}
+// The navbar stays above the page while both page snapshots fade.
+:root[data-prototype-transition]::view-transition-group(prototype-nav) {
+    z-index: 2;
+}
+
+// The page area keeps its new size at once; both snapshots sit at the top of it.
+:root[data-prototype-transition]::view-transition-group(prototype-page) {
+    animation: none;
+}
+
+// 1 — crossfade: the old page dissolves into the new one.
+:root[data-prototype-transition="crossfade"]::view-transition-old(prototype-page),
+:root[data-prototype-transition="crossfade"]::view-transition-new(prototype-page) {
+    animation-duration: 200ms;
+    animation-timing-function: ease-out;
+}
+
+// 5 — morph: the page title and the nav underline travel to their new places while the page
+// fades through.
+:root[data-prototype-transition="morph"] {
+    [data-prototype-title] {
+        view-transition-name: prototype-title;
+    }
+    .prototypeNavIndicator--visible {
+        view-transition-name: prototype-nav-mark;
+    }
+}
+:root[data-prototype-transition="morph"]::view-transition-old(prototype-page) {
+    animation: 120ms ease-in both prototype-fade-out;
+}
+:root[data-prototype-transition="morph"]::view-transition-new(prototype-page) {
+    animation: 240ms cubic-bezier(0.2, 0.8, 0.2, 1) 60ms both prototype-rise-in;
+}
+:root[data-prototype-transition="morph"]::view-transition-group(prototype-title),
+:root[data-prototype-transition="morph"]::view-transition-group(prototype-nav-mark) {
+    z-index: 3;
+    animation-duration: 280ms;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+:root[data-prototype-transition="morph"]::view-transition-old(prototype-title),
+:root[data-prototype-transition="morph"]::view-transition-new(prototype-title) {
+    height: 100%;
+    width: auto;
+    object-fit: none;
+    object-position: left top;
+}
+// The old title leaves quickly so the two never read as one overlapping line.
+:root[data-prototype-transition="morph"]::view-transition-old(prototype-title) {
+    animation: 100ms ease-in both prototype-fade-out;
+}
+:root[data-prototype-transition="morph"]::view-transition-new(prototype-title) {
+    animation: 200ms ease-out 60ms both prototype-fade-in;
+}
+
+@keyframes prototype-fade-out {
+    to {
+        opacity: 0;
+    }
+}
+@keyframes prototype-fade-in {
+    from {
+        opacity: 0;
+    }
+}
+@keyframes prototype-rise-in {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+}
+
+// The script already skips view transitions and swaps pages instantly under reduced motion;
+// these keep the bar and any snapshot still if one starts anyway.
+@media (prefers-reduced-motion: reduce) {
+    .prototypeNavLinks > .prototypeNavIndicator {
+        transition: none;
+    }
+    @each $name in (prototype-page, prototype-title, prototype-nav-mark) {
+        :root[data-prototype-transition]::view-transition-group(#{$name}),
+        :root[data-prototype-transition]::view-transition-old(#{$name}),
+        :root[data-prototype-transition]::view-transition-new(#{$name}) {
+            animation: none;
+        }
+    }
+}

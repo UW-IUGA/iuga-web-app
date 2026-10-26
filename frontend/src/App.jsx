@@ -29,6 +29,7 @@ import Footer from "./layouts/Footer";
 import { isProduction } from "./runtime";
 import { useTheme } from "./utils/theme";
 import { ADMIN_ROOT_PATH, ADMIN_HOME_PATH, ADMIN_SECTIONS, isAdminPath } from "./adminSections";
+import { PrototypePageStage, PrototypeShownPathContext, usePrototypePageTransition } from "./prototype/PrototypePageTransition";
 
 // The page component for each admin path in ADMIN_SECTIONS. Routes come from that list.
 const ADMIN_PAGES = {
@@ -38,7 +39,9 @@ const ADMIN_PAGES = {
 
 function App() {
     const { signIn, signOut } = useAuthContext();
-    const { pathname } = useLocation();
+    const location = useLocation();
+    const { pathname } = location;
+    const prototypePage = usePrototypePageTransition(location);
     // Admin pages bring their own admin bar instead of the public site navbar and footer,
     // and keep their own light palette whatever the site theme (base/theme).
     const showSiteChrome = !isAdminPath(pathname);
@@ -78,10 +81,13 @@ function App() {
                 theme={pageTheme}
                 transition={Bounce}
             />
-            {showSiteChrome && <Navbar signIn={signIn} signOut={signOut} />}
+            <PrototypeShownPathContext.Provider value={prototypePage.transition ? prototypePage.routesLocation.pathname : null}>
+                {showSiteChrome && <Navbar signIn={signIn} signOut={signOut} />}
+            </PrototypeShownPathContext.Provider>
             <ShopCartProvider>
             {showSiteChrome && <ShopMaintenanceBanner />}
-            <Routes>
+            <PrototypePageStage transition={prototypePage.transition} stageRef={prototypePage.stageRef}>
+            <Routes location={prototypePage.routesLocation}>
                 <Route path="/" element={<HomePage upcomingEvents={upcomingEvents} />} />
                 <Route path="/events" element={<EventsPage />} />
                 <Route path="/resources" element={<ResourcesPage resources={resources} />} />
@@ -106,6 +112,7 @@ function App() {
                 <Route path="/about" element={<AboutPage teams={iugaTeams} />} />
                 <Route path="/get-involved" element={<GetInvolvedPage />} />
             </Routes>
+            </PrototypePageStage>
             </ShopCartProvider>
             {showSiteChrome && <Footer />}
         </div>

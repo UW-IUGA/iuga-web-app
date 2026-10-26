@@ -14,6 +14,7 @@
     "backend": "cd backend && npm start",
     "backend-dev": "cd backend && npm start",
     "backend-debug": "cd backend && npm run debug",
+    "seed:shop": "node backend/scripts/seed-shop-orders.mjs",
     "setup": "npm ci && npm ci --prefix backend && npm ci --prefix frontend && git submodule update --init backend/schemas"
   },
   "devDependencies": {

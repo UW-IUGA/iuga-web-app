@@ -62,18 +62,18 @@ function zonedParts(date, timeZone = TIMEZONE) {
 }
 
 // The event categories, in the order the legend lists them, and their colours.
-// The app shows the stored Career label as Professional (see
+// The app shows the stored Professional label as Career (see
 // utils/eventStreams.js), so the calendar offers the three categories a
 // visitor can actually see. Each colour is a custom property the calendar's
 // stylesheet sets per palette (abstracts/eventsCalendar): lighter in dark,
 // under dark text, and deeper in light, under white text. contrast.test.js
 // checks both.
-export const EVENT_LABELS = ["Academic", "Social", "Professional"];
+export const EVENT_LABELS = ["Academic", "Career", "Social"];
 
 const LABEL_COLORS = {
     Academic: "var(--calendar-label-academic)",
+    Career: "var(--calendar-label-career)",
     Social: "var(--calendar-label-social)",
-    Professional: "var(--calendar-label-professional)",
 };
 
 // For an event with no label, or one the legend does not know.
@@ -100,7 +100,7 @@ export function normalizeEvent(raw) {
         description: raw.eDescription ?? "",
         location: raw.eLocation ?? "",
         organizers: raw.eOrganizers ?? "",
-        // Displayed names, once each: Career and Professional both read as Professional.
+        // Displayed names, once each: Career and Professional both read as Career.
         labels: Array.isArray(raw.eLabels) ? [...new Set(categoriesFor(raw))] : [],
         thumbnail: raw.eThumbnailPath ?? null,
         altLink: raw.eAltLink?.title && raw.eAltLink?.url ? raw.eAltLink : null,

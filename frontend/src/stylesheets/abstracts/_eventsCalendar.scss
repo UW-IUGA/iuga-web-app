@@ -66,8 +66,8 @@ $calendar-palette-dark: (
     popover-border: rgba(255, 255, 255, 0.1),
     popover-shadow: rgba(0, 0, 0, 0.5),
     label-academic: #5fa5f9,
+    label-career: #a78bfa,
     label-social: #e879f9,
-    label-professional: #a78bfa,
 );
 
 $calendar-palette-light: (
@@ -96,8 +96,8 @@ $calendar-palette-light: (
     popover-border: rgba(36, 26, 50, 0.12),
     popover-shadow: rgba(25, 11, 44, 0.18),
     label-academic: #2563eb,
+    label-career: #6d28d9,
     label-social: #a21caf,
-    label-professional: #6d28d9,
 );
 
 @if map.keys($calendar-palette-dark) != map.keys($calendar-palette-light) {

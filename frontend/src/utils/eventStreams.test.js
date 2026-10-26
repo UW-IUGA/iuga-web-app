@@ -1,8 +1,12 @@
 import { categoriesFor, displayLabel } from "./eventStreams";
 
 describe("displayLabel", () => {
-    test("maps the legacy Career label to Professional", () => {
-        expect(displayLabel("Career")).toBe("Professional");
+    test("shows a stored Professional label as Career", () => {
+        expect(displayLabel("Professional")).toBe("Career");
+    });
+
+    test("leaves the Career label as it is", () => {
+        expect(displayLabel("Career")).toBe("Career");
     });
 
     test("leaves a label named like an object property unchanged", () => {
@@ -13,7 +17,7 @@ describe("displayLabel", () => {
 
 describe("categoriesFor", () => {
     test("returns display categories for an event's labels", () => {
-        expect(categoriesFor({ eLabels: ["Career", "Social"] })).toEqual(["Professional", "Social"]);
+        expect(categoriesFor({ eLabels: ["Professional", "Social"] })).toEqual(["Career", "Social"]);
     });
 
     test("returns no categories when an event has no labels", () => {

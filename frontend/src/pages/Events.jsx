@@ -1,197 +1,155 @@
-import { useCallback, useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
-import { toast } from "react-toastify";
-import { pastEvents } from "../assets/data/PastEventsData";
-import { mockCalendarData, mockEvent } from "../assets/mock-data/MockCalendarData";
-import { mockUpcomingEvents } from "../assets/mock-data/MockUpcomingEvents";
-import EventAgenda from "../components/EventAgenda";
-import EventDialog from "../components/EventDialog";
+/*
+Purpose: The events page: a calendar of IUGA events with year, month, week and day views.
+Authentication/Authorization Requirements: None for the calendar. Officers with events.requests.manage
+  also get event operations below it, with the controls their other events permissions allow.
+Expected Request Information: Optional query parameters view (year, week or day; month when absent)
+  and date (YYYY-MM-DD, today when absent), so any view can be shared or bookmarked.
+Expected Response Information: The toolbar and the chosen view, with the mini month and colour key
+  beside month, week and day. While the list loads, or if it fails, the calendar says so.
+  Event operations call /api/v1/event-requests (see EventOperations).
+*/
+
+import { useEffect, useMemo, useRef, useState } from "react";
 import EventOperations from "../components/EventOperations";
-import PastEventCard from "../components/PastEventCard";
-import PhotoCollage from "../components/PhotoCollage";
-import PhotoLightbox from "../components/PhotoLightbox";
+import CalendarToolbar from "../components/eventsCalendar/CalendarToolbar";
+import DayView from "../components/eventsCalendar/DayView";
+import Legend from "../components/eventsCalendar/Legend";
+import MiniMonth from "../components/eventsCalendar/MiniMonth";
+import MonthCard from "../components/eventsCalendar/MonthCard";
+import WeekView from "../components/eventsCalendar/WeekView";
+import YearView from "../components/eventsCalendar/YearView";
 import { useAuthContext } from "../context/AuthContext";
-import { isProduction } from "../runtime";
-import PageHeader from "../components/PageHeader";
+import useCalendarView from "../hooks/useCalendarView";
+import useEventList from "../hooks/useEventList";
+import useSwipeStep from "../hooks/useSwipeStep";
+import { buildMonthGrid, MONTH_NAMES, normalizeEvent, zonedParts } from "../utils/calendar/calendar";
 
-const DEV_EVENTS = [...mockCalendarData, ...mockUpcomingEvents];
+// Views that carry the mini month beside them. Year view is the exception:
+// it is already every month at once, so another would only repeat the screen.
+const SIDEBAR_MODES = ["month", "week", "day"];
 
-// The hero collage previews past events, drawing on the first two photos of each.
-const HERO_PHOTOS = pastEvents.flatMap((event) => event.photos.slice(0, 2));
-
-const pastEventEyebrow = (event) => [event.when, event.time, event.location].filter(Boolean).join(" · ");
-
-// The fields the list leaves out: description, photo, and RSVP settings.
-const loadEventDetails = async (event) => {
-    if (!isProduction) {
-        return { ...mockEvent, ...event, ...DEV_EVENTS.find((devEvent) => devEvent.eId === event.eId) };
+// What the calendar says instead of its events while it has none to show.
+function ListStatus({ status, onRetry }) {
+    if (status === "loading") {
+        return (
+            <p className="events__status" role="status">
+                Loading events…
+            </p>
+        );
     }
-
-    const res = await fetch(`/api/v1/events/id/${event.eId}`, { method: "GET" });
-    if (!res.ok) throw new Error(`${res.status}, ${res.statusText}`);
-    return res.json();
-};
+    if (status === "failed") {
+        return (
+            <div className="events__status" role="alert">
+                <p>We couldn&apos;t load events. Please try again.</p>
+                <button type="button" className="events__retry" onClick={onRetry}>
+                    Try again
+                </button>
+            </div>
+        );
+    }
+    return null;
+}
 
 function EventsPage() {
-    const { isAuthenticated, can } = useAuthContext();
-    const { state, pathname } = useLocation();
-    const [calendarEvents, setCalendarEvents] = useState([]);
-    // "loading" until the list arrives, then "ready"; "failed" if it could not be fetched.
-    const [eventsStatus, setEventsStatus] = useState("loading");
-    // Bumped to fetch the list again after a failure.
-    const [eventsRequest, setEventsRequest] = useState(0);
-    // The open event dialog: the event as it was opened (a list record, or the eId and date
-    // another page linked to) and its details, which are null until they load.
-    const [dialog, setDialog] = useState(null);
-    const openEvent = dialog?.event;
-    const openEventDetails = useCallback((event) => setDialog({ event, details: null }), []);
-    const closeEventDetails = useCallback(() => setDialog(null), []);
-    // Events RSVPd to in the current sign-in session; the list itself only knows what the
-    // server said when it loaded. The session number changes whenever sign-in state does.
-    const [rsvps, setRsvps] = useState({ session: 0, eventIds: new Set() });
-    // The past event whose photos are open in the viewer, and which photo is showing.
-    const [openPhoto, setOpenPhoto] = useState(null);
+    const { mode, anchor, goToDay, goToDate, goToToday, step, setMode } = useCalendarView();
+    const { records, status, retry } = useEventList();
+    const { can } = useAuthContext();
 
     useEffect(() => {
         window.scrollTo(0, 0);
-    }, [pathname]);
+    }, []);
 
-    // RSVPs belong to whoever was signed in when they were made, so a new session starts empty.
-    useEffect(() => {
-        setRsvps((current) => ({ session: current.session + 1, eventIds: new Set() }));
-    }, [isAuthenticated]);
-
-    useEffect(() => {
-        let isCurrent = true;
-
-        if (!isProduction) {
-            setCalendarEvents(DEV_EVENTS);
-            setEventsStatus("ready");
-            return () => {
-                isCurrent = false;
-            };
-        }
-
-        // A list that is already showing stays up while it is refreshed, for example after signing in.
-        setEventsStatus((status) => (status === "ready" ? status : "loading"));
-
-        fetch("/api/v1/events/", { method: "GET" })
-            .then((res) => {
-                if (!res.ok) throw new Error(`${res.status}, ${res.statusText}`);
-                return res.json();
-            })
-            .then((events) => {
-                if (!isCurrent) return;
-                setCalendarEvents(events);
-                setEventsStatus("ready");
-            })
-            .catch((error) => {
-                console.error("Unable to load events", error);
-                if (isCurrent) setEventsStatus("failed");
-            });
-
-        return () => {
-            isCurrent = false;
-        };
-    }, [isAuthenticated, eventsRequest]);
-
-    // The dialog opens straight away with what is already known; this fills in the rest.
-    useEffect(() => {
-        if (!openEvent) return undefined;
-        let isCurrent = true;
-
-        loadEventDetails(openEvent)
-            .then((details) => {
-                if (isCurrent) setDialog({ event: openEvent, details });
-            })
-            .catch((error) => {
-                console.error("Unable to load event details", error);
-                if (!isCurrent) return;
-                toast.error("We couldn't load this event's details. Please try again.");
-                setDialog(null);
-            });
-
-        return () => {
-            isCurrent = false;
-        };
-    }, [openEvent]);
-
-    useEffect(() => {
-        if (state?.eId) openEventDetails({ eId: state.eId, eStartDate: state.eStartDate });
-    }, [openEventDetails, state]);
-
-    // An RSVP can finish after someone else has signed in on the same computer; it only
-    // counts for the session it was sent in.
-    const markRsvpd = (eId, sentInSession) => {
-        setRsvps((current) =>
-            current.session === sentInSession ? { ...current, eventIds: new Set(current.eventIds).add(eId) } : current,
-        );
+    // Bumped by the toolbar's Today and arrows, so the mini month returns to the
+    // anchor's month even when the press leaves the anchor where it was.
+    const [navCount, setNavCount] = useState(0);
+    const onToday = () => {
+        setNavCount((count) => count + 1);
+        goToToday();
+    };
+    const onStep = (amount) => {
+        setNavCount((count) => count + 1);
+        step(amount);
     };
 
-    // An event counts as RSVPd if the server said so or the student RSVPd since, and only while signed in.
-    const withRsvpState = (event) => ({
-        ...event,
-        hasRSVPd: isAuthenticated && (Boolean(event.hasRSVPd) || rsvps.eventIds.has(event.eId)),
-    });
-    const agendaEvents = calendarEvents.map(withRsvpState);
-    const dialogEvent = dialog && withRsvpState({ ...dialog.event, ...dialog.details });
+    // Year view is the whole archive on one page, so it runs the full width.
+    const hasSidebar = SIDEBAR_MODES.includes(mode);
 
-    const closePhoto = useCallback(() => setOpenPhoto(null), []);
+    // A swipe across the view steps it, the same as the arrows, which stay. The
+    // views that step are the ones with a sidebar; the year view does neither.
+    const mainRef = useRef(null);
+    useSwipeStep(mainRef, onStep, hasSidebar);
+
+    // Normalized once per list, so the grids' own memos keep their inputs.
+    const events = useMemo(() => records.map(normalizeEvent), [records]);
+
+    const anchorParts = zonedParts(anchor);
+
+    // The single month the month view shows, positioned by the anchor.
+    const rows = useMemo(
+        () => buildMonthGrid(anchorParts.year, anchorParts.month, events),
+        [anchorParts.year, anchorParts.month, events],
+    );
+
+    let view;
+    if (mode === "year") {
+        view = <YearView rawEvents={records} onPickDay={goToDay} />;
+    } else if (mode === "week") {
+        view = <WeekView anchor={anchor} events={events} onSelectDay={goToDay} />;
+    } else if (mode === "day") {
+        view = <DayView anchor={anchor} events={events} onSelectDay={goToDay} />;
+    } else {
+        view = (
+            <MonthCard
+                title={`${MONTH_NAMES[anchorParts.month]} ${anchorParts.year}`}
+                rows={rows}
+                onPickDay={goToDay}
+            />
+        );
+    }
 
     return (
-        <div className="baseContainer eventsPage">
-            <PageHeader
-                label="Events"
-                title="Find what's happening this week."
-                intro="IUGA's academic, social, and professional events. Pick a day to narrow the week."
-                visual={<PhotoCollage photos={HERO_PHOTOS} />}
-            />
+        <>
+            <div className="eventsCalendar eventsCalendar--page">
+                <section className="page page--events">
+                    <h1 className="page__title">Events</h1>
 
-            <EventAgenda
-                events={agendaEvents}
-                initialDate={state?.eStartDate}
-                status={eventsStatus}
-                onRetry={() => setEventsRequest((request) => request + 1)}
-                onSelectEvent={openEventDetails}
-            />
+                    <CalendarToolbar
+                        mode={mode}
+                        anchor={anchor}
+                        events={events}
+                        onModeChange={setMode}
+                        onToday={onToday}
+                        onStep={onStep}
+                        onPickDate={goToDate}
+                    />
 
-            <section className="eventsPast" aria-labelledby="past-events-heading">
-                <h2 id="past-events-heading">Previous events.</h2>
-                <div className="eventsPast__list">
-                    {pastEvents.map((event, position) => (
-                        <PastEventCard
-                            event={event}
-                            key={event.id}
-                            reversed={position % 2 === 1}
-                            onOpenPhoto={(index) => setOpenPhoto({ event, index })}
-                        />
-                    ))}
-                </div>
-            </section>
+                    <div className={`events${hasSidebar ? " events--with-sidebar" : ""}`}>
+                        {hasSidebar && (
+                            <div className="events__sidebar">
+                                <MiniMonth anchor={anchor} events={events} onPickDay={goToDate} syncKey={navCount} />
+                                {/* The colour key, under the mini month and stacked to fit its width. */}
+                                <div className="events__legend">
+                                    <Legend layout="column" />
+                                </div>
+                            </div>
+                        )}
 
-            <PhotoLightbox
-                photos={openPhoto?.event.photos}
-                index={openPhoto?.index ?? null}
-                title={openPhoto?.event.name}
-                eyebrow={openPhoto ? pastEventEyebrow(openPhoto.event) : undefined}
-                onIndexChange={(index) => setOpenPhoto((current) => ({ ...current, index }))}
-                onClose={closePhoto}
-            />
+                        <div ref={mainRef} className={`events__main${hasSidebar ? " events__main--swipe" : ""}`}>
+                            <ListStatus status={status} onRetry={retry} />
+                            {view}
+                        </div>
+                    </div>
+                </section>
+            </div>
 
-            <EventDialog
-                event={dialogEvent}
-                isLoading={Boolean(dialog) && !dialog.details}
-                onRsvp={(eId) => markRsvpd(eId, rsvps.session)}
-                onClose={closeEventDetails}
-            />
-
+            {/* Outside the calendar's root, so the site's own form and button styles apply. */}
             <EventOperations
                 canManageRequests={can("events.requests.manage")}
                 canApproveLeadership={can("events.leadership.approve")}
                 canManageFinance={can("events.finance.manage")}
                 canCompletePurchases={can("events.purchases.complete")}
             />
-        </div>
+        </>
     );
 }
 

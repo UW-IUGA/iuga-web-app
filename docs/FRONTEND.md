@@ -32,6 +32,8 @@ frontend/src/
 │   ├── ElectionFAQCard.jsx
 │   ├── EmailContactDialog.jsx ← Mail-provider compose dialog for committee and shop contact
 │   ├── EventAgenda.jsx        ← One week of events: day buttons above a list of event rows
+│   ├── EventsOverview.jsx     ← The previous /events page, kept unrouted for the homepage (see EVENTS.md)
+│   ├── eventsCalendar/        ← The events calendar's views and controls (see EVENTS.md)
 │   ├── EventCategoryPills.jsx ← Compact category labels for an event
 │   ├── EventDialog.jsx        ← Event details and RSVP in a modal dialog
 │   ├── EventThumbnail.jsx     ← An event's photo, or a category tile when it has none
@@ -48,14 +50,18 @@ frontend/src/
 │   └── AuthContext.jsx   ← Authentication state (React Context)
 ├── hooks/
 │   ├── useAuth.jsx       ← MSAL token acquisition + backend handshake
+│   ├── useCalendarView.js ← The events calendar's view and date, kept in the URL
+│   ├── useEventList.js   ← The events calendar's event list and loading state
+│   ├── useSwipeStep.js, useZoomOverlay.js, useMediaQuery.js, useNow.js ← Calendar swipe, year overlay, media query, clock
 │   ├── usePopover.js     ← Closes a popover on an outside press or Escape
 │   └── useModalDialog.js ← Opens and closes a native <dialog> from an isOpen flag
 ├── layouts/
 │   ├── Navbar.jsx        ← Shared top navigation and temporary mobile menu
 │   └── Footer.jsx
+├── utils/calendar/       ← Events calendar date maths, grids, popover placement, swipe rules
 ├── pages/
 │   ├── Home.jsx          ← Homepage hero, upcoming events, support destinations, and community links
-│   ├── Events.jsx        ← Weekly event agenda, event details and RSVP, and past event photos
+│   ├── Events.jsx        ← Events calendar: year, month, week, and day views
 │   ├── Resources.jsx     ← Resource links list
 │   ├── About.jsx         ← Team member cards by year
 │   ├── GetInvolved.jsx   ← Committee leaders, committees, and the Creative application status
@@ -116,6 +122,9 @@ changing its value.
   Their shared tokens and focus mixin live in `abstracts/_admin.scss`, loaded
   explicitly by the admin bar, Orders, and Pickup modules rather than inherited
   from another page's import order.
+- The events calendar likewise keeps the prototype's darker palette in
+  `abstracts/_eventsCalendar.scss`, and scopes every rule inside an
+  `.eventsCalendar` root (see [EVENTS.md](./EVENTS.md#styles)).
 - Put rules targeting all elements of a kind in `base/_elements.scss`;
   component-specific rules belong with their component.
 
@@ -211,7 +220,7 @@ Defined in `src/App.jsx`:
 | Path | Page Component | Data Source |
 |---|---|---|
 | `/` | `HomePage` | `upcomingEvents` (prop — mock or API) |
-| `/events` | `EventsPage` | Mock data or `GET /api/v1/events` |
+| `/events` | `EventsPage` | Mock data or `GET /api/v1/events`; officers also call `/api/v1/event-requests`. See [EVENTS.md](./EVENTS.md) |
 | `/resources` | `ResourcesPage` | Static data from `assets/data/ResourcesData.js` |
 | `/shop` | `ShopPage` | Static data from `assets/data/ShopData.js` and `GET /api/v1/shop/catalog` plus authenticated `POST /api/v1/shop/checkout` |
 | `/shop/checkout/:holdId` | `ShopCheckoutPage` | Authenticated `GET` and `DELETE` `/api/v1/shop/holds/:holdId`, `PATCH` `/api/v1/shop/holds/:holdId/lines`, and `POST` `/api/v1/shop/holds/:holdId/confirm`. Shows the Venmo QR code (`assets/shop/venmo-qr.webp`) beside the exact amount due and the IUGA-UW handle, each line, the total, a countdown, and the required Venmo username and phone number entries. The Venmo username is prefilled from the student's earlier purchase; entering a different one blocks Confirm and offers a prefilled email to `iuga@uw.edu`. |
@@ -226,44 +235,13 @@ The backend also serves `index.html` for each of these paths to enable deep link
 
 ### Events page
 
-`pages/Events.jsx` loads the event list, owns which event and which photo are
-open, and composes these pieces:
-
-- **Hero** — the heading beside a `PhotoCollage` of past event photos.
-- **`EventAgenda`** — shows one week at a time. `WeekNavigation` moves a week
-  backward or forward. Seven day buttons show which days have events; choosing
-  a day filters the list to that day, and choosing it again shows the whole
-  week. Each event row shows its date, `EventThumbnail`, time, location, host,
-  and `EventCategoryPills`, and is marked "Going" once the student has RSVPd.
-  A week with no events offers a button that jumps to the next upcoming event.
-- **`EventDialog`** — opens when a student chooses an event. It opens at once
-  with the fields the list already has, then fills in the rest from
-  `GET /api/v1/events/id/{eId}`. An upcoming event with RSVP enabled shows its
-  questions and an RSVP button, which posts to `POST /api/v1/events/rsvp` and
-  requires sign-in. An event with its own sign-up link shows that link instead.
-  Past events cannot be RSVPd to.
-- **Previous events** — one `PastEventCard` per entry in
-  `assets/data/PastEventsData.js`. Any photo, or "View Photos", opens
-  `PhotoLightbox` on that event's photos; the viewer shows the event's name
-  with its date, time, and location. The arrow buttons, the arrow keys, and a
-  click on the right or left half of the photo move through the set, wrapping
-  around at both ends.
-
-To add a past event, run `scripts/past-event-photo.sh <original-photo> <name>`
-for each photo (it needs `ffmpeg` and `cwebp`), then add an entry to
-`PastEventsData.js` that lists them with `photo("<name>", "<alt text>")`. The
-script writes two WebP files to `assets/gallery/past-events/`: `<name>.webp`,
-2000px on its long edge, for the viewer, and `<name>-small.webp`, 800px, for
-cards, thumbnails, and the hero collage. The page loads the small files until
-a student opens a photo, except that each card's cover uses the full-size file
-on high-density screens so it stays sharp. The first photo is the cover, and the first two
-photos of each event feed the hero collage.
-
-`EventDialog` and `PhotoLightbox` are native `<dialog>` elements driven by
-`hooks/useModalDialog.js`. Pass it whether the dialog should be open and what
-to do when it closes; spread the `dialogProps` it returns onto the `<dialog>`
-and call its `close()` from a close button. Escape, the close button, and a
-click on the dimmed area all close the dialog and call your handler once.
+`/events` is a calendar with year, month, week, and day views, kept in the URL
+(`?view=week&date=2026-10-20`). `pages/Events.jsx` composes the toolbar, the
+mini month and colour key, and the chosen view from `components/eventsCalendar/`,
+and loads events with `hooks/useEventList.js`. Officers with
+`events.requests.manage` get event operations below it. The previous page, a
+weekly agenda with RSVP and past event photos, is kept unrouted as
+`components/EventsOverview.jsx`. See [EVENTS.md](./EVENTS.md) for both.
 
 ### Venmo checkout hold
 
@@ -377,5 +355,6 @@ The backend creates **server-side sessions** (express-session), so the frontend 
 | `react-responsive` | Responsive breakpoint rendering |
 | `react-toastify` | Toast notifications |
 | `date-fns` / `dateformat` | Date formatting |
+| `gsap` | Events calendar animation: swipe steps and the year view's day overlay |
 | `sass` | SCSS compilation |
 | `@fortawesome/*` | Icon set |

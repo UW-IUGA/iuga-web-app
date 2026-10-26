@@ -130,9 +130,9 @@ describe("Card", () => {
                 <Card title="October 2026" rows={buildMonthGrid(2026, 9, [panel()])} onPickDay={vi.fn()} compact />,
             );
 
-            // panel() carries the Career label, which shows as Professional, in its colour.
+            // panel() carries the Career label, in its colour.
             const cell = padAt(container, dayIndex(2026, 9, 22));
-            expect(cell.style.backgroundColor).toBe(colorForLabels(["Professional"]));
+            expect(cell.style.backgroundColor).toBe(colorForLabels(["Career"]));
         });
 
         it("leaves an event-free day unpainted", () => {

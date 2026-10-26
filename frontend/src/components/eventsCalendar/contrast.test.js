@@ -66,7 +66,7 @@ it("keeps the dark palette the prototype's", () => {
         "now-line": "#f97362",
         "label-academic": "#5fa5f9",
         "label-social": "#e879f9",
-        "label-professional": "#a78bfa",
+        "label-career": "#a78bfa",
     });
 });
 

@@ -86,7 +86,7 @@ describe("CalendarToolbar", () => {
 
         const legend = screen.getByRole("list", { name: "Event colours" });
         const items = within(legend).getAllByRole("listitem");
-        expect(items.map((item) => item.textContent)).toEqual(["Academic", "Social", "Professional"]);
+        expect(items.map((item) => item.textContent)).toEqual(["Academic", "Career", "Social"]);
         // Each swatch is decorative: the label beside it carries the meaning.
         for (const item of items) {
             const swatch = item.querySelector(".legend__swatch");

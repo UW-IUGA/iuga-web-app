@@ -1,0 +1,309 @@
+/*
+Purpose: Style the hour grid shared by the week and day views.
+Expected Request Information: Classes emitted by TimeGrid and WeekView, inside an .eventsCalendar root.
+Expected Response Information: Day columns over an hour gutter, with event blocks and a now-line.
+*/
+@use "../../abstracts" as *;
+@use "../../abstracts/eventsCalendar" as *;
+
+.eventsCalendar {
+    // Must match HOUR_HEIGHT in TimeGrid.jsx — event offsets are percentages of
+    // the column, so the two have to agree or events drift off their slots.
+    $grid-hour-height: 48px;
+    $grid-gutter-width: 56px;
+    // On a phone, just wide enough for "12 PM" at the gutter's 10px, which hands
+    // the rest back to the days.
+    $grid-gutter-width-narrow: 40px;
+
+    // The day headers' height: the weekday, the 26px day number and their
+    // padding. Stated so the scroller can keep that much clear (see .grid__scroll).
+    $grid-head-height: 60px;
+
+    .grid {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        // The same height as the month card, header included, with the scrolling
+        // area taking whatever the header leaves.
+        height: $calendar-view-height;
+
+        border-radius: $calendar-radius-lg;
+        background-color: $calendar-card-bg;
+        overflow: hidden;
+        // Keeps the stacking inside it to itself. The sticky day headers (60), the
+        // now-line (50) and the events' cascade layers are only meant to order the
+        // grid's own contents; uncontained, they ranked against the whole page and
+        // painted over the sticky nav (10) and the event popover (20) wherever they
+        // met, which could cover a focused control in the popover (WCAG 2.4.11).
+        isolation: isolate;
+
+        // Straight on the page on a phone, like the month (see .card--month). The
+        // height is unchanged, so every view is still the same size.
+        @include media("<=#{$calendar-mobile}") {
+            border-radius: 0;
+            background-color: transparent;
+        }
+    }
+
+    // One template shared by head and body so the day headers line up with the
+    // columns beneath them.
+    .grid__head,
+    .grid__body {
+        display: grid;
+        grid-template-columns: $grid-gutter-width repeat(var(--grid-cols), minmax(0, 1fr));
+
+        @include media("<=#{$calendar-mobile}") {
+            grid-template-columns: $grid-gutter-width-narrow repeat(var(--grid-cols), minmax(0, 1fr));
+        }
+    }
+
+    // Stuck to the top of the scroller it sits in, so the weekdays stay in view
+    // as the hours scroll under them. Opaque, over every event and the now-line.
+    .grid__head {
+        position: sticky;
+        top: 0;
+        z-index: 60;
+        min-height: $grid-head-height;
+
+        border-bottom: 1px solid $calendar-rule;
+        background-color: $calendar-card-bg;
+
+        @include media("<=#{$calendar-mobile}") {
+            background-color: $calendar-bg;
+        }
+    }
+
+    .grid__dayhead {
+        padding: $calendar-space-sm $calendar-space-2xs;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+
+        background: transparent;
+        border-radius: 0;
+        color: $calendar-text;
+
+        // A solid fill, like Google Calendar's today circle. The old 20% white was
+        // 1.9:1 against the card, under the 3:1 a state indicator needs
+        // (WCAG 1.4.11).
+        &--today .grid__dayhead-number {
+            background-color: $calendar-copy-bg;
+            color: $calendar-copy-text;
+            font-weight: 600;
+        }
+    }
+
+    .grid__dayhead-name {
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: $calendar-copy-muted;
+    }
+
+    .grid__dayhead-number {
+        width: 26px;
+        height: 26px;
+        display: grid;
+        place-items: center;
+
+        font-size: 15px;
+        border-radius: $calendar-radius-pill;
+        transition: background-color 0.15s;
+    }
+
+    // Vertical only. The week used to hold a 560px floor on a phone and scroll
+    // sideways, but the day headers sit outside this scroller, so they stayed put
+    // while the days slid out from under them. All seven days now fit the screen,
+    // as they do in Google Calendar's week, with the events' type sized down to
+    // suit (below).
+    .grid__scroll {
+        overflow: hidden auto;
+        flex: 1 1 auto;
+        min-height: 0;
+
+        // A scroll container, so the touch-action on .events__main--swipe stops at
+        // it: stated again, so a swipe across the hours still steps the view.
+        touch-action: pan-y pinch-zoom;
+
+        // An event scrolled to by Tab would otherwise stop under the stuck day
+        // headers (WCAG 2.4.11 Focus Not Obscured).
+        scroll-padding-top: $grid-head-height;
+
+        // Inset, since the grid card clips anything drawn outside it.
+        &:focus-visible {
+            outline-offset: -2px;
+        }
+    }
+
+    .grid__body {
+        min-width: 0;
+    }
+
+    .grid__gutter,
+    .grid__col {
+        display: grid;
+        grid-auto-rows: $grid-hour-height;
+        position: relative;
+    }
+
+    // A line down the left of every day. Events are positioned inside the column's
+    // padding box, so the border sits outside them and they stay within their day.
+    .grid__col {
+        border-left: 1px solid $calendar-grid-line;
+    }
+
+    .grid__gutter-cell {
+        position: relative;
+
+        span {
+            position: absolute;
+            top: -0.5em;
+            right: $calendar-space-sm;
+            font-size: 10px;
+            white-space: nowrap;
+            color: $calendar-copy-muted;
+        }
+    }
+
+    .grid__hour {
+        border-top: 1px solid $calendar-grid-line;
+    }
+
+    // The midnight line would double the header's bottom border.
+    .grid__hour:first-child {
+        border-top-color: transparent;
+    }
+
+    .grid__now {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 0;
+
+        border-top: 2px solid $calendar-now-line;
+        // Above every layer of a cascade, however many events overlap.
+        z-index: 50;
+        pointer-events: none;
+    }
+
+    .grid__now-dot {
+        position: absolute;
+        top: -4px;
+        left: -4px;
+
+        width: 8px;
+        height: 8px;
+        border-radius: $calendar-radius-pill;
+        background-color: $calendar-now-line;
+    }
+
+    .grid__event {
+        position: absolute;
+        overflow: hidden;
+        // Clear of the edges, the same in every view. Short events still clip what
+        // does not fit, as before.
+        padding: 6px 8px;
+        border-radius: $calendar-radius-sm;
+        text-align: left;
+
+        // Name and time from the top, stated rather than left to the element: the
+        // week view's events are buttons, and a browser centres a button's content
+        // vertically, so they sat mid-block while the day view's sat at the top.
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: stretch;
+        gap: 2px;
+
+        // A ring in the grid's own colour, so where events cascade over each other
+        // each one keeps a visible edge rather than merging into the one beneath.
+        // Its stacking order is set inline from the cascade layer.
+        box-shadow: 0 0 0 1px $calendar-card-bg;
+
+        // A seventh of a phone is about 35px, so the event gives up its padding to
+        // the name. The ring takes the page's colour, which the grid now sits on.
+        @include media("<=#{$calendar-mobile}") {
+            padding: 2px 3px;
+            box-shadow: 0 0 0 1px $calendar-bg;
+        }
+    }
+
+    // An event that opens its popover (the week view). Undoes the base button's
+    // pill shape and padding, which the plain card never had.
+    .grid__event--button {
+        margin: 0;
+        border-radius: $calendar-radius-sm;
+        font-family: inherit;
+        cursor: pointer;
+
+        &:hover {
+            filter: brightness(1.08);
+        }
+
+        // Dark on the label colour, which every label colour clears at 6:1 or more;
+        // the page's white ring would be under 3:1. Inset, because the scroll area
+        // clips anything drawn outside an event at the grid's edge.
+        &:focus-visible {
+            outline-color: $calendar-bg;
+            outline-offset: -2px;
+        }
+    }
+
+    .grid__event-name,
+    .grid__event-time {
+        display: block;
+    }
+
+    .grid__event-name {
+        font-size: 11px;
+        font-weight: 500;
+        line-height: 125%;
+        color: $calendar-bg;
+        word-break: break-word;
+    }
+
+    .grid__event-time {
+        font-size: 10px;
+        line-height: 125%;
+        // Solid, not 70% of it: faded, it fell to 3.8:1 on the lighter label
+        // colours. Weight sets it apart from the name instead.
+        color: $calendar-bg;
+        font-weight: 400;
+    }
+
+    // A seventh of a phone. The name drops to the time's 10px and hyphenates
+    // where it has to break, rather than splitting a word anywhere ("Coff / ee").
+    // Only a word too long for its day even hyphenated is broken mid-word.
+    @include media("<=#{$calendar-mobile}") {
+        .grid__event-name {
+            font-size: 10px;
+            hyphens: auto;
+            overflow-wrap: break-word;
+        }
+
+        // The week's start times took a line a 35px event could not spare, and the
+        // event's place on the hours already says when it starts. Hidden from view
+        // only: it is still in the button's name, and in its popover.
+        .grid__event--button .grid__event-time {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+        }
+    }
+
+    // A phone's week (TimeGrid's onPickColumn): the day's column is the target,
+    // and a press on an event passes through to it, as the month's chips do.
+    .grid--tap-days {
+        .grid__col {
+            cursor: pointer;
+        }
+
+        .grid__event--button {
+            pointer-events: none;
+        }
+    }
+}

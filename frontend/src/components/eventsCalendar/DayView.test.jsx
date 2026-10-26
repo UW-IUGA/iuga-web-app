@@ -119,10 +119,10 @@ describe("DayView", () => {
         expect(screen.queryByText("RSVP")).toBeNull();
     });
 
-    it("renders the label chips, showing Career as Professional", () => {
+    it("renders the label chips, showing Career as Career", () => {
         const { container } = renderDay({ events: [rich()] });
 
-        expect(container.querySelector(".detail__chip").textContent).toBe("Professional");
+        expect(container.querySelector(".detail__chip").textContent).toBe("Career");
     });
 
     it("ignores an event from another day", () => {

@@ -171,13 +171,13 @@ describe("Events page: the event list", () => {
         expect(screen.queryByRole("button", { name: /Resume Clinic/ })).not.toBeInTheDocument();
     });
 
-    it("shows a Career event as Professional", async () => {
+    it("shows a Career event as Career, not Professional", async () => {
         await visit("/events?view=day&date=2026-10-21");
 
         const agenda = screen.getByRole("article");
         expect(within(agenda).getByText("Resume Clinic")).toBeInTheDocument();
-        expect(within(agenda).getByText("Professional")).toBeInTheDocument();
-        expect(within(agenda).queryByText("Career")).not.toBeInTheDocument();
+        expect(within(agenda).getByText("Career")).toBeInTheDocument();
+        expect(within(agenda).queryByText("Professional")).not.toBeInTheDocument();
     });
 
     it("lists only the categories a visitor can see in the colour key", async () => {
@@ -188,7 +188,7 @@ describe("Events page: the event list", () => {
             within(legend)
                 .getAllByRole("listitem")
                 .map((item) => item.textContent),
-        ).toEqual(["Academic", "Social", "Professional"]);
+        ).toEqual(["Academic", "Career", "Social"]);
     });
 
     it("shows the sample events without a request outside production", async () => {

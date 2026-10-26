@@ -255,19 +255,19 @@ describe("timezone-consistent placement", () => {
 
 describe("event labels", () => {
     it("lists the three categories the app shows, in legend order", () => {
-        expect(EVENT_LABELS).toEqual(["Academic", "Social", "Professional"]);
+        expect(EVENT_LABELS).toEqual(["Academic", "Career", "Social"]);
     });
 
-    it("shows a Career event as Professional, in the Professional colour", () => {
+    it("shows a stored Professional event as Career, in the Career colour", () => {
         const event = normalizeEvent({
             eId: "c",
             eName: "Resume Clinic",
             eStartDate: "2026-10-20T17:00:00Z",
-            eLabels: ["Career"],
+            eLabels: ["Professional"],
         });
 
-        expect(event.labels).toEqual(["Professional"]);
-        expect(colorForLabels(event.labels)).toBe(colorForLabels(["Professional"]));
+        expect(event.labels).toEqual(["Career"]);
+        expect(colorForLabels(event.labels)).toBe(colorForLabels(["Career"]));
     });
 
     it("lists an event tagged both Career and Professional once", () => {
@@ -278,7 +278,7 @@ describe("event labels", () => {
             eLabels: ["Career", "Professional", "Social"],
         });
 
-        expect(event.labels).toEqual(["Professional", "Social"]);
+        expect(event.labels).toEqual(["Career", "Social"]);
     });
 });
 
@@ -297,12 +297,12 @@ describe("colorForLabels", () => {
     it("names the label's colour for the palette on screen, which the calendar's stylesheet sets", () => {
         expect(colorForLabels(["Academic"])).toBe("var(--calendar-label-academic)");
         expect(colorForLabels(["Social"])).toBe("var(--calendar-label-social)");
-        expect(colorForLabels(["Professional"])).toBe("var(--calendar-label-professional)");
+        expect(colorForLabels(["Career"])).toBe("var(--calendar-label-career)");
     });
 
     it("only ever produces a colour the legend names", () => {
         const legend = new Set(EVENT_LABELS.map((label) => colorForLabels([label])));
-        for (const labels of [[], undefined, ["Unknown"], ["Career", "Social"], ["Professional", "Academic"]]) {
+        for (const labels of [[], undefined, ["Unknown"], ["Professional", "Social"], ["Career", "Academic"]]) {
             expect(legend.has(colorForLabels(labels))).toBe(true);
         }
     });

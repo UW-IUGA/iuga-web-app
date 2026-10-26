@@ -18,11 +18,6 @@ function makeModels({
         return id === userId ? { _id: userId } : null;
       },
     },
-    Roles: {
-      async findById(id) {
-        return id === roleId ? { _id: roleId, isActive: roleActive } : null;
-      },
-    },
     Committees: {
       async findById() {
         return null;
@@ -46,6 +41,14 @@ function makeModels({
         return updatedAssignment;
       },
     },
+    Roles: {
+      async findById(id) {
+        return id === roleId ? { _id: roleId, isActive: roleActive } : null;
+      },
+      async create(fields) {
+        return { _id: roleId, ...fields };
+      },
+    },
   };
 }
 
@@ -59,7 +62,6 @@ describe("role assignment API", () => {
       models: makeModels(),
       session: {
         isAuthenticated: true,
-        isAdmin: true,
         userId: "507f1f77bcf86cd799439014",
       },
     });
@@ -68,6 +70,29 @@ describe("role assignment API", () => {
   after(async () => {
     await api.close();
   });
+  it("accepts a role that grants shop purchase review", async () => {
+    const result = await api.request("POST", "/api/v1/roles", {
+      roleName: "Merch lead",
+      roleKey: "merch_lead",
+      permissions: ["shop.purchases.review"],
+    });
+
+    assert.equal(result.status, 201);
+    assert.deepEqual(result.body.role.permissions, ["shop.purchases.review"]);
+  });
+
+  it("accepts the permissions that replaced the Admin account type", async () => {
+    const permissions = ["events.requests.manage", "events.participants.manage", "feedback.manage"];
+    const result = await api.request("POST", "/api/v1/roles", {
+      roleName: "Officer",
+      roleKey: "officer",
+      permissions,
+    });
+
+    assert.equal(result.status, 201);
+    assert.deepEqual(result.body.role.permissions, permissions);
+  });
+
   it("creates an assignment for an existing user and active role", async () => {
     const result = await api.request(
       "POST",

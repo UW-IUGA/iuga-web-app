@@ -3,6 +3,19 @@ import { once } from "node:events";
 
 let nextTestIp = 1;
 
+// A RoleAssignments model under which the session user holds one active role granting `permissions`.
+export function roleAssignmentsGranting(permissions) {
+  return {
+    find() {
+      return {
+        async populate() {
+          return [{ roleId: { isActive: true, permissions } }];
+        },
+      };
+    },
+  };
+}
+
 export async function makeTestApi({ router, mountPath, models, session = {} }) {
   const app = express();
   app.set("trust proxy", 1);
@@ -55,6 +68,7 @@ export async function makeTestApi({ router, mountPath, models, session = {} }) {
         const text = await response.text();
         return {
           status: response.status,
+          headers: Object.fromEntries(response.headers),
           body: text ? JSON.parse(text) : null,
           session: requestSession,
         };

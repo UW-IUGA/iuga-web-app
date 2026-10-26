@@ -2,7 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import { sendError } from "../helpers/sendError.js";
 import { sendSuccess } from "../helpers/sendSuccess.js";
-import { requireAdmin, requireOfficerRolePermission } from "../utils/auth.js";
+import { requirePermission } from "../utils/auth.js";
 
 const router = express.Router();
 const CHECKPOINT_KEYS = [
@@ -191,17 +191,20 @@ async function transitionRequest(req, id, statuses, update) {
   );
 }
 
-async function requireCheckpointPermission(req, res, next) {
-  const permission = {
-    proposal: "events.leadership.approve",
-    finance: "events.finance.manage",
-    purchases: "events.purchases.complete",
-  }[req.params.step];
-  if (permission) return requireOfficerRolePermission(permission)(req, res, next);
-  return requireAdmin(req, res, next);
+const requireRequestAccess = requirePermission("events.requests.manage");
+
+// Checkpoints with their own owner need that permission; the rest need request access.
+const checkpointAccess = new Map([
+  ["proposal", requirePermission("events.leadership.approve")],
+  ["finance", requirePermission("events.finance.manage")],
+  ["purchases", requirePermission("events.purchases.complete")],
+]);
+
+function requireCheckpointPermission(req, res, next) {
+  return (checkpointAccess.get(req.params.step) ?? requireRequestAccess)(req, res, next);
 }
 
-router.post("/", requireAdmin, async (req, res) => {
+router.post("/", requireRequestAccess, async (req, res) => {
   const { fields, error } = readRequestFields(req.body);
   if (error) return sendError(res, 400, error);
 
@@ -222,7 +225,7 @@ router.post("/", requireAdmin, async (req, res) => {
   }
 });
 
-router.patch("/:id", requireAdmin, async (req, res) => {
+router.patch("/:id", requireRequestAccess, async (req, res) => {
   if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
   const { fields, error } = readRequestFields(req.body);
   if (error) return sendError(res, 400, error);
@@ -256,7 +259,7 @@ router.patch("/:id", requireAdmin, async (req, res) => {
   }
 });
 
-router.get("/templates/slides", requireAdmin, (_req, res) => {
+router.get("/templates/slides", requireRequestAccess, (_req, res) => {
   try {
     const templates = JSON.parse(process.env.EVENT_SLIDE_TEMPLATES || "[]");
     return sendSuccess(res, {
@@ -268,7 +271,7 @@ router.get("/templates/slides", requireAdmin, (_req, res) => {
   }
 });
 
-router.get("/mine", requireAdmin, async (req, res) => {
+router.get("/mine", requireRequestAccess, async (req, res) => {
   try {
     const requests = await req.models.EventRequests.find({
       requesterId: req.session.userId,
@@ -282,7 +285,7 @@ router.get("/mine", requireAdmin, async (req, res) => {
   }
 });
 
-router.get("/", requireAdmin, async (req, res) => {
+router.get("/", requireRequestAccess, async (req, res) => {
   try {
     const filter = {};
     if (typeof req.query.status === "string") filter.status = req.query.status;
@@ -302,7 +305,7 @@ router.get("/", requireAdmin, async (req, res) => {
   }
 });
 
-router.get("/:id", requireAdmin, async (req, res) => {
+router.get("/:id", requireRequestAccess, async (req, res) => {
   if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
   try {
     const request = await findRequest(req, req.params.id);
@@ -314,7 +317,7 @@ router.get("/:id", requireAdmin, async (req, res) => {
   }
 });
 
-router.post("/:id/request-changes", requireOfficerRolePermission("events.leadership.approve"), async (req, res) => {
+router.post("/:id/request-changes", requirePermission("events.leadership.approve"), async (req, res) => {
   if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
   const error = readReason(req.body, "reason");
   if (error) return sendError(res, 400, error);
@@ -334,7 +337,7 @@ router.post("/:id/request-changes", requireOfficerRolePermission("events.leaders
   }
 });
 
-router.post("/:id/deny", requireOfficerRolePermission("events.leadership.approve"), async (req, res) => {
+router.post("/:id/deny", requirePermission("events.leadership.approve"), async (req, res) => {
   if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
   const error = readReason(req.body, "reason");
   if (error) return sendError(res, 400, error);
@@ -354,7 +357,7 @@ router.post("/:id/deny", requireOfficerRolePermission("events.leadership.approve
   }
 });
 
-router.post("/:id/approve", requireOfficerRolePermission("events.leadership.approve"), async (req, res) => {
+router.post("/:id/approve", requirePermission("events.leadership.approve"), async (req, res) => {
   if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
 
   try {
@@ -443,7 +446,7 @@ router.patch("/:id/checklist/:step", requireCheckpointPermission, async (req, re
   }
 });
 
-router.patch("/:id/budget", requireOfficerRolePermission("events.finance.manage"), async (req, res) => {
+router.patch("/:id/budget", requirePermission("events.finance.manage"), async (req, res) => {
   if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
   const { allocatedCents, actualSpendCents, notes } = req.body ?? {};
   if (allocatedCents !== undefined && !cents(allocatedCents)) {
@@ -490,7 +493,7 @@ router.patch("/:id/budget", requireOfficerRolePermission("events.finance.manage"
   }
 });
 
-router.patch("/:id/review-tracking", requireAdmin, async (req, res) => {
+router.patch("/:id/review-tracking", requireRequestAccess, async (req, res) => {
   if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
   const { reviewLink, received } = req.body ?? {};
   if (reviewLink !== undefined && (typeof reviewLink !== "string" || reviewLink.trim().length > 1000)) {
@@ -522,7 +525,7 @@ router.patch("/:id/review-tracking", requireAdmin, async (req, res) => {
   }
 });
 
-router.patch("/:id/booking", requireAdmin, async (req, res) => {
+router.patch("/:id/booking", requireRequestAccess, async (req, res) => {
   if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
   const { location, startDate, endDate, notes } = req.body ?? {};
   if (location !== undefined && (typeof location !== "string" || !location.trim())) {
@@ -562,7 +565,7 @@ router.patch("/:id/booking", requireAdmin, async (req, res) => {
   }
 });
 
-router.post("/:id/reviews", requireAdmin, async (req, res) => {
+router.post("/:id/reviews", requireRequestAccess, async (req, res) => {
   if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
   const { attendeeCount, whatWentWell, whatMissedExpectations, totalSpentCents, locationReview, timingReview, extenuatingCircumstances } = req.body ?? {};
   if (attendeeCount !== undefined && (!Number.isInteger(attendeeCount) || attendeeCount < 0)) {
@@ -607,7 +610,7 @@ router.post("/:id/reviews", requireAdmin, async (req, res) => {
   }
 });
 
-router.get("/:id/reviews", requireAdmin, async (req, res) => {
+router.get("/:id/reviews", requireRequestAccess, async (req, res) => {
   if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
   try {
     const reviews = await req.models.EventReviews.find({ eventRequestId: req.params.id }).lean();
@@ -618,7 +621,7 @@ router.get("/:id/reviews", requireAdmin, async (req, res) => {
   }
 });
 
-router.post("/:id/complete", requireAdmin, async (req, res) => {
+router.post("/:id/complete", requireRequestAccess, async (req, res) => {
   if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
   try {
     const request = await findRequest(req, req.params.id);

@@ -21,6 +21,7 @@ See [Quickstart Guide](docs/QUICKSTART.md) for full setup instructions.
 | [Quickstart](docs/QUICKSTART.md) | Prerequisites, installation, env config, run, verify |
 | [Architecture](docs/ARCHITECTURE.md) | Project structure, stack decisions, data flow |
 | [Development](docs/DEVELOPMENT.md) | Setup, scripts, workflow, conventions |
+| [Scripts](docs/SCRIPTS.md) | Writing project scripts: where they go, safety rules, testing |
 | [Frontend](docs/FRONTEND.md) | Frontend structure, pages, components, styling, auth |
 | [Backend](docs/BACKEND.md) | Backend structure, API routes, controllers, models, database |
 | [Deployment](docs/DEPLOYMENT.md) | Environments, CI/CD, Docker |

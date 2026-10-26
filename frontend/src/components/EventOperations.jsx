@@ -122,7 +122,7 @@ function EventRequestForm({ onCreated, onCancel }) {
     );
 }
 
-function EventDetail({ request, onUpdate }) {
+function EventDetail({ request, onUpdate, canApproveLeadership, canManageFinance, canCompletePurchases }) {
     const [budget, setBudget] = useState({});
     const [booking, setBooking] = useState({});
     const [review, setReview] = useState({});
@@ -206,7 +206,7 @@ function EventDetail({ request, onUpdate }) {
             <p className="event-ops-detail-meta">{request.requestingGroup} · {formatDate(request.proposedStartDate)}</p>
             <p>{request.description}</p>
 
-            {request.status === "submitted" || request.status === "changes_requested" ? (
+            {canApproveLeadership && (request.status === "submitted" || request.status === "changes_requested") ? (
                 <div className="event-ops-actions">
                     <button className="cta-secondary" onClick={() => reviewAction("approve")}>Approve & publish</button>
                     <button className="cta-primary" onClick={() => askForReason("request-changes", "What should the requester change?")}>Request changes</button>
@@ -219,26 +219,45 @@ function EventDetail({ request, onUpdate }) {
                 <div className="event-ops-checkpoint-list">
                     {CHECKPOINTS.map(([key, label]) => {
                         const checkpoint = request.checkpoints?.find((item) => item.key === key) || { status: "pending" };
-                        return <label key={key} className="event-ops-checkpoint-edit">{label}
-                            <select value={checkpoint.status} onChange={(event) => mutate(`/checklist/${key}`, { status: event.target.value })}>
-                                <option value="pending">Pending</option>
-                                <option value="in_progress">In progress</option>
-                                <option value="completed">Completed</option>
-                            </select>
-                        </label>;
+                        const canEdit = key === "proposal"
+                            ? canApproveLeadership
+                            : key === "finance"
+                                ? canManageFinance
+                                : key === "purchases"
+                                    ? canCompletePurchases
+                                    : true;
+                        return <div key={key} className="event-ops-checkpoint-edit">
+                            <span>{label}</span>
+                            {canEdit ? (
+                                <select aria-label={label} value={checkpoint.status} onChange={(event) => mutate(`/checklist/${key}`, { status: event.target.value })}>
+                                    <option value="pending">Pending</option>
+                                    <option value="in_progress">In progress</option>
+                                    <option value="completed">Completed</option>
+                                </select>
+                            ) : <StatusBadge status={checkpoint.status} />}
+                        </div>;
                     })}
                 </div>
             </section>
 
-            <form className="event-ops-detail-section" onSubmit={saveBudget}>
-                <h4>Finance</h4>
-                <div className="event-ops-inline-fields">
-                    <label className="form-label">Allocated ($)<input className="form-input" inputMode="decimal" value={budget.allocated || ""} onChange={(event) => setBudget({ ...budget, allocated: event.target.value })} /></label>
-                    <label className="form-label">Actual spend ($)<input className="form-input" inputMode="decimal" value={budget.actual || ""} onChange={(event) => setBudget({ ...budget, actual: event.target.value })} /></label>
-                </div>
-                <label className="form-label">Finance notes<textarea className="form-input" rows="2" value={budget.notes || ""} onChange={(event) => setBudget({ ...budget, notes: event.target.value })} /></label>
-                <button className="standard-button" type="submit">Save finance</button>
-            </form>
+            {canManageFinance ? (
+                <form className="event-ops-detail-section" onSubmit={saveBudget}>
+                    <h4>Finance</h4>
+                    <div className="event-ops-inline-fields">
+                        <label className="form-label">Allocated ($)<input className="form-input" inputMode="decimal" value={budget.allocated || ""} onChange={(event) => setBudget({ ...budget, allocated: event.target.value })} /></label>
+                        <label className="form-label">Actual spend ($)<input className="form-input" inputMode="decimal" value={budget.actual || ""} onChange={(event) => setBudget({ ...budget, actual: event.target.value })} /></label>
+                    </div>
+                    <label className="form-label">Finance notes<textarea className="form-input" rows="2" value={budget.notes || ""} onChange={(event) => setBudget({ ...budget, notes: event.target.value })} /></label>
+                    <button className="standard-button" type="submit">Save finance</button>
+                </form>
+            ) : (
+                <section className="event-ops-detail-section">
+                    <h4>Finance</h4>
+                    <p>Allocated: {request.finance?.allocatedCents == null ? "—" : `$${centsToDollars(request.finance.allocatedCents)}`}</p>
+                    <p>Actual spend: {request.finance?.actualSpendCents == null ? "—" : `$${centsToDollars(request.finance.actualSpendCents)}`}</p>
+                    <p>Finance notes: {request.finance?.notes || "—"}</p>
+                </section>
+            )}
 
             <form className="event-ops-detail-section" onSubmit={saveBooking}>
                 <h4>Room booking</h4>
@@ -261,7 +280,12 @@ function EventDetail({ request, onUpdate }) {
     );
 }
 
-function EventOperations({ isAdmin }) {
+function EventOperations({
+    canManageRequests,
+    canApproveLeadership = false,
+    canManageFinance = false,
+    canCompletePurchases = false,
+}) {
     const [requests, setRequests] = useState([]);
     const [selectedId, setSelectedId] = useState(null);
     const [showForm, setShowForm] = useState(false);
@@ -269,11 +293,11 @@ function EventOperations({ isAdmin }) {
     const [error, setError] = useState("");
 
     useEffect(() => {
-        if (!isAdmin) return;
+        if (!canManageRequests) return;
         apiRequest("")
             .then((data) => setRequests(data.eventRequests || []))
             .catch((requestError) => setError(requestError.message));
-    }, [isAdmin]);
+    }, [canManageRequests]);
 
     const years = useMemo(() => [...new Set(requests.map((request) => new Date(request.proposedStartDate).getFullYear()))].sort(), [requests]);
     const requesters = useMemo(() => [...new Set(requests.map((request) => request.requestingGroup).filter(Boolean))].sort(), [requests]);
@@ -306,7 +330,7 @@ function EventOperations({ isAdmin }) {
         setShowForm(false);
     };
 
-    if (!isAdmin) return null;
+    if (!canManageRequests) return null;
 
     return (
         <section className="event-operations" aria-labelledby="event-operations-heading">
@@ -344,7 +368,13 @@ function EventOperations({ isAdmin }) {
                     </table>
                     {!filteredRequests.length && <p className="event-ops-empty">No event requests match these filters.</p>}
                 </div>
-                {selected && <EventDetail request={selected} onUpdate={updateRequest} />}
+                {selected && <EventDetail
+                    request={selected}
+                    onUpdate={updateRequest}
+                    canApproveLeadership={canApproveLeadership}
+                    canManageFinance={canManageFinance}
+                    canCompletePurchases={canCompletePurchases}
+                />}
             </div>
         </section>
     );

@@ -245,6 +245,19 @@ Visit `https://hub.docker.com/r/iuga/iuga-web-app-<env>/tags` and confirm a tag 
 
 ---
 
+## Release Notes
+
+### Shop order review (`/admin/shop/orders`)
+
+Before deploying this release:
+
+- **Replica set:** officer payment changes (Mark paid, Change status, drop, refund, and amount received) run in transactions, so they need a replica set. Order review itself is available whether or not `SHOP_MANUAL_CHECKOUT_EXPOSED` is set.
+- **Indexes:** the release adds `{ status: 1, confirmedAt: 1, _id: 1 }` and `{ confirmedAt: 1, _id: 1 }` on `shoppurchases`. Mongoose builds them when the backend starts; no manual step is needed.
+- **Schema submodule:** the review fields and indexes live in `backend/schemas`. Commit that change in the submodule, push it, and bump the parent repo's submodule pin before deploying.
+- **Officer roles:** permissions come only from role assignments, not from `uType`. Give officers the `shop.purchases.review` permission before or right at deploy, or they lose order tools. See [Maintainers Guide §2.7](MAINTAINERS.md#27-give-an-officer-access).
+
+---
+
 ## Rollback
 
 The pipeline now deploys with an **automated health gate**, so a broken build does not take the site down:

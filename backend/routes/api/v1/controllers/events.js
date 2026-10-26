@@ -10,7 +10,7 @@ import express from "express";
 import mongoose from "mongoose";
 import { sendError } from "../helpers/sendError.js";
 import { sendSuccess } from "../helpers/sendSuccess.js";
-import { requireAuth, isOwnerOrAdmin } from "../utils/auth.js";
+import { requireAuth, isOwnerOrPermitted } from "../utils/auth.js";
 
 var router = express.Router();
 function validId(value) {
@@ -360,7 +360,7 @@ router.delete("/withdraw/:eId/:pId", requireAuth, async function (req, res) {
       return sendError(res, 404, "Participant not found");
     }
 
-    if (!isOwnerOrAdmin(req, participant.pUID)) {
+    if (!(await isOwnerOrPermitted(req, participant.pUID, "events.participants.manage"))) {
       return sendError(
         res,
         403,
@@ -393,7 +393,7 @@ router.get("/:pId", requireAuth, async function (req, res) {
       return sendError(res, 404, "Participant not found.");
     }
 
-    if (!isOwnerOrAdmin(req, participant.pUID)) {
+    if (!(await isOwnerOrPermitted(req, participant.pUID, "events.participants.manage"))) {
       return sendError(
         res,
         403,

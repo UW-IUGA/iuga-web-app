@@ -72,6 +72,7 @@ These routes in `app.js` serve the built frontend (`frontend/build/index.html`) 
 | `GET /get-involved` | Get involved page (team, committees, idea engagement) |
 | `GET /electionfaq` | Election FAQ |
 | `GET /contact` | Contact page |
+| `GET /admin`, `/admin/shop/orders`, `/admin/shop/pickup` | Officer admin pages. Keep in step with `ADMIN_SECTIONS` in `frontend/src/adminSections.js`. |
 
 Each handler reads `../frontend/build/index.html` and sends it. If the build directory is missing, these routes return 500.
 
@@ -215,6 +216,17 @@ The campaign comes from the locally defined `CommitteeRecruitment` model (not th
 | `DELETE` | `/holds/:holdId` | Yes | Cancels an active hold and releases its units. |
 | `PATCH` | `/holds/:holdId/lines` | Yes | Removes one line (`{ sku, size }`) and releases its units. The deadline does not change. Removing the last line cancels the hold. |
 | `POST` | `/holds/:holdId/confirm` | Yes | Confirms an active hold before its deadline with `{ venmoUsername, phoneNumber }`. The phone number may be US or international: 7 to 15 digits with an optional leading `+` for a country code; spaces, dashes, periods, and parentheses are removed. Creates a pending purchase with an item and price snapshot, and saves the Venmo username and phone number to the profile (`uVenmoUsername`, `uPhoneNumber`). The Venmo username is lowercased. A student who already has a saved Venmo username must confirm with the same one: a different one returns 409 and leaves the hold active, and only an officer can change the saved username in the database. |
+| `GET` | `/purchases` | `shop.purchases.review` | Officer order list, oldest first, 25 per page (up to 50). Query: `status` (`pending` by default, `paid`, `not_paid`, `refunded`, or `all`), `balance` (`all`, or `short` for Pending and Not paid orders with an amount received below the total), `followUp` (`all`, `awaiting`, or `none`), `pickup` (`all`, `ready` for orders not marked picked up, or `picked_up`), `q` (search, up to 120 characters), `limit`, `cursor`. Returns `{ purchases, nextCursor }`. |
+| `GET` | `/purchases/counts` | `shop.purchases.review` | Counts by status, Paid orders split into `ready` and `picked_up` by the pickup mark, `says_paid` (open follow-ups where the student says they already paid), totals for pending orders (expected, received, and owed amounts), and `confirmedCents`, the money received on Paid orders (a Paid order with no amount recorded counts its total; refunded orders are left out). |
+| `GET` | `/purchases/:purchaseId` | `shop.purchases.review` | One order. Adds the buyer's phone number for follow-up; the list omits it. |
+| `PATCH` | `/purchases/:purchaseId/payment` | `shop.purchases.review` | Body `{ status, note?, expectedRevision }`. Any status can change to any other. Moving between Pending or Paid and Not paid or Refunded returns or retakes stock. `note` is an optional reason (up to 500 characters) saved on the history entry. A picked-up order moved to any status but Paid needs a `note`; without one the request gets 409 and nothing changes. Such a change keeps the pickup mark, marks its history entry `afterPickup: true`, and writes one server log line, `Shop purchase changed after pickup: purchase <id>, <from> → <to>`, with no buyer details. |
+| `PATCH` | `/purchases/:purchaseId/amount-received` | `shop.purchases.review` | Body `{ amountReceivedCents, expectedRevision }`, in whole cents. Only Pending or Not paid orders can change. Reaching the total marks the order Paid. |
+| `PATCH` | `/purchases/:purchaseId/follow-up` | `shop.purchases.review` | Body `{ followUpStatus, note?, expectedRevision }`. `followUpStatus` is `contacted`, `will_pay`, `says_paid`, or `none` to clear. `note` is up to 500 characters. |
+| `GET` | `/purchases/pickup` | `shop.purchases.review` | Every order ready for pickup (Paid, not picked up), oldest first, with buyer names for the Husky Card check, Venmo name, items with sizes, and revision. Capped at 1000 orders: `truncated` says when some are left out, and `counts: { ready, pickedUp }` still counts all of them. The page sorts the list itself. Registered before `/purchases/:purchaseId`. |
+| `PATCH` | `/purchases/:purchaseId/pickup` | `shop.purchases.review` | Body `{ pickedUp, expectedRevision }`: `true` marks a Paid order handed over at pickup (sets `pickedUpAt` and `pickedUpBy`), `false` clears the mark. Only Paid orders can be marked picked up; the order's payment, amount, follow-up, and stock never change. Each order also reports `pickup: { pickedUpAt, pickedUpBy }`, where `pickedUpBy` is the officer's name. |
+| `POST` | `/purchases/:purchaseId/notes` | `shop.purchases.review` | Body `{ title, note?, expectedRevision }`: an officer's activity entry. `title` is 1 to 80 characters; `note` is up to 500. |
+
+**Order review:** these routes are mounted whether or not checkout is exposed, so accepted orders stay reviewable when new checkouts are paused or off. Every request checks the permission (401 when signed out, 403 without it). Each write sends `expectedRevision`, the order's `revision` from the last read. A different current revision returns 409 and changes nothing. `/payment` and `/amount-received` run in transactions and need a replica set; `/follow-up`, `/notes`, and `/pickup` do not. Errors: 400 for invalid input or an out-of-date cursor; 404 for an unknown order (a malformed id too); 409 for a stale revision or a refused change (an amount received on a Paid or Refunded order, a picked-up order changed without a reason, or no room to retake stock or the per-student limit); 500 for inconsistent stock counters (nothing changes) or a database failure. Responses are `Cache-Control: private, no-store`.
 
 **Cart consolidation:** a cart is a list of entries, each naming a product (`sku`), a `size`, and a `quantity`. When the same `sku` and `size` appears more than once, the backend merges those entries into one and adds their quantities — two "hoodie / size M" entries become a single line with quantity 2. Adding the same product and size again therefore raises the quantity rather than creating a duplicate. This is what the backend calls a cart **line**: one product and size carrying a combined quantity.
 
@@ -269,25 +281,48 @@ The backend uses **server-side sessions** with `express-session`.
    - Sets `req.session.isAuthenticated = true`
    - Stores profile data (displayName, email, firstName, lastName) in session
    - Looks up or creates a `Users` document in MongoDB
-   - Stores `userId`, `memberType`, and `isAdmin` in session
+   - Stores `userId` and `memberType` in session (`memberType` is a label; it grants no access)
 4. Responds with the user document
 
-### Session check
+### Session check and permissions
 
-`utils/auth.js` provides session and permission middleware:
+`utils/auth.js` decides who may use protected endpoints. Signing in proves who a
+user is; everything beyond that is a named **permission**. A user holds a
+permission only through an active, unexpired role assignment to an active role
+that lists it. The account type (`uType`) grants nothing. Permissions are read
+from the database on every check, so granting or removing a role takes effect
+on the user's next request without signing in again.
 
-- `requireAuth` — requires a logged-in session
-- `requireAdmin` — requires a logged-in admin/officer session
-- `requireOfficerRolePermission("users.roles.manage")` — requires an active role assignment granting the permission.
-
-The permission middleware loads active role assignments for the session user and checks the populated role permissions before calling `next()`.
+- `requireAuth` — requires a logged-in session.
+- `requirePermission(name)` — requires the permission. Building it with a name
+  that is not in the permission list throws when routes load, so a typo fails
+  loudly instead of refusing everyone.
+- `isOwnerOrPermitted(req, ownerId, name)` — for records a student owns: the
+  owner, or a user with the permission.
+- `permissionsOf(req)` — the session user's permissions; `GET /api/v1/user/permissions`
+  returns them so the frontend can offer the matching officer tools.
 
 | Middleware | Blocks when | Returns |
 |---|---|---|
 | `requireAuth` | No session (`req.session.isAuthenticated` falsy) | `401` not authenticated |
-| `requireAdmin` | No session, or logged in but not an officer (`req.session.isAdmin` falsy) | `401` not authenticated / `403` not authorized |
+| `requirePermission(name)` | No session, or no active role granting `name`; role lookup failure | `401` / `403` not authorized / `500` |
 
-Attach them in the route chain, e.g. `router.post("/", requireAuth, handler)` or `router.post("/:id/approve", requireAdmin, handler)`. They run before the route handler; `next()` passes the request through.
+Attach them in the route chain, e.g. `router.post("/", requireAuth, handler)` or
+`router.post("/:id/approve", requirePermission("events.leadership.approve"), handler)`.
+
+| Permission | Allows |
+|---|---|
+| `users.roles.manage` | Creating roles and assigning them through `/api/v1/roles` |
+| `events.requests.manage` | The event request workspace: submitting, listing, editing, booking, reviews, completion |
+| `events.leadership.approve` | Approving, denying, or requesting changes to event requests |
+| `events.finance.manage` | Event budgets and the finance checkpoint |
+| `events.purchases.complete` | The event purchases checkpoint |
+| `events.participants.manage` | Viewing or withdrawing another student's RSVP |
+| `feedback.manage` | Deleting feedback |
+| `shop.purchases.review` | The shop Orders dashboard and its order changes |
+
+To add a permission, add it to the list in `utils/auth.js` and protect its
+routes with `requirePermission`. The roles API accepts only names on that list.
 
 ### Session destruction
 
@@ -362,6 +397,7 @@ Mongoose models are registered at startup:
 | `EventReviews` | `eventReviewsSchema` | `eventreviews` |
 | `Committees` | `committeesSchema` | `committees` |
 | `CommitteeRecruitment` | `committeeRecruitmentSchema` (local) | `committeerecruitments` |
+| `ShopPurchases` | `shopPurchasesSchema` | `shoppurchases` |
 
 The schemas live in a **separate GitHub repository** (`UW-IUGA/iuga-web-schemas`) mounted as a submodule at `backend/schemas/`. If the submodule is not initialized, the backend will fail to start. `CommitteeRecruitment` is the exception: its schema lives in `backend/committeeRecruitment.js` so the campaign model stays out of the shared submodule.
 
@@ -373,7 +409,7 @@ Based on controller usage, the schemas include these fields:
 
 **Participants**: `pUID` (ref → Users), `eID` (ref → Events), `rsvpAnswers` (array of `{ qId, aString }`), `isAnon`
 
-**Users**: `uFirstName`, `uLastName`, `uDisplayName`, `uEmail`, `uNetId`, `uType` (e.g., "Admin")
+**Users**: `uFirstName`, `uLastName`, `uDisplayName`, `uEmail`, `uNetId`, `uType` (a label such as "Member"; grants no access)
 
 **Roles**: `roleName`, `roleKey`, `roleDescription`, `permissions`, `isActive`, `createdBy`, `updatedBy`
 
@@ -386,6 +422,8 @@ Based on controller usage, the schemas include these fields:
 **EventRequests**: session-derived requester/organizer, requesting group, event details, lifecycle status, ordered checkpoints, finance and booking data, selected slide template, external review link/receipt, published event link, and actor/timestamp audit fields.
 
 **EventReviews**: request id, session-derived reviewer, enforced `organizer` or `member` role, review responses, attendee count, and integer-cent total spend.
+
+**ShopPurchases**: `holdId`, `userId`, `catalogId`, `catalogVersion`, `venmoUsername`, `lines`, `totalCents`, `status` (`pending`, `paid`, `not_paid`, or `refunded`), `confirmedAt`, and the review fields: `reviewRevision` (starts at 0 and rises with every officer change; writes send it back as `expectedRevision`), `amountReceivedCents` (`null` until an amount is recorded), `followUpStatus` (`contacted`, `will_pay`, `says_paid`, or `null`), `awaitingStudentReply` (true while a follow-up is open), `followUpUpdatedBy`, `followUpUpdatedAt`, and `reviewHistory` (officer entries of kind `payment`, `follow_up`, `amount_received`, or `note`, each with actor, time, `from` and `to`, and an optional `title` and `note`). Purchases saved before review existed have none of these fields and read as revision 0 with no history.
 
 ---
 

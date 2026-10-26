@@ -12,7 +12,8 @@ Expected Response Information:
 - close: call from a close button.
 Escape, close(), and a press that both starts and ends on the dimmed area
 around the content all end in the dialog's own close event, which is the one
-place onClose is called from.
+place onClose is called from. React passes a nested dialog's close event up to
+this dialog's handler too, so those are ignored.
 */
 
 import { useCallback, useEffect, useRef } from "react";
@@ -39,6 +40,10 @@ export const useModalDialog = (isOpen, onClose) => {
         if (releaseEvent.target !== dialogRef.current) pressedInContent.current = true;
     };
 
+    const reportOwnClose = (closeEvent) => {
+        if (closeEvent.target === dialogRef.current) onClose(closeEvent);
+    };
+
     const closeOnBackdropClick = (clickEvent) => {
         const wasPressedInContent = pressedInContent.current;
         pressedInContent.current = false;
@@ -48,7 +53,7 @@ export const useModalDialog = (isOpen, onClose) => {
     return {
         dialogProps: {
             ref: dialogRef,
-            onClose,
+            onClose: reportOwnClose,
             onMouseDown: trackPressStart,
             onMouseUp: trackPressEnd,
             onClick: closeOnBackdropClick,

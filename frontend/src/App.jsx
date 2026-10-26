@@ -10,7 +10,7 @@ import ShopPage from "./pages/Shop";
 import ShopCheckoutPage from "./pages/ShopCheckout";
 import { ToastContainer, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import Navbar from "./layouts/Navbar";
 import { ShopCartProvider } from "./context/ShopCartContext";
 import ShopMaintenanceBanner from "./components/ShopMaintenanceBanner";
@@ -27,8 +27,21 @@ import Footer from "./layouts/Footer";
 import { isProduction } from "./runtime";
 
 function App() {
+    const { pathname } = useLocation();
     const { signIn, signOut } = useAuthContext();
     const [upcomingEvents, setUpcomingEvents] = useState([]);
+
+    useEffect(() => {
+        const titles = {
+            "/": "Home", "/events": "Events", "/resources": "Resources",
+            "/student-voice": "Student Voice", "/shop": "Shop",
+            "/elections": "Elections", "/electionfaq": "Election FAQ",
+            "/about": "About", "/get-involved": "Get Involved",
+        };
+        const routePath = pathname.toLowerCase().replace(/\/$/, "") || "/";
+        const title = routePath.startsWith("/shop/checkout/") ? "Checkout" : titles[routePath];
+        document.title = title ? `${title} | IUGA UW` : "IUGA UW";
+    }, [pathname]);
 
     useEffect(() => {
         if (isProduction) {

@@ -1,0 +1,84 @@
+// Tokens for the events calendar (components/eventsCalendar). It keeps the dark
+// palette, spacing and type of the prototype it was ported from, under its own
+// `calendar-` names so nothing here can shadow or be mistaken for a site token.
+// Like abstracts/admin, it emits no CSS: partials load it with
+// `@use "../../abstracts/eventsCalendar" as *;`.
+
+// Palette
+$calendar-bg: #1a1a1a;
+$calendar-card-bg: #272727;
+$calendar-pad: #333;
+$calendar-text: #fff;
+$calendar-copy-bg: #fff;
+$calendar-copy-text: #000;
+
+// Secondary text. #808080 measured 3.2:1 on a day cell and 3.8:1 on a card,
+// under the 4.5:1 WCAG 1.4.3 asks of text this size. This is the lightest-
+// looking grey that clears 4.5:1 on every surface it is used on: the page,
+// a card, a day cell, and a day cell on hover.
+$calendar-copy-muted: #b0b0b0;
+
+// Current-time marker. Kept out of the palette above because it is an accent
+// with no other use, and it must read against every label colour.
+$calendar-now-line: #f97362;
+
+// Hairline separators inside the calendar widgets.
+$calendar-rule: rgba(255, 255, 255, 0.08);
+
+// The calendar's own day and hour lines: the week and day grid, and the month
+// on a phone. A touch stronger than the hairline above, since the grid is the
+// structure of the view, not a separator inside a widget.
+$calendar-grid-line: rgba(255, 255, 255, 0.1);
+
+// A divider that has to be seen, not just sensed: the line between the date
+// picker's month strip and its mini month. The faintest grey that clears 3:1
+// on a card, the level WCAG 1.4.11 sets for graphics that carry meaning.
+$calendar-divider: #737373;
+
+// The height of the month, week and day views, so switching between them
+// keeps the calendar the same size: the week grid's 72vh scrolling area plus
+// a day header about 6vh tall on a laptop.
+$calendar-view-height: 78vh;
+
+// The text size of the small controls: the view switch, and the colour
+// legend that is read alongside it.
+$calendar-control-font-size: 13px;
+
+// The sidebar beside the month, week and day views: the mini month, and the
+// colour legend under it.
+$calendar-mini-width: 240px;
+
+// Spacing scale
+$calendar-space-2xs: 0.25em;
+$calendar-space-xs: 0.35em;
+$calendar-space-sm: 0.5em;
+$calendar-space-md: 1em;
+$calendar-space-lg: 1.5rem;
+$calendar-space-xl: 2em;
+
+// Radii
+$calendar-radius-sm: 0.5rem;
+$calendar-radius-md: 1em;
+$calendar-radius-lg: 1.5rem;
+$calendar-radius-pill: 4em;
+
+// Type. Rubik is self-hosted by index.html for the whole site.
+$calendar-font-family: "Rubik";
+
+// Breakpoints, for `@include media(...)`. At and below $calendar-mobile the
+// sidebar goes and the toolbar takes the phone layout; it must agree with
+// MOBILE_QUERY in utils/calendar/breakpoints.js (breakpoints.test.js checks).
+// $calendar-desktop is the floor the sidebar comes back at. $calendar-tablet
+// hands the year view back the roomier spacing its phone-first base trims.
+$calendar-mobile: 900px;
+$calendar-desktop: 900px;
+$calendar-tablet: 768px;
+
+// Year view grid. Cards are fluid: each column is at least $calendar-year-card-min
+// wide and the cards stretch to fill the row, so the grid goes from one card
+// on a phone to more per row as the viewport widens, and never past
+// $calendar-year-max-columns. 280px keeps a day cell around 34px on the
+// narrowest card, enough for a two-digit number and a comfortable tap.
+$calendar-year-card-min: 280px;
+$calendar-year-card-gap: 24px;
+$calendar-year-max-columns: 4;

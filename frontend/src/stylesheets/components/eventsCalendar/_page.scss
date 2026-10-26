@@ -1,0 +1,55 @@
+/*
+Purpose: Frame the events page: its width, gutter and title.
+Expected Request Information: Classes emitted by the events page, inside an .eventsCalendar root.
+Expected Response Information: A centred column holding the title, toolbar and calendar.
+*/
+@use "../../abstracts" as *;
+@use "../../abstracts/eventsCalendar" as *;
+
+.eventsCalendar {
+    .page {
+        width: 100%;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: $calendar-space-xl;
+    }
+
+    .page__title {
+        margin-bottom: $calendar-space-lg;
+
+        font-size: clamp(2rem, 5vw, 3.5rem);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        color: $calendar-text;
+    }
+
+    // The events page owns its own layout: a toolbar over a sidebar-plus-view
+    // body. It used to be a 1/2/3-column card grid, one card per month, which
+    // went away when the month view became a single navigable month.
+    .page--events {
+        display: flex;
+        flex-direction: column;
+        gap: $calendar-space-lg;
+
+        // Phone first. On a phone the year grid is one card per row, so the side
+        // padding is all that stands between that card and the screen edge, and
+        // the shared 32px a side costs a day cell most of its width. From a tablet
+        // up there is room to spare, so the shared padding comes back.
+
+        // A custom property, so the calendar can step back out across exactly this
+        // much to run edge to edge on a phone (see .events__main).
+        --page-gutter: #{$calendar-space-md};
+        padding-inline: var(--page-gutter);
+
+        @include media(">=#{$calendar-tablet}") {
+            --page-gutter: #{$calendar-space-xl};
+        }
+
+        // The column's gap spaces the title from the toolbar, as it spaces the
+        // toolbar from the calendar. The title's own margin on top of it made that
+        // one gap double the rest.
+        .page__title {
+            margin-bottom: 0;
+        }
+    }
+}

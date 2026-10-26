@@ -1,5 +1,7 @@
+@use "../abstracts" as *;
+
 .gradient-line {
-  height: 2px;
-  background: linear-gradient(to right, #F8A6FF, #FFC93F, #a4a9db);
-  width: 90%;
+    height: 2px;
+    background: linear-gradient(to right, $color-gradient-pink, $color-gradient-gold, #a4a9db);
+    width: 90%;
 }

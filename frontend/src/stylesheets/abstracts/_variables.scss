@@ -1,20 +1,38 @@
-$sans-serif: 'NotoSans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-$serif: 'PlayfairDisplay', Georgia, 'Times New Roman', Times, serif;
+$font-family-base: "Rubik", "Segoe UI", tahoma, geneva, verdana, sans-serif;
+
+// Type scale by role. Larger roles shrink smoothly from desktop to phone.
+$font-size-title: clamp(2.25rem, 1.6rem + 2.6vw, 3.5rem); // 36px → 56px
+$font-size-section: clamp(1.75rem, 1.4rem + 1.4vw, 2.25rem); // 28px → 36px
+$font-size-subheading: clamp(1.25rem, 1.15rem + 0.4vw, 1.375rem); // 20px → 22px
+$font-size-body: clamp(1rem, 0.95rem + 0.2vw, 1.0625rem); // 16px → 17px
+$font-size-nav: 1rem;
+$font-size-small: 0.875rem;
+// Smallest size; only for short all-caps labels.
+$font-size-label: 0.8125rem;
+
+// Headings are bold; everything else stays lighter so it reads easily.
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-bold: 700;
+
+$letter-spacing-heading: -0.01em;
+$letter-spacing-label: 0.06em;
+$line-height-heading: 1.15;
+$line-height-body: 1.6;
 
 // Brand colors; the primary UI accent and supporting tones.
-$color-primary: #704AAC;
+$color-primary: #704aac;
 $color-uw-purple: #32006e;
-$color-lavender: #F1E8FF;
+$color-lavender: #f1e8ff;
 
 // Category palettes: primary action, secondary surface, and light background.
-$color-social-primary: #C133E1;
-$color-social-secondary: #FAE5FF;
+$color-social-primary: #c133e1;
+$color-social-secondary: #fae5ff;
 $color-social-light: #fdf3ff;
-$color-career-primary: #4E5FEB;
-$color-career-secondary: #CFDFF5;
-$color-career-light: #dfe7f3;
+$color-career-primary: #4e5feb;
+$color-career-secondary: #cfdff5;
 $color-academic-primary: #ca8f3d;
-$color-academic-secondary: #FEEFCD;
+$color-academic-secondary: #feefcd;
 $color-academic-light: #fbf5e7;
 
 // Lighter end of each category's gradient, paired with its primary colour.
@@ -22,18 +40,24 @@ $color-academic-gradient-end: #e9b45c;
 $color-social-gradient-end: #e05ef0;
 $color-career-gradient-end: #7d8af2;
 
-// Shared type colors; keep these separate for quick theme experiments.
-$color-career: #356eff;
-$color-academic: #ca8f3d;
-$color-social: #bd55d8;
-
 // Darker variants so white capsule labels clear WCAG AA.
 $color-academic-capsule: #8a5a1f;
 $color-social-capsule: #8d1fa8;
 
+// Pure white and black for surfaces, text on photos, and translucent overlays.
+$color-white: #fff;
+$color-black: #000;
+// Body text on Home.
+$color-ink: #241a32;
+
+// Stops of the brand gradient below.
+$color-gradient-pink: #f8a6ff;
+$color-gradient-gold: #ffc93f;
+$color-gradient-blue: #cfdff5;
+
 // Neutral grays.
 $color-light-gray: #fafafa;
-$color-gray: #F9F9F9;
+$color-gray: #f9f9f9;
 $color-dark-gray: #595959;
 
 // Shared lavender border used by dropdown panels (nav + shop cart).
@@ -49,12 +73,12 @@ $color-shop-surface: #f8f8f8;
 $color-error: #b91c1c;
 $color-error-dark: #7f1d1d;
 
-// Calendar selected-state accents per category.
-$color-academic-calendar-selected: #f7c052;
-$color-career-calendar-selected: #356EFF;
-$color-social-calendar-selected: #d843e5;
-
-$gradient: linear-gradient(226deg, rgba(248, 166, 255, 0.59) 0%, rgba(255, 201, 63, 1) 50%, rgba(207, 223, 245, 1) 100%);
+$gradient: linear-gradient(
+    226deg,
+    rgba($color-gradient-pink, 0.59) 0%,
+    $color-gradient-gold 50%,
+    $color-gradient-blue 100%
+);
 
 $radius: 8px;
 $radius-pill: 999px;
@@ -68,6 +92,27 @@ $pill-padding-y: 10px;
 $pill-padding-x: 24px;
 $pill-border-width: 2px;
 
+// Spacing scale in 4px steps: $space-N is N x 4px. Use it for padding, margin, and gap.
+$space-1: 4px;
+$space-2: 8px;
+$space-3: 12px;
+$space-4: 16px;
+$space-5: 20px;
+$space-6: 24px;
+$space-7: 28px;
+$space-8: 32px;
+$space-9: 36px;
+$space-10: 40px;
+$space-11: 44px;
+$space-12: 48px;
+$space-13: 52px;
+$space-14: 56px;
+$space-15: 60px;
+$space-16: 64px;
+$space-18: 72px;
+$space-22: 88px;
+$space-24: 96px;
+
 $padding-content: 18px;
 $padding-box-x: 18px;
 $padding-box-y: 12px;
@@ -80,4 +125,5 @@ $breakpoints: (
     phone: 460px,
     tablet: 768px,
     sm-desktop: 1024px,
-    desktop: 1300px) !default;
+    desktop: 1300px,
+) !default;

@@ -59,14 +59,81 @@ frontend/src/
 │   ├── Elections.jsx     ← Candidate profiles for current election
 │   └── ElectionsFAQ.jsx  ← FAQ accordion about elections
 └── stylesheets/
-    ├── main.scss          ← Central import file (7-1 architecture)
+    ├── main.scss          ← Stylesheet entry point using Sass modules (7-1 architecture)
     ├── abstracts/         ← Variables, mixins, functions, media queries
     ├── vendors/           ← Vendored third-party styles (include-media, toastify)
-    ├── base/              ← Reset, typography, colors, misc
+    ├── base/              ← Reset, typography, colors, shared element rules, misc
     ├── layout/            ← Container, split responsive navigation, footer, form
     ├── components/        ← Component-specific styles
     └── pages/             ← Page-specific styles (e.g., _getInvolved.scss for page and member-card styles)
 ```
+
+### Stylesheet conventions
+
+The stylesheet stack establishes shared tokens and checks so later changes are
+easier to review. The token definitions in
+`frontend/src/stylesheets/abstracts/_variables.scss` are the source of truth.
+
+#### Spacing
+
+Use the existing `$space-N` tokens for padding, margin, and gap when their values
+match the intended spacing. `N` counts 4px steps, not pixels: `$space-3` is 12px
+and `$space-6` is 24px. For example:
+
+```scss
+@use "../abstracts" as *;
+
+.exampleCard {
+    padding: $space-3 $space-6;
+    gap: $space-4;
+}
+```
+
+These names give components a shared spacing vocabulary. They trade immediately
+readable pixel values for reusable, centrally defined values. The scale migration
+preserves existing dimensions; it is not a redesign. Off-scale values such as
+10px, negative spacing, and values above the current scale remain explicit rather
+than being rounded. Not every step has a token; use the definitions that exist.
+Keep role-specific tokens such as `$page-margin` when they express layout intent.
+Changing a shared token affects every consumer, so review those uses before
+changing its value.
+
+#### Modules, breakpoints, and ownership
+
+- Load shared tokens, mixins, and the configured breakpoint helper with
+  `@use "../abstracts" as *;` from a component, page, base, or layout partial.
+  Use `@use`, not deprecated `@import`. `main.scss` loads the stylesheet modules.
+- Write width breakpoints with the `media` mixin, for example
+  `@include media("<tablet")` or `@include media("<=900px")`. Named breakpoints
+  live in `$breakpoints`; custom widths remain valid when a layout needs them.
+  Preserve inclusive (`<=`, `>=`) versus exclusive (`<`, `>`) boundaries.
+- Reuse named color and typography tokens when they represent the intended
+  role. Distinct roles should not be merged merely because their values match.
+- Put rules targeting all elements of a kind in `base/_elements.scss`;
+  component-specific rules belong with their component.
+
+#### Formatting and linting
+
+Run these commands from `frontend/`:
+
+```sh
+npm run format:styles
+npm run check:styles
+npm run lint:styles
+```
+
+Prettier formats SCSS with four-space indentation, a 120-column target, and
+double quotes. `format:styles` rewrites files; `check:styles` checks without
+rewriting. Stylelint checks stylesheet rules, including use of Sass modules,
+the width-breakpoint helper, and avoidance of `!important` and named CSS colors.
+Both tools exclude vendored stylesheets. They do not enforce every token choice.
+
+Stylelint reports class naming, descending specificity, and duplicate selectors
+as warnings; a successful exit does not mean there are no warnings. Its class
+naming convention is camelCase BEM (`block__element--modifier`). Inspect warnings
+when changing affected rules rather than renaming unrelated classes.
+These scripts are local checks, not a claim that CI runs them. Use the frontend
+tests and build as well when changing stylesheet behavior.
 
 ### Shared navigation
 
@@ -265,7 +332,7 @@ The backend creates **server-side sessions** (express-session), so the frontend 
 - Main entry: `src/stylesheets/main.scss` — imports only; no CSS rules
 - Import order in `main.scss` follows the 7-1 convention: abstracts → vendors → base → layout → components → pages
 - All design tokens (colors, fonts, spacing, radii, breakpoints) live in `abstracts/_variables.scss` and follow the `$[token-type]-*` naming convention
-- Fonts: **NotoSans** (body) and **PlayfairDisplay** (headings), served from `public/font/`
+- Font: **Rubik** for all text, served from `public/font/` as variable font files
 - Responsive breakpoints: the navigation drawer appears below `1024px` to keep
   links readable; page layout also uses the tablet breakpoint at `768px`
 - Toast notifications: `react-toastify` for user feedback

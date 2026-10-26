@@ -1,45 +1,40 @@
+@use "../abstracts" as *;
+
 .form-input {
     box-sizing: border-box;
     width: 100%;
     padding: 13px 22px;
     border-radius: 5px;
     border: 1px solid #dde3ec;
-    background: #ffffff;
-    font-size: 14px;
+    background: $color-white;
+    font-size: $font-size-small;
     color: #536387;
     outline: none;
     resize: none;
-    margin-bottom: 24px;
+    margin-bottom: $space-6;
 }
 
 .form-input:focus {
     border-color: $color-primary;
-    box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 3px 8px rgba($color-black, 0.05);
 }
 
 .form-label {
     color: #07074d;
-    font-size: 14px;
-    font-weight: bold;
+    font-size: $font-size-small;
+    font-weight: $font-weight-medium;
     line-height: 24px;
     display: block;
     margin-bottom: 6px;
 }
 
-input:disabled {
-    background-color: #f4f4f4!important;
-    cursor: not-allowed;
-}
-
 @include media(">=sm-desktop", "<desktop") {
     .form-input {
-        padding: 10px 16px;
-        font-size: 12px;
-        margin-bottom: 12px;
+        padding: 10px $space-4;
+        margin-bottom: $space-3;
     }
 
     .form-label {
-        font-size: 12px;
-        margin-bottom: 4px;
+        margin-bottom: $space-1;
     }
 }

@@ -1,18 +1,35 @@
+@use "../abstracts" as *;
+
 body {
-    font-family: $sans-serif;
-    font-weight: normal;
+    font-family: $font-family-base;
+    font-size: $font-size-body;
+    font-weight: $font-weight-regular;
+    line-height: $line-height-body;
+}
+
+h1,
+h2,
+h3 {
+    font-weight: $font-weight-bold;
+    line-height: $line-height-heading;
+}
+
+// Page titles and section headings share the brand purple on every page.
+h1,
+h2 {
+    color: $color-uw-purple;
 }
 
 h1 {
-    font-family: $serif;
-    font-weight: 700;
+    font-size: $font-size-title;
+    letter-spacing: $letter-spacing-heading;
 }
 
 h2 {
-    font-family: $serif;
-    font-weight: 700;
+    font-size: $font-size-section;
+    letter-spacing: $letter-spacing-heading;
 }
 
 h3 {
-    font-family: $sans-serif;
+    font-size: $font-size-subheading;
 }

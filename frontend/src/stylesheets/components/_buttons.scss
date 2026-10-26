@@ -1,75 +1,4 @@
-button {
-    position: relative;
-    border-radius: $radius;
-    background-color: $color-primary;
-    color: white;
-    border: 0px;
-    padding: $padding-box-y $padding-box-x;
-    font-weight: bold;
-    font-size: 14px;
-    text-shadow: none;
-    transition: all 150ms cubic-bezier(0.19, 1, 0.22, 1);
-
-    .right-arrow {
-        padding: 0;
-        width: 14px;
-        margin-left: 6px;
-        margin-bottom: -3px;
-        filter: invert(29%) sepia(85%) saturate(616%) hue-rotate(225deg) brightness(93%) contrast(88%);
-    }
-}
-
-button:hover:before {
-    opacity: 0.5;
-}
-
-button:hover {
-    cursor: pointer;
-}
-
-button:disabled,
-button[disabled]{
-  border: 1px solid #999999;
-  background: #e8e8e8;
-  color: #464646;
-  border: 1px solid #464646;
-  outline-width: 0px;
-  cursor: not-allowed;
-}
-
-button:before {
-    content: '';
-    position: absolute;
-    top: -2px;
-    left:-2px;
-    z-index: -1;
-    filter: blur(5px);
-    width: calc(100% + 5px);
-    height: calc(100% + 5px);
-    opacity: 0;
-    transition: opacity 350ms cubic-bezier(0.19, 1, 0.22, 1);
-    border-radius: $radius;
-}
-
-.primary-button:before {
-    background: linear-gradient(45deg, $color-social-primary, $color-academic-primary, $color-career-primary);
-}
-
-.secondary-button:before {
-    background: $color-primary;
-}
-
-.primary-button {
-    color: #8458CA;
-    background: linear-gradient(90deg, #FAE5FF 0%, #FEEFCD 50%, #CFDFF5 100%);
-    border: 2px solid #A276E9;
-}
-
-.secondary-button {
-    color: $color-primary;
-    background-color: $color-lavender;
-    border: 2px solid $color-primary;
-}
+@use "../abstracts" as *;
 
 %pill-surface {
     display: inline-flex;
@@ -81,35 +10,12 @@ button:before {
     white-space: nowrap;
     border: $pill-border-width solid $color-primary;
     border-radius: $radius-pill;
-    background-color: white;
-    color: black;
-    font-size: 1rem;
-    font-weight: 700;
+    background-color: $color-white;
+    color: $color-black;
+    font-size: $font-size-body;
+    font-weight: $font-weight-medium;
     line-height: 1.2;
     text-align: center;
-}
-
-// Shared category treatment used by the Home hero and the Events page.
-%category-pill-surface {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    padding: 11px 16px;
-    border: 1px solid rgba(255, 255, 255, 0.78);
-    border-radius: $radius-pill;
-    background: rgba(255, 255, 255, 0.52);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    box-shadow: 0 14px 30px rgba($color-uw-purple, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.88);
-    color: $color-uw-purple;
-    font-size: 0.84rem;
-    font-weight: 700;
-    text-decoration: none;
-    transition: transform 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
-}
-
-.category-pill {
-    @extend %category-pill-surface;
 }
 
 .pill-button {
@@ -136,7 +42,7 @@ button:before {
 
     &[aria-pressed="true"] {
         background-color: $color-primary;
-        color: white;
+        color: $color-white;
     }
 
     &:disabled,
@@ -146,6 +52,8 @@ button:before {
 }
 
 .standard-button {
+    // Same look as .pill-button for older markup; .pill-button has no placeholder to extend.
+    // stylelint-disable-next-line scss/at-extend-no-missing-placeholder
     @extend .pill-button;
 }
 
@@ -153,7 +61,7 @@ button:before {
 .cta-secondary {
     border: 2px solid $color-primary;
     border-radius: $radius-pill;
-    font-weight: bold;
+    font-weight: $font-weight-medium;
     text-shadow: none;
     text-decoration: none;
     display: inline-block;
@@ -165,12 +73,12 @@ button:before {
 
 .cta-primary,
 .cta-secondary {
-    padding: 12px 28px;
-    font-size: 15px;
+    padding: $space-3 $space-7;
+    font-size: $font-size-body;
 }
 
 .cta-primary {
-    background-color: white;
+    background-color: $color-white;
     color: $color-primary;
 }
 
@@ -196,7 +104,7 @@ button:before {
 }
 
 .editorial-card {
-    background-color: white;
+    background-color: $color-white;
     border-radius: $radius-card;
     border: 1px solid rgba($color-uw-purple, 0.12);
     box-shadow: 0 2px 10px rgba($color-uw-purple, 0.08);
@@ -204,8 +112,7 @@ button:before {
 
 @include media(">=sm-desktop", "<desktop") {
     button:not(.pill-button):not(.standard-button) {
-        font-size: 12px;
-        padding: 10px 16px;
+        padding: 10px $space-4;
 
         .right-arrow {
             width: 12px;

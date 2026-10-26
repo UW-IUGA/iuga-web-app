@@ -31,8 +31,9 @@ function ShopHeroCarousel() {
         return () => window.clearInterval(interval);
     }, []);
 
+    // The mockups are drawn on white, so the frame keeps the light palette in the dark theme too.
     return (
-        <div className="shopPage__heroVisual">
+        <div className="shopPage__heroVisual" data-theme="light">
             {outgoingIndex !== null && (
                 <div className="shopPage__heroSlide shopPage__heroSlide--outgoing" aria-hidden="true">
                     <img src={shopProducts[outgoingIndex].image} alt="" decoding="async" />

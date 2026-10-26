@@ -113,4 +113,15 @@ describe("in the dark theme", () => {
             expect(themeOf(card), name).toBe("light");
         }
     });
+
+    test("shows the hero carousel's product photo and name on a white frame in the light palette", async () => {
+        renderShopInDarkTheme();
+
+        const hero = screen.getByRole("region", { name: "The Informatics Fall Collection." });
+        const photo = within(hero).getByRole("img", { name: `${shopProducts[0].name} product mockup` });
+        expect(themeOf(photo)).toBe("light");
+        expect(themeOf(within(hero).getByText(shopProducts[0].name))).toBe("light");
+        // Let the catalog finish loading before the page is torn down.
+        await screen.findByRole("heading", { name: shopProducts[0].name, exact: true });
+    });
 });

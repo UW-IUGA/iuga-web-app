@@ -83,6 +83,8 @@
         border: 1px dashed currentcolor;
         border-radius: $radius-card;
         background: theme(surface);
+        // Set here rather than inherited, so the caption takes the light palette the frame pins.
+        color: theme(heading);
     }
 
     &__heroSlide {

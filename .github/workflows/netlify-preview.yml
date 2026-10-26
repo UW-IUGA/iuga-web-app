@@ -9,8 +9,8 @@ permissions:
 
 jobs:
   build:
-    # Fork PRs do not receive repository secrets, so skip them instead of failing.
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    # Fork and Dependabot PRs do not receive repository secrets, so skip them.
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

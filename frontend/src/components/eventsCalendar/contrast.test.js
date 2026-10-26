@@ -66,8 +66,22 @@ it("keeps the dark palette the prototype's", () => {
         "now-line": "#f97362",
         "label-academic": "#5fa5f9",
         "label-social": "#e879f9",
-        "label-career": "#a78bfa",
+        "label-career": "#2cd4bf",
     });
+});
+
+// Hue in degrees, from 0 to 360.
+function hue(color) {
+    const [r, g, b] = channels(color).map((value) => value / 255);
+    const max = Math.max(r, g, b);
+    const delta = max - Math.min(r, g, b);
+    if (delta === 0) return 0;
+    const sector = max === r ? (g - b) / delta : max === g ? (b - r) / delta + 2 : (r - g) / delta + 4;
+    return (sector * 60 + 360) % 360;
+}
+
+it("keeps Career the prototype's teal in light, deepened so white text reads on it", () => {
+    expect(Math.abs(hue(hex(PALETTES.light["label-career"])) - hue(hex(PALETTES.dark["label-career"])))).toBeLessThan(2);
 });
 
 describe.each(Object.entries(PALETTES))("the %s palette", (_theme, values) => {

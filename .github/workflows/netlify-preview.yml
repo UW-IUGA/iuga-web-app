@@ -1,0 +1,73 @@
+name: Netlify PR preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    # Fork and Dependabot PRs do not receive repository secrets, so skip them.
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend with mock data
+        working-directory: frontend
+        run: npm run build -- --mode development
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/build
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    # Runs with repository secrets for same-repository PRs. Only collaborators
+    # with write access can push those branches; treat that access as deploy access.
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/build
+
+      - name: Deploy preview to Netlify
+        id: netlify
+        uses: nwtgck/actions-netlify@4cbaf4c08f1a7bfa537d6113472ef4424e4eb654 # v3.0.0
+        with:
+          publish-dir: frontend/build
+          production-branch: dev
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "PR #${{ github.event.pull_request.number }}"
+          alias: pr-${{ github.event.pull_request.number }}
+          enable-pull-request-comment: true
+          overwrites-pull-request-comment: true
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+      - name: Smoke test deep link
+        run: |
+          base="${{ steps.netlify.outputs.deploy-url }}"
+          curl --fail --silent --show-error --location \
+            --retry 5 --retry-delay 3 \
+            "${base%/}/events" > /dev/null

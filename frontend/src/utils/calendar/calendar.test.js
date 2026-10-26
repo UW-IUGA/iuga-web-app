@@ -267,7 +267,7 @@ describe("event labels", () => {
         });
 
         expect(event.labels).toEqual(["Professional"]);
-        expect(colorForLabels(event.labels)).toBe("#a78bfa");
+        expect(colorForLabels(event.labels)).toBe(colorForLabels(["Professional"]));
     });
 
     it("lists an event tagged both Career and Professional once", () => {
@@ -292,6 +292,12 @@ describe("colorForLabels", () => {
         expect(colorForLabels(["Social", "Academic"])).toBe(colorForLabels(["Social"]));
         expect(colorForLabels(["Academic", "Career"])).toBe(colorForLabels(["Academic"]));
         expect(colorForLabels(["Social", "Academic", "Career"])).toBe(colorForLabels(["Social"]));
+    });
+
+    it("names the label's colour for the palette on screen, which the calendar's stylesheet sets", () => {
+        expect(colorForLabels(["Academic"])).toBe("var(--calendar-label-academic)");
+        expect(colorForLabels(["Social"])).toBe("var(--calendar-label-social)");
+        expect(colorForLabels(["Professional"])).toBe("var(--calendar-label-professional)");
     });
 
     it("only ever produces a colour the legend names", () => {

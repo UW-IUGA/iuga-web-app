@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { zonedParts } from "../../utils/calendar/calendar";
+import { colorForLabels, zonedParts } from "../../utils/calendar/calendar";
 import YearView from "./YearView";
 
 // Tweens finish the moment they start, so the open and close sequences run to
@@ -154,7 +154,7 @@ describe("YearView", () => {
             ],
         });
 
-        expect(container.querySelector(".pad--event").style.backgroundColor).toBe("rgb(232, 121, 249)"); // Social
+        expect(container.querySelector(".pad--event").style.backgroundColor).toBe(colorForLabels(["Social"]));
     });
 
     it("never prints a zero or negative day number in any card", () => {

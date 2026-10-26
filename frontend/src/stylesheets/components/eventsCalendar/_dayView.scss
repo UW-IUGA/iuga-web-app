@@ -66,7 +66,7 @@ Expected Response Information: A single-day schedule and a list of that day's ev
         font-weight: 500;
         letter-spacing: 0.04em;
         text-transform: uppercase;
-        color: $calendar-bg;
+        color: $calendar-on-label;
     }
 
     .detail__name {
@@ -84,7 +84,7 @@ Expected Response Information: A single-day schedule and a list of that day's ev
         margin-top: $calendar-space-2xs;
         font-size: 14px;
         line-height: 155%;
-        color: rgba($calendar-text, 0.85);
+        color: $calendar-text-soft;
     }
 
     .detail__meta {

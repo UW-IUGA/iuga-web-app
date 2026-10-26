@@ -10,6 +10,10 @@ Expected Response Information: The calendar's font, box model, buttons, focus ri
 // The prototype was a page of its own, so its reset and element rules were
 // global. Here they are scoped to the calendar and nothing outside it changes.
 .eventsCalendar {
+    // The palette for the site theme (abstracts/eventsCalendar): light by
+    // default, as the site is; the prototype's dark one is at the end of the file.
+    @include calendar-palette($calendar-palette-light, light);
+
     font-family: $calendar-font-family;
     // The prototype's body: the browser's own text size, weight, line height
     // and colour, not the site's, so every size inside measures as it did.
@@ -117,4 +121,10 @@ Expected Response Information: The calendar's font, box model, buttons, focus ri
     flex: 1 0 auto;
     width: 100%;
     background-color: $calendar-bg;
+}
+
+// The prototype's dark palette under the site's dark theme. Last, so it wins
+// over the light one above: :where() keeps it at the calendar's own specificity.
+.eventsCalendar:where([data-theme="dark"] *) {
+    @include calendar-palette($calendar-palette-dark, dark);
 }

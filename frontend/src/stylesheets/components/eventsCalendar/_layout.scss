@@ -145,12 +145,12 @@ Expected Response Information: A sidebar-plus-view grid, or a fluid grid of mont
         color: $calendar-text;
         font-size: 15px;
         font-weight: 500;
-        border: 1px solid $calendar-pad;
+        border: 1px solid $calendar-control-border;
         border-radius: $calendar-radius-pill;
         transition: background-color 0.15s;
 
         &:hover {
-            background-color: rgba(255, 255, 255, 0.08);
+            background-color: $calendar-hover;
         }
     }
 }

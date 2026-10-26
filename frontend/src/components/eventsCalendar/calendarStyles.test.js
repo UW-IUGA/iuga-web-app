@@ -62,11 +62,21 @@ const rules = parseRules(css);
 function style(selector, media = null) {
     const scoped = selector
         .split(",")
-        .map((part) => `.eventsCalendar ${part.trim()}`)
+        .map((part) => `.eventsCalendar ${part.trim()}`.trim())
         .join(", ");
     const found = rules.filter((rule) => rule.selector === scoped && rule.media === media);
     if (found.length === 0) throw new Error(`no rule for ${scoped}${media ? ` in ${media}` : ""}`);
     return Object.assign({}, ...found.map((rule) => rule.declarations));
+}
+
+// A declared value with each var(--calendar-*) swapped for its value in the
+// light (default) or dark palette, as the calendar's root rules set them.
+const palettes = {
+    light: style(""),
+    dark: Object.assign({}, ...rules.filter((rule) => rule.selector === ".eventsCalendar:where([data-theme=dark] *)").map((rule) => rule.declarations)),
+};
+function inPalette(theme, value) {
+    return value.replace(/var\((--calendar-[\w-]+)\)/g, (_match, name) => palettes[theme][name]);
 }
 
 const PHONE = `@media ${MOBILE_QUERY}`;
@@ -117,19 +127,32 @@ describe("calendar styles", () => {
     });
 
     it("give the picked mini-month day dark text on its white fill, and mute only the weekday initials", () => {
-        expect(style(".mini__day--anchor")).toMatchObject({ "background-color": "#fff", color: "#000" });
-        expect(style(".mini__weekdays span").color).toBe("#b0b0b0");
+        const anchor = style(".mini__day--anchor");
+        expect(inPalette("dark", anchor["background-color"])).toBe("#fff");
+        expect(inPalette("dark", anchor.color)).toBe("#000");
+        expect(inPalette("dark", style(".mini__weekdays span").color)).toBe("#b0b0b0");
         expect(rules.some((rule) => rule.selector.includes(".mini__week span"))).toBe(false);
+    });
+
+    it("give the picked mini-month day white text on the site purple in the light palette", () => {
+        const anchor = style(".mini__day--anchor");
+        expect(inPalette("light", anchor["background-color"])).toBe("#32006e");
+        expect(inPalette("light", anchor.color)).toBe("#fff");
+        expect(inPalette("light", style(".mini__weekdays span").color)).toBe("#595959");
     });
 
     // Under the .eventsCalendar scope, a Sass "X &" selector would put X outside the
     // calendar, where it never matches. These two carry contrast, so they are pinned.
-    it("give a year-view event day dark text, readable on any label colour (1.4.3)", () => {
-        expect(style(".card--compact .pad--event .pad__day").color).toBe("#1a1a1a");
+    it("give a year-view event day the text that reads on its label colour (1.4.3)", () => {
+        const day = style(".card--compact .pad--event .pad__day").color;
+        expect(inPalette("dark", day)).toBe("#1a1a1a");
+        expect(inPalette("light", day)).toBe("#fff");
     });
 
-    it("give the phone picker's year dark text on the picked month's white fill (1.4.3)", () => {
-        expect(style(".strip__month--selected .strip__year").color).toBe("#000");
+    it("give the phone picker's year the text that reads on the picked month's fill (1.4.3)", () => {
+        const year = style(".strip__month--selected .strip__year").color;
+        expect(inPalette("dark", year)).toBe("#000");
+        expect(inPalette("light", year)).toBe("#fff");
     });
 
     it("keep every selector inside the calendar", () => {

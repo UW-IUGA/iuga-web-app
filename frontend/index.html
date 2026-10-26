@@ -9,6 +9,18 @@
     <link rel="apple-touch-icon" href="/logo192.png" />
     <link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
     <title>IUGA UW</title>
+    <!-- The theme, set before the first paint so the page never flashes the wrong one.
+         A remembered choice wins; otherwise the system setting. Keep in step with src/utils/theme.js. -->
+    <script>
+      (function () {
+        var theme;
+        try { theme = localStorage.getItem("iuga-theme"); } catch (e) {}
+        if (theme !== "light" && theme !== "dark") {
+          theme = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        document.documentElement.dataset.theme = theme;
+      })();
+    </script>
     <style>
       @font-face { font-family: "Rubik"; src: url("/font/Rubik-VariableFont_wght.ttf") format("truetype"); font-weight: 300 900; font-style: normal; }
       @font-face { font-family: "Rubik"; src: url("/font/Rubik-Italic-VariableFont_wght.ttf") format("truetype"); font-weight: 300 900; font-style: italic; }

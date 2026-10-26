@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { buildMonthGrid, normalizeEvent, zonedParts } from "../../utils/calendar/calendar";
+import { buildMonthGrid, colorForLabels, normalizeEvent, zonedParts } from "../../utils/calendar/calendar";
 import Card from "./Card";
 
 // Flat index of a day cell inside the 6x7 grid, mirroring buildMonthGrid.
@@ -132,7 +132,7 @@ describe("Card", () => {
 
             // panel() carries the Career label, which shows as Professional, in its colour.
             const cell = padAt(container, dayIndex(2026, 9, 22));
-            expect(cell.style.backgroundColor).toBe("rgb(167, 139, 250)");
+            expect(cell.style.backgroundColor).toBe(colorForLabels(["Professional"]));
         });
 
         it("leaves an event-free day unpainted", () => {
@@ -165,7 +165,7 @@ describe("Card", () => {
             );
 
             const cell = padAt(container, dayIndex(2026, 9, 22));
-            expect(cell.style.backgroundColor).toBe("rgb(232, 121, 249)"); // Social
+            expect(cell.style.backgroundColor).toBe(colorForLabels(["Social"]));
         });
 
         it("is still navigable and still announces its event count", () => {

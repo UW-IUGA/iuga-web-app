@@ -31,9 +31,9 @@ Expected Response Information: A floating card with the event's details and a cl
         // A step lighter than the grid it sits over, with a shadow, so it reads as
         // a separate window rather than part of the week.
         background-color: $calendar-pad;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid $calendar-popover-border;
         border-radius: $calendar-radius-lg;
-        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 12px 32px $calendar-popover-shadow;
         color: $calendar-text;
 
         // The detail card already lives on a surface here; its own fill and padding
@@ -72,7 +72,7 @@ Expected Response Information: A floating card with the event's details and a cl
         border-radius: 50%;
 
         &:hover {
-            background-color: rgba(255, 255, 255, 0.08);
+            background-color: $calendar-hover;
         }
     }
 

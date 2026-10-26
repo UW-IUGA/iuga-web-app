@@ -46,12 +46,12 @@ Expected Response Information: Today and the arrows, the range title, and the vi
         color: $calendar-text;
         font-size: 15px;
         font-weight: 500;
-        border: 1px solid $calendar-pad;
+        border: 1px solid $calendar-control-border;
         border-radius: $calendar-radius-pill;
         transition: background-color 0.15s;
 
         &:hover {
-            background-color: rgba(255, 255, 255, 0.08);
+            background-color: $calendar-hover;
         }
     }
 
@@ -71,7 +71,7 @@ Expected Response Information: Today and the arrows, the range title, and the vi
         transition: background-color 0.15s;
 
         &:hover {
-            background-color: rgba(255, 255, 255, 0.08);
+            background-color: $calendar-hover;
         }
     }
 
@@ -109,7 +109,7 @@ Expected Response Information: Today and the arrows, the range title, and the vi
         gap: 2px;
         padding: 2px;
 
-        background-color: $calendar-pad;
+        background-color: $calendar-track;
         border-radius: $calendar-radius-pill;
     }
 
@@ -206,14 +206,12 @@ Expected Response Information: Today and the arrows, the range title, and the vi
         font-weight: 500;
         color: $calendar-text;
         background-color: transparent;
-        border: 1px solid $calendar-pad;
+        border: 1px solid $calendar-control-border;
         border-radius: $calendar-radius-pill;
         cursor: pointer;
-        // Dark native options on a desktop browser, rather than a white list.
-        color-scheme: dark;
 
         &:hover {
-            background-color: rgba(255, 255, 255, 0.08);
+            background-color: $calendar-hover;
         }
 
         option {
@@ -310,7 +308,7 @@ Expected Response Information: Today and the arrows, the range title, and the vi
         border-radius: $calendar-radius-sm;
 
         &:hover {
-            background-color: rgba(255, 255, 255, 0.08);
+            background-color: $calendar-hover;
         }
     }
 
@@ -401,7 +399,7 @@ Expected Response Information: Today and the arrows, the range title, and the vi
         border-radius: $calendar-radius-pill;
 
         &:hover {
-            background-color: rgba(255, 255, 255, 0.08);
+            background-color: $calendar-hover;
         }
 
         // Inset, because the strip clips anything drawn outside a month.

@@ -65,9 +65,20 @@ frontend/src/
 
 ### Styles
 
-The calendar keeps the prototype's look, which is darker than the rest of the
-site, so it has its own tokens in `abstracts/_eventsCalendar.scss`, loaded
-explicitly as `abstracts/_admin.scss` is for the admin pages.
+The calendar keeps the prototype's look, so it has its own tokens in
+`abstracts/_eventsCalendar.scss`, loaded explicitly as `abstracts/_admin.scss`
+is for the admin pages.
+
+It has two palettes there, with the same keys, and shows the one for the site
+theme (see Theme in `docs/FRONTEND.md`). The dark palette is the prototype's
+own, value for value. The light palette keeps its structure (a page, raised
+cards, day cells, one strong fill for what is selected or current) in the
+site's light colours: a white page, lavender-grey cards, the site ink for text,
+and UW purple for the strong fill. Its label colours are deeper, so white text
+reads on them. `_base.scss` sets each palette as `--calendar-*` custom
+properties on the `.eventsCalendar` root (dark under `[data-theme="dark"]`), and
+the `$calendar-*` names partials use read those properties. The label colours
+that `utils/calendar/calendar.js` paints inline are the same properties.
 
 Every rule sits inside an `.eventsCalendar` root (the page, and the popover,
 which renders into `<body>`). `_base.scss` sets back what the site's element
@@ -83,7 +94,8 @@ Class names are the prototype's kebab-case BEM (`toolbar__range`,
 compared with the prototype line by line. Stylelint reports these as
 `selector-class-pattern` warnings.
 
-`contrast.test.js` checks the palette against WCAG 1.4.3 and 1.4.11, and
+`contrast.test.js` checks both palettes against WCAG 1.4.3 and 1.4.11, read
+from the compiled CSS, and that the dark one is still the prototype's; and
 `calendarStyles.test.js` checks target sizes, zoom, focus, and the phone
 breakpoint in the compiled CSS. `pages/Events.a11y.test.jsx` runs axe on every
 view, the popovers, the year view's day, and the phone date picker.
@@ -172,8 +184,8 @@ the second by other pages.
   RSVP is still available only in `EventDialog`. Either the list returns those
   fields, or the popover fetches `GET /api/v1/events/id/{eId}` as
   `EventDialog` does.
-- **Page colour.** The calendar is dark between the site's light navbar and
-  footer, as in the prototype.
+- **Page colour.** The calendar follows the site theme: the prototype's dark
+  palette in the dark theme, and a light palette in the light theme.
 - **Class names.** Kebab-case BEM, as noted above; renaming to camelCase is
   mechanical but would make the prototype harder to compare against.
 - **Prototype shell.** The prototype's own navbar, skip link, page titles,

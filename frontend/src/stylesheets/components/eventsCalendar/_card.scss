@@ -5,7 +5,6 @@ Expected Response Information: A grid of day pads, with event chips or colour-fi
 */
 @use "../../abstracts" as *;
 @use "../../abstracts/eventsCalendar" as *;
-@use "sass:color";
 
 .eventsCalendar {
     .card {
@@ -93,17 +92,17 @@ Expected Response Information: A grid of day pads, with event chips or colour-fi
         transition: background-color 0.15s;
 
         &:hover {
-            background-color: color.adjust($calendar-pad, $lightness: 6%);
+            background-color: $calendar-pad-hover;
         }
 
         // Dimmed by its background rather than by opacity. Opacity faded
         // everything inside the cell with it, the focus ring included, which put
         // the ring at 2.7:1 (WCAG 1.4.11 asks 3:1).
         &--out {
-            background-color: rgba($calendar-pad, 0.35);
+            background-color: $calendar-pad-out;
 
             &:hover {
-                background-color: rgba($calendar-pad, 0.6);
+                background-color: $calendar-pad-out-hover;
             }
         }
 
@@ -116,7 +115,7 @@ Expected Response Information: A grid of day pads, with event chips or colour-fi
 
     .pad__day {
         font-size: 11px;
-        color: rgba(255, 255, 255, 0.85);
+        color: $calendar-text-soft;
     }
 
     // The month view's card: the same height as the week and day grids, so the
@@ -202,14 +201,14 @@ Expected Response Information: A grid of day pads, with event chips or colour-fi
                 }
 
                 &:hover {
-                    background-color: rgba(255, 255, 255, 0.04);
+                    background-color: $calendar-hover-faint;
                 }
             }
 
             // The days of the months either side, which print no number, are set
             // back with the faintest wash rather than the tile's dimmed fill.
             .pad--out {
-                background-color: rgba(255, 255, 255, 0.02);
+                background-color: $calendar-hover-faintest;
             }
 
             // Square, to match the cell it now fills.
@@ -290,12 +289,12 @@ Expected Response Information: A grid of day pads, with event chips or colour-fi
         white-space: nowrap;
         text-overflow: ellipsis;
         text-align: left;
-        color: $calendar-bg;
+        color: $calendar-on-label;
 
         // Dark on the label colour, which every label colour clears at 6:1 or more.
         // The page's white ring would be under 3:1 against them.
         &:focus-visible {
-            outline-color: $calendar-bg;
+            outline-color: $calendar-on-label;
         }
     }
 
@@ -439,7 +438,7 @@ Expected Response Information: A grid of day pads, with event chips or colour-fi
         min-height: 32px;
         padding: $calendar-space-xs $calendar-space-md;
         border-radius: $calendar-radius-pill;
-        background-color: $calendar-bg;
+        background-color: $calendar-on-label;
         color: $calendar-text;
         font-size: 13px;
         cursor: pointer;
@@ -447,7 +446,7 @@ Expected Response Information: A grid of day pads, with event chips or colour-fi
         // The ring is drawn on the label colour around the button, where white
         // would be under 3:1. Dark clears every label colour at 6:1 or more.
         &:focus-visible {
-            outline-color: $calendar-bg;
+            outline-color: $calendar-on-label;
         }
     }
 
@@ -455,7 +454,7 @@ Expected Response Information: A grid of day pads, with event chips or colour-fi
     .card-content__title {
         font-size: 18px;
         font-weight: 600;
-        color: $calendar-bg;
+        color: $calendar-on-label;
     }
 
     .card--open .pad__day {
@@ -476,6 +475,6 @@ Expected Response Information: A grid of day pads, with event chips or colour-fi
     // The label palette is mid-to-light, so white on it fails contrast. Dark
     // text matches how the full-size card's chips already read.
     .card--compact .pad--event .pad__day {
-        color: $calendar-bg;
+        color: $calendar-on-label;
     }
 }

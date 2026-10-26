@@ -62,15 +62,18 @@ function zonedParts(date, timeZone = TIMEZONE) {
 }
 
 // The event categories, in the order the legend lists them, and their colours.
-// Dark text clears 6:1 on every one of them (see contrast.test.js). The app
-// shows the stored Career label as Professional (see utils/eventStreams.js), so
-// the calendar offers the three categories a visitor can actually see.
+// The app shows the stored Career label as Professional (see
+// utils/eventStreams.js), so the calendar offers the three categories a
+// visitor can actually see. Each colour is a custom property the calendar's
+// stylesheet sets per palette (abstracts/eventsCalendar): lighter in dark,
+// under dark text, and deeper in light, under white text. contrast.test.js
+// checks both.
 export const EVENT_LABELS = ["Academic", "Social", "Professional"];
 
 const LABEL_COLORS = {
-    Academic: "#5fa5f9",
-    Social: "#e879f9",
-    Professional: "#a78bfa",
+    Academic: "var(--calendar-label-academic)",
+    Social: "var(--calendar-label-social)",
+    Professional: "var(--calendar-label-professional)",
 };
 
 // For an event with no label, or one the legend does not know.

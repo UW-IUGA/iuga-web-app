@@ -20,7 +20,7 @@ Expected Response Information: A centred column holding the title, toolbar and c
         font-size: clamp(2rem, 5vw, 3.5rem);
         font-weight: 800;
         letter-spacing: -0.02em;
-        color: $calendar-text;
+        color: $calendar-heading;
     }
 
     // The events page owns its own layout: a toolbar over a sidebar-plus-view

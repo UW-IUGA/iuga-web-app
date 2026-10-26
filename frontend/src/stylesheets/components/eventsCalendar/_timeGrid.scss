@@ -245,7 +245,7 @@ Expected Response Information: Day columns over an hour gutter, with event block
         // the page's white ring would be under 3:1. Inset, because the scroll area
         // clips anything drawn outside an event at the grid's edge.
         &:focus-visible {
-            outline-color: $calendar-bg;
+            outline-color: $calendar-on-label;
             outline-offset: -2px;
         }
     }
@@ -259,7 +259,7 @@ Expected Response Information: Day columns over an hour gutter, with event block
         font-size: 11px;
         font-weight: 500;
         line-height: 125%;
-        color: $calendar-bg;
+        color: $calendar-on-label;
         word-break: break-word;
     }
 
@@ -268,7 +268,7 @@ Expected Response Information: Day columns over an hour gutter, with event block
         line-height: 125%;
         // Solid, not 70% of it: faded, it fell to 3.8:1 on the lighter label
         // colours. Weight sets it apart from the name instead.
-        color: $calendar-bg;
+        color: $calendar-on-label;
         font-weight: 400;
     }
 

@@ -1,39 +1,141 @@
-// Tokens for the events calendar (components/eventsCalendar). It keeps the dark
+// Tokens for the events calendar (components/eventsCalendar). It keeps the
 // palette, spacing and type of the prototype it was ported from, under its own
 // `calendar-` names so nothing here can shadow or be mistaken for a site token.
 // Like abstracts/admin, it emits no CSS: partials load it with
 // `@use "../../abstracts/eventsCalendar" as *;`.
+@use "sass:map";
 
 // Palette
-$calendar-bg: #1a1a1a;
-$calendar-card-bg: #272727;
-$calendar-pad: #333;
-$calendar-text: #fff;
-$calendar-copy-bg: #fff;
-$calendar-copy-text: #000;
 
-// Secondary text. #808080 measured 3.2:1 on a day cell and 3.8:1 on a card,
-// under the 4.5:1 WCAG 1.4.3 asks of text this size. This is the lightest-
-// looking grey that clears 4.5:1 on every surface it is used on: the page,
-// a card, a day cell, and a day cell on hover.
-$calendar-copy-muted: #b0b0b0;
+// The calendar has a dark and a light palette and shows the one for the site
+// theme (base/theme). The dark one is the prototype's own. The light one keeps
+// its structure (a page, raised cards, day cells, one strong fill for the
+// selected and current things) in the site's light colours: white page, the
+// shop's lavender-grey for cards, the site ink for text, and its deep purple
+// for the strong fill. The label colours deepen in light so white text reads
+// on them, where the dark palette's lighter ones carry dark text.
 
-// Current-time marker. Kept out of the palette above because it is an accent
-// with no other use, and it must read against every label colour.
-$calendar-now-line: #f97362;
+// Partials use the `$calendar-` names below, which read the custom property
+// for the palette on screen. components/eventsCalendar/base sets them, and
+// contrast.test.js checks both palettes against the compiled CSS.
+$calendar-palette-dark: (
+    bg: #1a1a1a,
+    card-bg: #272727,
+    pad: #333,
+    // A day cell on hover: the pad, 6% lighter.
+    pad-hover: #424242,
+    // The days of the months either side: the pad, faded into the card.
+    pad-out: rgba(#333, 0.35),
+    pad-out-hover: rgba(#333, 0.6),
+    text: #fff,
+    // The page title, which takes the site's heading colour in light.
+    heading: #fff,
+    // A day number on its cell.
+    text-soft: rgba(255, 255, 255, 0.85),
+    copy-bg: #fff,
+    copy-text: #000,
+    // Secondary text. #808080 measured 3.2:1 on a day cell and 3.8:1 on a
+    // card, under the 4.5:1 WCAG 1.4.3 asks of text this size. This is the
+    // lightest-looking grey that clears 4.5:1 on every surface it is used on:
+    // the page, a card, a day cell, and a day cell on hover.
+    copy-muted: #b0b0b0,
+    // Text and focus rings on a label colour: dark, as the label palette is
+    // mid-to-light. It clears every label colour at 6:1 or more.
+    on-label: #1a1a1a,
+    // Current-time marker: an accent with no other use, that must read
+    // against every label colour.
+    now-line: #f97362,
+    // Hairline separators inside the calendar widgets.
+    rule: rgba(255, 255, 255, 0.08),
+    // The calendar's own day and hour lines: the week and day grid, and the
+    // month on a phone. A touch stronger than the hairline above, since the
+    // grid is the structure of the view, not a separator inside a widget.
+    grid-line: rgba(255, 255, 255, 0.1),
+    // A divider that has to be seen, not just sensed: the line between the
+    // date picker's month strip and its mini month. The faintest grey that
+    // clears 3:1 on a card, the level WCAG 1.4.11 sets for graphics that
+    // carry meaning.
+    divider: #737373,
+    // The outline of the toolbar's buttons and selects, and the view switch's track.
+    control-border: #333,
+    track: #333,
+    // Hover washes, from a button's to a grid cell's to an out-of-month day.
+    hover: rgba(255, 255, 255, 0.08),
+    hover-faint: rgba(255, 255, 255, 0.04),
+    hover-faintest: rgba(255, 255, 255, 0.02),
+    popover-border: rgba(255, 255, 255, 0.1),
+    popover-shadow: rgba(0, 0, 0, 0.5),
+    label-academic: #5fa5f9,
+    label-social: #e879f9,
+    label-professional: #a78bfa,
+);
 
-// Hairline separators inside the calendar widgets.
-$calendar-rule: rgba(255, 255, 255, 0.08);
+$calendar-palette-light: (
+    bg: #fff,
+    card-bg: #f3f2f6,
+    pad: #fff,
+    pad-hover: #ebe7f2,
+    pad-out: rgba(#fff, 0.45),
+    pad-out-hover: rgba(#fff, 0.75),
+    text: #241a32,
+    heading: #32006e,
+    text-soft: rgba(36, 26, 50, 0.85),
+    copy-bg: #32006e,
+    copy-text: #fff,
+    copy-muted: #595959,
+    on-label: #fff,
+    now-line: #d4380d,
+    rule: rgba(36, 26, 50, 0.1),
+    grid-line: rgba(36, 26, 50, 0.12),
+    divider: #767676,
+    control-border: #cfc8dc,
+    track: #ebe7f2,
+    hover: rgba(50, 0, 110, 0.06),
+    hover-faint: rgba(50, 0, 110, 0.04),
+    hover-faintest: rgba(50, 0, 110, 0.02),
+    popover-border: rgba(36, 26, 50, 0.12),
+    popover-shadow: rgba(25, 11, 44, 0.18),
+    label-academic: #2563eb,
+    label-social: #a21caf,
+    label-professional: #6d28d9,
+);
 
-// The calendar's own day and hour lines: the week and day grid, and the month
-// on a phone. A touch stronger than the hairline above, since the grid is the
-// structure of the view, not a separator inside a widget.
-$calendar-grid-line: rgba(255, 255, 255, 0.1);
+@if map.keys($calendar-palette-dark) != map.keys($calendar-palette-light) {
+    @error "abstracts/eventsCalendar: the dark and light palettes must name the same colours, in the same order.";
+}
 
-// A divider that has to be seen, not just sensed: the line between the date
-// picker's month strip and its mini month. The faintest grey that clears 3:1
-// on a card, the level WCAG 1.4.11 sets for graphics that carry meaning.
-$calendar-divider: #737373;
+// Declares the palette's custom properties, on the calendar's root.
+@mixin calendar-palette($palette, $scheme) {
+    color-scheme: $scheme;
+    @each $name, $value in $palette {
+        --calendar-#{$name}: #{$value};
+    }
+}
+
+$calendar-bg: var(--calendar-bg);
+$calendar-card-bg: var(--calendar-card-bg);
+$calendar-pad: var(--calendar-pad);
+$calendar-pad-hover: var(--calendar-pad-hover);
+$calendar-pad-out: var(--calendar-pad-out);
+$calendar-pad-out-hover: var(--calendar-pad-out-hover);
+$calendar-text: var(--calendar-text);
+$calendar-heading: var(--calendar-heading);
+$calendar-text-soft: var(--calendar-text-soft);
+$calendar-copy-bg: var(--calendar-copy-bg);
+$calendar-copy-text: var(--calendar-copy-text);
+$calendar-copy-muted: var(--calendar-copy-muted);
+$calendar-on-label: var(--calendar-on-label);
+$calendar-now-line: var(--calendar-now-line);
+$calendar-rule: var(--calendar-rule);
+$calendar-grid-line: var(--calendar-grid-line);
+$calendar-divider: var(--calendar-divider);
+$calendar-control-border: var(--calendar-control-border);
+$calendar-track: var(--calendar-track);
+$calendar-hover: var(--calendar-hover);
+$calendar-hover-faint: var(--calendar-hover-faint);
+$calendar-hover-faintest: var(--calendar-hover-faintest);
+$calendar-popover-border: var(--calendar-popover-border);
+$calendar-popover-shadow: var(--calendar-popover-shadow);
 
 // The height of the month, week and day views, so switching between them
 // keeps the calendar the same size: the week grid's 72vh scrolling area plus

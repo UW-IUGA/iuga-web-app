@@ -48,7 +48,7 @@ Expected Response Information: A small month grid, and the drop-down month strip
         transition: background-color 0.15s;
 
         &:hover {
-            background-color: rgba(255, 255, 255, 0.08);
+            background-color: $calendar-hover;
         }
 
         &--icon {
@@ -108,7 +108,7 @@ Expected Response Information: A small month grid, and the drop-down month strip
         transition: background-color 0.15s;
 
         &:hover {
-            background-color: rgba(255, 255, 255, 0.08);
+            background-color: $calendar-hover;
         }
 
         // A solid grey rather than 30% opacity, which put the numbers at 2.7:1

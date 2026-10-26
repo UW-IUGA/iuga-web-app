@@ -412,7 +412,7 @@
 
     .nav-primary-links > a:hover,
     .nav-primary-links > a.active,
-    .nav-account-toggle:hover {
+    .nav-toggle:hover {
         color: $color-primary;
     }
 
@@ -421,7 +421,7 @@
         outline-color: $color-uw-purple;
     }
 
-    .nav-account-actions {
+    .nav-dropdown-menu {
         background: $color-white;
         color: $color-ink;
         border-color: $color-border-lavender;

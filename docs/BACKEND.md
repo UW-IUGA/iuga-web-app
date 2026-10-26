@@ -72,6 +72,7 @@ These routes in `app.js` serve the built frontend (`frontend/build/index.html`) 
 | `GET /get-involved` | Get involved page (team, committees, idea engagement) |
 | `GET /electionfaq` | Election FAQ |
 | `GET /contact` | Contact page |
+| `GET /admin`, `/admin/shop/orders`, `/admin/shop/pickup` | Officer admin pages. Keep in step with `ADMIN_SECTIONS` in `frontend/src/adminSections.js`. |
 
 Each handler reads `../frontend/build/index.html` and sends it. If the build directory is missing, these routes return 500.
 

@@ -13,6 +13,7 @@
 
 @use "components/buttons";
 @use "components/alertDialog";
+@use "components/adminBar";
 @use "components/dropdown";
 @use "components/emailContactDialog";
 @use "components/electionfaqCard";
@@ -42,4 +43,6 @@
 @use "pages/resources";
 @use "pages/shop";
 @use "pages/shop-checkout";
+@use "pages/shop-orders";
+@use "pages/shop-pickup";
 @use "pages/studentVoice";

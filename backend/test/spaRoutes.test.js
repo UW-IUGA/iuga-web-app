@@ -38,6 +38,35 @@ describe("createSpaRouter", () => {
     assert.match(await response.text(), /app shell/);
   });
 
+  it("serves the app shell when the admin home is loaded directly", async () => {
+    const response = await fetch(`${baseUrl}/admin`);
+
+    assert.equal(response.status, 200);
+    assert.match(await response.text(), /app shell/);
+  });
+
+  it("serves the app shell when the admin orders page is loaded directly", async () => {
+    const response = await fetch(`${baseUrl}/admin/shop/orders`);
+
+    assert.equal(response.status, 200);
+    assert.match(await response.text(), /app shell/);
+  });
+
+  it("serves the app shell when the admin pickup page is loaded directly", async () => {
+    const response = await fetch(`${baseUrl}/admin/shop/pickup`);
+
+    assert.equal(response.status, 200);
+    assert.match(await response.text(), /app shell/);
+  });
+
+  it("no longer serves the app shell at the old officer paths under /shop", async () => {
+    const orders = await fetch(`${baseUrl}/shop/orders`);
+    const pickup = await fetch(`${baseUrl}/shop/pickup`);
+
+    assert.equal(orders.status, 404);
+    assert.equal(pickup.status, 404);
+  });
+
   it("does not serve the app shell for a checkout path that is not a hold id", async () => {
     const response = await fetch(`${baseUrl}/shop/checkout/abc`);
 

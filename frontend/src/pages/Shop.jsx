@@ -194,9 +194,8 @@ function ShopPage() {
                                     // The limit counts units across sizes, so one size in the bag can block the others too.
                                     const atLimit = isSkuAtLimit(cart, item.sku, limitForSku(catalog, item.sku));
 
-                                    // A white tile in both themes, to match its white product photo.
                                     return (
-                                        <article className="shopCard" key={item.sku} data-theme="light">
+                                        <article className="shopCard" key={item.sku}>
                                             {product?.image && (
                                                 <div className="shopCard__imageWrap">
                                                     <img

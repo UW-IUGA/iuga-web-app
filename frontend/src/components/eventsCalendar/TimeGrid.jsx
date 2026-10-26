@@ -121,7 +121,7 @@ function TimeGrid({ columns, onSelectDay, onPickEvent, openEventKey = null, onPi
                                 const box = overlapBox(item.columnIndex, item.columnCount);
                                 const key = `${item.event.id}-${item.startMinutes}`;
                                 const Event = onPickEvent ? "button" : "div";
-                                const interactive = onPickEvent
+                                const eventButtonProps = onPickEvent
                                     ? {
                                           type: "button",
                                           "data-popover-trigger": "",
@@ -142,7 +142,7 @@ function TimeGrid({ columns, onSelectDay, onPickEvent, openEventKey = null, onPi
                                     <Event
                                         key={key}
                                         className={`grid__event${onPickEvent ? " grid__event--button" : ""}`}
-                                        {...interactive}
+                                        {...eventButtonProps}
                                         style={{
                                             top: `${item.top}%`,
                                             height: `${item.height}%`,

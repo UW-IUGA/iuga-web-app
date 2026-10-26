@@ -66,7 +66,7 @@ Every environment (dev, staging, production) follows the same five-stage pipelin
 - **Volume:** `/var/lib/iuga-web-app/uploads/prod:/app/backend/public/uploads`
 - **DB credentials:** `DB_URI` (Jenkins Secret text credential, injected as `DB_URI` env var), `SESSION_SECRET_PROD` (injected as runtime `SESSION_SECRET_PROD`)
 - **Database:** MongoDB container at `mongo:27017` (via `iuga-server-config_default` network)
-- **Shop checkout:** `shopManualCheckout: false`, so the Venmo checkout routes return 503. Shop holds use transactions, and the `mongo` container in `iuga-server-config` is a standalone server. Set it to `true` only after that container runs as a replica set and `DB_URI` names it (`replicaSet=...`).
+- **Shop checkout:** `shopManualCheckout: true`, passed to the app as `SHOP_MANUAL_CHECKOUT_EXPOSED=true`. The production MongoDB is a one-member replica set, which shop holds need.
 - **Deploy pattern:** health-gated candidate swap; temp port `8890` → live port `8888`; tags images `:${BUILD_NUMBER}` and `:last-good`
 - **Commit status context:** `iuga/jenkins/cicd/prod`
 

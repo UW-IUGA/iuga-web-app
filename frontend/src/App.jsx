@@ -27,6 +27,7 @@ import { useAuthContext } from "./context/AuthContext";
 import SignInRequired from "./components/SignInRequired";
 import Footer from "./layouts/Footer";
 import { isProduction } from "./runtime";
+import { useTheme } from "./utils/theme";
 import { ADMIN_ROOT_PATH, ADMIN_HOME_PATH, ADMIN_SECTIONS, isAdminPath } from "./adminSections";
 
 // The page component for each admin path in ADMIN_SECTIONS. Routes come from that list.
@@ -38,8 +39,11 @@ const ADMIN_PAGES = {
 function App() {
     const { signIn, signOut } = useAuthContext();
     const { pathname } = useLocation();
-    // Admin pages bring their own admin bar instead of the public site navbar and footer.
+    // Admin pages bring their own admin bar instead of the public site navbar and footer,
+    // and keep their own light palette whatever the site theme (base/theme).
     const showSiteChrome = !isAdminPath(pathname);
+    const { theme } = useTheme();
+    const pageTheme = showSiteChrome ? theme : "light";
     const [upcomingEvents, setUpcomingEvents] = useState([]);
 
     useEffect(() => {
@@ -60,7 +64,7 @@ function App() {
     }, []);
 
     return (
-        <div id="rootContainer">
+        <div id="rootContainer" data-theme={showSiteChrome ? undefined : "light"}>
             <ToastContainer
                 position="bottom-center"
                 autoClose={2000}
@@ -71,7 +75,7 @@ function App() {
                 pauseOnFocusLoss
                 draggable
                 pauseOnHover
-                theme="light"
+                theme={pageTheme}
                 transition={Bounce}
             />
             {showSiteChrome && <Navbar signIn={signIn} signOut={signOut} />}

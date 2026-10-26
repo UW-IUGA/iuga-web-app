@@ -35,7 +35,7 @@ export class ShopHoldError extends Error {
   }
 }
 
-async function withTransaction(models, work) {
+export async function withTransaction(models, work) {
   const session = await models.ShopHolds.startSession();
   try {
     let outcome;

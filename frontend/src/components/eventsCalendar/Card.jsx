@@ -1,4 +1,4 @@
-import { colorForLabels, countEvents, formatLongDay, isSameDay, WEEKDAY_SHORT } from "../../utils/calendar/calendar";
+import { colorForLabels, countEvents, formatLongDay, isSameDay, WEEKDAY_ABBREVIATIONS } from "../../utils/calendar/calendar";
 
 // Displays a month's dates and events, either as a full calendar or a
 // compact card in the year view. Reports date and event selections to
@@ -49,7 +49,7 @@ function Card({
                 </div>
 
                 <div className="row weekday-header" aria-hidden="true">
-                    {WEEKDAY_SHORT.map((label) => (
+                    {WEEKDAY_ABBREVIATIONS.map((label) => (
                         <span key={label}>{label}</span>
                     ))}
                 </div>

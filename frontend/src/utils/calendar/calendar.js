@@ -15,7 +15,7 @@ const MONTH_NAMES = [
     "December",
 ];
 
-const WEEKDAY_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const WEEKDAY_ABBREVIATIONS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 // Every date on this site is read and displayed in one zone. The mock data
 // arrives as UTC instants, but a student in Seattle looking at a calendar
@@ -300,7 +300,7 @@ const MINUTES_PER_DAY = 24 * MINUTES_PER_HOUR;
 // duration, so a zero-length event would render as a hairline.
 export const FALLBACK_DURATION_MINUTES = 60;
 
-const WEEK_STARTS_ON = 0; // Sunday, matching WEEKDAY_SHORT
+const WEEK_STARTS_ON = 0; // Sunday, matching WEEKDAY_ABBREVIATIONS
 
 // Rebuild the instant corresponding to local midnight of a calendar day.
 // Starts from the naive UTC midnight and corrects by the offset actually
@@ -521,4 +521,4 @@ export function buildDayColumns(dates, events, timeZone = TIMEZONE) {
     });
 }
 
-export { buildMonthGrid as default, colorForLabels, MONTH_NAMES, TIMEZONE, WEEKDAY_SHORT, zonedParts };
+export { buildMonthGrid as default, colorForLabels, MONTH_NAMES, TIMEZONE, WEEKDAY_ABBREVIATIONS, zonedParts };

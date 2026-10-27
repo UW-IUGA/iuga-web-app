@@ -16,6 +16,7 @@ This directory contains the full documentation set for the **Informatics Undergr
 | [Events](EVENTS.md) | Frontend devs | The events calendar, its data and styles, the previous events page kept for the homepage, open decisions |
 | [Backend](BACKEND.md) | Backend devs | Entry points, directory layout, SPA routes, API routes, authentication, database, middleware stack, dependencies |
 | [Deployment](DEPLOYMENT.md) | Maintainers | Pipeline overview, Jenkinsfile comparison, credentials, Docker build, runtime architecture, verification, rollback |
+| [Pull Request Previews](NETLIFY_PREVIEWS.md) | Maintainers | Netlify preview deploys from GitHub Actions: triggers, secrets, deep links, trust boundary |
 | [Maintainers](MAINTAINERS.md) | Maintainers | Monitoring checks, maintenance procedures, observation points, credential rotation |
 | [Troubleshooting](TROUBLESHOOTING.md) | Developers & maintainers | Pipeline failures, runtime failures, 502 Bad Gateway, stale content, diagnosis sequences |
 

@@ -12,6 +12,9 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useAuthContext } from "../context/AuthContext";
 import { ADMIN_ROOT_PATH, visibleAdminSections } from "../adminSections";
 import ThemeToggle from "../components/ThemeToggle";
+import PrototypeNavIndicator from "../prototype/PrototypeNavIndicator";
+import { usePrototypeShownPath } from "../prototype/PrototypePageTransition";
+import { prototypeTransition } from "../prototype/prototypePageTransitions";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -38,6 +41,8 @@ function Navbar({ signIn, signOut }) {
     const [showMenu, setMenu] = useState(false);
     const [openDropdown, setOpenDropdown] = useState(null);
     const { pathname } = useLocation();
+    const prototypeShownPath = usePrototypeShownPath();
+    const prototypeIndicator = Boolean(prototypeTransition()?.navIndicator) && prototypeShownPath !== null;
     const { isAuthenticated, user, can } = useAuthContext();
     const userGreeting = user?.uFirstName || user?.uDisplayName || user?.name || user?.email || "Your account";
     const showAdminLink = visibleAdminSections(can).length > 0;
@@ -71,7 +76,7 @@ function Navbar({ signIn, signOut }) {
                     </NavLink>
                 </div>
                 <div id="nav-items" className={`nav-items-wrapper ${showMenu ? "nav-show-items" : ""}`}>
-                    <div className="nav-primary-links">
+                    <div className={`nav-primary-links${prototypeIndicator ? " prototypeNavLinks" : ""}`}>
                         <NavLink to="/events" onClick={handleNavigation}>Events</NavLink>
                         <NavLink to="/resources" onClick={handleNavigation}>Resources</NavLink>
                         <NavLink to="/student-voice" onClick={handleNavigation}>Student Voice</NavLink>
@@ -79,6 +84,7 @@ function Navbar({ signIn, signOut }) {
                         <NavLink to="/about" onClick={handleNavigation}>About</NavLink>
                         <NavLink to="/get-involved" onClick={handleNavigation}>Get Involved</NavLink>
                         {showAdminLink && <NavLink to={ADMIN_ROOT_PATH} onClick={handleNavigation}>Admin</NavLink>}
+                        {prototypeIndicator && <PrototypeNavIndicator path={prototypeShownPath} />}
                     </div>
                     <div className="nav-account">
                         {isAuthenticated ? (

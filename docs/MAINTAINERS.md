@@ -243,6 +243,17 @@ Credentials are stored in Jenkins. This repository references them by ID only.
 
 When rotating, update the credential in Jenkins directly. No application code changes are needed.
 
+### GitHub Actions secrets (Netlify previews)
+
+These are stored in the GitHub repository (Settings → Secrets and variables → Actions), not in Jenkins.
+
+| Secret | Rotation frequency | Owner |
+|---|---|---|
+| `NETLIFY_SITE_ID` | When the Netlify site is replaced | [Team lead / IT] — *Escalate to fill* |
+| `NETLIFY_AUTH_TOKEN` | Per Netlify token policy | [Team lead / IT] — *Escalate to fill* |
+
+See [Pull Request Previews](NETLIFY_PREVIEWS.md) for how the secrets are used.
+
 ---
 
 ## 5. Escalation Contacts

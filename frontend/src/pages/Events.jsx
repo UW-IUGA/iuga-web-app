@@ -51,7 +51,7 @@ function ListStatus({ status, onRetry }) {
 }
 
 function EventsPage() {
-    const { mode, anchor, goToDay, goToDate, goToToday, step, setMode } = useCalendarView();
+    const { mode, selectedDate: anchor, goToDay, goToDate, goToToday, step, setMode } = useCalendarView();
     const { records, status, retry } = useEventList();
     const { can } = useAuthContext();
 

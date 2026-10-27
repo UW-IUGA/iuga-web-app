@@ -1,6 +1,7 @@
 /*
  * Purpose: The site chrome around each route: public pages keep the site navbar and footer, and the
- *          officer admin pages replace them with their own admin bar. Admin pages live under /admin.
+ *          officer admin pages replace them with their own admin bar. Admin pages live under /admin
+ *          and stay in their own light palette when the site is dark.
  * Authentication/Authorization Requirements: Auth, pages, and site chrome are stubbed; nothing is fetched.
  * Expected Request Information: A starting route.
  * Expected Response Information: Which chrome is rendered.
@@ -26,7 +27,10 @@ function renderAt(path) {
     );
 }
 
-afterEach(cleanup);
+afterEach(() => {
+    cleanup();
+    delete document.documentElement.dataset.theme;
+});
 
 it("keeps the site navbar, shop notice, and footer on public pages", () => {
     renderAt("/shop");
@@ -73,4 +77,18 @@ it("no longer serves the officer pages at their old /shop paths", () => {
 
     expect(screen.queryByRole("heading", { name: "Orders" })).not.toBeInTheDocument();
     expect(screen.getByRole("navigation", { name: "Site navigation" })).toBeInTheDocument();
+});
+
+it("lets public pages follow the site's dark theme", () => {
+    document.documentElement.dataset.theme = "dark";
+    renderAt("/shop");
+
+    expect(screen.getByRole("heading", { name: "Shop" }).closest("[data-theme]")).toBe(document.documentElement);
+});
+
+it("keeps the admin pages light when the site is dark", () => {
+    document.documentElement.dataset.theme = "dark";
+    renderAt("/admin/shop/orders");
+
+    expect(screen.getByRole("heading", { name: "Orders" }).closest("[data-theme]").dataset.theme).toBe("light");
 });

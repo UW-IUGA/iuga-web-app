@@ -1,0 +1,130 @@
+/*
+Purpose: Give the events calendar the prototype's own ground rules, scoped to it.
+Expected Request Information: An .eventsCalendar root around the calendar, and around anything it portals out.
+Expected Response Information: The calendar's font, box model, buttons, focus ring and motion, with the
+  site-wide element styles that would otherwise leak in turned back to the browser's defaults.
+*/
+@use "../../abstracts" as *;
+@use "../../abstracts/eventsCalendar" as *;
+
+// The prototype was a page of its own, so its reset and element rules were
+// global. Here they are scoped to the calendar and nothing outside it changes.
+.eventsCalendar {
+    // The palette for the site theme (abstracts/eventsCalendar): light by
+    // default, as the site is; the prototype's dark one is at the end of the file.
+    @include calendar-palette($calendar-palette-light, light);
+
+    font-family: $calendar-font-family;
+    // The prototype's body: the browser's own text size, weight, line height
+    // and colour, not the site's, so every size inside measures as it did.
+    font-size: 16px;
+    font-weight: 400;
+    line-height: normal;
+    color: CanvasText;
+
+    // Elements only, as the prototype's reset: its drawn chevrons (::after)
+    // are sized as content boxes, with the border outside the width.
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    // Site-wide heading and button styles (base/_typography, base/_elements)
+    // reach in by element. :where() keeps these at the scope's specificity so
+    // the calendar's own class rules always win over them.
+    :where(h1, h2, h3, h4) {
+        font-size: revert;
+        font-weight: revert;
+        line-height: revert;
+        letter-spacing: revert;
+        color: revert;
+    }
+
+    :where(button) {
+        position: revert;
+        font-size: revert;
+        font-weight: revert;
+        line-height: revert;
+        text-shadow: revert;
+        transition: revert;
+    }
+
+    :where(button)::before {
+        content: none;
+    }
+
+    :where(button:disabled) {
+        background: revert;
+        color: revert;
+        border: revert;
+        cursor: revert;
+    }
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    button {
+        border: none;
+        border-radius: $calendar-radius-pill;
+        padding: $calendar-space-sm $calendar-space-md;
+        font-family: $calendar-font-family;
+        background-color: $calendar-copy-bg;
+        color: $calendar-copy-text;
+        cursor: pointer;
+    }
+
+    // One focus ring for everything a keyboard can reach (WCAG 2.4.7). Only on
+    // :focus-visible, so a mouse click does not leave a ring behind. White on the
+    // dark page clears 12:1; components on a light or coloured surface override
+    // the colour rather than the whole rule.
+    :focus-visible {
+        outline: 2px solid $calendar-text;
+        outline-offset: 2px;
+    }
+
+    // Read by a screen reader, not shown.
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    // The zoom overlay and the swipe already honour this in script. Everything
+    // else that moves is a CSS transition, so it is cut here.
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            /* stylelint-disable declaration-no-important */
+            transition-duration: 0.01ms !important;
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            scroll-behavior: auto !important;
+            /* stylelint-enable declaration-no-important */
+        }
+    }
+}
+
+// The page's own surface: the prototype's dark page, run edge to edge between
+// the site's navbar and footer, and at least as tall as the window leaves them.
+.eventsCalendar--page {
+    flex: 1 0 auto;
+    width: 100%;
+    background-color: $calendar-bg;
+}
+
+// The prototype's dark palette under the site's dark theme. Last, so it wins
+// over the light one above: :where() keeps it at the calendar's own specificity.
+.eventsCalendar:where([data-theme="dark"] *) {
+    @include calendar-palette($calendar-palette-dark, dark);
+}

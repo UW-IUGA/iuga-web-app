@@ -1,12 +1,5 @@
 @use "../abstracts" as *;
 
-@include media(">=tablet") {
-    .nav-container {
-        width: min(1200px, calc(100% - $page-margin * 2));
-        padding-inline: 0;
-    }
-}
-
 @include media(">=sm-desktop") {
     // Pin the links to the bar's true center so side content (sign-in, cart)
     // can change width without shifting the middle.
@@ -26,9 +19,7 @@
 
 @include media(">=sm-desktop", "<desktop") {
     .nav-container {
-        width: min(1000px, calc(100% - $page-margin * 2));
         gap: $space-3;
-        padding-inline: 0;
     }
     .nav-items-wrapper {
         gap: 10px;

@@ -10,7 +10,7 @@
         box-shadow 150ms ease;
 
     &:hover {
-        box-shadow: 0 8px 20px rgba($color-uw-purple, 0.13);
+        box-shadow: 0 8px 20px theme-alpha(brand, 0.13);
         transform: translateY(-2px);
     }
 }
@@ -22,10 +22,10 @@
     flex: 0 0 60px;
     place-items: center;
     overflow: hidden;
-    border: 1px solid rgba($color-uw-purple, 0.14);
+    border: 1px solid theme-alpha(brand, 0.14);
     border-radius: 50%;
-    background: $color-lavender;
-    color: $color-uw-purple;
+    background: theme(tint);
+    color: theme(heading);
     font-family: $font-family-base;
     font-size: 1.6rem;
     font-weight: $font-weight-bold;
@@ -45,14 +45,14 @@
 
     h3 {
         margin: $space-1 0 $space-2;
-        color: $color-black;
+        color: theme(text);
         font-size: $font-size-subheading;
         line-height: 1.25;
     }
 
     > p:not(.resourceCardCategory) {
         margin: 0 0 $space-5;
-        color: $color-dark-gray;
+        color: theme(text-muted);
         font-size: $font-size-small;
         line-height: 1.55;
     }
@@ -65,7 +65,7 @@
 }
 
 .resourceCardPending {
-    color: $color-dark-gray;
+    color: theme(text-muted);
     font-size: $font-size-small;
     font-weight: $font-weight-medium;
 }

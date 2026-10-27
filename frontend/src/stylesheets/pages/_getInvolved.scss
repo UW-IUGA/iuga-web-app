@@ -12,7 +12,7 @@ Expected Response Information: Responsive styles for the hero, leader profile
     @extend %pageFrame;
     box-sizing: border-box;
     padding: 0 0 $space-24;
-    color: $color-uw-purple;
+    color: theme(heading);
 }
 
 .getInvolved__leaderProfileGrid {
@@ -58,7 +58,7 @@ Expected Response Information: Responsive styles for the hero, leader profile
 }
 
 .getInvolved__committees {
-    border-top: 1px solid rgba($color-uw-purple, 0.22);
+    border-top: 1px solid theme-alpha(brand, 0.22);
     padding-top: 30px;
 }
 
@@ -81,7 +81,7 @@ Expected Response Information: Responsive styles for the hero, leader profile
     align-items: center;
     gap: $space-5;
     padding: $space-6 0;
-    border-top: 1px solid rgba($color-uw-purple, 0.15);
+    border-top: 1px solid theme-alpha(brand, 0.15);
 
     &:first-child {
         border-top: 0;
@@ -98,14 +98,14 @@ Expected Response Information: Responsive styles for the hero, leader profile
 
     p {
         margin: 0;
-        color: $color-dark-gray;
+        color: theme(text-muted);
         font-size: $font-size-small;
     }
 }
 
 .getInvolved__description {
     margin: 0;
-    color: $color-dark-gray;
+    color: theme(text-muted);
     font-size: $font-size-body;
     line-height: 1.65;
 }
@@ -129,7 +129,7 @@ Expected Response Information: Responsive styles for the hero, leader profile
 .getInvolved__applicationDeadline {
     max-width: 30ch;
     margin: 0;
-    color: $color-dark-gray;
+    color: theme(text-muted);
     font-size: $font-size-small;
     line-height: 1.4;
     text-align: right;

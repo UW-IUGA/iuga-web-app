@@ -26,14 +26,14 @@ Purpose: The shared top of every page (PageHeader.jsx). Every page uses the same
 .pageHeader h1 {
     max-width: 18ch;
     margin: 0;
-    color: $color-uw-purple;
+    color: theme(heading);
 }
 
 // Doubled class so page-level `p { margin-top: 0 }` resets cannot remove the gap under the title.
 .pageHeader .pageHeader__intro {
     max-width: 52ch;
     margin: $space-4 0 0;
-    color: $color-dark-gray;
+    color: theme(text-muted);
     font-size: $font-size-body;
     line-height: $line-height-body;
 }

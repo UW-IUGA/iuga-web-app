@@ -10,11 +10,11 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
-    background-color: $color-white;
-    color: $color-black;
+    background-color: theme(surface);
+    color: theme(text);
     cursor: pointer;
     user-select: none;
-    border: 1px solid #445568;
+    border: 1px solid theme(line, #445568);
     border-radius: $radius;
     padding: 10px $space-5;
 
@@ -23,7 +23,7 @@
     }
 
     &:hover {
-        background-color: $color-gray;
+        background-color: theme(surface-gray);
     }
 }
 
@@ -32,8 +32,8 @@
     top: 110%;
     left: 0;
     display: block;
-    background-color: $color-white;
-    border: 1px solid #ddd;
+    background-color: theme(surface);
+    border: 1px solid theme(line, #ddd);
     border-radius: 4px;
     box-shadow: 0 4px 8px rgba($color-black, 0.1);
     z-index: 1000;
@@ -45,7 +45,7 @@
         cursor: pointer;
 
         &:hover {
-            background-color: #f1f1f1;
+            background-color: theme(fill-subtle, #f1f1f1);
         }
     }
 }

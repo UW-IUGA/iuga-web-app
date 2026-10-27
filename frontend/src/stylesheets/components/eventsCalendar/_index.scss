@@ -1,0 +1,12 @@
+// The events calendar (components/eventsCalendar). The base comes first so the
+// component rules after it can override its defaults at equal specificity.
+@use "base";
+@use "layout";
+@use "page";
+@use "card";
+@use "dayView";
+@use "legend";
+@use "miniMonth";
+@use "popover";
+@use "timeGrid";
+@use "toolbar";

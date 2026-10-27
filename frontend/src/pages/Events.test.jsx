@@ -1,551 +1,530 @@
 /*
-Purpose: Events page behavior when details, RSVPs, and the event list arrive out of order, and when the photo viewer opens.
+Purpose: Events page behavior: the calendar's views and navigation, kept in the URL, and the event list it loads.
 Authentication/Authorization Requirements: Auth context, runtime mode, and the API are mocked; no sign-in or network.
-Expected Request Information: Event list, event details, and RSVP requests, each answered by the test.
-Expected Response Information: The agenda, event dialog, and photo viewer a student sees.
+Expected Request Information: The event list request, answered by the test.
+Expected Response Information: The calendar a visitor sees, and its loading and failure states.
 */
-import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import "@testing-library/jest-dom";
-import { MemoryRouter } from "react-router-dom";
-import { toast } from "react-toastify";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
+import { formatMonthYear } from "../utils/calendar/calendar";
 import EventsPage from "./Events";
 
-let isAuthenticated = true;
+let production = true;
+let isAuthenticated = false;
 let permissions = new Set();
 
-vi.mock("../runtime", () => ({ isProduction: true, apiBaseUrl: "" }));
+vi.mock("../runtime", () => ({
+    get isProduction() {
+        return production;
+    },
+    apiBaseUrl: "",
+}));
 
 vi.mock("../context/AuthContext", () => ({
     useAuthContext: () => ({ isAuthenticated, can: (permission) => permissions.has(permission) }),
 }));
 
-vi.mock("react-toastify", () => ({
-    toast: { error: vi.fn(), success: vi.fn() },
-}));
-
-// Local time, so the week shown does not depend on the machine's time zone.
-const NOW = new Date(2026, 9, 13, 9, 0);
-
-const GAME_NIGHT = {
-    eId: "game-night",
-    eName: "Game Night",
-    eStartDate: new Date(2026, 9, 14, 17, 30).toISOString(),
-    eLocation: "MGH 120",
-    eOrganizers: "IUGA",
-    eLabels: ["Social"],
-};
-
 const STUDY_JAM = {
     eId: "study-jam",
     eName: "Study Jam",
-    eStartDate: new Date(2026, 9, 15, 12, 30).toISOString(),
-    eLocation: "Odegaard 115",
+    eStartDate: "2026-10-20T17:00:00.000Z",
+    eEndDate: "2026-10-20T18:30:00.000Z",
+    eLocation: "MGH 120",
     eOrganizers: "IUGA",
+    eDescription: "Bring your problem sets.",
     eLabels: ["Academic"],
 };
 
-// What the details endpoint adds to a listed event.
-const details = (listed, overrides = {}) => ({
-    ...listed,
-    eDescription: `About ${listed.eName}.`,
-    rsvpEnabled: true,
-    rsvpQuestions: [],
-    hasRSVPd: false,
-    showParticipants: false,
-    eAltLink: null,
-    ...overrides,
-});
+const RESUME_CLINIC = {
+    eId: "resume-clinic",
+    eName: "Resume Clinic",
+    eStartDate: "2026-10-22T01:00:00.000Z",
+    eEndDate: "2026-10-22T02:00:00.000Z",
+    eLabels: ["Career"],
+};
+
+const GAME_NIGHT_2024 = {
+    eId: "game-night",
+    eName: "IUGA Game Night",
+    eStartDate: "2024-04-21T00:30:00.000Z",
+    eLabels: ["Social"],
+};
+
+const SOCIAL_2020 = {
+    eId: "social-2020",
+    eName: "IUGA Community Social",
+    eStartDate: "2020-10-10T19:20:00.000Z",
+    eLabels: ["Social"],
+};
+
+const EVENTS = [STUDY_JAM, RESUME_CLINIC, GAME_NIGHT_2024, SOCIAL_2020];
 
 const jsonResponse = (body, { ok = true, status = 200, statusText = "OK" } = {}) => ({
     ok,
     status,
     statusText,
-    json: async () => body,
+    json: () => Promise.resolve(body),
 });
 
-// A request the test settles itself, so it can finish after a later one.
-const pendingRequest = () => {
-    const request = {};
-    request.promise = new Promise((resolve, reject) => {
-        request.resolve = resolve;
-        request.reject = reject;
+// The page under a router opened at `url`, with what the router holds after
+// each step, so a test can read the URL the calendar wrote.
+let currentLocation;
+function LocationProbe() {
+    currentLocation = useLocation();
+    return null;
+}
+
+const page = (url) => (
+    <MemoryRouter initialEntries={[url]}>
+        <Routes>
+            <Route
+                path="/events"
+                element={
+                    <>
+                        <EventsPage />
+                        <LocationProbe />
+                    </>
+                }
+            />
+        </Routes>
+    </MemoryRouter>
+);
+
+// Renders the page and lets the list request settle.
+async function visit(url = "/events") {
+    const view = render(page(url));
+    await act(async () => {});
+    return view;
+}
+
+const written = () => new URLSearchParams(currentLocation.search);
+const range = (container) => container.querySelector(".toolbar__range").textContent;
+const miniLabel = (container) => container.querySelector(".mini__label").textContent;
+
+let fetchSpy;
+
+beforeEach(() => {
+    production = true;
+    isAuthenticated = false;
+    permissions = new Set();
+    fetchSpy = vi.spyOn(global, "fetch").mockResolvedValue(jsonResponse(EVENTS));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    window.scrollTo = vi.fn();
+});
+
+afterEach(() => {
+    cleanup();
+    vi.restoreAllMocks();
+    delete window.matchMedia;
+});
+
+describe("Events page: the event list", () => {
+    it("shows the events the list request returns", async () => {
+        await visit("/events?date=2026-10-20");
+
+        expect(fetchSpy).toHaveBeenCalledWith("/api/v1/events/", { method: "GET" });
+        expect(screen.getByRole("button", { name: /Study Jam/ })).toBeInTheDocument();
     });
-    return request;
-};
 
-const renderEvents = () => {
-    render(
-        <MemoryRouter>
-            <EventsPage />
-        </MemoryRouter>,
-    );
-};
+    it("says it is loading until the list arrives, without claiming the month is empty", async () => {
+        let answer;
+        fetchSpy.mockReturnValue(new Promise((resolve) => (answer = resolve)));
+        render(page("/events?date=2026-10-20"));
 
-const openEvent = (name) => fireEvent.click(screen.getByRole("button", { name: new RegExp(`^${name},`) }));
+        expect(screen.getByRole("status")).toHaveTextContent("Loading events…");
 
-const closeEvent = () => fireEvent.click(screen.getByRole("button", { name: "Close event details" }));
+        await act(async () => answer(jsonResponse(EVENTS)));
 
-const rsvpCalls = (fetchSpy) => fetchSpy.mock.calls.filter(([url]) => url === "/api/v1/events/rsvp");
+        expect(screen.queryByRole("status")).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /Study Jam/ })).toBeInTheDocument();
+    });
 
-describe("Events page", () => {
-    beforeEach(() => {
+    it("says events could not be loaded when the request fails, and loads them on Try again", async () => {
+        fetchSpy.mockResolvedValueOnce(jsonResponse(null, { ok: false, status: 500, statusText: "Server Error" }));
+        await visit("/events?date=2026-10-20");
+
+        expect(screen.getByRole("alert")).toHaveTextContent("We couldn't load events. Please try again.");
+        expect(screen.queryByRole("button", { name: /Study Jam/ })).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+        await act(async () => {});
+
+        expect(fetchSpy).toHaveBeenCalledTimes(2);
+        expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /Study Jam/ })).toBeInTheDocument();
+    });
+
+    it("loads the list again on signing in, keeping the calendar up meanwhile", async () => {
+        const { rerender } = await visit("/events?date=2026-10-20");
+        let answer;
+        fetchSpy.mockReturnValue(new Promise((resolve) => (answer = resolve)));
+
         isAuthenticated = true;
-        permissions = new Set();
-        vi.useFakeTimers({ toFake: ["Date"] });
-        vi.setSystemTime(NOW);
-        vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+        rerender(page("/events?date=2026-10-20"));
+
+        expect(fetchSpy).toHaveBeenCalledTimes(2);
+        expect(screen.queryByRole("status")).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /Study Jam/ })).toBeInTheDocument();
+
+        await act(async () => answer(jsonResponse([STUDY_JAM])));
+        expect(screen.queryByRole("button", { name: /Resume Clinic/ })).not.toBeInTheDocument();
     });
 
-    afterEach(() => {
-        vi.useRealTimers();
-        vi.restoreAllMocks();
-        vi.clearAllMocks();
+    it("shows a Career event as Career, not Professional", async () => {
+        await visit("/events?view=day&date=2026-10-21");
+
+        const agenda = screen.getByRole("article");
+        expect(within(agenda).getByText("Resume Clinic")).toBeInTheDocument();
+        expect(within(agenda).getByText("Career")).toBeInTheDocument();
+        expect(within(agenda).queryByText("Professional")).not.toBeInTheDocument();
     });
 
-    describe("opening and closing event details", () => {
-        test("a failed request for an event that was closed and reopened does not close the newer dialog", async () => {
-            vi.spyOn(console, "error").mockImplementation(() => {});
-            const slowFirstRequest = pendingRequest();
-            const newerRequest = pendingRequest();
-            const detailRequests = [slowFirstRequest, newerRequest];
-            vi.spyOn(global, "fetch").mockImplementation((url) =>
-                url === "/api/v1/events/" ? Promise.resolve(jsonResponse([GAME_NIGHT])) : detailRequests.shift().promise,
-            );
-            renderEvents();
-            await screen.findByRole("button", { name: /^Game Night,/ });
+    it("lists only the categories a visitor can see in the colour key", async () => {
+        await visit("/events?date=2026-10-20");
 
-            openEvent("Game Night");
-            closeEvent();
-            openEvent("Game Night");
-            await act(async () => slowFirstRequest.reject(new Error("500")));
-
-            expect(toast.error).not.toHaveBeenCalled();
-            expect(screen.getByRole("dialog", { name: "Game Night" })).toBeInTheDocument();
-            expect(screen.getByText("Loading event details…")).toBeInTheDocument();
-        });
-
-        test("an earlier details response does not end loading while a newer request for the same event is pending", async () => {
-            const slowFirstRequest = pendingRequest();
-            const newerRequest = pendingRequest();
-            const detailRequests = [slowFirstRequest, newerRequest];
-            vi.spyOn(global, "fetch").mockImplementation((url) =>
-                url === "/api/v1/events/" ? Promise.resolve(jsonResponse([GAME_NIGHT])) : detailRequests.shift().promise,
-            );
-            renderEvents();
-            await screen.findByRole("button", { name: /^Game Night,/ });
-
-            openEvent("Game Night");
-            closeEvent();
-            openEvent("Game Night");
-            await act(async () => slowFirstRequest.resolve(jsonResponse(details(GAME_NIGHT))));
-
-            expect(screen.getByText("Loading event details…")).toBeInTheDocument();
-            expect(screen.queryByRole("button", { name: "RSVP" })).not.toBeInTheDocument();
-        });
-
-        test("a details response that arrives after the dialog was closed is ignored", async () => {
-            const lateRequest = pendingRequest();
-            vi.spyOn(global, "fetch").mockImplementation((url) =>
-                url === "/api/v1/events/" ? Promise.resolve(jsonResponse([GAME_NIGHT])) : lateRequest.promise,
-            );
-            renderEvents();
-            await screen.findByRole("button", { name: /^Game Night,/ });
-
-            openEvent("Game Night");
-            closeEvent();
-            await act(async () => lateRequest.resolve(jsonResponse(details(GAME_NIGHT))));
-
-            expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-            expect(toast.error).not.toHaveBeenCalled();
-        });
-
-        test("the details of the event opened last are shown when an earlier event's response arrives last", async () => {
-            const gameNightRequest = pendingRequest();
-            const studyJamRequest = pendingRequest();
-            vi.spyOn(global, "fetch").mockImplementation((url) => {
-                if (url === "/api/v1/events/") return Promise.resolve(jsonResponse([GAME_NIGHT, STUDY_JAM]));
-                return url.endsWith(GAME_NIGHT.eId) ? gameNightRequest.promise : studyJamRequest.promise;
-            });
-            renderEvents();
-            await screen.findByRole("button", { name: /^Game Night,/ });
-
-            openEvent("Game Night");
-            closeEvent();
-            openEvent("Study Jam");
-            await act(async () => studyJamRequest.resolve(jsonResponse(details(STUDY_JAM))));
-            await act(async () => gameNightRequest.resolve(jsonResponse(details(GAME_NIGHT))));
-
-            expect(screen.getByRole("dialog", { name: "Study Jam" })).toBeInTheDocument();
-            expect(screen.getByText("About Study Jam.")).toBeInTheDocument();
-            expect(screen.queryByText("About Game Night.")).not.toBeInTheDocument();
-        });
-
-        test("a deep link to an event that no longer exists shows an error and no dialog", async () => {
-            vi.spyOn(console, "error").mockImplementation(() => {});
-            vi.spyOn(global, "fetch").mockImplementation((url) =>
-                url === "/api/v1/events/"
-                    ? Promise.resolve(jsonResponse([GAME_NIGHT]))
-                    : Promise.resolve(jsonResponse({ status: "error", message: "Event not found" }, { ok: false, status: 404, statusText: "Not Found" })),
-            );
-            render(
-                <MemoryRouter initialEntries={[{ pathname: "/events", state: { eId: "gone", eStartDate: GAME_NIGHT.eStartDate } }]}>
-                    <EventsPage />
-                </MemoryRouter>,
-            );
-
-            await waitFor(() =>
-                expect(toast.error).toHaveBeenCalledWith("We couldn't load this event's details. Please try again."),
-            );
-            expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-        });
+        const [legend] = screen.getAllByRole("list", { name: "Event colours" });
+        expect(
+            within(legend)
+                .getAllByRole("listitem")
+                .map((item) => item.textContent),
+        ).toEqual(["Academic", "Career", "Social"]);
     });
 
-    describe("RSVP state", () => {
-        test("an RSVP that finishes after the student moved to another event does not mark that event as going", async () => {
-            const rsvpRequest = pendingRequest();
-            vi.spyOn(global, "fetch").mockImplementation((url) => {
-                if (url === "/api/v1/events/") return Promise.resolve(jsonResponse([GAME_NIGHT, STUDY_JAM]));
-                if (url === "/api/v1/events/rsvp") return rsvpRequest.promise;
-                const listed = [GAME_NIGHT, STUDY_JAM].find((event) => url === `/api/v1/events/id/${event.eId}`);
-                return Promise.resolve(jsonResponse(details(listed)));
-            });
-            renderEvents();
-            await screen.findByRole("button", { name: /^Game Night,/ });
+    it("shows the sample events without a request outside production", async () => {
+        production = false;
+        await visit("/events?date=2024-04-20");
 
-            openEvent("Game Night");
-            fireEvent.click(await screen.findByRole("button", { name: "RSVP" }));
-            closeEvent();
-            openEvent("Study Jam");
-            await screen.findByRole("button", { name: "RSVP" });
-            await act(async () => rsvpRequest.resolve(jsonResponse({ status: "success", message: "RSVP successful!" })));
+        expect(fetchSpy).not.toHaveBeenCalled();
+        expect(screen.getByRole("button", { name: /IUGA Game Night/ })).toBeInTheDocument();
+    });
+});
 
-            expect(toast.success).toHaveBeenCalledWith("RSVP successful!");
-            expect(screen.getByRole("dialog", { name: "Study Jam" })).toBeInTheDocument();
-            expect(screen.queryByText("You're on the list. See you there.")).not.toBeInTheDocument();
-            expect(screen.getByRole("button", { name: "RSVP" })).toBeInTheDocument();
-            expect(within(screen.getByRole("button", { name: /^Game Night,/ })).getByText("Going")).toBeInTheDocument();
+describe("Events page: officer event operations", () => {
+    const EVENT_REQUEST = {
+        _id: "request-1",
+        eventName: "Autumn Workshop",
+        requestingGroup: "Tech Committee",
+        description: "A workshop for students.",
+        proposedStartDate: "2026-10-15T18:00:00.000Z",
+        status: "submitted",
+        checkpoints: ["proposal", "meeting", "finance", "room", "marketing", "purchases", "completion", "review"].map(
+            (key) => ({ key, status: "pending" }),
+        ),
+    };
+
+    it("keeps an officer's event operations under the calendar, with only the controls their permissions allow", async () => {
+        isAuthenticated = true;
+        permissions = new Set(["events.requests.manage", "events.finance.manage"]);
+        fetchSpy.mockImplementation((url) => {
+            if (url === "/api/v1/events/") return Promise.resolve(jsonResponse(EVENTS));
+            if (url === "/api/v1/event-requests") {
+                return Promise.resolve(jsonResponse({ status: "success", eventRequests: [EVENT_REQUEST] }));
+            }
+            if (url === "/api/v1/event-requests/request-1") {
+                return Promise.resolve(jsonResponse({ status: "success", eventRequest: EVENT_REQUEST }));
+            }
+            throw new Error(`Unexpected API request: ${url}`);
         });
+        await visit("/events?date=2026-10-20");
 
-        test("an RSVP shows the going state in the agenda after the dialog closes", async () => {
-            vi.spyOn(global, "fetch").mockImplementation((url) => {
-                if (url === "/api/v1/events/") return Promise.resolve(jsonResponse([GAME_NIGHT]));
-                if (url === "/api/v1/events/rsvp") return Promise.resolve(jsonResponse({ status: "success", message: "RSVP successful!" }));
-                return Promise.resolve(jsonResponse(details(GAME_NIGHT)));
-            });
-            renderEvents();
-            await screen.findByRole("button", { name: /^Game Night,/ });
+        expect(await screen.findByRole("heading", { name: "Event operations" })).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: /autumn workshop/i }));
+        await screen.findByRole("heading", { name: "Autumn Workshop" });
 
-            openEvent("Game Night");
-            fireEvent.click(await screen.findByRole("button", { name: "RSVP" }));
-            await screen.findByText("You're on the list. See you there.");
-            closeEvent();
-
-            expect(within(screen.getByRole("button", { name: /^Game Night,/ })).getByText("Going")).toBeInTheDocument();
-        });
+        expect(screen.getByRole("button", { name: "Save finance" })).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "Approve & publish" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("combobox", { name: "Purchases" })).not.toBeInTheDocument();
     });
 
-    describe("event list", () => {
-        test("a list that arrives after a sign-in change replaces an older list that arrives later", async () => {
-            const staleList = pendingRequest();
-            let listRequests = 0;
-            vi.spyOn(global, "fetch").mockImplementation(() => {
-                listRequests += 1;
-                return listRequests === 1 ? staleList.promise : Promise.resolve(jsonResponse([STUDY_JAM]));
-            });
-            const { rerender } = render(
-                <MemoryRouter>
-                    <EventsPage />
-                </MemoryRouter>,
-            );
+    it("shows a visitor only the calendar", async () => {
+        await visit("/events?date=2026-10-20");
 
-            isAuthenticated = false;
-            rerender(
-                <MemoryRouter>
-                    <EventsPage />
-                </MemoryRouter>,
-            );
-            await screen.findByRole("button", { name: /^Study Jam,/ });
-            await act(async () => staleList.resolve(jsonResponse([GAME_NIGHT, STUDY_JAM])));
+        expect(screen.queryByRole("heading", { name: "Event operations" })).not.toBeInTheDocument();
+        expect(fetchSpy).toHaveBeenCalledTimes(1);
+    });
+});
 
-            expect(screen.queryByRole("button", { name: /^Game Night,/ })).not.toBeInTheDocument();
-            expect(screen.getByRole("button", { name: /^Study Jam,/ })).toBeInTheDocument();
-        });
+describe("Events page: views and navigation", () => {
+    it("opens on the month view with no params", async () => {
+        const { container } = await visit("/events");
+
+        expect(container.querySelector(".card")).toBeTruthy();
+        expect(screen.getByRole("radio", { name: "Month" })).toHaveAttribute("aria-checked", "true");
     });
 
-    describe("loading the event list", () => {
-        test("says events are loading, not that the week is empty, until the list arrives", async () => {
-            const list = pendingRequest();
-            vi.spyOn(global, "fetch").mockImplementation(() => list.promise);
-            renderEvents();
+    it("shows the whole archive in year view, across every year, with no mini month", async () => {
+        const { container } = await visit("/events?view=year&date=2026-10-20");
 
-            expect(screen.getByText("Loading events…")).toBeInTheDocument();
-            expect(screen.queryByText("Nothing is scheduled this week.")).not.toBeInTheDocument();
-
-            await act(async () => list.resolve(jsonResponse([GAME_NIGHT])));
-
-            expect(screen.queryByText("Loading events…")).not.toBeInTheDocument();
-            expect(screen.getByRole("button", { name: /^Game Night,/ })).toBeInTheDocument();
-        });
-
-        test("says the week is empty once a list without events for it has arrived", async () => {
-            vi.spyOn(global, "fetch").mockResolvedValue(jsonResponse([]));
-            renderEvents();
-
-            expect(await screen.findByText("Nothing is scheduled this week.")).toBeInTheDocument();
-        });
-
-        test("says events could not be loaded when the request fails, and loads them on Try again", async () => {
-            vi.spyOn(console, "error").mockImplementation(() => {});
-            let listRequests = 0;
-            vi.spyOn(global, "fetch").mockImplementation(() => {
-                listRequests += 1;
-                return Promise.resolve(
-                    listRequests === 1
-                        ? jsonResponse({}, { ok: false, status: 500, statusText: "Server Error" })
-                        : jsonResponse([GAME_NIGHT]),
-                );
-            });
-            renderEvents();
-
-            expect(await screen.findByText("We couldn't load events. Please try again.")).toBeInTheDocument();
-            expect(screen.queryByText("Nothing is scheduled this week.")).not.toBeInTheDocument();
-
-            fireEvent.click(screen.getByRole("button", { name: "Try again" }));
-
-            expect(await screen.findByRole("button", { name: /^Game Night,/ })).toBeInTheDocument();
-            expect(screen.queryByText("We couldn't load events. Please try again.")).not.toBeInTheDocument();
-        });
+        // The visible title: the current month's heading also carries a hidden
+        // ", this month" that the real clock decides.
+        const titles = [...container.querySelectorAll(".card-title__heading")].map(
+            (node) => node.firstChild.textContent,
+        );
+        expect(titles.some((title) => title.endsWith("2024"))).toBe(true);
+        expect(titles.some((title) => title.endsWith("2020"))).toBe(true);
+        expect(container.querySelector(".mini")).toBeNull();
     });
 
-    describe("event operations permissions", () => {
-        test("the page grants only controls backed by the current permissions", async () => {
-            permissions = new Set(["events.requests.manage", "events.finance.manage"]);
-            const eventRequest = {
-                _id: "request-1",
-                eventName: "Autumn Workshop",
-                requestingGroup: "Tech Committee",
-                description: "A workshop for students.",
-                proposedStartDate: "2026-10-15T18:00:00.000Z",
-                status: "submitted",
-                checkpoints: ["proposal", "meeting", "finance", "room", "marketing", "purchases", "completion", "review"]
-                    .map((key) => ({ key, status: "pending" })),
-            };
-            vi.spyOn(global, "fetch").mockImplementation((url) => {
-                if (url === "/api/v1/events/") return Promise.resolve(jsonResponse([GAME_NIGHT]));
-                if (url === "/api/v1/event-requests") {
-                    return Promise.resolve(jsonResponse({ status: "success", eventRequests: [eventRequest] }));
-                }
-                if (url === "/api/v1/event-requests/request-1") {
-                    return Promise.resolve(jsonResponse({ status: "success", eventRequest }));
-                }
-                throw new Error(`Unexpected API request: ${url}`);
-            });
-
-            renderEvents();
-
-            expect(await screen.findByRole("button", { name: /^Game Night,/ })).toBeInTheDocument();
-            expect(await screen.findByRole("heading", { name: "Event operations" })).toBeInTheDocument();
-            fireEvent.click(screen.getByRole("button", { name: /autumn workshop/i }));
-            await screen.findByRole("heading", { name: "Autumn Workshop" });
-
-            expect(screen.getByRole("button", { name: "Save finance" })).toBeInTheDocument();
-            expect(screen.getByRole("combobox", { name: "Finance" })).toBeInTheDocument();
-            expect(screen.queryByRole("button", { name: "Approve & publish" })).not.toBeInTheDocument();
-            expect(screen.queryByRole("combobox", { name: "Proposal" })).not.toBeInTheDocument();
-            expect(screen.queryByRole("combobox", { name: "Purchases" })).not.toBeInTheDocument();
-        });
+    it("shows the mini month in month, week and day view", async () => {
+        for (const url of [
+            "/events?date=2026-10-20",
+            "/events?view=week&date=2026-10-20",
+            "/events?view=day&date=2026-10-20",
+        ]) {
+            const { container, unmount } = await visit(url);
+            expect(container.querySelector(".mini")).toBeTruthy();
+            unmount();
+        }
     });
 
-    describe("closing and signing out", () => {
-        test("Escape, the close button, and a click on the dimmed area each close the dialog, and the same event opens again", async () => {
-            vi.spyOn(global, "fetch").mockImplementation((url) =>
-                Promise.resolve(jsonResponse(url === "/api/v1/events/" ? [GAME_NIGHT] : details(GAME_NIGHT))),
-            );
-            renderEvents();
-            await screen.findByRole("button", { name: /^Game Night,/ });
+    it("puts Today and the arrows in the toolbar, not the sidebar", async () => {
+        const { container } = await visit("/events?date=2026-10-20");
 
-            openEvent("Game Night");
-            await screen.findByText("About Game Night.");
-            const dialog = screen.getByRole("dialog", { name: "Game Night" });
-            act(() => {
-                dialog.dispatchEvent(new Event("cancel", { cancelable: true }));
-                dialog.close();
-            });
-            expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+        const toolbar = container.querySelector(".toolbar");
+        expect(within(toolbar).getByRole("button", { name: "Today" })).toBeInTheDocument();
+        expect(within(toolbar).getByRole("button", { name: "Previous month" })).toBeInTheDocument();
+        expect(within(toolbar).getByRole("button", { name: "Next month" })).toBeInTheDocument();
+        expect(within(container.querySelector(".mini")).queryByRole("button", { name: "Today" })).toBeNull();
+    });
 
-            openEvent("Game Night");
-            await screen.findByText("About Game Night.");
-            closeEvent();
-            expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    it("carries the mini month along when the toolbar steps into another month", async () => {
+        const { container } = await visit("/events?date=2026-10-20");
 
-            openEvent("Game Night");
-            await screen.findByText("About Game Night.");
-            fireEvent.click(screen.getByRole("dialog", { name: "Game Night" }));
-            expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-            expect(toast.error).not.toHaveBeenCalled();
-        });
+        fireEvent.click(screen.getByRole("button", { name: "Next month" }));
 
-        test("a student who signed out does not see the going state while the list reloads", async () => {
-            const signedOutList = pendingRequest();
-            let listRequests = 0;
-            vi.spyOn(global, "fetch").mockImplementation(() => {
-                listRequests += 1;
-                return listRequests === 1
-                    ? Promise.resolve(jsonResponse([{ ...GAME_NIGHT, hasRSVPd: true }]))
-                    : signedOutList.promise;
-            });
-            const { rerender } = render(
-                <MemoryRouter>
-                    <EventsPage />
-                </MemoryRouter>,
-            );
-            await screen.findByRole("button", { name: /^Game Night,/ });
-            expect(within(screen.getByRole("button", { name: /^Game Night,/ })).getByText("Going")).toBeInTheDocument();
+        expect(range(container)).toBe("November 2026");
+        expect(miniLabel(container)).toBe("November 2026");
+        expect(written().get("date")).toBe("2026-11-20");
+    });
 
-            isAuthenticated = false;
-            rerender(
-                <MemoryRouter>
-                    <EventsPage />
-                </MemoryRouter>,
+    it("leaves the main view and the URL alone when the mini month browses", async () => {
+        const { container } = await visit("/events?view=week&date=2026-10-20");
+
+        fireEvent.click(within(container.querySelector(".mini")).getByRole("button", { name: "Show previous month" }));
+
+        expect(miniLabel(container)).toBe("September 2026");
+        expect(range(container)).toBe("Oct 18 – Oct 24, 2026");
+        expect(written().get("date")).toBe("2026-10-20");
+    });
+
+    it("moves the current view to a day picked in the mini month", async () => {
+        const cases = [
+            ["/events?date=2026-10-20", "October 2026", null],
+            ["/events?view=week&date=2026-10-20", "Oct 25 – Oct 31, 2026", "week"],
+            ["/events?view=day&date=2026-10-20", "Wed, Oct 28, 2026", "day"],
+        ];
+
+        for (const [url, expected, view] of cases) {
+            const { container, unmount } = await visit(url);
+            const day = [...container.querySelectorAll(".mini__day:not(.mini__day--out)")].find((cell) =>
+                cell.textContent.startsWith("28"),
             );
 
-            expect(within(screen.getByRole("button", { name: /^Game Night,/ })).queryByText("Going")).not.toBeInTheDocument();
-        });
+            fireEvent.click(day);
 
-        test("an open dialog stops saying the student is on the list when they sign out", async () => {
-            vi.spyOn(global, "fetch").mockImplementation((url) =>
-                Promise.resolve(jsonResponse(url === "/api/v1/events/" ? [GAME_NIGHT] : details(GAME_NIGHT, { hasRSVPd: true }))),
-            );
-            const { rerender } = render(
-                <MemoryRouter>
-                    <EventsPage />
-                </MemoryRouter>,
-            );
-            await screen.findByRole("button", { name: /^Game Night,/ });
-            openEvent("Game Night");
-            await screen.findByText("You're on the list. See you there.");
+            expect(written().get("view")).toBe(view);
+            expect(written().get("date")).toBe("2026-10-28");
+            expect(range(container)).toBe(expected);
+            unmount();
+        }
+    });
 
-            isAuthenticated = false;
-            rerender(
-                <MemoryRouter>
-                    <EventsPage />
-                </MemoryRouter>,
-            );
+    it("brings a browsed mini month back with a toolbar step", async () => {
+        const { container } = await visit("/events?view=week&date=2026-10-13");
 
-            expect(screen.queryByText("You're on the list. See you there.")).not.toBeInTheDocument();
-            expect(screen.getByRole("button", { name: "RSVP" })).toBeInTheDocument();
-        });
+        fireEvent.click(within(container.querySelector(".mini")).getByRole("button", { name: "Show next month" }));
+        fireEvent.click(screen.getByRole("button", { name: "Next week" }));
 
-        test("an RSVP sent before a different student signs in does not show that student as going", async () => {
-            const rsvpRequest = pendingRequest();
-            vi.spyOn(global, "fetch").mockImplementation((url) => {
-                if (url === "/api/v1/events/") return Promise.resolve(jsonResponse([GAME_NIGHT]));
-                if (url === "/api/v1/events/rsvp") return rsvpRequest.promise;
-                return Promise.resolve(jsonResponse(details(GAME_NIGHT)));
-            });
-            const { rerender } = render(
-                <MemoryRouter>
-                    <EventsPage />
-                </MemoryRouter>,
-            );
-            await screen.findByRole("button", { name: /^Game Night,/ });
-            openEvent("Game Night");
-            fireEvent.click(await screen.findByRole("button", { name: "RSVP" }));
-            closeEvent();
+        // The step stays inside October, and the sidebar comes home with it.
+        expect(range(container)).toBe("Oct 18 – Oct 24, 2026");
+        expect(miniLabel(container)).toBe("October 2026");
+    });
 
-            isAuthenticated = false;
-            rerender(
-                <MemoryRouter>
-                    <EventsPage />
-                </MemoryRouter>,
-            );
-            isAuthenticated = true;
-            rerender(
-                <MemoryRouter>
-                    <EventsPage />
-                </MemoryRouter>,
-            );
-            await act(async () => rsvpRequest.resolve(jsonResponse({ status: "success", message: "RSVP successful!" })));
+    it("brings a browsed mini month back with Today, even when already on today", async () => {
+        const { container } = await visit("/events");
+        const home = miniLabel(container);
 
-            expect(
-                within(screen.getByRole("button", { name: /^Game Night,/ })).queryByText("Going"),
-            ).not.toBeInTheDocument();
-        });
+        fireEvent.click(within(container.querySelector(".mini")).getByRole("button", { name: "Show next month" }));
+        expect(miniLabel(container)).not.toBe(home);
 
-        test("an RSVP still being sent when the student signs out does not show them as going", async () => {
-            const rsvpRequest = pendingRequest();
-            vi.spyOn(global, "fetch").mockImplementation((url) => {
-                if (url === "/api/v1/events/") return Promise.resolve(jsonResponse([GAME_NIGHT]));
-                if (url === "/api/v1/events/rsvp") return rsvpRequest.promise;
-                return Promise.resolve(jsonResponse(details(GAME_NIGHT)));
-            });
-            const { rerender } = render(
-                <MemoryRouter>
-                    <EventsPage />
-                </MemoryRouter>,
-            );
-            await screen.findByRole("button", { name: /^Game Night,/ });
-            openEvent("Game Night");
-            fireEvent.click(await screen.findByRole("button", { name: "RSVP" }));
-            closeEvent();
+        fireEvent.click(screen.getByRole("button", { name: "Today" }));
 
-            isAuthenticated = false;
-            rerender(
-                <MemoryRouter>
-                    <EventsPage />
-                </MemoryRouter>,
-            );
-            await act(async () => rsvpRequest.resolve(jsonResponse({ status: "success", message: "RSVP successful!" })));
+        expect(miniLabel(container)).toBe(home);
+    });
 
-            expect(within(screen.getByRole("button", { name: /^Game Night,/ })).queryByText("Going")).not.toBeInTheDocument();
-        });
+    it("shows seven days in week view, and one with its agenda in day view", async () => {
+        const week = await visit("/events?view=week&date=2026-10-20");
+        expect(week.container.querySelectorAll(".grid__col")).toHaveLength(7);
+        week.unmount();
 
-        test("details that arrive after the list was reloaded still belong to the event that was opened", async () => {
-            const lateDetails = pendingRequest();
-            let listRequests = 0;
-            vi.spyOn(global, "fetch").mockImplementation((url) => {
-                if (url !== "/api/v1/events/") return lateDetails.promise;
-                listRequests += 1;
-                const list = listRequests === 1 ? [GAME_NIGHT] : [{ ...GAME_NIGHT, eName: "Game Night, moved" }];
-                return Promise.resolve(jsonResponse(list));
-            });
-            const { rerender } = render(
-                <MemoryRouter>
-                    <EventsPage />
-                </MemoryRouter>,
-            );
-            await screen.findByRole("button", { name: /^Game Night,/ });
-            openEvent("Game Night");
+        const day = await visit("/events?view=day&date=2026-10-20");
+        expect(day.container.querySelectorAll(".grid__col")).toHaveLength(1);
+        expect(day.container.querySelector(".day__agenda")).toBeTruthy();
+    });
 
-            isAuthenticated = false;
-            rerender(
-                <MemoryRouter>
-                    <EventsPage />
-                </MemoryRouter>,
-            );
-            await screen.findByRole("button", { name: /^Game Night, moved,/ });
-            await act(async () => lateDetails.resolve(jsonResponse(details(GAME_NIGHT))));
+    it("switches view from the toggle, keeping the date", async () => {
+        const { container } = await visit("/events?date=2026-10-20");
 
-            expect(screen.getByRole("dialog", { name: "Game Night" })).toBeInTheDocument();
-            expect(screen.getByText("About Game Night.")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("radio", { name: "Week" }));
+        expect(written().get("view")).toBe("week");
+        expect(written().get("date")).toBe("2026-10-20");
+        expect(container.querySelectorAll(".grid__col")).toHaveLength(7);
+
+        fireEvent.click(screen.getByRole("radio", { name: "Year" }));
+        expect(written().get("view")).toBe("year");
+        expect(container.querySelector(".mini")).toBeNull();
+    });
+
+    it("opens a day when a month pad is clicked", async () => {
+        const { container } = await visit("/events?date=2026-10-20");
+
+        fireEvent.click(container.querySelector(".pad__open"));
+
+        expect(written().get("view")).toBe("day");
+    });
+
+    it("takes the month and week views to the current period from Today", async () => {
+        const month = await visit("/events?date=2024-04-08");
+        fireEvent.click(screen.getByRole("button", { name: "Today" }));
+        expect(written().get("view")).toBeNull();
+        expect(range(month.container)).toBe(formatMonthYear(new Date()));
+        month.unmount();
+
+        const week = await visit("/events?view=week&date=2024-04-08");
+        fireEvent.click(screen.getByRole("button", { name: "Today" }));
+        expect(written().get("view")).toBe("week");
+        // The current week is the one with today's column in it.
+        expect(week.container.querySelector(".grid__dayhead--today")).toBeTruthy();
+    });
+
+    it("gives every view one h1, with the months below it as h2s", async () => {
+        await visit("/events?view=year&date=2026-10-20");
+
+        expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+        expect(screen.getAllByRole("heading", { level: 2 }).length).toBeGreaterThan(1);
+    });
+});
+
+describe("Events page: keyboard", () => {
+    it("makes the view toggle a single tab stop (radio group)", async () => {
+        await visit("/events?date=2026-10-20");
+
+        const options = within(screen.getByRole("radiogroup")).getAllByRole("radio");
+        expect(options.filter((option) => option.tabIndex === 0).map((option) => option.textContent)).toEqual([
+            "Month",
+        ]);
+    });
+
+    it("moves between views with the arrow keys, keeping focus on the toggle", async () => {
+        await visit("/events?date=2026-10-20");
+
+        const month = screen.getByRole("radio", { name: "Month" });
+        month.focus();
+        fireEvent.keyDown(month, { key: "ArrowRight" });
+
+        expect(written().get("view")).toBe("week");
+        expect(document.activeElement).toBe(screen.getByRole("radio", { name: "Week" }));
+
+        fireEvent.keyDown(document.activeElement, { key: "Home" });
+        expect(written().get("view")).toBe("year");
+
+        // Wraps from the first view to the last.
+        fireEvent.keyDown(document.activeElement, { key: "ArrowLeft" });
+        expect(written().get("view")).toBe("day");
+    });
+
+    it("lets a keyboard reach the scrolling schedule (2.1.1)", async () => {
+        await visit("/events?view=week&date=2026-10-20");
+
+        expect(screen.getByRole("region", { name: "Schedule" }).tabIndex).toBe(0);
+    });
+});
+
+describe("Events page: swiping across the calendar", () => {
+    // jsdom's TouchEvent will not take plain touch points, so the event is a
+    // plain one carrying them. `clientX` defaults to mid-screen, clear of the
+    // edge band left to the browser.
+    const touch = (el, type, points) => {
+        const event = new Event(type, { bubbles: true, cancelable: true });
+        Object.defineProperty(event, "touches", { value: points });
+        el.dispatchEvent(event);
+        return event;
+    };
+    const swipe = (el, dx, dy = 0, startX = 500) => {
+        touch(el, "touchstart", [{ clientX: startX, clientY: 300 }]);
+        const move = touch(el, "touchmove", [{ clientX: startX + dx, clientY: 300 + dy }]);
+        touch(el, "touchend", []);
+        return move;
+    };
+
+    // Under reduced motion a swipe steps at once, with nothing to wait out.
+    beforeEach(() => {
+        window.matchMedia = (query) => ({
+            matches: query.includes("reduce"),
+            media: query,
+            addEventListener() {},
+            removeEventListener() {},
         });
     });
 
-    describe("photo viewer", () => {
-        test("a photo opened from a card starts at that photo, and the next set starts at its first photo", () => {
-            vi.spyOn(global, "fetch").mockImplementation(() => Promise.resolve(jsonResponse([])));
-            renderEvents();
+    const main = (container) => container.querySelector(".events__main");
 
-            fireEvent.click(screen.getByRole("button", { name: "Open photo: Three students holding up stickers behind a table with laptops and flyers" }));
-            expect(screen.getByRole("dialog", { name: "IUGA RSO Fair photos" })).toBeInTheDocument();
-            expect(screen.getByText("3 / 9")).toBeInTheDocument();
+    it("steps to the next week for a swipe left, and back for one right", async () => {
+        const { container } = await visit("/events?view=week&date=2026-10-20");
 
-            fireEvent.click(screen.getByRole("button", { name: "Close photos" }));
-            fireEvent.click(screen.getAllByRole("button", { name: "View Photos" })[1]);
+        await act(async () => swipe(main(container), -120));
+        expect(range(container)).toBe("Oct 25 – Oct 31, 2026");
 
-            expect(screen.getByRole("dialog", { name: "Meet IUGA photos" })).toBeInTheDocument();
-            expect(screen.getByText("1 / 4")).toBeInTheDocument();
-            expect(screen.getByText("September 2026")).toBeInTheDocument();
-        });
+        await act(async () => swipe(main(container), 120));
+        expect(range(container)).toBe("Oct 18 – Oct 24, 2026");
+    });
+
+    it("steps the month and the day view too, by their own unit", async () => {
+        const month = await visit("/events?date=2026-10-20");
+        await act(async () => swipe(main(month.container), -120));
+        expect(range(month.container)).toBe("November 2026");
+        month.unmount();
+
+        const day = await visit("/events?view=day&date=2026-10-20");
+        await act(async () => swipe(main(day.container), -120));
+        expect(range(day.container)).toBe("Wed, Oct 21, 2026");
+    });
+
+    it("claims the sideways move, so the page does not pan under it", async () => {
+        const { container } = await visit("/events?view=week&date=2026-10-20");
+
+        expect(swipe(main(container), -120).defaultPrevented).toBe(true);
+    });
+
+    it("leaves a downward move to the scroll, and a short one alone", async () => {
+        const { container } = await visit("/events?view=week&date=2026-10-20");
+
+        const scroll = await act(async () => swipe(main(container), -30, 120));
+        expect(scroll.defaultPrevented).toBe(false);
+        await act(async () => swipe(main(container), -30));
+
+        expect(range(container)).toBe("Oct 18 – Oct 24, 2026");
+    });
+
+    it("ignores a swipe from the screen's edge, which is the browser's back swipe", async () => {
+        const { container } = await visit("/events?view=week&date=2026-10-20");
+
+        await act(async () => swipe(main(container), 120, 0, 5));
+
+        expect(range(container)).toBe("Oct 18 – Oct 24, 2026");
+    });
+
+    it("does not swipe the year view, which does not step", async () => {
+        const { container } = await visit("/events?view=year&date=2026-10-20");
+
+        expect(swipe(main(container), -120).defaultPrevented).toBe(false);
+    });
+
+    it("keeps the arrows, the single-tap way to do the same (2.5.1)", async () => {
+        await visit("/events?view=week&date=2026-10-20");
+
+        expect(screen.getByRole("button", { name: "Previous week" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Next week" })).toBeInTheDocument();
     });
 });

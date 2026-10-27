@@ -1,0 +1,480 @@
+/*
+Purpose: Style the month cards of the month and year views.
+Expected Request Information: Classes emitted by Card, MonthCard and YearCard, inside an .eventsCalendar root.
+Expected Response Information: A grid of day pads, with event chips or colour-filled squares.
+*/
+@use "../../abstracts" as *;
+@use "../../abstracts/eventsCalendar" as *;
+
+.eventsCalendar {
+    .card {
+        position: relative;
+        width: 100%;
+        margin: 0;
+        padding: $calendar-space-lg;
+        border-radius: $calendar-radius-lg;
+
+        display: flex;
+        flex-direction: column;
+        gap: $calendar-space-xs;
+
+        background-color: $calendar-card-bg;
+        // A year-view pad grows to fill the card when its day opens in place; it
+        // must not paint over the page around the card.
+        overflow: hidden;
+    }
+
+    // Everything but the overlay. Carries the card's own column layout, so
+    // wrapping the grid in it changes nothing about how the card is spaced.
+    .card-grid {
+        display: flex;
+        flex-direction: column;
+        gap: inherit;
+    }
+
+    .card-title {
+        padding-bottom: $calendar-space-sm;
+        color: $calendar-text;
+    }
+
+    // A real heading for structure, styled as the paragraph it replaced.
+    .card-title__heading {
+        font: inherit;
+    }
+
+    .row {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: $calendar-space-sm;
+
+        @include media("<=#{$calendar-mobile}") {
+            gap: $calendar-space-2xs;
+        }
+    }
+
+    .weekday-header {
+        gap: $calendar-space-sm;
+
+        span {
+            text-align: center;
+            font-size: 11px;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: $calendar-copy-muted;
+        }
+
+        @include media("<=#{$calendar-mobile}") {
+            gap: $calendar-space-2xs;
+        }
+    }
+
+    // A day cell. In the year view it is itself the button; in the month view it
+    // holds the day's button and the event chips side by side.
+    .pad {
+        position: relative;
+        // Room for three 26px chips under the day number's circle: 26px + 3 x 26px
+        // + two 2px gaps + the cell's own padding. The month card stretches its
+        // weeks past this on a taller screen; this is the floor.
+        min-height: 116px;
+        padding: $calendar-space-2xs;
+        overflow: hidden;
+
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 2px;
+
+        background-color: $calendar-pad;
+        border-radius: $calendar-radius-sm;
+        text-align: left;
+        cursor: pointer;
+        transition: background-color 0.15s;
+
+        &:hover {
+            background-color: $calendar-pad-hover;
+        }
+
+        // Dimmed by its background rather than by opacity. Opacity faded
+        // everything inside the cell with it, the focus ring included, which put
+        // the ring at 2.7:1 (WCAG 1.4.11 asks 3:1).
+        &--out {
+            background-color: $calendar-pad-out;
+
+            &:hover {
+                background-color: $calendar-pad-out-hover;
+            }
+        }
+
+        // A phone's floor: 22px for the smaller day number, three 14px chips, the
+        // two 2px gaps and the cell's padding (see the phone chips, below).
+        @include media("<=#{$calendar-mobile}") {
+            min-height: 76px;
+        }
+    }
+
+    .pad__day {
+        font-size: 11px;
+        color: $calendar-text-soft;
+    }
+
+    // The month view's card: the same height as the week and day grids, so the
+    // calendar does not jump in size between views. At least that tall, rather
+    // than exactly: on a short screen the six weeks still keep their minimum
+    // height instead of being squeezed.
+
+    // The week rows share the height, so the days grow with the screen and give
+    // their event chips room to be read.
+    .card--month {
+        min-height: $calendar-view-height;
+
+        .card-grid {
+            flex: 1 1 auto;
+        }
+
+        .row:not(.weekday-header) {
+            flex: 1 1 0;
+        }
+
+        // Every number sits in a 24px circle's box, so today's filled one lines up
+        // with the rest instead of nudging its number out of place.
+        .pad__day {
+            width: 24px;
+            height: 24px;
+            display: grid;
+            place-items: center;
+
+            font-size: 13px;
+            border-radius: $calendar-radius-pill;
+        }
+
+        // Today, circled the way the week view's day header circles it. A solid
+        // fill rather than a tint, so it clears the 3:1 a state indicator needs
+        // against the day (WCAG 1.4.11): white on the day cell is 12.6:1.
+        .pad--today .pad__day {
+            background-color: $calendar-copy-bg;
+            color: $calendar-copy-text;
+            font-weight: 600;
+        }
+
+        // On a phone the card's padding and fill cost the days the room they need,
+        // so the month sits straight on the page, as Google Calendar's does. Only
+        // the frame goes: the days keep their height, and the month its
+        // $calendar-view-height, so it is still the same size as the week and day.
+        @include media("<=#{$calendar-mobile}") {
+            padding: 0;
+            border-radius: 0;
+            background-color: transparent;
+
+            // The month runs edge to edge, but its name is text and keeps the
+            // page's gutter.
+            .card-title {
+                padding-inline: var(--page-gutter);
+            }
+
+            // The week's structure rather than a wall of tiles: days ruled off by
+            // hairlines, with no gaps or rounded corners between them.
+
+            // And not stretched. On a desktop the weeks share $calendar-view-height so the
+            // chips get room; on a tall phone that made every day a 140px tile of
+            // mostly nothing. Here each week is as tall as three chips need, so the
+            // month comes out shorter than the week and day on a phone.
+            min-height: 0;
+
+            .row,
+            .weekday-header {
+                gap: 0;
+            }
+
+            .row:not(.weekday-header) {
+                flex: none;
+            }
+
+            .pad {
+                border-top: 1px solid $calendar-grid-line;
+                border-left: 1px solid $calendar-grid-line;
+                border-radius: 0;
+                background-color: transparent;
+
+                &:first-child {
+                    border-left-color: transparent;
+                }
+
+                &:hover {
+                    background-color: $calendar-hover-faint;
+                }
+            }
+
+            // The days of the months either side, which print no number, are set
+            // back with the faintest wash rather than the tile's dimmed fill.
+            .pad--out {
+                background-color: $calendar-hover-faintest;
+            }
+
+            // Square, to match the cell it now fills.
+            .pad__open {
+                border-radius: 0;
+            }
+        }
+    }
+
+    // The month view's day button. It fills the whole cell behind the chips, so a
+    // click anywhere a chip is not opens the day, and it carries the day number in
+    // the corner where the cell used to.
+    .pad__open {
+        position: absolute;
+        inset: 0;
+        padding: $calendar-space-2xs;
+
+        display: flex;
+        align-items: flex-start;
+
+        background: transparent;
+        border-radius: inherit;
+        color: inherit;
+        text-align: left;
+        cursor: pointer;
+
+        &:focus-visible {
+            outline: 2px solid $calendar-text;
+            outline-offset: -2px;
+        }
+    }
+
+    // Above the day button, and starting below its number. Clicks between chips
+    // fall through to the day; only the chips themselves catch them.
+    .pad__events {
+        position: relative;
+        z-index: 1;
+        // Clears the day number's 24px circle in the corner.
+        margin-top: 26px;
+
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    // 26px tall, over the 24px minimum target size (WCAG 2.5.8). They sit on top
+    // of the day's own button, so the spacing exception does not apply — a
+    // smaller chip would overlap another target. Three of them fit the smallest
+    // day, and the day grows with the card on a taller screen.
+    .pad__event,
+    .pad__more {
+        min-height: 26px;
+        // Centres the label without making the chip a flex box, which would stop
+        // text-overflow from truncating it. 24px plus the 1px padding either side.
+        line-height: 24px;
+
+        pointer-events: auto;
+        cursor: pointer;
+
+        // Inset, because .pad__events clips anything drawn outside a chip.
+        &:focus-visible {
+            outline-offset: -2px;
+        }
+    }
+
+    .pad__event {
+        padding: 1px $calendar-space-xs;
+        border-radius: 4px;
+        overflow: hidden;
+
+        // 12px rather than 10px: at 10px a chip's name was hard to read inside its
+        // day. Phones keep a smaller size below, where a day is a seventh of the
+        // screen and 12px would show only a letter or two.
+        font-size: 12px;
+        font-weight: 500;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        text-align: left;
+        color: $calendar-on-label;
+
+        // Dark on the label colour, which every label colour clears at 6:1 or more.
+        // The page's white ring would be under 3:1 against them.
+        &:focus-visible {
+            outline-color: $calendar-on-label;
+        }
+    }
+
+    .pad__more {
+        padding: 1px $calendar-space-xs;
+        border-radius: 4px;
+        background: transparent;
+
+        font-size: 12px;
+        text-align: left;
+        color: $calendar-copy-muted;
+
+        &:hover {
+            color: $calendar-text;
+        }
+    }
+
+    // A day on a phone is a seventh of the screen, about 45px, and 26px chips
+    // left it room for one name and a cut-off second. Google Calendar's answer is
+    // to make the whole day the thing a finger presses, and the chips a preview
+    // of what is inside it, which is what this does.
+
+    // A tap passes through a chip to the day's button beneath, so the day is the
+    // only target under a finger and it is far past 24px (WCAG 2.5.8); the chips
+    // no longer need to be. They shrink to 14px, and three fit in the 76px day.
+    // A keyboard or screen reader still reaches each chip and opens it as before:
+    // only the pointer goes through.
+    @include media("<=#{$calendar-mobile}") {
+        .pad__events {
+            margin-top: 22px;
+        }
+
+        .pad__event,
+        .pad__more {
+            min-height: 14px;
+            line-height: 14px;
+            padding: 0 $calendar-space-2xs;
+            font-size: 10px;
+
+            pointer-events: none;
+        }
+
+        .card--month .pad__day {
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+        }
+    }
+
+    // The month that holds today, in the year view. An outline rather than a
+    // border, so it sits just outside the card without changing its size or
+    // shifting the grid, and it is not clipped by the card's own overflow.
+    // White on the page is 17:1, well over the 3:1 an indicator needs (1.4.11).
+    .card--current {
+        outline: 2px solid $calendar-text;
+        outline-offset: 3px;
+    }
+
+    // The year view's cards. Twelve months share the page, so each pad is a
+    // numbered square rather than a column that could hold chips.
+
+    // Phone first. On a phone the year view is one card per row, so a day cell
+    // only gets the screen width divided by seven: about 43px at 390px, under the
+    // 48px a touch target wants. Tighter card padding hands roughly 2px back to
+    // every cell and a slightly taller ratio does the rest. From a tablet up the
+    // cards have room for the roomier padding and square proportions.
+    .card--compact {
+        padding: $calendar-space-sm;
+        gap: $calendar-space-2xs;
+
+        .row,
+        .weekday-header {
+            gap: $calendar-space-2xs;
+        }
+
+        .card-title {
+            padding-bottom: $calendar-space-2xs;
+            font-size: 14px;
+        }
+
+        .pad {
+            min-height: 0;
+            aspect-ratio: 1 / 1.15;
+            padding: 0;
+
+            align-items: center;
+            justify-content: center;
+
+            // An empty day has nothing to open, so it does not look like it can be
+            // pressed.
+            &:disabled {
+                cursor: default;
+
+                &:hover {
+                    background-color: $calendar-pad;
+                }
+            }
+        }
+
+        .pad__day {
+            font-size: 11px;
+            color: $calendar-text;
+        }
+
+        @include media(">=#{$calendar-tablet}") {
+            padding: $calendar-space-md;
+
+            .pad {
+                aspect-ratio: 1;
+            }
+        }
+    }
+
+    // A day opened in place, in the year view. It sits over the grid, on top of
+    // the pad that has grown to fill the card with its label colour, so it needs
+    // no background of its own. Hidden and click-through until the open animation
+    // fades it in.
+    .card-content {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        padding: $calendar-space-md;
+
+        display: flex;
+        flex-direction: column;
+        gap: $calendar-space-sm;
+
+        overflow-y: auto;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .card-content__bar {
+        display: flex;
+        justify-content: space-between;
+        gap: $calendar-space-sm;
+    }
+
+    // Dark pills, so they read on every label colour the pad can be.
+    .card-content__button {
+        min-height: 32px;
+        padding: $calendar-space-xs $calendar-space-md;
+        border-radius: $calendar-radius-pill;
+        background-color: $calendar-on-label;
+        color: $calendar-text;
+        font-size: 13px;
+        cursor: pointer;
+
+        // The ring is drawn on the label colour around the button, where white
+        // would be under 3:1. Dark clears every label colour at 6:1 or more.
+        &:focus-visible {
+            outline-color: $calendar-on-label;
+        }
+    }
+
+    // Dark text on the label colour, the same as the painted pad's number.
+    .card-content__title {
+        font-size: 18px;
+        font-weight: 600;
+        color: $calendar-on-label;
+    }
+
+    .card--open .pad__day {
+        // The pad's number grows with it, so hide it before it balloons across the
+        // card under the overlay.
+        opacity: 0;
+    }
+
+    // A day that has events, in the compact grid. Its background is set inline
+    // from the first event's label colour, so this rule only carries the parts
+    // colour cannot: weight, and text that stays readable on any label colour.
+    .pad--event {
+        .pad__day {
+            font-weight: 700;
+        }
+    }
+
+    // The label palette is mid-to-light, so white on it fails contrast. Dark
+    // text matches how the full-size card's chips already read.
+    .card--compact .pad--event .pad__day {
+        color: $calendar-on-label;
+    }
+}

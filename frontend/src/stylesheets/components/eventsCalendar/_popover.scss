@@ -1,0 +1,83 @@
+/*
+Purpose: Style the event popover opened from the month and week views.
+Expected Request Information: Classes emitted by EventPopover, rendered into document.body, inside an .eventsCalendar root.
+Expected Response Information: A floating card with the event's details and a close button.
+*/
+@use "../../abstracts" as *;
+@use "../../abstracts/eventsCalendar" as *;
+
+.eventsCalendar {
+    // The event popover, shared by the week and month views. Fixed to the
+    // viewport and placed beside the event from script (EventPopover), outside
+    // the calendar so its clipping cannot cut it off.
+    .popover {
+        position: fixed;
+        top: 0;
+        left: 0;
+        // Over the sticky nav (10) and its scrim (9), like any popup.
+        z-index: 20;
+
+        // Wide enough that a typical event's description wraps to a few lines
+        // rather than a tall column, so it rarely needs to scroll at all.
+        width: min(420px, calc(100vw - 32px));
+        max-height: calc(100vh - 32px);
+        overflow: hidden auto;
+        padding: $calendar-space-lg;
+
+        display: flex;
+        flex-direction: column;
+        gap: $calendar-space-sm;
+
+        // A step lighter than the grid it sits over, with a shadow, so it reads as
+        // a separate window rather than part of the week.
+        background-color: $calendar-pad;
+        border: 1px solid $calendar-popover-border;
+        border-radius: $calendar-radius-lg;
+        box-shadow: 0 12px 32px $calendar-popover-shadow;
+        color: $calendar-text;
+
+        // The detail card already lives on a surface here; its own fill and padding
+        // would put a box inside the box.
+        .detail {
+            padding: 0;
+            background-color: transparent;
+        }
+    }
+
+    .popover__bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: $calendar-space-sm;
+    }
+
+    .popover__button {
+        min-height: 32px;
+        padding: $calendar-space-xs $calendar-space-md;
+        font-size: 13px;
+    }
+
+    .popover__close {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+
+        display: grid;
+        place-items: center;
+
+        background-color: transparent;
+        color: $calendar-text;
+        font-size: 22px;
+        line-height: 1;
+        border-radius: 50%;
+
+        &:hover {
+            background-color: $calendar-hover;
+        }
+    }
+
+    .popover__date {
+        font-size: 13px;
+        color: $calendar-copy-muted;
+    }
+}

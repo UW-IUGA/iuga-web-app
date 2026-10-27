@@ -1,6 +1,7 @@
 @use "vendors/toastify";
 
 @use "base/reset";
+@use "base/theme";
 @use "base/typography";
 @use "base/colors";
 @use "base/misc";
@@ -20,6 +21,7 @@
 @use "components/eventAgenda";
 @use "components/eventCategoryPills";
 @use "components/eventDialog";
+@use "components/eventsCalendar";
 @use "components/eventThumbnail";
 @use "components/gradientLine";
 @use "components/imageCarousel";
@@ -32,6 +34,7 @@
 @use "components/shopMaintenanceBanner";
 @use "components/studentProfileCard";
 @use "components/sidebar";
+@use "components/themeToggle";
 @use "components/weekNavigation";
 
 @use "pages/about";

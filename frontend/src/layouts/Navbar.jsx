@@ -3,13 +3,15 @@
  * Authentication/Authorization Requirements: UW NetID controls reflect the active auth session; the Admin link
  *     appears only to users holding at least one admin permission.
  * Expected Request Information: Receives sign-in and sign-out callbacks from the app shell.
- * Expected Response Information: Renders navigation links and account actions; hosts the shop cart icon when present.
+ * Expected Response Information: Renders navigation links and account actions, the light/dark switch, and hosts
+ *     the shop cart icon when present.
  */
 
 import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuthContext } from "../context/AuthContext";
 import { ADMIN_ROOT_PATH, visibleAdminSections } from "../adminSections";
+import ThemeToggle from "../components/ThemeToggle";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -89,6 +91,8 @@ function Navbar({ signIn, signOut }) {
                     </div>
                 </div>
                 <div className="nav-account-cart-slot" id="shop-cart-slot" />
+                {/* Outside the phone menu, so the switch stays in the bar on every screen size. */}
+                <ThemeToggle />
                 <button
                     type="button"
                     className="nav-mobile-menu"

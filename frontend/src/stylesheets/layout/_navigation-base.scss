@@ -5,19 +5,18 @@
     position: sticky;
     top: 0;
     z-index: 100;
-    background: $color-white;
-    color: $color-uw-purple;
-    border-bottom: 1px solid #e4dce9;
+    background: theme(page);
+    color: theme(heading);
+    border-bottom: 1px solid theme(line, #e4dce9);
 }
 
+// On the site's frame, so the logo and the last control line up with the page.
 .nav-container {
     position: relative;
-    box-sizing: border-box;
+    @include site-frame;
     display: flex;
-    width: min(100%, 1380px);
     min-height: 70px;
-    margin: 0 auto;
-    padding: 10px 30px;
+    padding-block: 10px;
     align-items: center;
     gap: 22px;
 }
@@ -34,6 +33,7 @@
         display: block;
         width: 77px;
         height: auto;
+        filter: var(--artwork-filter);
     }
 }
 
@@ -77,7 +77,7 @@
 
     &:hover,
     &.active {
-        color: $color-primary;
+        color: theme(accent);
     }
     &.active {
         text-decoration: underline;
@@ -98,11 +98,11 @@
     display: none;
     width: 185px;
     padding: $space-2;
-    border: 1px solid $color-border-lavender;
+    border: 1px solid theme(border-subtle);
     border-radius: $radius-card;
-    background: $color-white;
-    color: $color-uw-purple;
-    box-shadow: 0 14px 30px rgba($color-shadow, 0.13);
+    background: theme(surface);
+    color: theme(heading);
+    box-shadow: 0 14px 30px theme-alpha(shadow, 0.13);
 
     button,
     a {
@@ -122,7 +122,7 @@
 
         &:hover,
         &.active {
-            background: $color-lavender;
+            background: theme(tint);
         }
     }
 }
@@ -147,7 +147,7 @@
 }
 .nav-dropdown-menu span {
     padding: 9px 10px;
-    color: #605775;
+    color: theme(text-subtle, #605775);
     font: $font-weight-regular #{$font-size-small}/ 1.4 $font-family-base;
 }
 .nav-account-cart-slot {

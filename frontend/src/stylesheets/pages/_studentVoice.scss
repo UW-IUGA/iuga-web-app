@@ -13,14 +13,14 @@
     gap: $space-5;
     margin-bottom: $space-5;
     padding-bottom: $space-3;
-    border-bottom: 2px solid $color-black;
+    border-bottom: 2px solid theme(text);
 
     h2 {
         margin: 0;
     }
 
     span {
-        color: $color-dark-gray;
+        color: theme(text-muted);
         font-size: $font-size-small;
     }
 }
@@ -40,14 +40,14 @@
 
     h3 {
         margin: 18px 0 10px;
-        color: $color-black;
+        color: theme(text);
         font-size: $font-size-subheading;
         line-height: 1.2;
     }
 
     > p {
         margin: 0 0 22px;
-        color: $color-dark-gray;
+        color: theme(text-muted);
         line-height: 1.55;
     }
 
@@ -75,8 +75,8 @@
     align-self: stretch;
     height: min(78vh, 860px);
     margin-bottom: $space-4;
-    border: 1px solid $color-dark-gray;
-    background: $color-white;
+    border: 1px solid theme(text-muted);
+    background: theme(surface);
 }
 
 .studentVoiceCard__note {
@@ -89,7 +89,7 @@
     gap: $space-2;
 
     span {
-        color: $color-dark-gray;
+        color: theme(text-muted);
         font-size: $font-size-label;
         font-weight: $font-weight-medium;
         letter-spacing: $letter-spacing-label;
@@ -127,7 +127,7 @@
     width: 30%;
     height: 28px;
     border-radius: 4px;
-    background: $color-black;
+    background: theme(text);
 }
 
 .studentVoicePreview__row {
@@ -140,7 +140,7 @@
     width: 72%;
     height: 18px;
     border-radius: 4px;
-    background: $color-dark-gray;
+    background: theme(text-muted);
 }
 
 .studentVoicePreview__choices {
@@ -151,7 +151,7 @@
 .studentVoicePreview__choice {
     width: 22px;
     height: 22px;
-    border: 3px solid $color-dark-gray;
+    border: 3px solid theme(text-muted);
     border-radius: 50%;
 }
 
@@ -165,7 +165,7 @@
     gap: 10px;
     padding: $space-8;
     text-align: center;
-    background: rgba($color-white, 0.78);
+    background: theme-alpha(page, 0.78);
 
     h2 {
         margin: 0;
@@ -174,14 +174,14 @@
     p {
         max-width: 420px;
         margin: 0 0 6px;
-        color: $color-dark-gray;
+        color: theme(text-muted);
         line-height: 1.55;
     }
 }
 
 .studentVoicePreview__lock {
     font-size: 1.6rem;
-    color: $color-primary;
+    color: theme(accent);
 }
 
 .studentVoice__empty {
@@ -195,7 +195,7 @@
 
     p {
         margin-top: 10px;
-        color: $color-dark-gray;
+        color: theme(text-muted);
         line-height: 1.55;
     }
 }

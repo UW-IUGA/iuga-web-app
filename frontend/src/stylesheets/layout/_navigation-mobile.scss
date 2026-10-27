@@ -3,7 +3,7 @@
 @include media("<sm-desktop") {
     .nav-container {
         min-height: 66px;
-        padding: $space-2 18px;
+        padding-block: $space-2;
         gap: 10px;
     }
     .nav-header {
@@ -22,7 +22,7 @@
         place-items: center;
         border: 0;
         background: transparent;
-        color: $color-uw-purple;
+        color: theme(heading);
         cursor: pointer;
         @include focus-ring;
     }
@@ -34,14 +34,15 @@
         left: 0;
         display: none;
         max-height: calc(100vh - 66px);
-        padding: $space-3 22px 22px;
+        // The menu's links start on the logo's edge.
+        padding: $space-3 var(--site-gutter) 22px;
         flex-direction: column;
         align-items: stretch;
         gap: 0;
         overflow-y: auto;
-        border: 1px solid #e7ddef;
-        background: $color-white;
-        box-shadow: 0 18px 30px rgba($color-shadow, 0.15);
+        border: 1px solid theme(line, #e7ddef);
+        background: theme(page);
+        box-shadow: 0 18px 30px theme-alpha(shadow, 0.15);
 
         &.nav-show-items {
             display: flex;
@@ -62,7 +63,7 @@
         min-height: 54px;
         padding: 15px $space-1;
         justify-content: space-between;
-        border-bottom: 1px solid #e8deee;
+        border-bottom: 1px solid theme(line, #e8deee);
         text-align: left;
     }
 

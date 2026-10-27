@@ -118,6 +118,10 @@ $padding-box-x: 18px;
 $padding-box-y: 12px;
 $margin-content: 18px;
 $page-margin: 28px;
+// The site's frame, taken from the events page: the navbar, every page and the
+// footer are at most this wide, gutters included, so their edges line up. The
+// gutter is --site-gutter (layout/container), as it steps up at a breakpoint.
+$site-max-width: 1400px;
 $grid-gap: 24px;
 $section-divider-gap: 32px;
 

@@ -2,15 +2,14 @@
 
 #rootContainer:has(.homePage),
 .homePage {
-    color-scheme: light;
-    background: $color-white;
+    background: theme(page);
 }
 
 .homePage {
     box-sizing: border-box;
     flex: none;
     padding-block: $space-14 $section-divider-gap;
-    color: $color-ink;
+    color: theme(ink);
     font: $font-weight-regular #{$font-size-body}/#{$line-height-body} $font-family-base;
 
     *,
@@ -28,7 +27,7 @@
         font-weight: $font-weight-bold;
     }
     :where(p) {
-        color: $color-dark-gray;
+        color: theme(text-muted);
     }
     :where(a) {
         color: inherit;
@@ -47,14 +46,8 @@
     }
 
     a:focus-visible {
-        outline: 3px solid $color-uw-purple;
+        outline: 3px solid theme(brand);
         outline-offset: 5px;
-    }
-}
-
-@include media(">=tablet") {
-    .baseContainer.homePage {
-        width: min(1440px, calc(100% - $page-margin * 2));
     }
 }
 
@@ -73,14 +66,14 @@
 
 .homeAffiliation {
     margin-bottom: $space-3;
-    color: $color-uw-purple;
+    color: theme(heading);
     font-size: $font-size-small;
     font-weight: $font-weight-medium;
 }
 
 .homeIntro h1 {
     max-width: 18ch;
-    color: $color-uw-purple;
+    color: theme(heading);
     font-size: $font-size-title;
     letter-spacing: $letter-spacing-heading;
     line-height: 1.08;
@@ -108,7 +101,7 @@
     justify-content: center;
     gap: 14px;
     padding: $space-3 22px;
-    border: 1px solid $color-uw-purple;
+    border: 1px solid theme(brand);
     border-radius: $radius-pill;
     font-size: $font-size-small;
     font-weight: $font-weight-medium;
@@ -116,21 +109,21 @@
 }
 
 .homePrimaryLink {
-    background: $color-uw-purple;
-    color: $color-white;
+    background: theme(brand);
+    color: theme(on-fill);
 
     &:hover {
-        border-color: $color-primary;
-        background: $color-primary;
+        border-color: theme(accent);
+        background: theme(accent);
     }
 }
 
 .homeSecondaryLink {
-    background: $color-white;
-    color: $color-uw-purple;
+    background: theme(surface);
+    color: theme(heading);
 
     &:hover {
-        background: $color-lavender;
+        background: theme(tint);
     }
 }
 
@@ -190,7 +183,7 @@
         min-width: 0;
     }
     li + li {
-        border-top: 1px solid $color-border-lavender;
+        border-top: 1px solid theme(border-subtle);
     }
 }
 
@@ -202,7 +195,7 @@
     padding: $space-3 0;
 
     &:hover h3 {
-        color: $color-uw-purple;
+        color: theme(heading);
         text-decoration: underline;
         text-underline-offset: 4px;
     }
@@ -217,8 +210,8 @@
     width: 56px;
     min-height: 60px;
     border-radius: $radius;
-    background: $color-lavender;
-    color: $color-uw-purple;
+    background: theme(tint);
+    color: theme(heading);
     line-height: 1;
 
     span {
@@ -253,8 +246,8 @@
     margin-top: $space-12;
     padding: 18px $space-5;
     border-radius: $radius-card-media;
-    background: $color-white;
-    box-shadow: 0 6px 18px rgba($color-shadow, 0.12);
+    background: theme(surface);
+    box-shadow: 0 6px 18px theme-alpha(shadow, 0.12);
 
     h3 {
         font-size: $font-size-subheading;
@@ -265,7 +258,7 @@
     }
 
     &:hover h3 {
-        color: $color-primary;
+        color: theme(accent);
     }
 }
 
@@ -275,7 +268,7 @@
     width: 44px;
     height: 44px;
     place-items: center;
-    color: $color-uw-purple;
+    color: theme(heading);
 
     svg {
         width: 28px;
@@ -286,7 +279,7 @@
 .homeExplore {
     margin-top: 42px;
     padding-top: $space-7;
-    border-top: 1px solid $color-border-lavender;
+    border-top: 1px solid theme(border-subtle);
 }
 
 .homeSectionHeading {
@@ -314,8 +307,8 @@
     padding: $space-5;
     border: 1px solid transparent;
     border-radius: $radius-card-media;
-    background: $color-white;
-    box-shadow: 0 6px 18px rgba($color-shadow, 0.12);
+    background: theme(surface);
+    box-shadow: 0 6px 18px theme-alpha(shadow, 0.12);
 
     h3 {
         font-size: $font-size-subheading;
@@ -330,11 +323,11 @@
     }
 
     &:hover {
-        border-color: $color-primary;
-        box-shadow: 0 9px 22px rgba($color-shadow, 0.16);
+        border-color: theme(accent);
+        box-shadow: 0 9px 22px theme-alpha(shadow, 0.16);
 
         h3 {
-            color: $color-primary;
+            color: theme(accent);
         }
     }
 }
@@ -342,7 +335,7 @@
 .homeCommunity {
     margin-top: 42px;
     padding-top: $space-7;
-    border-top: 1px solid $color-border-lavender;
+    border-top: 1px solid theme(border-subtle);
 }
 
 .homeCommunityLinks {
@@ -405,46 +398,46 @@
 
 #rootContainer:has(.homePage) {
     .site-navigation {
-        background: $color-white;
-        color: $color-uw-purple;
-        border-color: $color-border-lavender;
+        background: theme(page);
+        color: theme(heading);
+        border-color: theme(border-subtle);
     }
 
     .nav-primary-links > a:hover,
     .nav-primary-links > a.active,
     .nav-toggle:hover {
-        color: $color-primary;
+        color: theme(accent);
     }
 
     .site-navigation a:focus-visible,
     .site-navigation button:focus-visible {
-        outline-color: $color-uw-purple;
+        outline-color: theme(brand);
     }
 
     .nav-dropdown-menu {
-        background: $color-white;
-        color: $color-ink;
-        border-color: $color-border-lavender;
+        background: theme(page);
+        color: theme(ink);
+        border-color: theme(border-subtle);
 
         span {
-            color: $color-dark-gray;
+            color: theme(text-muted);
         }
         button:hover {
-            background: $color-lavender;
+            background: theme(tint);
         }
     }
 
     .nav-mobile-menu {
-        color: $color-uw-purple;
+        color: theme(heading);
     }
 
     footer a:focus-visible {
-        outline-color: $color-uw-purple;
+        outline-color: theme(brand);
     }
 
     footer {
-        border-top: 1px solid $color-border-lavender;
-        background: $color-white;
+        border-top: 1px solid theme(border-subtle);
+        background: theme(page);
         box-shadow: none;
 
         &::before {
@@ -456,20 +449,20 @@
         padding-top: 0;
     }
     .footerCopyright {
-        color: $color-dark-gray;
+        color: theme(text-muted);
     }
     .footerSocials a:hover {
-        background: $color-lavender;
+        background: theme(tint);
     }
 
     @include media("<sm-desktop") {
         .nav-items-wrapper {
-            background: $color-white;
-            border-color: $color-border-lavender;
+            background: theme(page);
+            border-color: theme(border-subtle);
         }
 
         .nav-primary-links > a {
-            border-color: $color-border-lavender;
+            border-color: theme(border-subtle);
         }
     }
 }
@@ -561,7 +554,7 @@
 
     .homeEvents {
         padding: $space-5 0 0;
-        border-top: 1px solid $color-border-lavender;
+        border-top: 1px solid theme(border-subtle);
     }
 
     .homeEventsHeader {

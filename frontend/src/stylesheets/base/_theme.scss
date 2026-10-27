@@ -1,0 +1,44 @@
+@use "../abstracts" as *;
+
+// Sets every colour role (abstracts/theme) for the theme on <html data-theme>.
+// index.html picks that theme before the first paint; utils/theme.js changes it.
+// Light is the default, so the site is light before or without that script.
+// A region can also pin itself to light with its own data-theme="light": the
+// officer tools do, since they keep their own palette (abstracts/admin).
+
+:root,
+[data-theme="light"] {
+    @include theme-properties($theme-light);
+    color-scheme: light;
+
+    // Black artwork (the IUGA logo, the footer's social icons) as drawn.
+    --artwork-filter: none;
+
+    // Pastel decoration (the elections pages' glows) at full strength.
+    --decor-opacity: 1;
+}
+
+[data-theme="dark"] {
+    @include theme-properties($theme-dark);
+    color-scheme: dark;
+
+    // The same artwork in white, its purple accents kept purple.
+    --artwork-filter: invert(1) hue-rotate(180deg);
+
+    // Pastel glows are near-white; at full strength they would wash out white headings.
+    --decor-opacity: 0.2;
+}
+
+body {
+    background-color: theme(page);
+}
+
+// A page that pins itself light (the officer tools, App.jsx) takes the whole
+// window with it, so the dark theme does not show around it or in the scrollbar.
+:root:has(#rootContainer[data-theme="light"]) {
+    @include theme-properties($theme-light);
+    color-scheme: light;
+
+    --artwork-filter: none;
+    --decor-opacity: 1;
+}

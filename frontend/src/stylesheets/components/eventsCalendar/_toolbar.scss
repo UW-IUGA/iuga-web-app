@@ -1,0 +1,446 @@
+/*
+Purpose: Style the calendar toolbar.
+Expected Request Information: Classes emitted by CalendarToolbar, ViewToggle and ViewSelect, inside an .eventsCalendar root.
+Expected Response Information: Today and the arrows, the range title, and the view switch.
+*/
+@use "../../abstracts" as *;
+@use "../../abstracts/eventsCalendar" as *;
+
+.eventsCalendar {
+    // The navigation's height: Today and the arrows (.toolbar__arrow is this
+    // tall).
+    $toolbar-row-height: 40px;
+
+    // The outlined pills on that line: Today, and the view dropdown on a narrow
+    // screen. One height, so the two read as a set. Over the 24px minimum target
+    // (WCAG 2.5.8).
+    $toolbar-pill-height: 32px;
+
+    // Aligned to the top, with every control on a first line of
+    // $toolbar-row-height: the navigation is that tall, the range sets it as its
+    // line height, and the switch is centred in a box of it. So that line sits
+    // in the same place in every view, whatever hangs below it — the year view's
+    // legend under "All Events" adds height under the range without moving the
+    // switch, which centring the whole toolbar would have done.
+    .toolbar {
+        display: flex;
+        align-items: flex-start;
+        gap: $calendar-space-md;
+        flex-wrap: wrap;
+        // The year view has no navigation; this keeps the toolbar that tall there
+        // too, so the calendar below does not jump up.
+        min-height: $toolbar-row-height;
+    }
+
+    .toolbar__nav {
+        display: flex;
+        align-items: center;
+        gap: $calendar-space-2xs;
+    }
+
+    .toolbar__today {
+        height: $toolbar-pill-height;
+        padding: 0 $calendar-space-lg;
+
+        background-color: transparent;
+        color: $calendar-text;
+        font-size: 15px;
+        font-weight: 500;
+        border: 1px solid $calendar-control-border;
+        border-radius: $calendar-radius-pill;
+        transition: background-color 0.15s;
+
+        &:hover {
+            background-color: $calendar-hover;
+        }
+    }
+
+    .toolbar__arrow {
+        width: $toolbar-row-height;
+        height: $toolbar-row-height;
+        padding: 0;
+
+        display: grid;
+        place-items: center;
+
+        background-color: transparent;
+        color: $calendar-text;
+        font-size: 26px;
+        line-height: 1;
+        border-radius: 50%;
+        transition: background-color 0.15s;
+
+        &:hover {
+            background-color: $calendar-hover;
+        }
+    }
+
+    // The range, and the legend under it where there is one. Takes the free
+    // space so the switch sits hard right.
+    .toolbar__lead {
+        flex: 1 1 auto;
+        min-width: 0;
+
+        display: flex;
+        flex-direction: column;
+        gap: $calendar-space-xs;
+    }
+
+    .toolbar__range {
+        min-width: 12ch;
+        // Fills the first line exactly, so it lines up with the navigation and the
+        // switch beside it.
+        line-height: $toolbar-row-height;
+
+        font-size: 24px;
+        font-weight: 600;
+        color: $calendar-text;
+    }
+
+    .toolbar__switch {
+        height: $toolbar-row-height;
+        display: flex;
+        align-items: center;
+    }
+
+    .toggle {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        padding: 2px;
+
+        background-color: $calendar-track;
+        border-radius: $calendar-radius-pill;
+    }
+
+    .toggle__option {
+        // 13px text in a 0.25em padding came to about 22px, under the 24px minimum
+        // target (WCAG 2.5.8).
+        min-height: 32px;
+        padding: $calendar-space-2xs $calendar-space-md;
+
+        // Column, so the bold copy below stacks under the label and only its width
+        // counts.
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        // An invisible bold copy of the label, so every option is always as wide
+        // as it is when chosen. The chosen one is bold, and bold is wider: without
+        // this the toggle changed width with each view, and being right-aligned its
+        // left edge moved every time the view did.
+        &::after {
+            content: attr(data-label);
+            // Empty alternative text, so a screen reader does not read the label
+            // twice. Browsers without the `/` syntax drop this line and keep the one
+            // above, which visibility: hidden already keeps out of the name.
+            content: attr(data-label) / "";
+            height: 0;
+            overflow: hidden;
+            visibility: hidden;
+            font-weight: 500;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        background-color: transparent;
+        color: $calendar-copy-muted;
+        font-size: $calendar-control-font-size;
+        border-radius: $calendar-radius-pill;
+        transition:
+            background-color 0.15s,
+            color 0.15s;
+
+        &:hover {
+            color: $calendar-text;
+        }
+
+        // Hover is stated again here because `:hover` outranks a lone modifier
+        // class. Without it, the option just clicked stays under the pointer, takes
+        // the hover's white text, and vanishes into its own white pill until the
+        // pointer leaves — or, on a touchscreen, until something else is tapped.
+        &--active,
+        &--active:hover {
+            background-color: $calendar-copy-bg;
+            color: $calendar-copy-text;
+            font-weight: 500;
+        }
+    }
+
+    // The view switch on a narrow screen (ViewSelect). Hidden until the radio
+    // group is, below, so exactly one switch is ever shown.
+    .view-select {
+        display: none;
+        position: relative;
+
+        // The chevron that marks it as a dropdown. Drawn over the select, but lets
+        // a tap through to it.
+        &::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            right: 12px;
+            width: 6px;
+            height: 6px;
+
+            border-right: 2px solid $calendar-text;
+            border-bottom: 2px solid $calendar-text;
+            transform: translateY(-70%) rotate(45deg);
+            pointer-events: none;
+        }
+    }
+
+    .view-select__input {
+        appearance: none;
+        // Today's height, so it matches the pill at the other end of the line.
+        height: $toolbar-pill-height;
+        // Today's side padding, and room on the right for the chevron.
+        padding: 0 30px 0 15px;
+
+        font-family: $calendar-font-family;
+        // 16px, a pixel over Today's 15px: iOS zooms the page into any field set
+        // smaller than 16px when it is focused, and the fix for that zoom (blocking
+        // pinch zoom in the viewport tag) would fail WCAG 1.4.4.
+        font-size: 16px;
+        font-weight: 500;
+        color: $calendar-text;
+        background-color: transparent;
+        border: 1px solid $calendar-control-border;
+        border-radius: $calendar-radius-pill;
+        cursor: pointer;
+
+        &:hover {
+            background-color: $calendar-hover;
+        }
+
+        option {
+            background-color: $calendar-card-bg;
+            color: $calendar-text;
+        }
+    }
+
+    // Phones and portrait tablets: the same query that hides the sidebar.
+
+    // The controls keep the first line to themselves, so it holds on the
+    // narrowest phone: Today and the arrows at the left, the switch — a dropdown
+    // here, where the radio group's four options will not fit beside them — at
+    // the right. The range and the legend wrap under it, in that order.
+    @include media("<=#{$calendar-mobile}") {
+        .toolbar {
+            gap: $calendar-space-sm;
+        }
+
+        .toolbar__today {
+            padding-inline: $calendar-space-md;
+        }
+
+        // Pushed hard right, whatever is beside it.
+        .toolbar__switch {
+            margin-left: auto;
+        }
+
+        .toggle {
+            display: none;
+        }
+
+        .view-select {
+            display: block;
+        }
+
+        // The date picker, standing in for the range, takes the first line, then
+        // the controls, then the legend. The picker comes first in the source, so
+        // only the legend, left in .toolbar__lead, is moved: after the controls.
+        // Year view has no picker, so its lead keeps its range and the first line,
+        // at the left beside the switch.
+
+        // The lead is a size container, so the legend chooses its columns from the
+        // width it is actually given (see _legend.scss).
+        .toolbar__lead {
+            container: toolbar-legend / inline-size;
+        }
+
+        .toolbar__nav ~ .toolbar__lead {
+            order: 1;
+            flex-basis: 100%;
+        }
+
+        .picker {
+            flex-basis: 100%;
+        }
+
+        .toolbar__range {
+            font-size: 20px;
+        }
+    }
+
+    // The date picker (DatePicker): the range as a button on a phone, with a
+    // month strip, and in week and day a mini month, opening under it.
+    // Every level down to the strip may shrink below its content. A flex item
+    // will not by default: it holds its min-content width, which for the strip is
+    // all 36 months in a row, so the strip pushed the panel, the picker and the
+    // toolbar out past the screen instead of scrolling inside itself.
+    .picker {
+        min-width: 0;
+        max-width: 100%;
+
+        display: flex;
+        flex-direction: column;
+        gap: $calendar-space-sm;
+    }
+
+    // Reads as the range it replaces, with a chevron to say it opens.
+    .picker__toggle {
+        align-self: flex-start;
+        // Over the 24px minimum target (WCAG 2.5.8) with the 20px range in it.
+        min-height: $toolbar-pill-height;
+        padding: 0 $calendar-space-2xs;
+        margin-left: -$calendar-space-2xs;
+
+        display: inline-flex;
+        align-items: center;
+        gap: $calendar-space-sm;
+
+        background-color: transparent;
+        color: $calendar-text;
+        font-size: 20px;
+        font-weight: 600;
+        border-radius: $calendar-radius-sm;
+
+        &:hover {
+            background-color: $calendar-hover;
+        }
+    }
+
+    .picker__chevron {
+        width: 7px;
+        height: 7px;
+        border-right: 2px solid $calendar-text;
+        border-bottom: 2px solid $calendar-text;
+        transform: translateY(-25%) rotate(45deg);
+        transition: transform 0.2s ease;
+    }
+
+    // Open, it points up.
+    [aria-expanded="true"] > .picker__chevron {
+        transform: translateY(25%) rotate(-135deg);
+    }
+
+    .picker__panel {
+        min-width: 0;
+
+        display: flex;
+        flex-direction: column;
+        gap: $calendar-space-md;
+        padding: $calendar-space-md;
+
+        border-radius: $calendar-radius-lg;
+        background-color: $calendar-card-bg;
+    }
+
+    // The mini month, centred in the panel under the strip. Only the week and
+    // day views have one, so only they get the line ruling it off from the strip.
+    .picker__month {
+        padding-top: $calendar-space-md;
+        border-top: 1px solid $calendar-divider;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: $calendar-space-sm;
+
+        // The day grid is swiped to change month (useSwipeStep). It scrolls on its
+        // own, so the sideways pan is handed over here, keeping pinch zoom (1.4.4).
+        .mini__body {
+            touch-action: pan-y pinch-zoom;
+        }
+    }
+
+    .picker__month-label {
+        text-align: center;
+        font-size: 14px;
+        font-weight: 500;
+        color: $calendar-text;
+    }
+
+    // The months, in a row that scrolls sideways under a finger. Its scrollbar is
+    // hidden: the row is plainly cut off at the edge, which says there is more.
+    .strip {
+        position: relative;
+        // Held to the panel's width (see .picker), so the months scroll in here.
+        min-width: 0;
+        width: 100%;
+
+        display: flex;
+        gap: $calendar-space-2xs;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        // Comes to rest on a month rather than part-way through one.
+        scroll-snap-type: x proximity;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+
+    .strip__month {
+        flex: 0 0 auto;
+        scroll-snap-align: center;
+        // 40px tall, past the 24px minimum target (2.5.8), and at least as wide.
+        min-width: 48px;
+        min-height: 40px;
+        padding: 0 $calendar-space-sm;
+
+        background-color: transparent;
+        color: $calendar-text;
+        font-size: 14px;
+        white-space: nowrap;
+        border-radius: $calendar-radius-pill;
+
+        &:hover {
+            background-color: $calendar-hover;
+        }
+
+        // Inset, because the strip clips anything drawn outside a month.
+        &:focus-visible {
+            outline-offset: -2px;
+        }
+
+        // A solid fill, like the mini month's picked day, so it clears the 3:1 a
+        // state indicator needs (1.4.11). The inset ring turns dark to show on it.
+        &--selected,
+        &--selected:hover {
+            background-color: $calendar-copy-bg;
+            color: $calendar-copy-text;
+            font-weight: 600;
+
+            &:focus-visible {
+                outline-color: $calendar-copy-text;
+            }
+        }
+    }
+
+    .strip__year {
+        font-size: 11px;
+        color: $calendar-copy-muted;
+    }
+
+    .strip__month--selected .strip__year {
+        color: $calendar-copy-text;
+    }
+
+    // The mini month's grid is sized for the 240px sidebar. Across a phone it
+    // would be a wall of 45px squares, so it is held to that width, centred.
+    .picker .mini__weekdays,
+    .picker .mini__body {
+        width: 100%;
+        max-width: 320px;
+        align-self: center;
+    }
+
+    .picker .mini__body {
+        max-height: none;
+        overflow: visible;
+    }
+}

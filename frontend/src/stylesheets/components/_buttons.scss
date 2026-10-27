@@ -8,10 +8,10 @@
     box-sizing: border-box;
     padding: $pill-padding-y $pill-padding-x;
     white-space: nowrap;
-    border: $pill-border-width solid $color-primary;
+    border: $pill-border-width solid theme(accent);
     border-radius: $radius-pill;
-    background-color: $color-white;
-    color: $color-black;
+    background-color: theme(surface);
+    color: theme(text);
     font-size: $font-size-body;
     font-weight: $font-weight-medium;
     line-height: 1.2;
@@ -28,7 +28,7 @@
     @include focus-ring;
 
     &:hover {
-        background-color: $color-lavender;
+        background-color: theme(tint);
     }
 
     &:hover::before,
@@ -41,8 +41,8 @@
     }
 
     &[aria-pressed="true"] {
-        background-color: $color-primary;
-        color: $color-white;
+        background-color: theme(accent);
+        color: theme(on-fill);
     }
 
     &:disabled,
@@ -59,7 +59,7 @@
 
 .cta-primary,
 .cta-secondary {
-    border: 2px solid $color-primary;
+    border: 2px solid theme(accent);
     border-radius: $radius-pill;
     font-weight: $font-weight-medium;
     text-shadow: none;
@@ -78,12 +78,12 @@
 }
 
 .cta-primary {
-    background-color: $color-white;
-    color: $color-primary;
+    background-color: theme(surface);
+    color: theme(accent);
 }
 
 .cta-primary:hover {
-    background-color: $color-lavender;
+    background-color: theme(tint);
 }
 
 .cta-primary:active,
@@ -92,8 +92,8 @@
 }
 
 .cta-secondary {
-    background-color: $color-lavender;
-    color: $color-primary;
+    background-color: theme(tint);
+    color: theme(accent);
 }
 
 .cta-primary:hover::before,
@@ -104,14 +104,17 @@
 }
 
 .editorial-card {
-    background-color: $color-white;
+    background-color: theme(surface);
     border-radius: $radius-card;
-    border: 1px solid rgba($color-uw-purple, 0.12);
-    box-shadow: 0 2px 10px rgba($color-uw-purple, 0.08);
+    border: 1px solid theme-alpha(brand, 0.12);
+    box-shadow: 0 2px 10px theme-alpha(brand, 0.08);
 }
 
 @include media(">=sm-desktop", "<desktop") {
-    button:not(.pill-button):not(.standard-button) {
+    // Not the theme toggle: it is a fixed-size switch, and this padding pushed
+    // its track out of its box and past the navbar's right edge. :where() keeps
+    // the rule's specificity as it was.
+    button:not(.pill-button):not(.standard-button):where(:not(.themeToggle)) {
         padding: 10px $space-4;
 
         .right-arrow {

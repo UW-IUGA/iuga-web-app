@@ -54,7 +54,7 @@ Expected Response Information: A grid of day pads, with event chips or colour-fi
         }
     }
 
-    .row--header {
+    .weekday-header {
         gap: $calendar-space-sm;
 
         span {
@@ -133,7 +133,7 @@ Expected Response Information: A grid of day pads, with event chips or colour-fi
             flex: 1 1 auto;
         }
 
-        .row:not(.row--header) {
+        .row:not(.weekday-header) {
             flex: 1 1 0;
         }
 
@@ -183,11 +183,11 @@ Expected Response Information: A grid of day pads, with event chips or colour-fi
             min-height: 0;
 
             .row,
-            .row--header {
+            .weekday-header {
                 gap: 0;
             }
 
-            .row:not(.row--header) {
+            .row:not(.weekday-header) {
                 flex: none;
             }
 
@@ -367,7 +367,7 @@ Expected Response Information: A grid of day pads, with event chips or colour-fi
         gap: $calendar-space-2xs;
 
         .row,
-        .row--header {
+        .weekday-header {
             gap: $calendar-space-2xs;
         }
 

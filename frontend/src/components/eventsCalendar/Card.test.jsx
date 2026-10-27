@@ -33,6 +33,27 @@ const openAt = (container, index) => padAt(container, index).querySelector(".pad
 afterEach(cleanup);
 
 describe("Card", () => {
+    it("takes the covered grid out of reach until the day overlay closes", () => {
+        const { container, rerender } = render(<Card title="October 2026" rows={[]} isDayOverlayOpen />);
+
+        expect(container.querySelector(".card-grid").hasAttribute("inert")).toBe(true);
+
+        rerender(<Card title="October 2026" rows={[]} isDayOverlayOpen={false} />);
+
+        expect(container.querySelector(".card-grid").hasAttribute("inert")).toBe(false);
+    });
+
+    it("announces the current month when marked by its parent", () => {
+        const { rerender } = render(<Card title="October 2026" rows={[]} isCurrentMonth />);
+
+        expect(screen.getByRole("heading", { name: /October 2026\s*, this month/ })).toBeTruthy();
+
+        rerender(<Card title="October 2026" rows={[]} isCurrentMonth={false} />);
+
+        expect(screen.getByRole("heading", { name: "October 2026" })).toBeTruthy();
+        expect(screen.queryByText(", this month")).toBeNull();
+    });
+
     it("renders a six by seven grid of days", () => {
         const { container } = renderCard();
 

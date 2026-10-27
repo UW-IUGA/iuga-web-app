@@ -1,24 +1,8 @@
 import { colorForLabels, countEvents, formatLongDay, isSameDay, WEEKDAY_SHORT } from "../../utils/calendar/calendar";
 
-// The large month grid. A day navigates to the day view; an event chip inside
-// it is a control of its own and reports through `onPickEvent`, which the
-// month card uses to open that event in a popover beside it. Both are real
-// buttons, so the chips sit beside the day's button rather than inside it — a
-// button cannot hold another.
-//
-// `openEventKey` names the chip whose popover is open, for aria-expanded.
-//
-// `isCurrent` marks the month that holds today. The year view outlines its
-// card; a screen reader hears it from aria-current and the heading.
-//
-// `compact` is the year view's variant. Many months share the page, so each
-// pad is too small to hold a readable chip: the month keeps only the day
-// numbers, and the pad itself is painted with the first event's label colour
-// to carry what the chips would have said.
-//
-// `children` render inside the card, over the grid. The year card uses it for
-// the overlay that opens a day in place, and `gridInert` takes the grid out of
-// the tab order and the accessibility tree while that overlay covers it.
+// Displays a month's dates and events, either as a full calendar or a
+// compact card in the year view. Reports date and event selections to
+// its parent, which controls navigation and the event popover.
 function Card({
     title,
     rows,
@@ -26,23 +10,33 @@ function Card({
     onPickEvent,
     openEventKey = null,
     compact = false,
-    isCurrent = false,
+    isCurrentMonth = false,
     className,
-    gridInert = false,
+    isDayOverlayOpen = false,
     children,
 }) {
     const today = new Date();
+    const cardClasses = ["card"];
+
+    if (compact) {
+        cardClasses.push("card--compact");
+    }
+
+    if (isCurrentMonth) {
+        cardClasses.push("card--current");
+    }
+
+    if (className) {
+        cardClasses.push(className);
+    }
 
     return (
-        <div
-            className={["card", compact ? "card--compact" : null, isCurrent ? "card--current" : null, className]
-                .filter(Boolean)
-                .join(" ")}
-            aria-current={isCurrent ? "date" : undefined}
-        >
+        <div className={cardClasses.join(" ")} aria-current={isCurrentMonth ? "date" : undefined}>
             {children}
 
-            <div className="card-grid" inert={gridInert ? "" : undefined}>
+            {/* While an overlay covers the grid, exclude it from keyboard
+                navigation and the accessibility tree. */}
+            <div className="card-grid" inert={isDayOverlayOpen ? "" : undefined}>
                 {/* A heading, so a screen reader can move month to month in the year
             view the same way a sighted reader scans the titles. */}
                 <div className="card-title">
@@ -50,7 +44,7 @@ function Card({
                         {title}
                         {/* The outline is visual only, and aria-current on a card is not
                 announced by every screen reader, so the heading says it too. */}
-                        {isCurrent && <span className="sr-only">, this month</span>}
+                        {isCurrentMonth && <span className="sr-only">, this month</span>}
                     </h2>
                 </div>
 
@@ -65,28 +59,31 @@ function Card({
                         {row.map((cell, columnIndex) => {
                             const hasEvents = cell.events.length > 0;
 
-                            // A painted pad is how the compact grid carries label colour. At
-                            // this size a chip is illegible, so the cell itself takes the
-                            // first event's colour — which is what the original card did
-                            // before chips were introduced.
-                            const painted = compact && hasEvents;
+                            // Event chips do not fit in the year view, so event days
+                            // use the first event's label colour instead.
+                            const showsEventColor = compact && hasEvents;
 
                             // A compact day with nothing in it has nothing to open, so it is
                             // not a stop on the way through the year with a keyboard.
-                            const empty = compact && !hasEvents;
+                            const isEmptyCompactDay = compact && !hasEvents;
 
                             // Circled in the month view, as the week view's header circles it.
                             // The year view's squares are too small to hold a circle.
                             const isToday = !compact && isSameDay(cell.date, today);
 
-                            const classes = [
-                                "pad",
-                                cell.inMonth ? null : "pad--out",
-                                painted ? "pad--event" : null,
-                                isToday ? "pad--today" : null,
-                            ]
-                                .filter(Boolean)
-                                .join(" ");
+                            const dayClasses = ["pad"];
+
+                            if (!cell.inMonth) {
+                                dayClasses.push("pad--out");
+                            }
+
+                            if (showsEventColor) {
+                                dayClasses.push("pad--event");
+                            }
+
+                            if (isToday) {
+                                dayClasses.push("pad--today");
+                            }
 
                             // The cell shows only a number, and the weekday header and month
                             // title are out of reach once focus is inside the grid, so the
@@ -95,13 +92,14 @@ function Card({
                             // the number they would otherwise print (0 or negative) is not
                             // a date at all.
                             // "today" is in the name too: the circle is visual only.
-                            const label = [
-                                formatLongDay(cell.date),
-                                isToday ? "today" : null,
-                                countEvents(cell.events.length),
-                            ]
-                                .filter(Boolean)
-                                .join(", ");
+                            const dayAnnouncements = [formatLongDay(cell.date)];
+
+                            if (isToday) {
+                                dayAnnouncements.push("today");
+                            }
+
+                            dayAnnouncements.push(countEvents(cell.events.length));
+                            const dayLabel = dayAnnouncements.join(", ");
 
                             // A spill cell's day number is 0 or negative. Rendering it would
                             // print a date that does not exist.
@@ -112,11 +110,11 @@ function Card({
                                     <button
                                         key={cell.id}
                                         type="button"
-                                        disabled={empty}
-                                        className={classes}
-                                        aria-label={label}
+                                        disabled={isEmptyCompactDay}
+                                        className={dayClasses.join(" ")}
+                                        aria-label={dayLabel}
                                         style={
-                                            painted
+                                            showsEventColor
                                                 ? { backgroundColor: colorForLabels(cell.events[0].labels) }
                                                 : undefined
                                         }
@@ -127,33 +125,33 @@ function Card({
                                 );
                             }
 
-                            // The full-size day. Its button fills the cell behind the chips,
-                            // so a click anywhere a chip is not still opens the day.
+                            // Keep event buttons beside the day button: HTML forbids nested
+                            // buttons. The day button fills the cell behind the chips.
                             //
                             // `event` is null for "+N more", which opens the whole day.
                             // `columnIndex` is the weekday, Sunday first.
-                            const chipKey = (event) => `${cell.id}|${event ? event.id : "more"}`;
+                            const getEventChipKey = (event) => `${cell.id}|${event ? event.id : "more"}`;
                             const getEventChipProps = (event) => ({
                                 type: "button",
                                 "data-popover-trigger": "",
                                 "aria-haspopup": "dialog",
-                                "aria-expanded": openEventKey === chipKey(event),
-                                onClick: (click) =>
+                                "aria-expanded": openEventKey === getEventChipKey(event),
+                                onClick: (clickEvent) =>
                                     onPickEvent?.({
                                         cell,
                                         event,
                                         columnIndex,
-                                        key: chipKey(event),
-                                        el: click.currentTarget,
+                                        key: getEventChipKey(event),
+                                        el: clickEvent.currentTarget,
                                     }),
                             });
 
                             return (
-                                <div key={cell.id} className={classes}>
+                                <div key={cell.id} className={dayClasses.join(" ")}>
                                     <button
                                         type="button"
                                         className="pad__open"
-                                        aria-label={label}
+                                        aria-label={dayLabel}
                                         aria-current={isToday ? "date" : undefined}
                                         onClick={(event) => onPickDay(cell.date, cell, event.currentTarget)}
                                     >

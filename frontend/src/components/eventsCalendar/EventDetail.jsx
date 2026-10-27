@@ -1,11 +1,7 @@
 import { colorForLabels, formatEventDateTime } from "../../utils/calendar/calendar";
 
-// Everything the source shape carries. A time-grid card is sized by its
-// duration and cannot grow to fit this, so the detail surface is a list
-// rather than a positioned block.
-//
-// `headingLevel` places the name in the outline of whatever holds it: an h3
-// under the day view's h2, an h4 under a zoomed-open day's h3.
+// Displays an event's details, including optional location, organizer,
+// link, attendance, and RSVP information, in day overlays and popovers.
 function EventDetail({ event, headingLevel = 3 }) {
     const Heading = `h${headingLevel}`;
 

@@ -133,7 +133,7 @@ function Card({
                             // `event` is null for "+N more", which opens the whole day.
                             // `columnIndex` is the weekday, Sunday first.
                             const chipKey = (event) => `${cell.id}|${event ? event.id : "more"}`;
-                            const chip = (event) => ({
+                            const getEventChipProps = (event) => ({
                                 type: "button",
                                 "data-popover-trigger": "",
                                 "aria-haspopup": "dialog",
@@ -164,7 +164,7 @@ function Card({
                                         <span className="pad__events">
                                             {cell.events.slice(0, 3).map((event) => (
                                                 <button
-                                                    {...chip(event)}
+                                                    {...getEventChipProps(event)}
                                                     className="pad__event"
                                                     key={event.id}
                                                     style={{ backgroundColor: colorForLabels(event.labels) }}
@@ -179,7 +179,7 @@ function Card({
                                             ))}
                                             {cell.events.length > 3 && (
                                                 <button
-                                                    {...chip(null)}
+                                                    {...getEventChipProps(null)}
                                                     className="pad__more"
                                                     // Says what is behind it and which day, where the
                                                     // visible "+2 more" says neither. Starts with the

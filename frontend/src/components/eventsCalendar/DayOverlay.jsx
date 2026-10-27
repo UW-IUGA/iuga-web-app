@@ -1,13 +1,8 @@
 import { useId } from "react";
 import EventDetail from "./EventDetail";
 
-// What a zoomed-open day shows, over its card: Back, View day, a heading, and
-// the events. Used by the year cards; the open/close animation and focus
-// handling live in useZoomOverlay.
-//
-// Always rendered, so the animation has an element to fade. It is empty and
-// click-through while closed. `isOpen`, the refs and the handlers are the
-// matching values from useZoomOverlay.
+// Shows a day's events over its year-view month card. The container stays
+// mounted for animation; useZoomOverlay controls animation and focus.
 function DayOverlay({ isOpen, contentRef, backRef, onBack, onKeyDown, heading, events, onViewDay }) {
     const headingId = useId();
 

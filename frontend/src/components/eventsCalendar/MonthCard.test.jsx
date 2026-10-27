@@ -168,4 +168,107 @@ describe("MonthCard", () => {
 
         expect(container.querySelector("button button")).toBeNull();
     });
+
+    describe("day cells", () => {
+        // Flat index of a day inside the 6x7 grid, mirroring buildMonthGrid.
+        const dayIndex = (year, month, day) => new Date(Date.UTC(year, month, 1)).getUTCDay() + day - 1;
+        const padAt = (container, index) => container.querySelectorAll(".pad")[index];
+        // The full-size day's own button, which fills the cell behind its chips.
+        const openAt = (container, index) => padAt(container, index).querySelector(".pad__open");
+
+        // Pinned inside October 2026, so the test does not depend on the real date.
+        const onOct22 = (run) => {
+            vi.useFakeTimers({ now: new Date("2026-10-22T19:00:00Z"), toFake: ["Date"] });
+            try {
+                run();
+            } finally {
+                vi.useRealTimers();
+            }
+        };
+
+        it("shows an event as a labelled chip on its day", () => {
+            const { container } = renderMonth();
+            const cell = padAt(container, dayIndex(2026, 9, 22));
+
+            expect(cell.querySelector(".pad__event").textContent).toBe("Industry Panel");
+        });
+
+        it("leaves days without events bare", () => {
+            const { container } = renderMonth();
+
+            expect(padAt(container, dayIndex(2026, 9, 22)).querySelectorAll(".pad__event")).toHaveLength(1);
+            expect(padAt(container, dayIndex(2026, 9, 23)).querySelectorAll(".pad__event")).toHaveLength(0);
+        });
+
+        it("caps the chips at three and counts the rest", () => {
+            const many = ["A", "B", "C", "D", "E"].map((name, index) => at(`e${index}`, `Event ${name}`));
+            const { container } = renderMonth(many);
+            const cell = padAt(container, dayIndex(2026, 9, 22));
+
+            expect(cell.querySelectorAll(".pad__event")).toHaveLength(3);
+            expect(cell.querySelector(".pad__more").textContent).toBe("+2 more");
+        });
+
+        it("dims the days spilling in from adjacent months", () => {
+            const { container } = renderMonth();
+
+            expect(container.querySelectorAll(".pad--out").length).toBeGreaterThan(0);
+        });
+
+        it("prints no day number on a spill cell, since 0 and negatives are not dates", () => {
+            const { container } = renderMonth();
+
+            for (const cell of container.querySelectorAll(".pad--out")) {
+                expect(cell.querySelector(".pad__day")).toBeNull();
+            }
+        });
+
+        it("names a spill cell by the real date it opens", () => {
+            const { container } = renderMonth();
+
+            expect(openAt(container, 0).getAttribute("aria-label")).toBe("Sunday, September 27, no events");
+        });
+
+        it("opens the real date from a spill cell", () => {
+            const { container, onPickDay } = renderMonth();
+
+            fireEvent.click(openAt(container, 0));
+
+            expect(zonedParts(onPickDay.mock.calls[0][0])).toMatchObject({ month: 8, day: 27 });
+        });
+
+        it("circles today, and only today", () => {
+            onOct22(() => {
+                const { container } = renderMonth();
+
+                const today = container.querySelectorAll(".pad--today");
+                expect(today).toHaveLength(1);
+                expect(today[0]).toBe(padAt(container, dayIndex(2026, 9, 22)));
+                expect(today[0].querySelector(".pad__day").textContent).toBe("22");
+            });
+        });
+
+        it("tells a screen reader which day is today", () => {
+            onOct22(() => {
+                const { container } = renderMonth();
+
+                const open = openAt(container, dayIndex(2026, 9, 22));
+                expect(open.getAttribute("aria-current")).toBe("date");
+                expect(open.getAttribute("aria-label")).toBe("Thursday, October 22, today, 1 event");
+                expect(container.querySelectorAll('[aria-current="date"]')).toHaveLength(1);
+            });
+        });
+
+        it("marks nothing when today is in another month", () => {
+            vi.useFakeTimers({ now: new Date("2027-03-10T19:00:00Z"), toFake: ["Date"] });
+            try {
+                const { container } = renderMonth();
+
+                expect(container.querySelector(".pad--today")).toBeNull();
+                expect(container.querySelector('[aria-current="date"]')).toBeNull();
+            } finally {
+                vi.useRealTimers();
+            }
+        });
+    });
 });

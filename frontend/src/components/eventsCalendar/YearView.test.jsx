@@ -126,6 +126,37 @@ describe("YearView", () => {
         expect(plain.every((pad) => pad.style.backgroundColor === "")).toBe(true);
     });
 
+    it("names an event day by its date and count, not by its number", () => {
+        const { container } = renderYear();
+
+        expect(container.querySelector(".pad--event").getAttribute("aria-label")).toBe(
+            "Thursday, October 22, 1 event",
+        );
+    });
+
+    it("paints a day from its first event when it holds several", () => {
+        const { container } = renderYear({
+            rawEvents: [
+                {
+                    eId: "social",
+                    eName: "Social first",
+                    eStartDate: "2026-10-22T17:00:00Z",
+                    eEndDate: "2026-10-22T18:00:00Z",
+                    eLabels: ["Social"],
+                },
+                {
+                    eId: "career",
+                    eName: "Career second",
+                    eStartDate: "2026-10-22T19:00:00Z",
+                    eEndDate: "2026-10-22T20:00:00Z",
+                    eLabels: ["Career"],
+                },
+            ],
+        });
+
+        expect(container.querySelector(".pad--event").style.backgroundColor).toBe("rgb(232, 121, 249)"); // Social
+    });
+
     it("never prints a zero or negative day number in any card", () => {
         const { container } = renderYear();
 

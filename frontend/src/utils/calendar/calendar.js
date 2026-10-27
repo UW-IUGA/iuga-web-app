@@ -204,6 +204,17 @@ export function countEvents(count) {
     return `${count} event${count === 1 ? "" : "s"}`;
 }
 
+export function dayLabel(date, eventCount, isToday = false) {
+    const parts = [formatLongDay(date)];
+
+    if (isToday) {
+        parts.push("today");
+    }
+
+    parts.push(countEvents(eventCount));
+    return parts.join(", ");
+}
+
 /**
  * "All Events", "October 2026", "Oct 18 – Oct 24, 2026", "Thu, Oct 22, 2026" —
  * whatever the current view is actually showing, so the toolbar label never

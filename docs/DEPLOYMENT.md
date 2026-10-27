@@ -26,6 +26,10 @@ Every environment (dev, staging, production) follows the same five-stage pipelin
 
 > **Note:** Dev and production have their own branches; staging follows whatever branch triggered its multibranch job. There is no single shared branch for all three.
 
+### Pull request previews
+
+Pull requests also get a frontend-only preview on Netlify, built by GitHub Actions. That pipeline is separate from Jenkins: it does not deploy the backend and uses mock data. See [Pull Request Previews](NETLIFY_PREVIEWS.md).
+
 ---
 
 ## Jenkinsfile Comparison

@@ -48,7 +48,7 @@ function Card({
                     </h2>
                 </div>
 
-                <div className="row row--header" aria-hidden="true">
+                <div className="row weekday-header" aria-hidden="true">
                     {WEEKDAY_SHORT.map((label) => (
                         <span key={label}>{label}</span>
                     ))}

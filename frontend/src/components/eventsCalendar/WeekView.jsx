@@ -5,13 +5,9 @@ import { buildDayColumns, buildWeekDates } from "../../utils/calendar/calendar";
 import EventPopover from "./EventPopover";
 import TimeGrid from "./TimeGrid";
 
-// A week is the time grid fed seven dates. Nothing about the grid itself
-// knows how wide it is.
-//
-// Clicking an event opens its detail in a popover beside it, the way Google
-// Calendar does. Sunday is the first column, so its popover opens to the
-// right, into the week; every other day's opens to the left, back over the
-// days before it, which keeps the popover off the window's right edge.
+// A week is the time grid fed seven dates. Clicking an event opens its detail
+// in a popover beside it; Sunday's opens to the right, into the week, and every
+// other day's opens left, which keeps the popover off the window's right edge.
 function WeekView({ anchor, events, onSelectDay }) {
     const columns = useMemo(() => buildDayColumns(buildWeekDates(anchor), events), [anchor, events]);
 

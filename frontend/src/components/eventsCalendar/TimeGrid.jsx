@@ -22,29 +22,8 @@ function hourLabel(hour) {
 
 /**
  * The scrolling time grid. Takes ready-built day columns, so the week and day
- * views are the same component with a different column count.
- *
- * With `onPickEvent`, each event is a button reporting
- * `{ event, date, columnIndex, el }` when pressed — the week view opens it in
- * a popover. Without it, events are plain cards (the day view lists their
- * detail beside the grid instead).
- *
- * `openEventKey` marks the event whose popover is open, for aria-expanded.
- *
- * With `onPickColumn`, a press anywhere in a day's column reports that day,
- * and a press on an event passes through to it. The week view sets it on a
- * phone, where overlapping events split a ~40px column into blocks under the
- * 24px minimum target (WCAG 2.5.8); the column is the one target under a
- * finger there. The events stay buttons, so a keyboard or screen reader still
- * opens each one, and the day's header is the keyboard's way to the day.
- *
- * @param {{
- *   columns: Array,
- *   onSelectDay: (date: Date) => void,
- *   onPickEvent?: (pick: object) => void,
- *   openEventKey?: string | null,
- *   onPickColumn?: (date: Date) => void,
- * }} props
+ * views share one component with a different column count. Event and column
+ * presses are reported to the caller; the selected event stays the caller's.
  */
 function TimeGrid({ columns, onSelectDay, onPickEvent, openEventKey = null, onPickColumn }) {
     const scrollRef = useRef(null);
@@ -102,6 +81,8 @@ function TimeGrid({ columns, onSelectDay, onPickEvent, openEventKey = null, onPi
                     {columns.map((column, columnIndex) => (
                         // A pointer shortcut only: the day header above is the same
                         // action for a keyboard, so the column is not a second tab stop.
+                        // On a phone, overlapping events make blocks narrower than the
+                        // 24px minimum target (WCAG 2.5.8), so the column is the target.
                         <div
                             className="grid__col"
                             key={column.key}

@@ -16,8 +16,7 @@ function DayView({ anchor, events, onSelectDay }) {
         <div className="day">
             <TimeGrid columns={columns} onSelectDay={onSelectDay} />
 
-            {/* Named by its heading, which is the day itself. It used to read the
-          month, which said less than the toolbar above it. */}
+            {/* Named by its heading, which is the day itself. */}
             <section className="day__agenda" aria-labelledby={headingId}>
                 <h2 id={headingId} className="day__agenda-title">
                     {formatFullDate(day.date)}

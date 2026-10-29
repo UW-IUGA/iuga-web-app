@@ -4,7 +4,7 @@ Purpose: Show one photo from a set at full size, with controls to move through t
 Expected Request Information:
 - photos: array of { src, alt }.
 - index: position of the photo to show, or null to keep the viewer closed.
-- title: name shown over the photo; also labels the dialog.
+- title: name shown below the photo; also labels the dialog.
 - eyebrow: optional short line shown above the title.
 - onIndexChange: called with the position of the photo to show next.
 - onClose: called when the visitor closes the viewer.
@@ -52,11 +52,11 @@ function PhotoLightbox({ photos = [], index = null, title, eyebrow, onIndexChang
                         <span className="photoLightbox__count" aria-live="polite">
                             {index + 1} / {photos.length}
                         </span>
-                        <figcaption>
-                            {eyebrow && <span>{eyebrow}</span>}
-                            {title && <strong>{title}</strong>}
-                        </figcaption>
                     </div>
+                    <figcaption>
+                        {eyebrow && <span>{eyebrow}</span>}
+                        {title && <strong>{title}</strong>}
+                    </figcaption>
                     <button className="photoLightbox__close" type="button" aria-label="Close photos" onClick={close}>
                         <FontAwesomeIcon icon={faXmark} aria-hidden="true" />
                     </button>

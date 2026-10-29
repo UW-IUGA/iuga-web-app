@@ -143,7 +143,10 @@ open, and composes these pieces:
   `PhotoLightbox` on that event's photos; the viewer shows the event's name
   with its date, time, and location. The arrow buttons, the arrow keys, and a
   click on the right or left half of the photo move through the set, wrapping
-  around at both ends.
+   around at both ends. The viewer keeps a consistent viewport-bounded frame
+   across photo proportions, showing the whole image without enlarging small
+   originals. Captions sit below the photo on a dark background; clicking a
+   caption does not navigate.
 
 To add a past event, run `scripts/past-event-photo.sh <original-photo> <name>`
 for each photo (it needs `ffmpeg` and `cwebp`), then add an entry to

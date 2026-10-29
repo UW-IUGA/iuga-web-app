@@ -117,3 +117,52 @@ describe("PhotoLightbox photo clicks", () => {
         expect(onIndexChange).toHaveBeenCalledWith(0);
     });
 });
+
+describe("PhotoLightbox loading ahead", () => {
+    // Records every photo the viewer starts downloading in the background.
+    let requested;
+    beforeEach(() => {
+        requested = [];
+        vi.stubGlobal(
+            "Image",
+            class {
+                set src(value) {
+                    requested.push(value);
+                }
+                decode() {
+                    return Promise.resolve();
+                }
+            },
+        );
+    });
+    afterEach(() => vi.unstubAllGlobals());
+
+    test("starts downloading the photos either side of the open one", () => {
+        renderLightbox({ index: 1 });
+
+        expect(requested.sort()).toEqual(["one.jpg", "three.jpg"]);
+    });
+
+    test("the photos either side wrap around at both ends of the set", () => {
+        renderLightbox({ index: 2 });
+
+        expect(requested.sort()).toEqual(["one.jpg", "two.jpg"]);
+    });
+
+    test("moves on to the new neighbours when the viewer moves", () => {
+        const { rerender } = render(
+            <PhotoLightbox photos={photos} index={0} title="RSO Fair" onIndexChange={vi.fn()} onClose={vi.fn()} />,
+        );
+        requested = [];
+
+        rerender(<PhotoLightbox photos={photos} index={1} title="RSO Fair" onIndexChange={vi.fn()} onClose={vi.fn()} />);
+
+        expect(requested.sort()).toEqual(["one.jpg", "three.jpg"]);
+    });
+
+    test("downloads nothing while closed", () => {
+        renderLightbox({ index: null });
+
+        expect(requested).toEqual([]);
+    });
+});

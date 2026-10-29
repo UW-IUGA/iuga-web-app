@@ -151,9 +151,11 @@ for each photo (it needs `ffmpeg` and `cwebp`), then add an entry to
 script writes two WebP files to `assets/gallery/past-events/`: `<name>.webp`,
 2000px on its long edge, for the viewer, and `<name>-small.webp`, 800px, for
 cards, thumbnails, and the hero collage. The page loads the small files until
-a student opens a photo, except that each card's cover uses the full-size file
-on high-density screens so it stays sharp. The first photo is the cover, and the first two
-photos of each event feed the hero collage.
+a student opens a photo; the viewer then also downloads the full-size photos
+either side of the one shown, so moving to them doesn't wait on a download.
+The one other full-size file is each card's cover on high-density screens, so
+it stays sharp. The first photo is the cover, and the first two photos of each
+event feed the hero collage.
 
 `EventDialog` and `PhotoLightbox` are native `<dialog>` elements driven by
 `hooks/useModalDialog.js`. Pass it whether the dialog should be open and what

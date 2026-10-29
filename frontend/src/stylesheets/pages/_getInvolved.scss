@@ -18,10 +18,12 @@ Expected Response Information: Responsive styles for the hero, leader profile
 .getInvolved__leaderProfileGrid {
     display: grid;
     min-width: 0;
-    height: clamp(370px, 42vw, 500px);
-    grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
-    grid-template-rows: repeat(2, minmax(0, 1fr));
-    gap: $space-3;
+    width: 100%;
+    max-width: 580px;
+    justify-self: center;
+    align-items: start;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(16px, 2vw, 24px);
 }
 
 .getInvolved__leaderProfile {
@@ -29,25 +31,44 @@ Expected Response Information: Responsive styles for the hero, leader profile
     min-height: 0;
 
     &--featured {
-        grid-row: 1 / span 2;
+        grid-row: auto;
     }
 
     .studentProfileCard {
-        height: 100%;
+        height: auto;
     }
 
     .studentProfileCard__media {
-        height: 100%;
+        height: auto;
         aspect-ratio: auto;
         border-radius: $radius-card;
+
+        img {
+            height: auto;
+            aspect-ratio: 4 / 5;
+            object-position: center top;
+        }
     }
 
     .studentProfileCard__body {
-        padding-right: $space-3;
+        display: block;
+        padding: $space-12 $space-3 $space-3;
+    }
+
+    .studentProfileCard__identity {
+        h3 {
+            font-size: clamp(1rem, 1.8vw, 1.25rem);
+        }
+
+        .studentProfileCard__position {
+            font-size: 0.68rem;
+        }
     }
 
     .studentProfileCard__socials {
-        flex-direction: column;
+        flex-direction: row;
+        justify-content: flex-start;
+        margin-top: $space-2;
         gap: $space-1;
     }
 
@@ -148,16 +169,16 @@ Expected Response Information: Responsive styles for the hero, leader profile
 
 @include media("<tablet") {
     .getInvolved__leaderProfileGrid {
-        height: 420px;
+        height: auto;
     }
 
     .getInvolved__leaderProfile .studentProfileCard__body {
         gap: $space-2;
-        padding: $space-10 $space-3 $space-3;
+        padding: $space-12 $space-3 $space-3;
     }
 
     .getInvolved__leaderProfile .studentProfileCard__socials {
-        flex-direction: column;
+        flex-direction: row;
         gap: $space-1;
     }
 
@@ -191,17 +212,17 @@ Expected Response Information: Responsive styles for the hero, leader profile
     .getInvolved__leaderProfileGrid {
         height: auto;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        grid-template-rows: 250px 170px;
-        gap: 9px;
+        grid-template-rows: auto;
+        gap: $space-4;
     }
 
     .getInvolved__leaderProfile--featured {
-        grid-column: 1 / -1;
+        grid-column: auto;
         grid-row: auto;
     }
 
     .getInvolved__leaderProfile .studentProfileCard__body {
-        padding: $space-5 $space-2 $space-2;
+        padding: $space-10 $space-3 $space-3;
     }
 
     .getInvolved__leaderProfile .studentProfileCard__socials a {

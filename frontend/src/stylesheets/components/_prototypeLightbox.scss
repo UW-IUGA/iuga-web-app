@@ -1,0 +1,20 @@
+/*
+Purpose: Give the past-event photo viewer under the events calendar the calendar's type and corners.
+Expected Request Information: PhotoLightbox inside the .prototypeLightbox wrapper PrototypePastEvents portals to document.body.
+Expected Response Information: The site's photo viewer, in Rubik with the calendar's large radius.
+*/
+@use "../abstracts/eventsCalendar" as *;
+
+// The photo viewer, portalled out of the calendar: its type and corners only.
+.prototypeLightbox .photoLightbox {
+    font-family: $calendar-font-family;
+
+    figcaption strong {
+        font-family: $calendar-font-family;
+        font-weight: 600;
+    }
+}
+
+.prototypeLightbox .photoLightbox__stage {
+    border-radius: $calendar-radius-lg;
+}

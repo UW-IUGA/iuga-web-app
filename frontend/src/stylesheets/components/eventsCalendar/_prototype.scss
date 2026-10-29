@@ -1,0 +1,286 @@
+/*
+Purpose: Style the event photo, the RSVP block and the previous events under the calendar.
+Expected Request Information: Classes emitted by EventDetail, PrototypeEventRsvp and PrototypePastEvents,
+  inside an .eventsCalendar root. The photo viewer is portalled out, so it is styled in components/prototypeLightbox.
+Expected Response Information: The same palette, type, radii and focus ring as the rest of the calendar.
+*/
+@use "../../abstracts" as *;
+@use "../../abstracts/eventsCalendar" as *;
+
+.eventsCalendar {
+    // The event's photo, at the top of its detail.
+    .prototypeDetail__photo {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 16 / 9;
+        margin-bottom: $calendar-space-sm;
+        object-fit: cover;
+        border-radius: $calendar-radius-md;
+        background-color: $calendar-card-bg;
+    }
+
+    .prototypeRsvp {
+        margin-top: $calendar-space-md;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: $calendar-space-sm;
+    }
+
+    // The one strong fill, as the toolbar's Today and the selected day use it.
+    .prototypeRsvp__button {
+        min-height: 40px;
+        padding: $calendar-space-sm $calendar-space-lg;
+
+        display: inline-flex;
+        align-items: center;
+        gap: $calendar-space-sm;
+
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        background-color: $calendar-copy-bg;
+        color: $calendar-copy-text;
+        border-radius: $calendar-radius-pill;
+        transition:
+            transform 120ms ease,
+            opacity 120ms ease;
+
+        &:disabled {
+            opacity: 0.6;
+            cursor: progress;
+        }
+
+        &:active:not(:disabled) {
+            transform: translateY(1px);
+        }
+
+        svg {
+            font-size: 12px;
+        }
+    }
+
+    .prototypeRsvp__cancel {
+        min-height: 40px;
+        padding: $calendar-space-sm $calendar-space-md;
+
+        font-size: 14px;
+        background-color: transparent;
+        color: $calendar-text;
+        border: 1px solid $calendar-control-border;
+
+        &:hover:not(:disabled) {
+            background-color: $calendar-hover;
+        }
+    }
+
+    .prototypeRsvp__note {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: $calendar-space-sm;
+
+        font-size: 13px;
+        color: $calendar-copy-muted;
+    }
+
+    .prototypeRsvp__confirmed {
+        padding: $calendar-space-sm $calendar-space-md;
+
+        display: inline-flex;
+        align-items: center;
+        gap: $calendar-space-sm;
+
+        font-size: 14px;
+        font-weight: 600;
+        color: $calendar-text;
+        background-color: $calendar-card-bg;
+        border: 1px solid $calendar-control-border;
+        border-radius: $calendar-radius-pill;
+        // Settles in where the button was, so the change reads as the RSVP landing.
+        animation: prototype-rsvp-confirmed 320ms cubic-bezier(0.16, 1, 0.3, 1);
+
+        svg {
+            color: var(--calendar-label-career);
+        }
+    }
+
+    @keyframes prototype-rsvp-confirmed {
+        from {
+            opacity: 0;
+            transform: translateY(4px) scale(0.96);
+        }
+
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    .prototypeRsvp__error {
+        font-size: 13px;
+        color: $calendar-now-line;
+    }
+
+    .prototypeRsvp__form {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: $calendar-space-md;
+    }
+
+    .prototypeRsvp__field {
+        display: flex;
+        flex-direction: column;
+        gap: $calendar-space-xs;
+
+        label {
+            font-size: 13px;
+            font-weight: 500;
+            color: $calendar-text;
+        }
+
+        input {
+            width: 100%;
+            min-height: 40px;
+            padding: $calendar-space-sm $calendar-space-md;
+
+            font: inherit;
+            font-size: 14px;
+            color: $calendar-text;
+            background-color: $calendar-bg;
+            border: 1px solid $calendar-divider;
+            border-radius: $calendar-radius-sm;
+        }
+    }
+
+    .prototypeRsvp__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: $calendar-space-sm;
+    }
+
+    // Previous events: a grid of recap cards under the calendar, on the
+    // calendar's own card surface rather than the old page's white cards.
+    .prototypePast {
+        margin-top: $calendar-space-xl;
+        padding-top: $calendar-space-xl;
+        border-top: 1px solid $calendar-rule;
+
+        display: flex;
+        flex-direction: column;
+        gap: $calendar-space-lg;
+    }
+
+    .prototypePast__title {
+        font-size: clamp(1.5rem, 3vw, 2rem);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        color: $calendar-heading;
+    }
+
+    .prototypePast__list {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: $calendar-space-lg;
+
+        @include media(">=#{$calendar-tablet}") {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    // The calendar's button reset gives every button a pill and a fill; a photo is neither.
+    .prototypePast .pastEventCard__photo {
+        padding: 0;
+        border-radius: 0;
+        background-color: $calendar-pad;
+        cursor: zoom-in;
+    }
+
+    .prototypePast .pastEventCard__cover {
+        min-height: 0;
+        height: auto;
+        aspect-ratio: 16 / 10;
+        border-radius: 0;
+    }
+
+    .prototypePast .pastEventCard {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+
+        background-color: $calendar-card-bg;
+        border: 1px solid $calendar-popover-border;
+        border-radius: $calendar-radius-lg;
+        box-shadow: none;
+
+        // In a grid every card reads top to bottom, so none swaps sides.
+        &--reversed .pastEventCard__cover {
+            order: 0;
+        }
+
+        h3 {
+            margin-bottom: $calendar-space-xs;
+            font-family: $calendar-font-family;
+            font-size: 20px;
+            font-weight: 600;
+            color: $calendar-text;
+        }
+
+        p {
+            margin-bottom: $calendar-space-md;
+            font-size: 14px;
+            line-height: 155%;
+            color: $calendar-text-soft;
+        }
+    }
+
+    .prototypePast .pastEventCard__body {
+        flex: 1;
+        padding: $calendar-space-lg;
+        justify-content: flex-start;
+    }
+
+    .prototypePast .pastEventCard__thumbs {
+        margin-bottom: $calendar-space-md;
+        gap: $calendar-space-sm;
+
+        .pastEventCard__photo {
+            border-radius: $calendar-radius-sm;
+        }
+    }
+
+    .prototypePast .pastEventCard__more {
+        font-family: $calendar-font-family;
+    }
+
+    .prototypePast .pastEventCard__viewPhotos {
+        min-height: 40px;
+        margin-top: auto;
+        padding: $calendar-space-sm $calendar-space-lg;
+
+        font-size: 14px;
+        font-weight: 600;
+        background-color: transparent;
+        color: $calendar-text;
+        border: 1px solid $calendar-control-border;
+        border-radius: $calendar-radius-pill;
+
+        // White in the dark theme, so the outline stands out on the dark card.
+        &:where([data-theme="dark"] *) {
+            border-color: #fff;
+        }
+
+        &:hover {
+            background-color: $calendar-hover;
+            color: $calendar-text;
+        }
+
+        &:focus-visible {
+            background-color: $calendar-hover;
+            color: $calendar-text;
+            outline: 2px solid $calendar-text;
+            outline-offset: 2px;
+        }
+    }
+}

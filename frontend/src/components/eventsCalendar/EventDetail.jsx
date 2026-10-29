@@ -1,15 +1,39 @@
+import { useEffect } from "react";
 import { colorForLabels, formatEventDateTime } from "../../utils/calendar/calendar";
+import PrototypeEventRsvp from "./PrototypeEventRsvp";
+import { usePrototypeEventRsvp } from "./PrototypeEventRsvpContext";
 
 // Displays an event's details, including optional location, organizer,
 // link, attendance, and RSVP information, in day overlays and popovers.
-function EventDetail({ event, headingLevel = 3 }) {
+function EventDetail({ event: listEvent, headingLevel = 3 }) {
     const Heading = `h${headingLevel}`;
+    const rsvp = usePrototypeEventRsvp();
+    const requestDetails = rsvp?.requestDetails;
+
+    useEffect(() => {
+        requestDetails?.(listEvent.id);
+    }, [requestDetails, listEvent.id]);
+
+    // The list leaves out the sign-up link and attendance; fill them in once loaded.
+    const loaded = rsvp?.detailsFor(listEvent.id).details;
+    const event = loaded
+        ? {
+              ...listEvent,
+              altLink: loaded.eAltLink?.title && loaded.eAltLink?.url ? loaded.eAltLink : null,
+              participants: typeof loaded.participants === "number" ? loaded.participants : null,
+              showParticipants: loaded.showParticipants ?? false,
+          }
+        : listEvent;
 
     return (
         <article className="detail">
             <div className="detail__accent" style={{ backgroundColor: colorForLabels(event.labels) }} />
 
             <div className="detail__body">
+                {rsvp && event.thumbnail && (
+                    <img className="prototypeDetail__photo" src={event.thumbnail} alt="" loading="lazy" />
+                )}
+
                 <div className="detail__labels">
                     {event.labels.map((label) => (
                         <span key={label} className="detail__chip" style={{ backgroundColor: colorForLabels([label]) }}>
@@ -38,7 +62,7 @@ function EventDetail({ event, headingLevel = 3 }) {
                         </div>
                     )}
 
-                    {event.altLink && (
+                    {event.altLink && !rsvp && (
                         <div className="detail__pair">
                             <dt>Link</dt>
                             <dd>
@@ -54,7 +78,7 @@ function EventDetail({ event, headingLevel = 3 }) {
                         </div>
                     )}
 
-                    {event.rsvpEnabled && (
+                    {!rsvp && event.rsvpEnabled && (
                         <div className="detail__pair">
                             <dt>RSVP</dt>
                             <dd>
@@ -74,6 +98,8 @@ function EventDetail({ event, headingLevel = 3 }) {
                         </div>
                     )}
                 </dl>
+
+                {rsvp && <PrototypeEventRsvp event={event} />}
             </div>
         </article>
     );

@@ -141,9 +141,10 @@ open, and composes these pieces:
 - **Previous events** — one `PastEventCard` per entry in
   `assets/data/PastEventsData.js`. Any photo, or "View Photos", opens
   `PhotoLightbox` on that event's photos; the viewer shows the event's name
-  with its date, time, and location. The arrow buttons, the arrow keys, and a
-  click on the right or left half of the photo move through the set, wrapping
-  around at both ends.
+  with its date, time, and location. The arrow buttons, the arrow keys, a
+  click on the right or left half of the photo, and a swipe across it on a
+  touch screen (through `hooks/useSwipeStep.js`, as the calendar does) move
+  through the set, wrapping around at both ends.
 
 To add a past event, run `scripts/past-event-photo.sh <original-photo> <name>`
 for each photo (it needs `ffmpeg` and `cwebp`), then add an entry to

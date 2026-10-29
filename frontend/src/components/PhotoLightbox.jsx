@@ -10,8 +10,9 @@ Expected Request Information:
 - onClose: called when the visitor closes the viewer.
 
 Expected Response Information:
-- A modal dialog. The arrow buttons, the arrow keys, and a click on the right
-  or left half of the photo move forward or back, wrapping around the set.
+- A modal dialog. The arrow buttons, the arrow keys, a click on the right
+  or left half of the photo, and a swipe left or right across it on a
+  touch screen move forward or back, wrapping around the set.
   Escape, the close button, and a click outside the photo close it.
 - The photos either side of the one shown are downloaded in the background,
   so moving to them shows them at once instead of waiting on the download.
@@ -19,8 +20,9 @@ Expected Response Information:
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faArrowRight, faXmark } from "@fortawesome/free-solid-svg-icons";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useModalDialog } from "../hooks/useModalDialog";
+import useSwipeStep from "../hooks/useSwipeStep";
 
 // Start downloading the photos either side of the one shown, wrapping around
 // the set as the arrows do, so the next move finds its photo already here.
@@ -44,6 +46,9 @@ function PhotoLightbox({ photos = [], index = null, title, eyebrow, onIndexChang
 
     const step = (direction) => onIndexChange((index + direction + photos.length) % photos.length);
 
+    const stageRef = useRef(null);
+    useSwipeStep(stageRef, step, Boolean(photo));
+
     // Clicking the photo's right half goes forward and its left half goes back.
     // The buttons are drawn over the photo but sit outside it, so they keep their own behavior.
     const handleStageClick = (clickEvent) => {
@@ -66,7 +71,7 @@ function PhotoLightbox({ photos = [], index = null, title, eyebrow, onIndexChang
         >
             {photo && (
                 <figure>
-                    <div className="photoLightbox__stage" onClick={handleStageClick}>
+                    <div className="photoLightbox__stage" ref={stageRef} onClick={handleStageClick}>
                         <img src={photo.src} alt={photo.alt} />
                         <span className="photoLightbox__count" aria-live="polite">
                             {index + 1} / {photos.length}

@@ -11,13 +11,11 @@ const fallbackContactEmail = "iuga@uw.edu";
 const committeeLeaderEmails = {
     "Yonie Rivera": "yirivera@uw.edu",
     "Ellie Marsh": "emarsh27@uw.edu",
-    "Nitya Shankar": "nityas29@uw.edu",
 };
 
 const leaderProfiles = [
     { profile: getCommitteeLeader("Ellie Marsh"), isFeatured: true },
     { profile: getCommitteeLeader("Yonie Rivera") },
-    { profile: getCommitteeLeader("Nitya Shankar") },
 ];
 
 const getContactDraft = (committee) => {
@@ -46,11 +44,6 @@ const committees = [
         leader: getCommitteeLeader("Ellie Marsh"),
         description:
             "Creates event branding, social posts, posters, and flyers for IUGA, and designs merchandise for Informatics undergraduate students.",
-    },
-    {
-        name: "Diversity Committee",
-        leader: getCommitteeLeader("Nitya Shankar"),
-        description: "Leads events and projects with student groups supporting diversity at the iSchool.",
     },
 ];
 

@@ -10,20 +10,44 @@ Expected Request Information:
 - onClose: called when the visitor closes the viewer.
 
 Expected Response Information:
-- A modal dialog. The arrow buttons, the arrow keys, and a click on the right
-  or left half of the photo move forward or back, wrapping around the set.
+- A modal dialog. The arrow buttons, the arrow keys, a click on the right
+  or left half of the photo, and a swipe left or right across it on a
+  touch screen move forward or back, wrapping around the set.
   Escape, the close button, and a click outside the photo close it.
+- The photos either side of the one shown are downloaded in the background,
+  so moving to them shows them at once instead of waiting on the download.
 */
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faArrowRight, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { useEffect, useRef } from "react";
 import { useModalDialog } from "../hooks/useModalDialog";
+import useSwipeStep from "../hooks/useSwipeStep";
+
+// Start downloading the photos either side of the one shown, wrapping around
+// the set as the arrows do, so the next move finds its photo already here.
+function useLoadPhotosEitherSide(photos, index) {
+    useEffect(() => {
+        if (index === null || photos.length < 2) return;
+        const photosEitherSide = new Set([(index - 1 + photos.length) % photos.length, (index + 1) % photos.length]);
+        for (const position of photosEitherSide) {
+            const image = new Image();
+            image.src = photos[position].src;
+            // A photo that fails here fails again, visibly, if the visitor moves to it.
+            image.decode?.().catch(() => {});
+        }
+    }, [photos, index]);
+}
 
 function PhotoLightbox({ photos = [], index = null, title, eyebrow, onIndexChange, onClose }) {
     const photo = index === null ? null : photos[index];
     const { dialogProps, close } = useModalDialog(Boolean(photo), onClose);
+    useLoadPhotosEitherSide(photos, photo ? index : null);
 
     const step = (direction) => onIndexChange((index + direction + photos.length) % photos.length);
+
+    const stageRef = useRef(null);
+    useSwipeStep(stageRef, step, Boolean(photo));
 
     // Clicking the photo's right half goes forward and its left half goes back.
     // The buttons are drawn over the photo but sit outside it, so they keep their own behavior.
@@ -47,7 +71,7 @@ function PhotoLightbox({ photos = [], index = null, title, eyebrow, onIndexChang
         >
             {photo && (
                 <figure>
-                    <div className="photoLightbox__stage" onClick={handleStageClick}>
+                    <div className="photoLightbox__stage" ref={stageRef} onClick={handleStageClick}>
                         <img src={photo.src} alt={photo.alt} />
                         <span className="photoLightbox__count" aria-live="polite">
                             {index + 1} / {photos.length}

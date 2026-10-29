@@ -144,7 +144,10 @@ open, and composes these pieces:
   with its date, time, and location. The arrow buttons, the arrow keys, a
   click on the right or left half of the photo, and a swipe across it on a
   touch screen (through `hooks/useSwipeStep.js`, as the calendar does) move
-  through the set, wrapping around at both ends.
+  through the set, wrapping around at both ends. The viewer keeps a consistent
+  viewport-bounded frame across photo proportions, showing the whole image
+  without enlarging small originals. Captions sit below the photo on a dark
+  background; clicking a caption does not navigate.
 
 To add a past event, run `scripts/past-event-photo.sh <original-photo> <name>`
 for each photo (it needs `ffmpeg` and `cwebp`), then add an entry to

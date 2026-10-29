@@ -107,14 +107,15 @@ describe("PhotoLightbox photo clicks", () => {
         expect(onIndexChange).not.toHaveBeenCalled();
     });
 
-    test("the text over the photo counts as part of the photo", () => {
-        const { onIndexChange } = renderLightbox({ index: 1 });
+    test("reading or clicking the caption does not navigate or close the viewer", () => {
+        const { onIndexChange, onClose } = renderLightbox({ index: 1 });
         const stage = screen.getByAltText("Second photo").parentElement;
         vi.spyOn(stage, "getBoundingClientRect").mockReturnValue({ left: 100, width: 400 });
 
         fireEvent.click(screen.getByText("RSO Fair"), { clientX: 120 });
 
-        expect(onIndexChange).toHaveBeenCalledWith(0);
+        expect(onIndexChange).not.toHaveBeenCalled();
+        expect(onClose).not.toHaveBeenCalled();
     });
 });
 

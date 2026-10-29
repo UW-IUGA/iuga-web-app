@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import PhotoLightbox from "./PhotoLightbox";
 
@@ -116,5 +116,117 @@ describe("PhotoLightbox photo clicks", () => {
 
         expect(onIndexChange).not.toHaveBeenCalled();
         expect(onClose).not.toHaveBeenCalled();
+    });
+});
+
+describe("PhotoLightbox loading ahead", () => {
+    // Records every photo the viewer starts downloading in the background.
+    let requested;
+    beforeEach(() => {
+        requested = [];
+        vi.stubGlobal(
+            "Image",
+            class {
+                set src(value) {
+                    requested.push(value);
+                }
+                decode() {
+                    return Promise.resolve();
+                }
+            },
+        );
+    });
+    afterEach(() => vi.unstubAllGlobals());
+
+    test("starts downloading the photos either side of the open one", () => {
+        renderLightbox({ index: 1 });
+
+        expect(requested.sort()).toEqual(["one.jpg", "three.jpg"]);
+    });
+
+    test("the photos either side wrap around at both ends of the set", () => {
+        renderLightbox({ index: 2 });
+
+        expect(requested.sort()).toEqual(["one.jpg", "two.jpg"]);
+    });
+
+    test("moves on to the new neighbours when the viewer moves", () => {
+        const { rerender } = render(
+            <PhotoLightbox photos={photos} index={0} title="RSO Fair" onIndexChange={vi.fn()} onClose={vi.fn()} />,
+        );
+        requested = [];
+
+        rerender(<PhotoLightbox photos={photos} index={1} title="RSO Fair" onIndexChange={vi.fn()} onClose={vi.fn()} />);
+
+        expect(requested.sort()).toEqual(["one.jpg", "three.jpg"]);
+    });
+
+    test("downloads nothing while closed", () => {
+        renderLightbox({ index: null });
+
+        expect(requested).toEqual([]);
+    });
+});
+
+describe("PhotoLightbox swiping", () => {
+    // jsdom's TouchEvent will not take plain touch points, so the event is a
+    // plain one carrying them, starting mid-screen, clear of the browser's edge swipe.
+    const touch = (el, type, points) => {
+        const event = new Event(type, { bubbles: true, cancelable: true });
+        Object.defineProperty(event, "touches", { value: points });
+        el.dispatchEvent(event);
+        return event;
+    };
+    const swipePhoto = (dx, dy = 0) => {
+        const photo = screen.getByRole("img");
+        touch(photo, "touchstart", [{ clientX: 500, clientY: 300 }]);
+        const move = touch(photo, "touchmove", [{ clientX: 500 + dx, clientY: 300 + dy }]);
+        touch(photo, "touchend", []);
+        return move;
+    };
+
+    // Under reduced motion a swipe moves at once, with no slide to wait out.
+    beforeEach(() => {
+        window.matchMedia = (query) => ({
+            matches: query.includes("reduce"),
+            media: query,
+            addEventListener() {},
+            removeEventListener() {},
+        });
+    });
+    afterEach(() => {
+        delete window.matchMedia;
+    });
+
+    test("a swipe left asks for the next photo and a swipe right for the previous one", () => {
+        const { onIndexChange } = renderLightbox({ index: 1 });
+
+        act(() => swipePhoto(-120));
+        act(() => swipePhoto(120));
+
+        expect(onIndexChange.mock.calls).toEqual([[2], [0]]);
+    });
+
+    test("a swipe wraps around the set like the arrows", () => {
+        const { onIndexChange } = renderLightbox({ index: 2 });
+
+        act(() => swipePhoto(-120));
+
+        expect(onIndexChange).toHaveBeenCalledWith(0);
+    });
+
+    test("holds the page still while the photo is swiped", () => {
+        renderLightbox({ index: 1 });
+
+        expect(swipePhoto(-120).defaultPrevented).toBe(true);
+    });
+
+    test("a short or downward move leaves the photo alone", () => {
+        const { onIndexChange } = renderLightbox({ index: 1 });
+
+        act(() => swipePhoto(-30));
+        act(() => swipePhoto(-30, 120));
+
+        expect(onIndexChange).not.toHaveBeenCalled();
     });
 });

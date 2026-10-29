@@ -95,6 +95,8 @@ Expected Response Information: A stable dark photo frame with its caption and na
     overflow: hidden;
     border-radius: $radius-card-media;
     box-shadow: 0 24px 60px rgba($color-black, 0.3);
+    // A sideways swipe moves through the photos, so the browser keeps only scrolling and zooming.
+    touch-action: pan-y pinch-zoom;
 
     img {
         display: block;

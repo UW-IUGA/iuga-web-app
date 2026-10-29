@@ -141,12 +141,13 @@ open, and composes these pieces:
 - **Previous events** — one `PastEventCard` per entry in
   `assets/data/PastEventsData.js`. Any photo, or "View Photos", opens
   `PhotoLightbox` on that event's photos; the viewer shows the event's name
-  with its date, time, and location. The arrow buttons, the arrow keys, and a
-  click on the right or left half of the photo move through the set, wrapping
-   around at both ends. The viewer keeps a consistent viewport-bounded frame
-   across photo proportions, showing the whole image without enlarging small
-   originals. Captions sit below the photo on a dark background; clicking a
-   caption does not navigate.
+  with its date, time, and location. The arrow buttons, the arrow keys, a
+  click on the right or left half of the photo, and a swipe across it on a
+  touch screen (through `hooks/useSwipeStep.js`, as the calendar does) move
+  through the set, wrapping around at both ends. The viewer keeps a consistent
+  viewport-bounded frame across photo proportions, showing the whole image
+  without enlarging small originals. Captions sit below the photo on a dark
+  background; clicking a caption does not navigate.
 
 To add a past event, run `scripts/past-event-photo.sh <original-photo> <name>`
 for each photo (it needs `ffmpeg` and `cwebp`), then add an entry to
@@ -154,9 +155,11 @@ for each photo (it needs `ffmpeg` and `cwebp`), then add an entry to
 script writes two WebP files to `assets/gallery/past-events/`: `<name>.webp`,
 2000px on its long edge, for the viewer, and `<name>-small.webp`, 800px, for
 cards, thumbnails, and the hero collage. The page loads the small files until
-a student opens a photo, except that each card's cover uses the full-size file
-on high-density screens so it stays sharp. The first photo is the cover, and the first two
-photos of each event feed the hero collage.
+a student opens a photo; the viewer then also downloads the full-size photos
+either side of the one shown, so moving to them doesn't wait on a download.
+The one other full-size file is each card's cover on high-density screens, so
+it stays sharp. The first photo is the cover, and the first two photos of each
+event feed the hero collage.
 
 `EventDialog` and `PhotoLightbox` are native `<dialog>` elements driven by
 `hooks/useModalDialog.js`. Pass it whether the dialog should be open and what

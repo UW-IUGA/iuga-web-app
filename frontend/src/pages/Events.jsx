@@ -10,12 +10,15 @@ Expected Response Information: The toolbar and the chosen view, with the mini mo
 */
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import EventOperations from "../components/EventOperations";
 import CalendarToolbar from "../components/eventsCalendar/CalendarToolbar";
 import DayView from "../components/eventsCalendar/DayView";
 import Legend from "../components/eventsCalendar/Legend";
 import MiniMonth from "../components/eventsCalendar/MiniMonth";
 import MonthCard from "../components/eventsCalendar/MonthCard";
+import PrototypePastEvents from "../components/eventsCalendar/PrototypePastEvents";
+import { PrototypeEventRsvpProvider } from "../components/eventsCalendar/PrototypeEventRsvpContext";
 import WeekView from "../components/eventsCalendar/WeekView";
 import YearView from "../components/eventsCalendar/YearView";
 import { useAuthContext } from "../context/AuthContext";
@@ -54,6 +57,8 @@ function EventsPage() {
     const { mode, selectedDate: anchor, goToDay, goToDate, goToToday, step, setMode } = useCalendarView();
     const { records, status, retry } = useEventList();
     const { can } = useAuthContext();
+    const [searchParams] = useSearchParams();
+    const prototypeVariant = { 1: 1, 2: 2 }[searchParams.get("v")] ?? null;
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -107,7 +112,7 @@ function EventsPage() {
         );
     }
 
-    return (
+    const calendar = (
         <>
             <div className="eventsCalendar eventsCalendar--page">
                 <section className="page page--events">
@@ -139,6 +144,8 @@ function EventsPage() {
                             {view}
                         </div>
                     </div>
+
+                    {prototypeVariant && <PrototypePastEvents />}
                 </section>
             </div>
 
@@ -150,6 +157,12 @@ function EventsPage() {
                 canCompletePurchases={can("events.purchases.complete")}
             />
         </>
+    );
+
+    return prototypeVariant ? (
+        <PrototypeEventRsvpProvider variant={prototypeVariant}>{calendar}</PrototypeEventRsvpProvider>
+    ) : (
+        calendar
     );
 }
 

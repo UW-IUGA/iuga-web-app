@@ -112,6 +112,7 @@
         right: 12px;
         padding: $space-2 $space-3;
         border-radius: $radius;
+        color: theme(text);
         font-size: $font-size-small;
         font-weight: $font-weight-medium;
     }
@@ -356,8 +357,9 @@
     &__sizePrompt {
         margin: 0;
         padding: 10px 14px;
-        border-radius: 10px;
-        background: theme(tint);
+        border-left: 3px solid theme(brand);
+        border-radius: 0 10px 10px 0;
+        background: theme(fill-subtle, theme(tint));
         color: theme(heading);
         font-size: $font-size-small;
         font-weight: $font-weight-medium;

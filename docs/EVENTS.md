@@ -33,6 +33,18 @@ but no longer routed, so its parts can move to the homepage.
   `Career` show as Professional (`utils/eventStreams.js`'s `categoriesFor`).
 - **Officers** with `events.requests.manage` get `EventOperations` below the
   calendar, as before, with the same permission checks.
+- **Event details and RSVP.** An event's details appear in the popover (month
+  and week views), the day view, and the year view's day overlay: its photo,
+  labels, time, location, organizers, and attendance when the event shares it.
+  An upcoming event with RSVP on shows an RSVP button under them. It opens the
+  event's questions, or with none it RSVPs at once, and a signed-out student is
+  asked to sign in first. When built-in RSVP is off and the event has its own
+  sign-up page, the block links to that page instead. A past event says "This
+  event has already happened." (`components/eventsCalendar/EventRsvp.jsx`)
+- **Previous events.** Under the calendar, a "Previous events" section shows a
+  card for each entry in `assets/data/PastEventsData.js`. Any photo, or "View
+  Photos", opens the photo viewer on that event's photos, as the previous page
+  does (`components/eventsCalendar/PastEvents.jsx`).
 
 ### Data
 
@@ -44,6 +56,12 @@ request. While the first list loads the calendar says "Loading events…"; if
 the request fails it says "We couldn't load events. Please try again." with a
 Try again button.
 
+An event's details (RSVP settings and questions, sign-up link, attendance) load
+from `GET /api/v1/events/id/{eId}` the first time the event is shown, through
+`EventRsvpContext.jsx`, and an RSVP posts to `POST /api/v1/events/rsvp`. In
+development the details come from the same mock data, and an RSVP is answered
+locally after a short wait; neither sends a request.
+
 `utils/calendar/calendar.js`'s `normalizeEvent` turns each record into what the
 views draw (Pacific-time parts, labels, colours, the popover's details).
 
@@ -52,7 +70,7 @@ views draw (Pacific-time parts, labels, colours, the popover's details).
 ```
 frontend/src/
 ├── pages/Events.jsx                     ← The page: toolbar, sidebar, view, data states
-├── components/eventsCalendar/           ← Andy's views and controls, one file each, with their tests
+├── components/eventsCalendar/           ← Andy's views and controls, one file each, with their tests, plus the event RSVP block and previous events
 ├── hooks/
 │   ├── useCalendarView.js               ← view and date, read from and written to the URL
 │   ├── useEventList.js                  ← the event list and its loading state
@@ -94,6 +112,11 @@ Class names are the prototype's kebab-case BEM (`toolbar__range`,
 compared with the prototype line by line. Stylelint reports these as
 `selector-class-pattern` warnings.
 
+The RSVP block and previous events came from this site rather than the port, so
+they use its camelCase BEM (`eventRsvp__button`, `pastEvents__list`). Their rules
+are in `_eventRsvp.scss` and `_pastEvents.scss`; the detail photo's rule sits
+with the rest of `EventDetail`'s in `_dayView.scss`.
+
 `contrast.test.js` checks both palettes against WCAG 1.4.3 and 1.4.11, read
 from the compiled CSS, and that the dark one is still the prototype's; and
 `calendarStyles.test.js` checks target sizes, zoom, focus, and the phone
@@ -114,10 +137,10 @@ the parts below stay so the homepage can reuse them; none of them were edited.
 | `components/EventThumbnail.jsx` | EventAgenda | An event's photo or category tile |
 | `components/EventCategoryPills.jsx` | EventAgenda, EventDialog | Category labels |
 | `components/EventDialog.jsx` | EventsOverview | Event details and RSVP (`GET /api/v1/events/id/{eId}`, `POST /api/v1/events/rsvp`) |
-| `components/PastEventCard.jsx` | EventsOverview | A past event's cover and photos |
+| `components/PastEventCard.jsx` | EventsOverview, PastEvents | A past event's cover and photos |
 | `components/PhotoCollage.jsx` | EventsOverview | The hero's overlapping photos |
-| `components/PhotoLightbox.jsx` | EventsOverview | The full-size photo viewer |
-| `assets/data/PastEventsData.js` | EventsOverview | Past events and their photos |
+| `components/PhotoLightbox.jsx` | EventsOverview, PastEvents | The full-size photo viewer |
+| `assets/data/PastEventsData.js` | EventsOverview, PastEvents | Past events and their photos |
 | `stylesheets/pages/_events.scss` and the matching component partials | the parts above | Their styles, still loaded by `main.scss`; `.event-operations` there also styles the new page's officer section |
 
 ### How the previous page works
@@ -181,12 +204,6 @@ the second by other pages.
 
 ## Open decisions
 
-- **RSVP and attendees.** The prototype's popover can show RSVP and attendee
-  details, but `GET /api/v1/events/` does not return `rsvpEnabled`,
-  `rsvpQuestions`, participants, or `altLink`, so production shows neither.
-  RSVP is still available only in `EventDialog`. Either the list returns those
-  fields, or the popover fetches `GET /api/v1/events/id/{eId}` as
-  `EventDialog` does.
 - **Page colour.** The calendar follows the site theme: the prototype's dark
   palette in the dark theme, and a light palette in the light theme.
 - **Class names.** Kebab-case BEM, as noted above; renaming to camelCase is

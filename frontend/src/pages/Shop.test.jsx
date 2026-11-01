@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import ShopPage from "./Shop";
 import { ShopCartProvider } from "../context/ShopCartContext";
@@ -114,5 +114,48 @@ describe("in the dark theme", () => {
         expect(themeOf(within(hero).getByText(shopProducts[0].name))).toBe("light");
         // Let the catalog finish loading before the page is torn down.
         await screen.findByRole("heading", { name: shopProducts[0].name, exact: true });
+    });
+});
+
+describe("when the catalog cannot load", () => {
+    test("shows every product as a read-only preview with its price unavailable and ordering disabled", async () => {
+        vi.mocked(globalThis.fetch).mockResolvedValue({ ok: false, status: 404, json: async () => ({}) });
+
+        render(
+            <MemoryRouter initialEntries={["/shop"]}>
+                <ShopCartProvider><ShopPage /></ShopCartProvider>
+            </MemoryRouter>,
+        );
+
+        for (const { name } of shopProducts) {
+            expect(await screen.findByRole("heading", { name, exact: true })).toBeVisible();
+        }
+        expect(screen.getAllByText("Price unavailable")).toHaveLength(shopProducts.length);
+        const addToCartButtons = screen.getAllByRole("button", { name: "Add to cart" });
+        expect(addToCartButtons).toHaveLength(shopProducts.length);
+        for (const button of addToCartButtons) {
+            expect(button).toBeDisabled();
+        }
+    });
+
+    test("Try again on the preview reloads the catalog and replaces the preview with live prices", async () => {
+        vi.mocked(globalThis.fetch).mockResolvedValueOnce({ ok: false, status: 503, json: async () => ({}) });
+
+        render(
+            <MemoryRouter initialEntries={["/shop"]}>
+                <ShopCartProvider><ShopPage /></ShopCartProvider>
+            </MemoryRouter>,
+        );
+
+        expect(await screen.findByText(/ordering is unavailable right now/i)).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+
+        await waitFor(() => expect(screen.getAllByRole("button", { name: "Add to cart" })).toHaveLength(shopProducts.length));
+        expect(screen.queryByText("Price unavailable")).not.toBeInTheDocument();
+        expect(screen.queryByText(/ordering is unavailable right now/i)).not.toBeInTheDocument();
+        for (const button of screen.getAllByRole("button", { name: "Add to cart" })) {
+            expect(button).toBeEnabled();
+        }
+        expect(globalThis.fetch).toHaveBeenCalledTimes(2);
     });
 });

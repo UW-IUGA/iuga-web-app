@@ -32,9 +32,17 @@ export function EventRsvpProvider({ children }) {
     // Events RSVPd to in the current sign-in session. The session number changes
     // whenever sign-in state does, so an RSVP only counts for whoever sent it.
     const [rsvps, setRsvps] = useState({ session: 0, eventIds: new Set() });
+    // The sign-in session the loaded details belong to, readable from a request still in flight.
+    const detailsSession = useRef(0);
+    const lastSignInState = useRef(isAuthenticated);
 
     // A new session sees its own RSVP state, so drop what the last one loaded.
+    // Mounting is not a change of sign-in, and resetting then would forget details
+    // that the first events on screen have already asked for.
     useEffect(() => {
+        if (lastSignInState.current === isAuthenticated) return;
+        lastSignInState.current = isAuthenticated;
+        detailsSession.current += 1;
         setRsvps((current) => ({
             session: current.session + 1,
             eventIds: new Set(),
@@ -44,21 +52,28 @@ export function EventRsvpProvider({ children }) {
     }, [isAuthenticated]);
 
     const load = useCallback((eId) => {
+        const session = detailsSession.current;
+        // A reply for a session that has since ended describes the wrong student.
+        const save = (entry) => {
+            if (detailsSession.current === session) setDetails((current) => new Map(current).set(eId, entry));
+        };
         requested.current.add(eId);
-        setDetails((current) => new Map(current).set(eId, { status: "loading", details: null }));
+        save({ status: "loading", details: null });
         loadEventDetails(eId)
-            .then((loaded) => setDetails((current) => new Map(current).set(eId, { status: "ready", details: loaded })))
+            .then((loaded) => save({ status: "ready", details: loaded }))
             .catch((error) => {
                 console.error("Unable to load event details", error);
-                setDetails((current) => new Map(current).set(eId, { status: "failed", details: null }));
+                save({ status: "failed", details: null });
             });
     }, []);
 
+    // A new function each sign-in session, so every event detail on screen asks
+    // again once the session's change has dropped its details.
     const requestDetails = useCallback(
         (eId) => {
             if (eId && !requested.current.has(eId)) load(eId);
         },
-        [load],
+        [load, rsvps.session],
     );
 
     const markRsvpd = useCallback((eId, sentInSession) => {

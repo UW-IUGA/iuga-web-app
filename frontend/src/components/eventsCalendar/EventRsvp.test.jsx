@@ -58,7 +58,41 @@ beforeEach(() => {
     signIn.mockReset();
 });
 
+const detailRequests = () => global.fetch.mock.calls.filter(([url]) => url.startsWith("/api/v1/events/id/"));
+
+// A fresh element each time, so a rerender reaches the provider after the mocked sign-in state changes.
+const detailTree = (copies = 1) => (
+    <EventRsvpProvider>
+        {Array.from({ length: copies }, (_, index) => (
+            <EventDetail key={index} event={normalizeEvent(LISTED)} />
+        ))}
+    </EventRsvpProvider>
+);
+
 describe("EventRsvp", () => {
+    it("offers the RSVP button once a student signs in with the event open", async () => {
+        isAuthenticated = false;
+        mockApi();
+        const { rerender } = render(detailTree());
+        await screen.findByRole("button", { name: "Sign in to RSVP" });
+
+        isAuthenticated = true;
+        rerender(detailTree());
+
+        expect(await screen.findByRole("button", { name: "RSVP" })).toBeInTheDocument();
+    });
+
+    it("loads an event's details once when it is shown again", async () => {
+        mockApi();
+        const { rerender } = render(detailTree());
+        await screen.findByRole("button", { name: "RSVP" });
+
+        rerender(detailTree(2));
+
+        expect(await screen.findAllByRole("button", { name: "RSVP" })).toHaveLength(2);
+        expect(detailRequests()).toHaveLength(1);
+    });
+
     it("shows the event's photo", async () => {
         mockApi();
         const { container } = renderDetail();

@@ -7,17 +7,17 @@ import PhotoLightbox from "../PhotoLightbox";
 const pastEventEyebrow = (event) => [event.when, event.time, event.location].filter(Boolean).join(" · ");
 
 // Recaps of past IUGA events under the calendar, each opening its photos in the viewer.
-function PrototypePastEvents() {
+function PastEvents() {
     // The past event whose photos are open in the viewer, and which photo is showing.
     const [openPhoto, setOpenPhoto] = useState(null);
     const closePhoto = useCallback(() => setOpenPhoto(null), []);
 
     return (
-        <section className="prototypePast" aria-labelledby="prototype-past-heading">
-            <h2 id="prototype-past-heading" className="prototypePast__title">
+        <section className="pastEvents" aria-labelledby="past-events-heading">
+            <h2 id="past-events-heading" className="pastEvents__title">
                 Previous events
             </h2>
-            <div className="prototypePast__list">
+            <div className="pastEvents__list">
                 {pastEvents.map((event, position) => (
                     <PastEventCard
                         event={event}
@@ -30,7 +30,7 @@ function PrototypePastEvents() {
 
             {/* Outside the calendar's scope, whose element resets would undo the viewer's own layout. */}
             {createPortal(
-                <div className="prototypeLightbox">
+                <div className="pastEventsLightbox">
                     <PhotoLightbox
                         photos={openPhoto?.event.photos}
                         index={openPhoto?.index ?? null}
@@ -46,4 +46,4 @@ function PrototypePastEvents() {
     );
 }
 
-export default PrototypePastEvents;
+export default PastEvents;

@@ -1,25 +1,25 @@
 import { useEffect } from "react";
 import { colorForLabels, formatEventDateTime } from "../../utils/calendar/calendar";
-import PrototypeEventRsvp from "./PrototypeEventRsvp";
-import { usePrototypeEventRsvp } from "./PrototypeEventRsvpContext";
+import EventRsvp from "./EventRsvp";
+import { useEventRsvp } from "./EventRsvpContext";
 
-// Displays an event's details, including optional location, organizer,
-// link, attendance, and RSVP information, in day overlays and popovers.
+// Displays an event's details, including optional location, organizer, attendance,
+// photo, and RSVP, in day overlays and popovers.
 function EventDetail({ event: listEvent, headingLevel = 3 }) {
     const Heading = `h${headingLevel}`;
-    const rsvp = usePrototypeEventRsvp();
+    // Null outside EventRsvpProvider, where there is no RSVP to show and no details to load.
+    const rsvp = useEventRsvp();
     const requestDetails = rsvp?.requestDetails;
 
     useEffect(() => {
         requestDetails?.(listEvent.id);
     }, [requestDetails, listEvent.id]);
 
-    // The list leaves out the sign-up link and attendance; fill them in once loaded.
+    // The list leaves out attendance; fill it in once the details have loaded.
     const loaded = rsvp?.detailsFor(listEvent.id).details;
     const event = loaded
         ? {
               ...listEvent,
-              altLink: loaded.eAltLink?.title && loaded.eAltLink?.url ? loaded.eAltLink : null,
               participants: typeof loaded.participants === "number" ? loaded.participants : null,
               showParticipants: loaded.showParticipants ?? false,
           }
@@ -30,9 +30,7 @@ function EventDetail({ event: listEvent, headingLevel = 3 }) {
             <div className="detail__accent" style={{ backgroundColor: colorForLabels(event.labels) }} />
 
             <div className="detail__body">
-                {rsvp && event.thumbnail && (
-                    <img className="prototypeDetail__photo" src={event.thumbnail} alt="" loading="lazy" />
-                )}
+                {event.thumbnail && <img className="detail__photo" src={event.thumbnail} alt="" loading="lazy" />}
 
                 <div className="detail__labels">
                     {event.labels.map((label) => (
@@ -62,44 +60,15 @@ function EventDetail({ event: listEvent, headingLevel = 3 }) {
                         </div>
                     )}
 
-                    {event.altLink && !rsvp && (
-                        <div className="detail__pair">
-                            <dt>Link</dt>
-                            <dd>
-                                <a href={event.altLink.url}>{event.altLink.title || event.altLink.url}</a>
-                            </dd>
-                        </div>
-                    )}
-
                     {event.showParticipants && event.participants !== null && (
                         <div className="detail__pair">
                             <dt>Attending</dt>
                             <dd>{event.participants}</dd>
                         </div>
                     )}
-
-                    {!rsvp && event.rsvpEnabled && (
-                        <div className="detail__pair">
-                            <dt>RSVP</dt>
-                            <dd>
-                                {event.rsvpQuestions.length > 0 ? (
-                                    <>
-                                        Questions on signup
-                                        <ul className="detail__questions">
-                                            {event.rsvpQuestions.map((question) => (
-                                                <li key={question.qId}>{question.qString}</li>
-                                            ))}
-                                        </ul>
-                                    </>
-                                ) : (
-                                    "Open"
-                                )}
-                            </dd>
-                        </div>
-                    )}
                 </dl>
 
-                {rsvp && <PrototypeEventRsvp event={event} />}
+                {rsvp && <EventRsvp event={event} />}
             </div>
         </article>
     );

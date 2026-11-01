@@ -103,7 +103,6 @@ export function normalizeEvent(raw) {
         // Displayed names, once each: Career and Professional both read as Career.
         labels: Array.isArray(raw.eLabels) ? [...new Set(categoriesFor(raw))] : [],
         thumbnail: raw.eThumbnailPath ?? null,
-        altLink: raw.eAltLink?.title && raw.eAltLink?.url ? raw.eAltLink : null,
         participants: typeof raw.participants === "number" ? raw.participants : null,
         showParticipants: raw.showParticipants ?? false,
         rsvpEnabled: raw.rsvpEnabled ?? false,

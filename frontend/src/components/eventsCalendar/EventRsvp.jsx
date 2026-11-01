@@ -3,7 +3,7 @@ import { faArrowUpRightFromSquare, faCheck } from "@fortawesome/free-solid-svg-i
 import { useEffect, useId, useRef, useState } from "react";
 import { useAuthContext } from "../../context/AuthContext";
 import { isProduction } from "../../runtime";
-import { usePrototypeEventRsvp } from "./PrototypeEventRsvpContext";
+import { useEventRsvp } from "./EventRsvpContext";
 
 // Sample events have no server record to RSVP to, so local development
 // answers the way the server does after a short wait. The result shows in the
@@ -22,19 +22,20 @@ const sendRsvp = async (eId, rsvpAnswers) => {
     return response.json();
 };
 
-function PrototypeRsvpForm({ eId, questions, collapsed, onSent }) {
-    const { session } = usePrototypeEventRsvp();
-    const [isOpen, setIsOpen] = useState(!collapsed);
+// One button asks for the questions; an event with none RSVPs in that one press.
+function EventRsvpForm({ eId, questions, onSent }) {
+    const { session } = useEventRsvp();
+    const [isOpen, setIsOpen] = useState(false);
     const [isSending, setIsSending] = useState(false);
     // Why the last RSVP did not go through, shown under the button.
     const [error, setError] = useState(null);
     const formId = useId();
     const firstInputRef = useRef(null);
 
-    // The compact version opens on request; move to the first question when it does.
+    // Opening the questions moves focus to the first one.
     useEffect(() => {
-        if (collapsed && isOpen) firstInputRef.current?.focus();
-    }, [collapsed, isOpen]);
+        if (isOpen) firstInputRef.current?.focus();
+    }, [isOpen]);
 
     const submit = async (answers) => {
         setIsSending(true);
@@ -67,18 +68,18 @@ function PrototypeRsvpForm({ eId, questions, collapsed, onSent }) {
     };
 
     const errorMessage = error && (
-        <p className="prototypeRsvp__error" role="alert">
+        <p className="eventRsvp__error" role="alert">
             {error}
         </p>
     );
 
-    // Compact: one button. With nothing to ask, it RSVPs straight away.
-    if (collapsed && !isOpen) {
+    // Closed: one button. With nothing to ask, it RSVPs straight away.
+    if (!isOpen) {
         return (
             <>
                 <button
                     type="button"
-                    className="prototypeRsvp__button"
+                    className="eventRsvp__button"
                     aria-expanded="false"
                     aria-controls={formId}
                     disabled={isSending}
@@ -92,9 +93,9 @@ function PrototypeRsvpForm({ eId, questions, collapsed, onSent }) {
     }
 
     return (
-        <form id={formId} className="prototypeRsvp__form" onSubmit={handleSubmit}>
+        <form id={formId} className="eventRsvp__form" onSubmit={handleSubmit}>
             {questions.map((question, index) => (
-                <div className="prototypeRsvp__field" key={question.qId}>
+                <div className="eventRsvp__field" key={question.qId}>
                     <label htmlFor={`${formId}-${question.qId}`}>{question.qString}</label>
                     <input
                         ref={index === 0 ? firstInputRef : undefined}
@@ -105,20 +106,18 @@ function PrototypeRsvpForm({ eId, questions, collapsed, onSent }) {
                     />
                 </div>
             ))}
-            <div className="prototypeRsvp__actions">
-                <button type="submit" className="prototypeRsvp__button" disabled={isSending}>
+            <div className="eventRsvp__actions">
+                <button type="submit" className="eventRsvp__button" disabled={isSending}>
                     {isSending ? "Sending…" : "RSVP"}
                 </button>
-                {collapsed && (
-                    <button
-                        type="button"
-                        className="prototypeRsvp__cancel"
-                        disabled={isSending}
-                        onClick={() => setIsOpen(false)}
-                    >
-                        Cancel
-                    </button>
-                )}
+                <button
+                    type="button"
+                    className="eventRsvp__cancel"
+                    disabled={isSending}
+                    onClick={() => setIsOpen(false)}
+                >
+                    Cancel
+                </button>
             </div>
             {errorMessage}
         </form>
@@ -126,9 +125,9 @@ function PrototypeRsvpForm({ eId, questions, collapsed, onSent }) {
 }
 
 // What a student can do about attending, in the event's popup or day panel.
-function PrototypeEventRsvp({ event }) {
+function EventRsvp({ event }) {
     const { isAuthenticated, signIn } = useAuthContext();
-    const { variant, detailsFor, retryDetails, hasRsvpd, markRsvpd } = usePrototypeEventRsvp();
+    const { detailsFor, retryDetails, hasRsvpd, markRsvpd } = useEventRsvp();
     const { status, details } = detailsFor(event.id);
     const [isSigningIn, setIsSigningIn] = useState(false);
 
@@ -136,25 +135,25 @@ function PrototypeEventRsvp({ event }) {
 
     let content;
     if (!isUpcoming) {
-        content = <p className="prototypeRsvp__note">This event has already happened.</p>;
+        content = <p className="eventRsvp__note">This event has already happened.</p>;
     } else if (status === "loading") {
         content = (
-            <p className="prototypeRsvp__note" role="status">
+            <p className="eventRsvp__note" role="status">
                 Loading RSVP details…
             </p>
         );
     } else if (status === "failed") {
         content = (
-            <div className="prototypeRsvp__note" role="alert">
+            <div className="eventRsvp__note" role="alert">
                 <p>We couldn&apos;t load RSVP details.</p>
-                <button type="button" className="prototypeRsvp__cancel" onClick={() => retryDetails(event.id)}>
+                <button type="button" className="eventRsvp__cancel" onClick={() => retryDetails(event.id)}>
                     Try again
                 </button>
             </div>
         );
     } else if (hasRsvpd(event.id, details.hasRSVPd)) {
         content = (
-            <p className="prototypeRsvp__confirmed" role="status">
+            <p className="eventRsvp__confirmed" role="status">
                 <FontAwesomeIcon icon={faCheck} aria-hidden="true" />
                 You&apos;re going. See you there.
             </p>
@@ -172,34 +171,27 @@ function PrototypeEventRsvp({ event }) {
         };
         content = (
             <>
-                <p className="prototypeRsvp__note">Sign in with your UW account to RSVP.</p>
-                <button type="button" className="prototypeRsvp__button" disabled={isSigningIn} onClick={startSignIn}>
+                <p className="eventRsvp__note">Sign in with your UW account to RSVP.</p>
+                <button type="button" className="eventRsvp__button" disabled={isSigningIn} onClick={startSignIn}>
                     {isSigningIn ? "Signing in…" : "Sign in to RSVP"}
                 </button>
             </>
         );
     } else if (details.rsvpEnabled) {
-        content = (
-            <PrototypeRsvpForm
-                eId={event.id}
-                questions={details.rsvpQuestions ?? []}
-                collapsed={variant === 2}
-                onSent={markRsvpd}
-            />
-        );
+        content = <EventRsvpForm eId={event.id} questions={details.rsvpQuestions ?? []} onSent={markRsvpd} />;
     } else if (details.eAltLink?.title && details.eAltLink?.url) {
         content = (
-            <a className="prototypeRsvp__button" href={details.eAltLink.url} target="_blank" rel="noreferrer">
+            <a className="eventRsvp__button" href={details.eAltLink.url} target="_blank" rel="noreferrer">
                 {details.eAltLink.title}
                 <FontAwesomeIcon icon={faArrowUpRightFromSquare} aria-hidden="true" />
                 <span className="sr-only"> (opens in a new tab)</span>
             </a>
         );
     } else {
-        content = <p className="prototypeRsvp__note">RSVP isn&apos;t available for this event.</p>;
+        content = <p className="eventRsvp__note">RSVP isn&apos;t available for this event.</p>;
     }
 
-    return <div className="prototypeRsvp">{content}</div>;
+    return <div className="eventRsvp">{content}</div>;
 }
 
-export default PrototypeEventRsvp;
+export default EventRsvp;

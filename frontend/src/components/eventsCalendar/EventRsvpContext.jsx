@@ -20,11 +20,11 @@ const loadEventDetails = async (eId) => {
     return res.json();
 };
 
-const PrototypeEventRsvpContext = createContext(null);
+const EventRsvpContext = createContext(null);
 
 // Shares one event's loaded details and the RSVPs made this sign-in session across
 // every view that shows the event (popover, day overlay, day view).
-export function PrototypeEventRsvpProvider({ variant, children }) {
+export function EventRsvpProvider({ children }) {
     const { isAuthenticated } = useAuthContext();
     // eId -> { status: "loading" | "ready" | "failed", details }
     const [details, setDetails] = useState(() => new Map());
@@ -68,7 +68,6 @@ export function PrototypeEventRsvpProvider({ variant, children }) {
     }, []);
 
     const value = {
-        variant,
         session: rsvps.session,
         detailsFor: (eId) => details.get(eId) ?? { status: "loading", details: null },
         requestDetails,
@@ -78,10 +77,10 @@ export function PrototypeEventRsvpProvider({ variant, children }) {
         markRsvpd,
     };
 
-    return <PrototypeEventRsvpContext.Provider value={value}>{children}</PrototypeEventRsvpContext.Provider>;
+    return <EventRsvpContext.Provider value={value}>{children}</EventRsvpContext.Provider>;
 }
 
-// Null outside the provider, so the calendar renders exactly as before without it.
-export function usePrototypeEventRsvp() {
-    return useContext(PrototypeEventRsvpContext);
+// Null outside the provider, where event details show without an RSVP block.
+export function useEventRsvp() {
+    return useContext(EventRsvpContext);
 }

@@ -172,9 +172,9 @@ describe("Events page: the event list", () => {
     });
 
     it("shows a Career event as Career, not Professional", async () => {
-        await visit("/events?view=day&date=2026-10-21");
+        const { container } = await visit("/events?view=day&date=2026-10-21");
 
-        const agenda = screen.getByRole("article");
+        const agenda = container.querySelector(".detail");
         expect(within(agenda).getByText("Resume Clinic")).toBeInTheDocument();
         expect(within(agenda).getByText("Career")).toBeInTheDocument();
         expect(within(agenda).queryByText("Professional")).not.toBeInTheDocument();
@@ -197,6 +197,44 @@ describe("Events page: the event list", () => {
 
         expect(fetchSpy).not.toHaveBeenCalled();
         expect(screen.getByRole("button", { name: /IUGA Game Night/ })).toBeInTheDocument();
+    });
+});
+
+describe("Events page: event details and previous events", () => {
+    // The calendar's own day key for an instant: YYYY-MM-DD in Pacific time.
+    const pacificDay = (date) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Los_Angeles" }).format(date);
+
+    it("offers RSVP in an upcoming event's details, with no query flag", async () => {
+        isAuthenticated = true;
+        // Two days out, so the event is still upcoming whenever the suite runs.
+        const start = new Date(Date.now() + 2 * 86_400_000);
+        const upcoming = {
+            eId: "game-night",
+            eName: "Game Night",
+            eStartDate: start.toISOString(),
+            eEndDate: new Date(start.getTime() + 3_600_000).toISOString(),
+            eLabels: ["Social"],
+        };
+        fetchSpy.mockImplementation((url) =>
+            Promise.resolve(
+                jsonResponse(
+                    url.startsWith("/api/v1/events/id/")
+                        ? { ...upcoming, rsvpEnabled: true, rsvpQuestions: [], hasRSVPd: false }
+                        : [upcoming],
+                ),
+            ),
+        );
+
+        const { container } = await visit(`/events?view=day&date=${pacificDay(start)}`);
+
+        const details = container.querySelector(".detail");
+        expect(await within(details).findByRole("button", { name: "RSVP" })).toBeInTheDocument();
+    });
+
+    it("lists the previous events under the calendar", async () => {
+        await visit("/events?date=2026-10-20");
+
+        expect(screen.getByRole("heading", { name: "Previous events" })).toBeInTheDocument();
     });
 });
 

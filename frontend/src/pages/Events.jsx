@@ -6,19 +6,18 @@ Expected Request Information: Optional query parameters view (year, week or day;
   and date (YYYY-MM-DD, today when absent), so any view can be shared or bookmarked.
 Expected Response Information: The toolbar and the chosen view, with the mini month and colour key
   beside month, week and day. While the list loads, or if it fails, the calendar says so.
-  Event operations call /api/v1/event-requests (see EventOperations).
+  Below it, the previous events. Event operations call /api/v1/event-requests (see EventOperations).
 */
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
 import EventOperations from "../components/EventOperations";
 import CalendarToolbar from "../components/eventsCalendar/CalendarToolbar";
 import DayView from "../components/eventsCalendar/DayView";
+import { EventRsvpProvider } from "../components/eventsCalendar/EventRsvpContext";
 import Legend from "../components/eventsCalendar/Legend";
 import MiniMonth from "../components/eventsCalendar/MiniMonth";
 import MonthCard from "../components/eventsCalendar/MonthCard";
-import PrototypePastEvents from "../components/eventsCalendar/PrototypePastEvents";
-import { PrototypeEventRsvpProvider } from "../components/eventsCalendar/PrototypeEventRsvpContext";
+import PastEvents from "../components/eventsCalendar/PastEvents";
 import WeekView from "../components/eventsCalendar/WeekView";
 import YearView from "../components/eventsCalendar/YearView";
 import { useAuthContext } from "../context/AuthContext";
@@ -57,8 +56,6 @@ function EventsPage() {
     const { mode, selectedDate: anchor, goToDay, goToDate, goToToday, step, setMode } = useCalendarView();
     const { records, status, retry } = useEventList();
     const { can } = useAuthContext();
-    const [searchParams] = useSearchParams();
-    const prototypeVariant = { 1: 1, 2: 2 }[searchParams.get("v")] ?? null;
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -145,7 +142,7 @@ function EventsPage() {
                         </div>
                     </div>
 
-                    {prototypeVariant && <PrototypePastEvents />}
+                    <PastEvents />
                 </section>
             </div>
 
@@ -159,11 +156,7 @@ function EventsPage() {
         </>
     );
 
-    return prototypeVariant ? (
-        <PrototypeEventRsvpProvider variant={prototypeVariant}>{calendar}</PrototypeEventRsvpProvider>
-    ) : (
-        calendar
-    );
+    return <EventRsvpProvider>{calendar}</EventRsvpProvider>;
 }
 
 export default EventsPage;

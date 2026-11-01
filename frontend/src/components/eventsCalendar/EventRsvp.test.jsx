@@ -1,5 +1,5 @@
 /*
-Purpose: The RSVP block in a calendar event's detail: sign-in, the form in both versions, and the confirmed state.
+Purpose: The RSVP block in an event's detail: sign-in, the RSVP button and its questions, and the confirmed state.
 Authentication/Authorization Requirements: Auth context, runtime mode, and the API are mocked; no sign-in or network.
 Expected Request Information: Event details and RSVP requests, each answered by the test.
 Expected Response Information: What a student sees about attending an event.
@@ -8,7 +8,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { normalizeEvent } from "../../utils/calendar/calendar";
 import EventDetail from "./EventDetail";
-import { PrototypeEventRsvpProvider } from "./PrototypeEventRsvpContext";
+import { EventRsvpProvider } from "./EventRsvpContext";
 
 let isAuthenticated = true;
 const signIn = vi.fn();
@@ -44,11 +44,11 @@ const mockApi = (overrides = {}, rsvpReply = { status: "success", message: "RSVP
     });
 };
 
-const renderDetail = ({ variant = 1, listed = LISTED } = {}) =>
+const renderDetail = ({ listed = LISTED } = {}) =>
     render(
-        <PrototypeEventRsvpProvider variant={variant}>
+        <EventRsvpProvider>
             <EventDetail event={normalizeEvent(listed)} />
-        </PrototypeEventRsvpProvider>,
+        </EventRsvpProvider>,
     );
 
 const rsvpRequests = () => global.fetch.mock.calls.filter(([url]) => url === "/api/v1/events/rsvp");
@@ -58,11 +58,11 @@ beforeEach(() => {
     signIn.mockReset();
 });
 
-describe("PrototypeEventRsvp", () => {
+describe("EventRsvp", () => {
     it("shows the event's photo", async () => {
         mockApi();
         const { container } = renderDetail();
-        expect(container.querySelector(".prototypeDetail__photo")).toHaveAttribute("src", LISTED.eThumbnailPath);
+        expect(container.querySelector(".detail__photo")).toHaveAttribute("src", LISTED.eThumbnailPath);
         await screen.findByRole("button", { name: "RSVP" });
     });
 
@@ -81,7 +81,8 @@ describe("PrototypeEventRsvp", () => {
         mockApi({ rsvpQuestions: [QUESTION] });
         renderDetail();
 
-        fireEvent.change(await screen.findByLabelText(QUESTION.qString), { target: { value: "Vegetarian" } });
+        fireEvent.click(await screen.findByRole("button", { name: "RSVP" }));
+        fireEvent.change(screen.getByLabelText(QUESTION.qString), { target: { value: "Vegetarian" } });
         fireEvent.click(screen.getByRole("button", { name: "RSVP" }));
 
         expect(await screen.findByText("You're going. See you there.")).toBeInTheDocument();
@@ -117,20 +118,22 @@ describe("PrototypeEventRsvp", () => {
         expect(screen.queryByRole("button", { name: "RSVP" })).not.toBeInTheDocument();
     });
 
-    it("in the compact version, opens the questions before sending anything", async () => {
+    it("opens the questions before sending anything", async () => {
         mockApi({ rsvpQuestions: [QUESTION] });
-        renderDetail({ variant: 2 });
+        renderDetail();
 
+        const rsvpButton = await screen.findByRole("button", { name: "RSVP" });
         expect(screen.queryByLabelText(QUESTION.qString)).not.toBeInTheDocument();
-        fireEvent.click(await screen.findByRole("button", { name: "RSVP" }));
+
+        fireEvent.click(rsvpButton);
 
         expect(screen.getByLabelText(QUESTION.qString)).toHaveFocus();
         expect(rsvpRequests()).toHaveLength(0);
     });
 
-    it("in the compact version, RSVPs in one press when there is nothing to ask", async () => {
+    it("RSVPs in one press when there is nothing to ask", async () => {
         mockApi();
-        renderDetail({ variant: 2 });
+        renderDetail();
 
         fireEvent.click(await screen.findByRole("button", { name: "RSVP" }));
 

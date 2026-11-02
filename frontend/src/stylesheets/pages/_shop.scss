@@ -5,6 +5,44 @@
     @extend %pageFrame;
     padding: $space-14 0 $space-22;
 
+    &__catalogNotice {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: $space-2 $space-4;
+        margin-bottom: $space-4;
+        color: theme(text-muted);
+        font-size: $font-size-small;
+        line-height: 1.5;
+
+        p {
+            margin: 0;
+        }
+    }
+
+    &__reload {
+        min-height: 44px;
+        padding: $space-2 $space-3;
+        border: 0;
+        background: transparent;
+        color: theme(heading);
+        font: inherit;
+        font-weight: $font-weight-medium;
+        text-decoration: underline;
+        text-underline-offset: 0.2em;
+        cursor: pointer;
+
+        &:hover {
+            color: theme(brand);
+        }
+
+        &:focus-visible {
+            outline: 2px solid theme(brand);
+            outline-offset: 2px;
+        }
+    }
+
     &__hero {
         margin-bottom: clamp($space-10, 6vw, $space-18);
         padding: 26px clamp($space-6, 5vw, $space-16);
@@ -147,8 +185,7 @@
         }
     }
 
-    &__loading,
-    &__error {
+    &__loading {
         max-width: 560px;
         margin: $space-12 auto;
         padding: $space-10 $space-6;

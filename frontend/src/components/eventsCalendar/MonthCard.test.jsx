@@ -44,13 +44,15 @@ afterEach(cleanup);
 
 describe("MonthCard", () => {
     it("opens an event in a popover beside its chip", () => {
-        const { onPickDay } = renderMonth();
+        const { container, onPickDay } = renderMonth();
 
         fireEvent.click(chip("Industry Panel"));
 
         const dialog = screen.getByRole("dialog", { name: "Industry Panel" });
         expect(within(dialog).getByText("Thursday, October 22, 2026")).toBeTruthy();
         expect(chip("Industry Panel").getAttribute("aria-expanded")).toBe("true");
+        // A popover, not the old full-card zoom.
+        expect(container.querySelector(".card--open")).toBeNull();
         // Opening is not navigating.
         expect(onPickDay).not.toHaveBeenCalled();
     });

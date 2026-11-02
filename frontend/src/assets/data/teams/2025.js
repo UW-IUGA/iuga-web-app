@@ -2,8 +2,8 @@ import { groupType } from "../Enum";
 import { officerPositions } from "../Enum";
 // import { creativeCommitteePositions, diversityCommitteePositions, itCommitteePositions } from "../Enum";
 
-// Lower the resolution of the image if the picture looks grainy
-// https://adobe.com/express/feature/image/resize
+// Officer photos are pre-cropped to the card's 3:4 shape (max 900x1200) with
+// scripts/officer-photo.sh so Chromium does not hard-downscale them into grain:
 // https://stackoverflow.com/questions/74502978/object-fit-cover-gives-pixelated-images-on-chrome
 
 /* 2025 officers images */
@@ -12,8 +12,8 @@ import _2025_abraham from "../officerPhotos/2025/abe.jpg";
 import _2025_george from "../officerPhotos/2025/george.jpg";
 import _2025_asmi from "../officerPhotos/2025/asmi.jpg";
 import _2025_izzy from "../officerPhotos/2025/izzy.jpg";
-import _2025_akshat from "../officerPhotos/2025/akshat.png";
-import _2025_preeti from "../officerPhotos/2025/preeti.png";
+import _2025_akshat from "../officerPhotos/2025/akshat.jpg";
+import _2025_preeti from "../officerPhotos/2025/preeti.jpg";
 import _2025_nhu from "../officerPhotos/2025/nhu.jpeg";
 import _2025_camilo from "../officerPhotos/2025/camilo.JPG";
 

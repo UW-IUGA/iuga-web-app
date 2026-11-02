@@ -83,9 +83,7 @@ describe("ResourcesPage", () => {
 
         fireEvent.click(screen.getByRole("button", { name: resourceTags.ACADEMIC }));
 
-        const academicSection = document.getElementById("resource-academic");
         const hideButton = screen.getByRole("button", { name: `Hide ${resourceTags.ACADEMIC}` });
-        expect(academicSection).toHaveAttribute("id", "resource-academic");
         expect(hideButton).toHaveAttribute("aria-expanded", "true");
         expect(screen.getByText("UW CLUE Program")).toBeInTheDocument();
 

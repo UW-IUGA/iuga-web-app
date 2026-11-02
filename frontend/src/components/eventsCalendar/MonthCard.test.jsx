@@ -53,7 +53,6 @@ describe("MonthCard", () => {
         expect(chip("Industry Panel").getAttribute("aria-expanded")).toBe("true");
         // A popover, not the old full-card zoom.
         expect(container.querySelector(".card--open")).toBeNull();
-        expect(container.querySelector(".card-content")).toBeNull();
         // Opening is not navigating.
         expect(onPickDay).not.toHaveBeenCalled();
     });

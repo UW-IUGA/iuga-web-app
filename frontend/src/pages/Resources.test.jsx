@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { MemoryRouter } from "react-router-dom";
 import ResourcesPage from "./Resources";
@@ -15,85 +15,126 @@ resources[resourceTags.ACADEMIC] = [
 ];
 resources[resourceTags.CAREER] = [
     {
-        rName: "iSchool Career Services",
+        rName: "iSchool Career Services (Canvas)",
         rDescription: "Career advising and job search support.",
         rLink: "https://ischool.uw.edu/career",
         rImage: null,
     },
 ];
+resources[resourceTags.COMMUNITY] = [
+    {
+        rName: "Example Student Club",
+        rDescription: "A club still writing its description.",
+        rLink: "",
+        rImage: null,
+    },
+];
+
+// Enough community resources to fill more than one 15-card page.
+const manyResources = {
+    ...resources,
+    [resourceTags.COMMUNITY]: Array.from({ length: 20 }, (_, index) => ({
+        rName: `Club ${String(index + 1).padStart(2, "0")}`,
+        rDescription: "A student club.",
+        rLink: "https://example.com",
+        rImage: null,
+    })),
+};
 
 beforeEach(() => {
     window.scrollTo = vi.fn();
+    Element.prototype.scrollIntoView = vi.fn();
 });
 
-function renderResourcesPage() {
+function renderResourcesPage(resourceList = resources, path = "/resources") {
     return render(
-        <MemoryRouter>
-            <ResourcesPage resources={resources} />
+        <MemoryRouter initialEntries={[path]}>
+            <ResourcesPage resources={resourceList} />
         </MemoryRouter>
     );
 }
 
+const resultCards = () => screen.queryAllByRole("article");
+
 describe("ResourcesPage", () => {
-    test("keeps categories compact until their accordion is opened", () => {
+    test("shows Start Here picks and every resource as a card", () => {
         renderResourcesPage();
 
-        expect(screen.getByRole("heading", { name: "Resources" })).toBeInTheDocument();
-        const academicCategory = screen.getByRole("button", { name: `Show ${resourceTags.ACADEMIC}` });
-        expect(academicCategory).toHaveAttribute("aria-expanded", "false");
-        expect(screen.queryByRole("link", { name: /Visit resource/ })).not.toBeInTheDocument();
+        const startHere = screen.getByRole("region", { name: "Start Here" });
+        expect(within(startHere).getByText("iSchool Career Services (Canvas)")).toBeInTheDocument();
 
-        fireEvent.click(academicCategory);
-        expect(screen.getByRole("button", { name: `Hide ${resourceTags.ACADEMIC}` })).toHaveAttribute("aria-expanded", "true");
-
-        const link = screen.getAllByRole("link", { name: /Visit resource/ })
-            .find((resourceLink) => resourceLink.getAttribute("href") === "https://academicsupport.uw.edu/clue/");
+        expect(resultCards()).toHaveLength(3);
+        expect(screen.getByText("3 resources")).toBeInTheDocument();
+        const link = screen.getByRole("link", { name: /More Info about UW CLUE Program/ });
         expect(link).toHaveAttribute("href", "https://academicsupport.uw.edu/clue/");
         expect(link).toHaveAttribute("target", "_blank");
     });
 
-    test("expands matching categories for category filters and keyword searches", () => {
+    test("tags each card and falls back to the description and a pending note", () => {
         renderResourcesPage();
 
-        fireEvent.click(screen.getByRole("button", { name: resourceTags.CAREER }));
-        expect(screen.getByRole("button", { name: `Hide ${resourceTags.CAREER}` })).toHaveAttribute("aria-expanded", "true");
-        expect(screen.queryByRole("button", { name: `Show ${resourceTags.ACADEMIC}` })).not.toBeInTheDocument();
-
-        fireEvent.change(screen.getByRole("searchbox", { name: "Search resources" }), {
-            target: { value: "advising" },
-        });
-        expect(screen.getByText("1 resource found")).toBeInTheDocument();
-        expect(screen.getByText("1 match")).toBeInTheDocument();
-        expect(screen.getByText("iSchool Career Services")).toBeInTheDocument();
+        const club = screen.getByRole("heading", { name: "Example Student Club" }).closest("article");
+        expect(within(club).getByText("RSO · Community")).toBeInTheDocument();
+        expect(within(club).getByText("A club still writing its description.")).toBeInTheDocument();
+        expect(within(club).getByText("Details coming soon")).toBeInTheDocument();
+        expect(within(club).queryByRole("link")).not.toBeInTheDocument();
     });
 
-    test("opens filtered to the category named in the link", () => {
-        render(
-            <MemoryRouter initialEntries={[`/resources?category=${resourceTags.ACADEMIC}`]}>
-                <ResourcesPage resources={resources} />
-            </MemoryRouter>
-        );
-
-        expect(screen.getByRole("button", { name: resourceTags.ACADEMIC })).toHaveAttribute("aria-pressed", "true");
-        expect(screen.queryByRole("button", { name: `Show ${resourceTags.CAREER}` })).not.toBeInTheDocument();
-    });
-
-    test("allows filtered categories to be collapsed and reopened", () => {
+    test("narrows results with tag filters and clears them", () => {
         renderResourcesPage();
 
-        fireEvent.click(screen.getByRole("button", { name: resourceTags.ACADEMIC }));
+        fireEvent.click(screen.getByRole("checkbox", { name: /^Career/ }));
+        expect(resultCards()).toHaveLength(1);
+        expect(screen.getByText("1 resource · Career")).toBeInTheDocument();
 
-        const academicSection = document.getElementById("resource-academic");
-        const hideButton = screen.getByRole("button", { name: `Hide ${resourceTags.ACADEMIC}` });
-        expect(academicSection).toHaveAttribute("id", "resource-academic");
-        expect(hideButton).toHaveAttribute("aria-expanded", "true");
-        expect(screen.getByText("UW CLUE Program")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "Clear filters" }));
+        expect(resultCards()).toHaveLength(3);
+    });
 
-        fireEvent.click(hideButton);
-        expect(screen.getByRole("button", { name: `Show ${resourceTags.ACADEMIC}` })).toHaveAttribute("aria-expanded", "false");
-        expect(screen.queryByText("UW CLUE Program")).not.toBeInTheDocument();
+    test("searches by keyword and highlights the match", () => {
+        renderResourcesPage();
 
-        fireEvent.click(screen.getByRole("button", { name: `Show ${resourceTags.ACADEMIC}` }));
-        expect(screen.getByText("UW CLUE Program")).toBeInTheDocument();
+        fireEvent.change(screen.getByRole("combobox", { name: "Search" }), { target: { value: "tutoring" } });
+
+        expect(resultCards()).toHaveLength(1);
+        const card = screen.getByRole("article");
+        expect(within(card).getByText("tutoring", { selector: "mark" })).toBeInTheDocument();
+    });
+
+    test("opens filtered to the category named in an older link", () => {
+        renderResourcesPage(resources, `/resources?category=${resourceTags.ACADEMIC}`);
+
+        expect(screen.getByRole("checkbox", { name: /^Academic/ })).toBeChecked();
+        expect(resultCards()).toHaveLength(1);
+    });
+
+    test("explains when a filter has no resources yet", () => {
+        renderResourcesPage();
+
+        fireEvent.click(screen.getByRole("checkbox", { name: /^SWE/ }));
+
+        expect(screen.getByRole("heading", { name: "No resources match those filters." })).toBeInTheDocument();
+    });
+
+    test("pages through resources 15 at a time", () => {
+        renderResourcesPage(manyResources);
+
+        expect(resultCards()).toHaveLength(15);
+        const pages = screen.getByRole("navigation", { name: "Resource pages" });
+        expect(pages).toHaveTextContent("Page 1 of 2");
+        expect(within(pages).getByRole("button", { name: /Previous/ })).toBeDisabled();
+
+        fireEvent.click(within(pages).getByRole("button", { name: /Next/ }));
+
+        expect(resultCards()).toHaveLength(7);
+        expect(pages).toHaveTextContent("Page 2 of 2");
+        expect(within(pages).getByRole("button", { name: /Next/ })).toBeDisabled();
+        expect(screen.getByRole("heading", { name: "All Resources" })).toHaveFocus();
+    });
+
+    test("hides the page controls when everything fits on one page", () => {
+        renderResourcesPage();
+
+        expect(screen.queryByRole("navigation", { name: "Resource pages" })).not.toBeInTheDocument();
     });
 });

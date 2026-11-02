@@ -1,6 +1,5 @@
 .resourceCard {
     display: flex;
-    min-height: 230px;
     gap: $margin-content;
     padding: 22px;
     transition: transform 150ms ease, box-shadow 150ms ease;
@@ -40,17 +39,44 @@
     flex-direction: column;
 
     h3 {
-        margin: 4px 0 8px;
+        margin: 6px 0 10px;
         color: black;
-        font-size: 1.2rem;
+        font-size: 1.35rem;
         line-height: 1.25;
     }
 
     >p:not(.resourceCardCategory) {
         margin: 0 0 20px;
         color: $color-dark-gray;
-        font-size: 0.92rem;
+        font-size: 1.05rem;
         line-height: 1.55;
+    }
+}
+
+.resourceHighlights {
+    display: grid;
+    gap: 6px;
+    margin: 0 0 20px;
+    padding: 0;
+    list-style: none;
+    color: $color-dark-gray;
+    font-size: 1.05rem;
+    line-height: 1.45;
+
+    li {
+        position: relative;
+        padding-left: 20px;
+
+        &::before {
+            position: absolute;
+            top: 0.55em;
+            left: 2px;
+            width: 7px;
+            height: 7px;
+            content: "";
+            border-radius: 50%;
+            background: $color-primary;
+        }
     }
 }
 
@@ -66,9 +92,13 @@
     font-weight: 700;
 }
 
+// Cards sit beside the filter sidebar on desktop, so the icon goes above the text to leave room for bullets.
+@include media("screen", ">=sm-desktop") {
+    .resourceCard { flex-direction: column; }
+}
+
 @include media("screen", "<tablet") {
     .resourceCard {
-        min-height: 0;
         padding: 18px;
     }
 

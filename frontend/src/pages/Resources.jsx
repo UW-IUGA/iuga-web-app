@@ -1,95 +1,45 @@
-import { useEffect, useMemo, useState } from "react";
-import { useLocation, useSearchParams } from "react-router-dom";
+/*
+ * Purpose: The Resources page: a Start Here band of prominent iSchool resources, then every resource beside a
+ *   filter sidebar.
+ * Expected Request: GET /resources, with `resources` grouped by category. Reads ?q=, ?tags=, ?sort=, and the
+ *   legacy ?category=.
+ * Expected Response: Searchable, tag-filtered resource cards, 15 to a page.
+ */
+import { useEffect, useMemo, useRef, useState } from "react";
 import ResourceCard from "../components/ResourceCard";
-import { resourceTags } from "../assets/data/Enum";
+import ResourcePagination from "../components/ResourcePagination";
+import ResourceSearchBox from "../components/ResourceSearchBox";
+import ResourceSort from "../components/ResourceSort";
+import { pickStartHere, tagGroups, tagResources } from "../assets/data/ResourceTagData";
+import usePagination from "../hooks/usePagination";
+import useResourceFilters from "../hooks/useResourceFilters";
 
-const ALL_RESOURCES = "All resources";
-const categories = Object.values(resourceTags);
+// Five rows of three cards.
+const PAGE_SIZE = 15;
 
-const categoryId = (category) =>
-    `resource-${category.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`;
+const resultLabel = (count) => `${count} ${count === 1 ? "resource" : "resources"}`;
 
 function ResourcesPage({ resources }) {
-    const { pathname } = useLocation();
-    const [searchParams, setSearchParams] = useSearchParams();
-    const requestedCategory = searchParams.get("category");
-    const initialCategory = categories.includes(requestedCategory) ? requestedCategory : ALL_RESOURCES;
-    const [searchTerm, setSearchTerm] = useState("");
-    const [selectedCategory, setSelectedCategory] = useState(initialCategory);
-    const [expandedCategories, setExpandedCategories] = useState(new Set());
-    const [collapsedFilteredCategories, setCollapsedFilteredCategories] = useState(new Set());
+    const taggedResources = useMemo(() => tagResources(resources), [resources]);
+    const startHere = useMemo(() => pickStartHere(taggedResources), [taggedResources]);
+    const filters = useResourceFilters(taggedResources);
+    const {
+        selectedTags, toggleTag, clearFilters, sortOrder, sortOptions, setSortOrder,
+        filteredResources, tagCounts, highlightPattern, isFiltering,
+    } = filters;
+    const [filtersOpen, setFiltersOpen] = useState(false);
+    const pagination = usePagination(filteredResources, PAGE_SIZE);
+    const resultsHeadingRef = useRef(null);
 
     useEffect(() => {
         window.scrollTo(0, 0);
-    }, [pathname]);
-    useEffect(() => {
-        setSelectedCategory(initialCategory);
-    }, [initialCategory]);
+    }, []);
 
-    const selectCategory = (category) => {
-        setSelectedCategory(category);
-        setSearchParams((currentParams) => {
-            const nextParams = new URLSearchParams(currentParams);
-            if (category === ALL_RESOURCES) {
-                nextParams.delete("category");
-            } else {
-                nextParams.set("category", category);
-            }
-            return nextParams;
-        }, { replace: true });
-    };
-
-    const visibleCategories = useMemo(() => {
-        const normalizedSearch = searchTerm.trim().toLowerCase();
-
-        return categories.reduce((filteredCategories, category) => {
-            if (selectedCategory !== ALL_RESOURCES && selectedCategory !== category) {
-                return filteredCategories;
-            }
-
-            const matchingResources = (resources[category] || []).filter((resource) => {
-                const searchableText = `${category} ${resource.rName} ${resource.rDescription}`.toLowerCase();
-                return searchableText.includes(normalizedSearch);
-            });
-
-            if (matchingResources.length > 0) {
-                filteredCategories.push({ category, items: matchingResources });
-            }
-
-            return filteredCategories;
-        }, []);
-    }, [resources, searchTerm, selectedCategory]);
-
-    const resultCount = visibleCategories.reduce((count, category) => count + category.items.length, 0);
-    const isFiltering = searchTerm.trim().length > 0 || selectedCategory !== ALL_RESOURCES;
-
-    useEffect(() => {
-        setCollapsedFilteredCategories(new Set());
-    }, [isFiltering]);
-
-    const toggleCategory = (category) => {
-        if (isFiltering) {
-            setCollapsedFilteredCategories((collapsed) => {
-                const nextCollapsed = new Set(collapsed);
-                if (nextCollapsed.has(category)) {
-                    nextCollapsed.delete(category);
-                } else {
-                    nextCollapsed.add(category);
-                }
-                return nextCollapsed;
-            });
-            return;
-        }
-
-        setExpandedCategories((expanded) => {
-            const nextExpanded = new Set(expanded);
-            if (nextExpanded.has(category)) {
-                nextExpanded.delete(category);
-            } else {
-                nextExpanded.add(category);
-            }
-            return nextExpanded;
-        });
+    // A new page starts at the top of the results, with focus there so screen readers follow along.
+    const goToPage = (page) => {
+        pagination.setPage(page);
+        resultsHeadingRef.current?.focus({ preventScroll: true });
+        resultsHeadingRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     };
 
     return (
@@ -107,86 +57,104 @@ function ResourcesPage({ resources }) {
                     </div>
                 </section>
 
-                <section className="resourcesDirectory" aria-label="Resource directory">
-                    <div className="resourcesControls editorial-card">
-                        <label className="resourcesSearch" htmlFor="resource-search">
-                            <span>Search resources</span>
-                            <input
-                                id="resource-search"
-                                type="search"
-                                placeholder="Try “tutoring,” “career,” or “community”"
-                                value={searchTerm}
-                                onChange={(event) => setSearchTerm(event.target.value)}
-                            />
-                        </label>
-                        <div className="resourceFilters" aria-label="Filter resources by category">
-                            {[ALL_RESOURCES, ...categories].map((category) => (
-                                <button
-                                    key={category}
-                                    className="pill-button"
-                                    type="button"
-                                    aria-pressed={selectedCategory === category}
-                                    onClick={() => selectCategory(category)}
-                                >
-                                    {category}
-                                </button>
-                            ))}
+                {startHere.length > 0 && (
+                    <section className="resourcesStartHere" aria-labelledby="resources-start-here">
+                        <div className="resourcesStartIntro">
+                            <p className="resourcesKicker">New to the iSchool?</p>
+                            <h2 id="resources-start-here">Start Here</h2>
+                            <p>A few of the iSchool's most prominent resources to begin with.</p>
                         </div>
-                    </div>
-
-                    <p className="resourceResultCount" aria-live="polite">
-                        {resultCount} {resultCount === 1 ? "resource" : "resources"} found
-                    </p>
-
-                    {visibleCategories.length > 0 ? (
-                        <div className="resourceCategoryList">
-                            {visibleCategories.map(({ category, items }) => (
-                                <section className="resourceCategory" id={categoryId(category)} key={category}>
-                                    <div className="resourceCategoryHeader">
-                                        <h2>
-                                            <button
-                                                type="button"
-                                                className="resourceCategoryToggle"
-                                                aria-expanded={isFiltering ? !collapsedFilteredCategories.has(category) : expandedCategories.has(category)}
-                                                aria-controls={`${categoryId(category)}-panel`}
-                                                aria-label={`${(isFiltering ? !collapsedFilteredCategories.has(category) : expandedCategories.has(category)) ? "Hide" : "Show"} ${category}`}
-                                                onClick={() => toggleCategory(category)}
-                                            >
-                                                <span>{category}</span>
-                                                <span className="resourceCategoryMeta">
-                                                    {isFiltering && (
-                                                        <span className="resourceCategoryCount">
-                                                            {items.length} {items.length === 1 ? "match" : "matches"}
-                                                        </span>
-                                                    )}
-                                                    <span className="resourceCategoryChevron" aria-hidden="true" />
-                                                </span>
-                                            </button>
-                                        </h2>
-                                    </div>
-                                    {(isFiltering ? !collapsedFilteredCategories.has(category) : expandedCategories.has(category)) && (
-                                        <div className="resourceGrid" id={`${categoryId(category)}-panel`}>
-                                            {items.map((resource) => (
-                                                <ResourceCard key={resource.rName} resource={resource} category={category} />
-                                            ))}
-                                        </div>
-                                    )}
-                                </section>
+                        <ul className="resourcesStartList">
+                            {startHere.map((resource) => (
+                                <li key={resource.rName}>
+                                    <a href={resource.rLink} target="_blank" rel="noreferrer">
+                                        <span className="resourceCardIcon"><img src={resource.rImage} alt="" /></span>
+                                        <span>
+                                            <strong>{resource.rName}</strong>
+                                            <span>{resource.note}</span>
+                                        </span>
+                                        <span className="sr-only"> (opens in a new tab)</span>
+                                    </a>
+                                </li>
                             ))}
-                        </div>
-                    ) : (
-                        <div className="resourcesEmptyState editorial-card">
-                            <h2>No resources match that search.</h2>
-                            <p>Try a broader term or return to all resources.</p>
-                            <button className="pill-button" type="button" onClick={() => {
-                                setSearchTerm("");
-                                setSelectedCategory(ALL_RESOURCES);
-                            }}>
-                                Show all resources
+                        </ul>
+                    </section>
+                )}
+
+                <div className="resourcesDirectory">
+                    <aside className="resourcesSidebar editorial-card" aria-label="Filters">
+                        <div className="resourcesSidebarHeader">
+                            <h2>Filters</h2>
+                            <button
+                                className="pill-button resourcesFiltersToggle"
+                                type="button"
+                                aria-expanded={filtersOpen}
+                                aria-controls="resource-filter-groups"
+                                onClick={() => setFiltersOpen((open) => !open)}
+                            >
+                                {filtersOpen ? "Hide" : "Show"}
+                                {selectedTags.length > 0 && ` (${selectedTags.length})`}
                             </button>
                         </div>
-                    )}
-                </section>
+                        <ResourceSearchBox
+                            id="resource-search"
+                            label="Search"
+                            showLabel
+                            placeholder="Name, keyword, or tag"
+                            filters={filters}
+                        />
+                        <div className={`resourcesFilterGroups${filtersOpen ? " is-open" : ""}`} id="resource-filter-groups">
+                            {tagGroups.map((group) => (
+                                <fieldset key={group.label}>
+                                    <legend>{group.label}</legend>
+                                    {group.tags.map((tag) => (
+                                        <label key={tag} className="resourcesFilterOption">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedTags.includes(tag)}
+                                                onChange={() => toggleTag(tag)}
+                                            />
+                                            <span>{tag}</span>
+                                            <span className="resourcesFilterCount">{tagCounts[tag]}</span>
+                                        </label>
+                                    ))}
+                                </fieldset>
+                            ))}
+                        </div>
+                        {isFiltering && (
+                            <button className="resourcesClearButton" type="button" onClick={clearFilters}>Clear filters</button>
+                        )}
+                    </aside>
+
+                    <section className="resourcesResults" aria-labelledby="resources-all">
+                        <div className="resourcesResultsHeader">
+                            <h2 id="resources-all" ref={resultsHeadingRef} tabIndex={-1}>All Resources</h2>
+                            <div className="resourceResultsMeta">
+                                <p className="resourcesResultCount" aria-live="polite">
+                                    {resultLabel(filteredResources.length)}
+                                    {selectedTags.length > 0 && ` · ${selectedTags.join(", ")}`}
+                                </p>
+                                <ResourceSort id="resource-sort" sortOrder={sortOrder} sortOptions={sortOptions} onChange={setSortOrder} />
+                            </div>
+                        </div>
+                        {filteredResources.length > 0 ? (
+                            <>
+                                <div className="resourceGrid">
+                                    {pagination.pageItems.map((resource) => (
+                                        <ResourceCard key={resource.rName} resource={resource} highlight={highlightPattern} />
+                                    ))}
+                                </div>
+                                <ResourcePagination page={pagination.page} pageCount={pagination.pageCount} onPageChange={goToPage} />
+                            </>
+                        ) : (
+                            <div className="resourcesEmptyState editorial-card">
+                                <h2>No resources match those filters.</h2>
+                                <p>Some interest tags have no resources yet. Try another tag or clear your filters.</p>
+                                <button className="pill-button" type="button" onClick={clearFilters}>Clear filters</button>
+                            </div>
+                        )}
+                    </section>
+                </div>
             </main>
         </div>
     );

@@ -2,6 +2,9 @@
     @extend %pageFrame;
     max-width: 1120px;
     margin-bottom: 96px;
+
+    // Browsers give buttons their own font (Arial); use the site's NotoSans like the links beside them.
+    button { font-family: inherit; }
 }
 
 .resourcesHero {
@@ -25,140 +28,252 @@
         max-width: 680px;
         margin: 0 auto;
         color: $color-dark-gray;
-        font-size: 1.05rem;
+        font-size: 1.15rem;
         line-height: 1.65;
     }
+}
+
+%resourcesLegend {
+    @extend %pageKicker;
+    margin-bottom: 6px;
+    padding: 0;
+    font-size: 0.85rem;
 }
 
 .resourcesKicker,
 .resourceCardCategory {
     @extend %pageKicker;
+    font-size: 0.85rem;
 }
 
-.resourcesDirectory {
-    padding-top: 10px;
+// Search-term highlight in names, tags, and bullets.
+.resourcesPage mark {
+    padding: 0 2px;
+    border-radius: 3px;
+    background: $color-academic-secondary;
+    color: inherit;
 }
 
-.resourcesControls {
+// Start Here band
+
+.resourcesStartHere {
     display: grid;
-    grid-template-columns: minmax(250px, 350px) 1fr;
-    gap: $grid-gap;
-    align-items: end;
-    padding: 24px;
-}
+    grid-template-columns: minmax(220px, 280px) 1fr;
+    gap: 32px;
+    align-items: center;
+    margin-bottom: 48px;
+    padding: 32px;
+    border-radius: $radius-card;
+    background: linear-gradient(135deg, $color-social-light 0%, $color-academic-light 55%, $color-career-light 100%);
 
-.resourcesSearch {
-    display: grid;
-    gap: 8px;
-    color: $color-uw-purple;
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-
-    input {
-        width: 100%;
-        padding: 11px 14px;
-        border: 1px solid rgba($color-uw-purple, 0.25);
-        border-radius: $radius-pill;
+    h2 {
+        margin: 6px 0 10px;
         color: black;
-        font: 0.95rem $sans-serif;
+        font-size: 2.6rem;
+    }
 
-        &:focus {
-            outline: 2px solid $color-primary;
-            outline-offset: 2px;
+    .resourcesStartIntro > p:last-child {
+        margin: 0;
+        color: $color-dark-gray;
+        font-size: 1.05rem;
+        line-height: 1.55;
+    }
+}
+
+.resourcesStartList {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    a {
+        display: flex;
+        height: 100%;
+        box-sizing: border-box;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 16px;
+        border: 1px solid rgba(white, 0.9);
+        border-radius: $radius-card-media;
+        background: rgba(white, 0.75);
+        color: black;
+        text-decoration: none;
+        transition: background-color 150ms ease, box-shadow 150ms ease;
+        @include focus-ring;
+
+        .resourceCardIcon {
+            width: 50px;
+            height: 50px;
+            flex-basis: 50px;
+        }
+
+        > span:nth-child(2) {
+            display: grid;
+            gap: 4px;
+            font-size: 0.98rem;
+            color: $color-dark-gray;
+            line-height: 1.4;
+        }
+
+        strong {
+            color: black;
+            font-size: 1.15rem;
+        }
+
+        &:hover {
+            background: white;
+            box-shadow: 0 8px 20px rgba($color-shadow, 0.12);
+
+            strong { color: $color-primary; }
         }
     }
 }
 
-.resourceFilters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+// Filter sidebar beside the results
+
+.resourcesDirectory {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    gap: 32px;
+    align-items: start;
 }
 
-.resourceResultCount {
-    margin: 24px 0 34px;
-    color: $color-dark-gray;
-    font-size: 0.9rem;
-    text-align: right;
-}
+.resourcesSidebar {
+    position: sticky;
+    top: 24px;
+    display: grid;
+    gap: 18px;
+    padding: 20px;
 
-.resourceCategory {
-    margin-bottom: 18px;
-    border-bottom: 2px solid black;
-}
-
-.resourceCategoryHeader {
-    h2 {
-        margin: 0;
+    fieldset {
+        margin: 0 0 12px;
+        padding: 0;
+        border: 0;
     }
+
+    legend { @extend %resourcesLegend; }
 }
 
-.resourcesPage .resourceCategoryHeader::after {
-    content: none;
-}
-
-.resourceCategoryToggle {
+.resourcesSidebarHeader {
     display: flex;
-    width: 100%;
     align-items: center;
     justify-content: space-between;
-    gap: 20px;
-    padding: 18px 0;
+
+    h2 {
+        margin: 0;
+        color: black;
+        font-size: 1.8rem;
+    }
+}
+
+.resourcesSidebarHeader .resourcesFiltersToggle {
+    display: none;
+}
+
+.resourcesFilterOption {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 8px;
+    border-radius: $radius;
     color: black;
-    font: 700 clamp(1.35rem, 2.5vw, 2rem) / 1.15 $serif;
-    text-align: left;
-    background: transparent;
-    border: 0;
+    font-size: 1.05rem;
     cursor: pointer;
 
-    &:hover>span:first-child {
-        color: $color-primary;
+    &:hover { background: $color-light-gray; }
+
+    input {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+        accent-color: $color-primary;
     }
 
-    &:focus-visible {
-        outline: 2px solid $color-primary;
-        outline-offset: 4px;
-    }
-
-    &[aria-expanded="true"] .resourceCategoryChevron {
-        transform: rotate(180deg);
-    }
+    > span:nth-child(2) { flex: 1; }
 }
 
-.resourceCategoryMeta {
-    display: flex;
-    flex: 0 0 auto;
-    align-items: center;
-    gap: 12px;
-}
-
-.resourceCategoryCount {
+.resourcesFilterCount {
+    min-width: 22px;
+    padding: 2px 6px;
+    border-radius: $radius-pill;
+    background: $color-gray;
     color: $color-dark-gray;
-    font: 700 0.78rem / 1 $sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+// A text-only button that opts out of the global filled button styles.
+.resourcesClearButton {
+    justify-self: start;
+    padding: 4px 2px;
+    border-radius: 0;
+    background: transparent;
+    color: $color-primary;
+    font-size: 1rem;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    @include focus-ring;
+
+    &:hover { color: $color-uw-purple; }
+    &::before { content: none; }
+}
+
+// Results
+
+.resourcesResultsHeader {
+    @include section-divider;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+
+    h2 {
+        margin: 0 0 6px;
+        color: black;
+        font-size: clamp(2.1rem, 3.5vw, 2.8rem);
+        // Paging lands here; keep it clear of the sticky site header.
+        scroll-margin-top: 96px;
+
+        &:focus { outline: none; }
+    }
+
+    p { margin: 0; }
+}
+
+.resourceResultsMeta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 20px;
+}
+
+.resourcesResultCount {
+    color: $color-dark-gray;
+    font: 700 0.9rem / 1 $sans-serif;
     letter-spacing: 0.06em;
     text-transform: uppercase;
 }
 
-.resourceCategoryChevron {
-    display: grid;
-    width: 28px;
-    height: 28px;
-    place-items: center;
-    color: $color-primary;
-    border: 1px solid rgba($color-uw-purple, 0.2);
-    border-radius: 50%;
-    transition: transform 180ms ease;
+.resourceSort {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: $color-dark-gray;
+    font-size: 0.95rem;
+    font-weight: 700;
 
-    &::before {
-        width: 8px;
-        height: 8px;
-        margin-top: -4px;
-        content: "";
-        border-right: 2px solid currentColor;
-        border-bottom: 2px solid currentColor;
-        transform: rotate(45deg);
+    select {
+        padding: 6px 30px 6px 14px;
+        border: 1px solid rgba($color-uw-purple, 0.25);
+        border-radius: $radius-pill;
+        background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23704AAC' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 12px center;
+        color: black;
+        font: 0.95rem $sans-serif;
+        appearance: none;
+        cursor: pointer;
+        @include focus-ring;
     }
 }
 
@@ -167,6 +282,21 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: $grid-gap;
     padding: 2px 0 28px;
+}
+
+.resourcePagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 1.1rem;
+
+    p { margin: 0; }
+
+    .pill-button:disabled {
+        opacity: 0.4;
+        background: white;
+    }
 }
 
 .resourcesEmptyState {
@@ -187,6 +317,37 @@
 
     p {
         color: $color-dark-gray;
+        font-size: 1.05rem;
+    }
+}
+
+// Three cards per row once the sidebar leaves room for them.
+@include media("screen", ">=desktop") {
+    .resourceGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@include media("screen", "<sm-desktop") {
+    .resourcesStartHere { grid-template-columns: 1fr; }
+
+    .resourcesDirectory { grid-template-columns: 1fr; }
+
+    .resourcesSidebar { position: static; }
+
+    .resourcesSidebarHeader .resourcesFiltersToggle {
+        display: inline-flex;
+        height: 36px;
+        padding: 6px 16px;
+        font-size: 0.85rem;
+    }
+
+    .resourcesFilterGroups {
+        display: none;
+
+        &.is-open {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0 16px;
+        }
     }
 }
 
@@ -200,26 +361,25 @@
         padding: 48px 0 32px;
     }
 
-    .resourcesControls {
-        grid-template-columns: 1fr;
-        padding: 18px;
-    }
+    .resourcesStartHere { padding: 22px 18px; }
 
-    .resourceResultCount {
-        text-align: left;
-    }
+    .resourcesStartList { grid-template-columns: 1fr; }
+
+    .resourcesFilterGroups.is-open { grid-template-columns: 1fr; }
 
     .resourceGrid {
         grid-template-columns: 1fr;
     }
 
-    .resourceCategoryToggle {
-        gap: 12px;
-        font-size: 1.35rem;
-    }
+    .resourcePagination {
+        flex-wrap: wrap;
+        justify-content: center;
+        text-align: center;
 
-    .resourceCategoryMeta {
-        gap: 8px;
-        font-size: 0.7rem;
+        // The page text gets its own line above the two buttons.
+        p {
+            flex-basis: 100%;
+            order: -1;
+        }
     }
 }

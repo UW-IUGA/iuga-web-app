@@ -1,0 +1,141 @@
+/*
+Purpose: Style the Resources search box: selected tags as chips inside the field and a suggestion list below it.
+Expected Request Information: Classes emitted by ResourceSearchBox.
+*/
+
+.resourceSearchBox {
+    position: relative;
+    display: grid;
+    gap: 8px;
+}
+
+.resourceSearchLabel {
+    color: $color-uw-purple;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.resourceSearchField {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    min-height: 48px;
+    box-sizing: border-box;
+    padding: 5px 8px 5px 10px;
+    border: 1px solid rgba($color-uw-purple, 0.25);
+    border-radius: 26px;
+    background: white;
+
+    &:focus-within {
+        outline: 2px solid $color-primary;
+        outline-offset: 2px;
+    }
+
+    input {
+        // width: 0 drops the input's built-in ~20-character width so the field fits narrow columns.
+        width: 0;
+        min-width: 140px;
+        flex: 1;
+        padding: 7px 6px;
+        border: 0;
+        background: transparent;
+        color: black;
+        font: 1.05rem $sans-serif;
+
+        &:focus { outline: none; }
+    }
+}
+
+.resourceSearchChip {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 4px 4px 12px;
+    border-radius: $radius-pill;
+    background: $color-lavender;
+    color: $color-uw-purple;
+    font-size: 0.9rem;
+    font-weight: 700;
+
+    button {
+        display: grid;
+        width: 24px;
+        height: 24px;
+        place-items: center;
+        padding: 0;
+        border-radius: 50%;
+        background: transparent;
+        color: $color-uw-purple;
+        font-size: 1.1rem;
+        line-height: 1;
+        @include focus-ring;
+
+        &::before { content: none; }
+        &:hover { background: white; }
+    }
+}
+
+.resourceSearchSuggestions {
+    position: absolute;
+    z-index: 6;
+    top: calc(100% + 6px);
+    left: 0;
+    width: max(100%, 320px);
+    max-width: calc(100vw - #{$padding-content * 2});
+    box-sizing: border-box;
+    margin: 0;
+    padding: 8px;
+    list-style: none;
+    border: 1px solid $color-border-lavender;
+    border-radius: $radius-card-media;
+    background: white;
+    box-shadow: 0 18px 40px rgba($color-shadow, 0.16);
+}
+
+.resourceSearchGroupLabel {
+    @extend %pageKicker;
+    margin: 0;
+    padding: 8px 10px 4px;
+    font-size: 0.85rem;
+}
+
+.resourceSearchOption {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 10px;
+    border-radius: $radius;
+    color: black;
+    font-size: 1rem;
+    cursor: pointer;
+
+    &:hover,
+    &[aria-selected="true"] { background: $color-lavender; }
+
+    .resourceCardIcon {
+        width: 30px;
+        height: 30px;
+        flex-basis: 30px;
+        font-size: 0.9rem;
+    }
+}
+
+.resourceSearchOptionTag {
+    padding: 3px 12px;
+    border-radius: $radius-pill;
+    background: $color-lavender;
+    color: $color-uw-purple;
+    font-weight: 700;
+
+    .resourceSearchOption:hover &,
+    .resourceSearchOption[aria-selected="true"] & { background: white; }
+}
+
+.resourceSearchOptionHint {
+    margin-left: auto;
+    color: $color-dark-gray;
+    font-size: 0.85rem;
+}

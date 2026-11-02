@@ -14,20 +14,13 @@ import express from "express";
 import mongoose from "mongoose";
 import { sendError } from "../helpers/sendError.js";
 import { sendSuccess } from "../helpers/sendSuccess.js";
-import { requireOfficerRolePermission } from "../utils/auth.js";
+import { isKnownPermission, requirePermission } from "../utils/auth.js";
 
 const router = express.Router();
 
 const ROLE_NAME_MAX_LENGTH = 80;
 const ROLE_KEY_MAX_LENGTH = 80;
 const ROLE_DESCRIPTION_MAX_LENGTH = 500;
-
-const knownPermissions = new Set([
-  "users.roles.manage",
-  "events.leadership.approve",
-  "events.finance.manage",
-  "events.purchases.complete",
-]);
 
 function escapeRegex(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -87,7 +80,7 @@ function validateRoleFields(fields, partial) {
     fields.permissions !== undefined &&
     (!Array.isArray(fields.permissions) ||
       fields.permissions.some(
-        (permission) => !knownPermissions.has(permission),
+        (permission) => !isKnownPermission(permission),
       ))
   ) {
     return "permissions contains an unknown permission";
@@ -109,7 +102,7 @@ function readRoleFields(body = {}, partial = false) {
 Purpose: List role definitions so authorized officers can manage the role catalog.
 Authentication/Authorization Requirements: users.roles.manage
 */
-router.get("/", requireOfficerRolePermission("users.roles.manage"), async (req, res) => {
+router.get("/", requirePermission("users.roles.manage"), async (req, res) => {
   try {
     const roles = await req.models.Roles.find().sort({ roleName: 1 }).lean();
     return sendSuccess(res, { roles });
@@ -123,7 +116,7 @@ router.get("/", requireOfficerRolePermission("users.roles.manage"), async (req, 
 Purpose: Create a role definition using only backend-approved permissions.
 Authentication/Authorization Requirements: users.roles.manage
 */
-router.post("/", requireOfficerRolePermission("users.roles.manage"), async (req, res) => {
+router.post("/", requirePermission("users.roles.manage"), async (req, res) => {
   const { fields, error } = readRoleFields(req.body);
   if (error) return sendError(res, 400, error);
 
@@ -147,7 +140,7 @@ Authentication/Authorization Requirements: users.roles.manage
 */
 router.patch(
   "/:id",
-  requireOfficerRolePermission("users.roles.manage"),
+  requirePermission("users.roles.manage"),
   async (req, res) => {
     if (!mongoose.isValidObjectId(req.params.id)) {
       return sendError(res, 400, "Invalid role ID");
@@ -179,7 +172,7 @@ Authentication/Authorization Requirements: users.roles.manage
 */
 router.get(
   "/users",
-  requireOfficerRolePermission("users.roles.manage"),
+  requirePermission("users.roles.manage"),
   async (req, res) => {
     const search =
       typeof req.query.search === "string" ? req.query.search.trim() : "";
@@ -212,7 +205,7 @@ Authentication/Authorization Requirements: users.roles.manage
 */
 router.get(
   "/users/:id/assignments",
-  requireOfficerRolePermission("users.roles.manage"),
+  requirePermission("users.roles.manage"),
   async (req, res) => {
     if (!mongoose.isValidObjectId(req.params.id)) {
       return sendError(res, 400, "Invalid user ID");
@@ -242,7 +235,7 @@ Authentication/Authorization Requirements: users.roles.manage
 */
 router.post(
   "/users/:id/assignments",
-  requireOfficerRolePermission("users.roles.manage"),
+  requirePermission("users.roles.manage"),
   async (req, res) => {
     if (!mongoose.isValidObjectId(req.params.id)) {
       return sendError(res, 400, "Invalid user ID");
@@ -338,7 +331,7 @@ Authentication/Authorization Requirements: users.roles.manage
 */
 router.delete(
   "/users/:id/assignments/:assignmentId",
-  requireOfficerRolePermission("users.roles.manage"),
+  requirePermission("users.roles.manage"),
   async (req, res) => {
     if (!mongoose.isValidObjectId(req.params.id)) {
       return sendError(res, 400, "Invalid user ID");

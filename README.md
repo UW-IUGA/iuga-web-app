@@ -21,9 +21,11 @@ See [Quickstart Guide](docs/QUICKSTART.md) for full setup instructions.
 | [Quickstart](docs/QUICKSTART.md) | Prerequisites, installation, env config, run, verify |
 | [Architecture](docs/ARCHITECTURE.md) | Project structure, stack decisions, data flow |
 | [Development](docs/DEVELOPMENT.md) | Setup, scripts, workflow, conventions |
+| [Scripts](docs/SCRIPTS.md) | Writing project scripts: where they go, safety rules, testing |
 | [Frontend](docs/FRONTEND.md) | Frontend structure, pages, components, styling, auth |
 | [Backend](docs/BACKEND.md) | Backend structure, API routes, controllers, models, database |
 | [Deployment](docs/DEPLOYMENT.md) | Environments, CI/CD, Docker |
+| [Pull Request Previews](docs/NETLIFY_PREVIEWS.md) | Netlify preview deploys from GitHub Actions |
 | [Maintainers](docs/MAINTAINERS.md) | Monitoring, maintenance, incident response |
 | [Troubleshooting](docs/TROUBLESHOOTING.md) | Diagnosis guide for pipeline and runtime failures |
 

@@ -7,6 +7,7 @@ Authentication/Authorization Requirements:
 - GET /catalog: None (public browsing, unauthenticated)
 - POST /checkout, GET /checkout/:sessionId: Logged in (authenticated session required)
 - /holds routes (manual Venmo checkout): Logged in; every route returns 503 unless manualCheckoutExposed is true
+- /purchases routes (officer order review): see shopReview.js; available whether or not checkout is exposed
 
 Expected Request Information:
 - GET /catalog: None
@@ -34,6 +35,7 @@ import {
 import { requireAuth } from "../utils/auth.js";
 import * as defaultCheckoutStore from "../utils/shopCheckoutStore.js";
 import { ShopHoldError } from "../utils/shopCheckoutStore.js";
+import { createShopReviewRouter } from "./shopReview.js";
 import { checkoutStatusAt, holdTotalCents, normalizePhoneNumber, normalizeVenmoUsername } from "../utils/shopHolds.js";
 
 const OBJECT_ID_PATTERN = /^[a-f0-9]{24}$/i;
@@ -83,6 +85,7 @@ function sendHoldFailure(res, error) {
  * @param options.stripeCheckoutExposed — when false (default), POST /checkout returns 503 before any Stripe call
  * @param options.manualCheckoutExposed — when false (default), every /holds route returns 503 before any database call
  * @param options.checkoutStore — checkout persistence functions (holds, limits, saved Venmo username); defaults to the MongoDB-backed store
+ * @param options.reviewStore — officer order review functions; defaults to the MongoDB-backed store
  * @returns Express router instance
  */
 export function createShopRouter({
@@ -93,8 +96,12 @@ export function createShopRouter({
   stripeCheckoutExposed = false,
   manualCheckoutExposed = false,
   checkoutStore = defaultCheckoutStore,
+  reviewStore,
 }) {
   const router = express.Router();
+
+  // Accepted orders stay reviewable when new checkout is paused or not exposed.
+  router.use(createShopReviewRouter({ reviewStore, now }));
 
   /*
   Purpose: Retrieve the public merchandise drop catalog and current sale window state.

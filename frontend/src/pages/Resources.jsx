@@ -6,6 +6,7 @@
  * Expected Response: Searchable, tag-filtered resource cards, 15 to a page.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
+import PageHeader from "../components/PageHeader";
 import ResourceCard from "../components/ResourceCard";
 import ResourcePagination from "../components/ResourcePagination";
 import ResourceSearchBox from "../components/ResourceSearchBox";
@@ -45,24 +46,18 @@ function ResourcesPage({ resources }) {
     return (
         <div className="baseContainer">
             <main className="resourcesPage">
-                <section className="resourcesHero" aria-labelledby="resources-title">
-                    <div className="resourcesHeroCopy">
-                        <p className="resourcesKicker">IUGA student guide</p>
-                        <h1 id="resources-title">Resources</h1>
-                        <p>
-                            IUGA is just one of many RSOs and groups affiliated with the iSchool that makes the iSchool everything it is.
-                            Explore the resources below to take full advantage of everything the iSchool offers its students! From academic and
-                            career resources to personal mental health, the iSchool community does its best to support its students in every area it can.
-                        </p>
-                    </div>
-                </section>
+                <PageHeader
+                    label="Resources"
+                    title="Find support at the iSchool and UW."
+                    intro="Academic, career, wellbeing, and community resources, plus student organizations. Each is run by its own group, not IUGA."
+                />
 
                 {startHere.length > 0 && (
                     <section className="resourcesStartHere" aria-labelledby="resources-start-here">
                         <div className="resourcesStartIntro">
                             <p className="resourcesKicker">New to the iSchool?</p>
                             <h2 id="resources-start-here">Start Here</h2>
-                            <p>A few of the iSchool's most prominent resources to begin with.</p>
+                            <p className="resourcesStartLead">A few of the iSchool's most prominent resources to begin with.</p>
                         </div>
                         <ul className="resourcesStartList">
                             {startHere.map((resource) => (
@@ -103,7 +98,10 @@ function ResourcesPage({ resources }) {
                             placeholder="Name, keyword, or tag"
                             filters={filters}
                         />
-                        <div className={`resourcesFilterGroups${filtersOpen ? " is-open" : ""}`} id="resource-filter-groups">
+                        <div
+                            className={`resourcesFilterGroups${filtersOpen ? " resourcesFilterGroups--open" : ""}`}
+                            id="resource-filter-groups"
+                        >
                             {tagGroups.map((group) => (
                                 <fieldset key={group.label}>
                                     <legend>{group.label}</legend>
@@ -114,7 +112,7 @@ function ResourcesPage({ resources }) {
                                                 checked={selectedTags.includes(tag)}
                                                 onChange={() => toggleTag(tag)}
                                             />
-                                            <span>{tag}</span>
+                                            <span className="resourcesFilterName">{tag}</span>
                                             <span className="resourcesFilterCount">{tagCounts[tag]}</span>
                                         </label>
                                     ))}
@@ -128,7 +126,9 @@ function ResourcesPage({ resources }) {
 
                     <section className="resourcesResults" aria-labelledby="resources-all">
                         <div className="resourcesResultsHeader">
-                            <h2 id="resources-all" ref={resultsHeadingRef} tabIndex={-1}>All Resources</h2>
+                            <h2 className="resourcesResultsTitle" id="resources-all" ref={resultsHeadingRef} tabIndex={-1}>
+                                All Resources
+                            </h2>
                             <div className="resourceResultsMeta">
                                 <p className="resourcesResultCount" aria-live="polite">
                                     {resultLabel(filteredResources.length)}

@@ -1,0 +1,60 @@
+@use "variables" as *;
+
+// Officer tools intentionally use their own neutral palette and system typography.
+$admin-page: #f6f8fa;
+$admin-surface: $color-white;
+$admin-hover: #f6f8fa;
+$admin-border: #e3e8ee;
+$admin-border-strong: #c9d1da;
+$admin-text: #1a1f36;
+$admin-muted: #5b6577;
+$admin-accent: #0a66d6;
+$admin-accent-hover: #0852ad;
+$admin-accent-soft: #e8f1fd;
+$admin-accent-tint: #f5f9ff;
+$admin-danger: #b42318;
+$admin-due: #9a3412;
+$admin-due-soft: #fff7ed;
+$admin-due-border: #fdba74;
+$admin-radius: 6px;
+$admin-shadow: 0 1px 2px rgba(26, 31, 54, 0.06);
+$admin-shadow-raised: 0 12px 32px rgba(26, 31, 54, 0.18);
+$admin-font:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    roboto,
+    "Helvetica Neue",
+    arial,
+    sans-serif;
+$admin-received: #15803d;
+
+// Shared frame aligns the admin bar with each page's main column.
+$admin-content-width: 1280px;
+$admin-gutter: $space-6;
+$admin-gutter-phone: $space-4;
+
+// Payment status badge tint and dot colors; follow-up is not a payment state.
+$admin-badges: (
+    pending: (
+        #fef3c7,
+        #d97706,
+    ),
+    paid: (
+        #dcfce7,
+        #16a34a,
+    ),
+    not_paid: (
+        #f1f5f9,
+        #64748b,
+    ),
+    refunded: (
+        #f1f5f9,
+        #94a3b8,
+    ),
+);
+
+@mixin admin-focus {
+    outline: 2px solid $admin-accent;
+    outline-offset: 2px;
+}

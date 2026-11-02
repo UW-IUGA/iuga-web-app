@@ -3,6 +3,7 @@ import { groupType } from "../assets/data/Enum";
 import { team_2026 } from "../assets/data/teams/2026";
 import EmailContactDialog from "../components/EmailContactDialog";
 import StudentProfileCard from "../components/StudentProfileCard";
+import PageHeader from "../components/PageHeader";
 
 const committeeLeaders = team_2026[groupType.OFFICERS];
 const getCommitteeLeader = (name) => committeeLeaders.find((leader) => leader.name === name);
@@ -10,13 +11,11 @@ const fallbackContactEmail = "iuga@uw.edu";
 const committeeLeaderEmails = {
     "Yonie Rivera": "yirivera@uw.edu",
     "Ellie Marsh": "emarsh27@uw.edu",
-    "Nitya Shankar": "nityas29@uw.edu",
 };
 
 const leaderProfiles = [
     { profile: getCommitteeLeader("Ellie Marsh"), isFeatured: true },
     { profile: getCommitteeLeader("Yonie Rivera") },
-    { profile: getCommitteeLeader("Nitya Shankar") },
 ];
 
 const getContactDraft = (committee) => {
@@ -45,11 +44,6 @@ const committees = [
         leader: getCommitteeLeader("Ellie Marsh"),
         description:
             "Creates event branding, social posts, posters, and flyers for IUGA, and designs merchandise for Informatics undergraduate students.",
-    },
-    {
-        name: "Diversity Committee",
-        leader: getCommitteeLeader("Nitya Shankar"),
-        description: "Leads events and projects with student groups supporting diversity at the iSchool.",
     },
 ];
 
@@ -129,25 +123,23 @@ function GetInvolvedPage() {
     return (
         <div className="baseContainer">
             <main className="getInvolved">
-                <header className="getInvolved__hero">
-                    <div className="getInvolved__intro">
-                        <p className="getInvolved__introLabel">Get involved</p>
-                        <h1 className="getInvolved__title">Make your mark at IUGA</h1>
-                        <p className="getInvolved__introDescription">
-                            Join a student-led committee and help shape what happens in the Informatics community.
-                        </p>
-                    </div>
-                    <div className="getInvolved__leaderProfileGrid" role="group" aria-label="Committee lead profiles">
-                        {leaderProfiles.map(({ profile, isFeatured }) => (
-                            <div
-                                className={`getInvolved__leaderProfile${isFeatured ? " getInvolved__leaderProfile--featured" : ""}`}
-                                key={profile.name}
-                            >
-                                <StudentProfileCard profile={profile} />
-                            </div>
-                        ))}
-                    </div>
-                </header>
+                <PageHeader
+                    label="Get involved"
+                    title="Make your mark at IUGA."
+                    intro="Join a student-led committee and help shape what happens in the Informatics community."
+                    visual={
+                        <div className="getInvolved__leaderProfileGrid" role="group" aria-label="Committee lead profiles">
+                            {leaderProfiles.map(({ profile, isFeatured }) => (
+                                <div
+                                    className={`getInvolved__leaderProfile${isFeatured ? " getInvolved__leaderProfile--featured" : ""}`}
+                                    key={profile.name}
+                                >
+                                    <StudentProfileCard profile={profile} />
+                                </div>
+                            ))}
+                        </div>
+                    }
+                />
 
                 <section className="getInvolved__committees" aria-labelledby="getInvolved-committees-heading">
                     <div className="getInvolved__header">

@@ -57,9 +57,10 @@ function renderResourcesPage(resourceList = resources, path = "/resources") {
 const resultCards = () => screen.queryAllByRole("article");
 
 describe("ResourcesPage", () => {
-    test("shows Start Here picks and every resource as a card", () => {
+    test("shows the page header, Start Here picks, and every resource as a card", () => {
         renderResourcesPage();
 
+        expect(screen.getByRole("heading", { level: 1, name: "Find support at the iSchool and UW." })).toBeInTheDocument();
         const startHere = screen.getByRole("region", { name: "Start Here" });
         expect(within(startHere).getByText("iSchool Career Services (Canvas)")).toBeInTheDocument();
 

@@ -1,7 +1,8 @@
 /*
  * Purpose: Public merchandise storefront. Renders the catalog grid and hero from the
  *          site-wide shop cart; cart state, drawer, and checkout live in ShopCartContext
- *          so the cart is available on every page.
+ *          so the cart is available on every page. Without a catalog, the static products
+ *          render as a read-only preview.
  * Authentication/Authorization Requirements: Browsing the catalog and building a cart are public.
  *          Checkout requires an authenticated session via useAuthContext().signIn() before dispatching to Stripe.
  * Expected Request Information: Catalog and cart state from useShopCart().
@@ -31,8 +32,9 @@ function ShopHeroCarousel() {
         return () => window.clearInterval(interval);
     }, []);
 
+    // The mockups are drawn on white, so the frame keeps the light palette in the dark theme too.
     return (
-        <div className="shopPage__heroVisual">
+        <div className="shopPage__heroVisual" data-theme="light">
             {outgoingIndex !== null && (
                 <div className="shopPage__heroSlide shopPage__heroSlide--outgoing" aria-hidden="true">
                     <img src={shopProducts[outgoingIndex].image} alt="" decoding="async" />
@@ -45,6 +47,41 @@ function ShopHeroCarousel() {
                 <span className="shopPage__heroCaption">{shopProducts[currentIndex].name}</span>
             </div>
         </div>
+    );
+}
+
+// Shared card markup for the live catalog and the read-only preview. Callers pass the
+// price text and the controls that sit under the material.
+function ShopCard({ name, image, material, price, children }) {
+    return (
+        <article className="shopCard">
+            {image && (
+                <div className="shopCard__imageWrap">
+                    <img
+                        src={image}
+                        alt={`${name} product mockup`}
+                        loading="lazy"
+                        decoding="async"
+                    />
+                </div>
+            )}
+            <div className="shopCard__details">
+                <div className="shopCard__info">
+                    <h3>{name}</h3>
+                    <p className="shopCard__price">{price}</p>
+                </div>
+
+                <div className="shopCard__controls">
+                    {material && (
+                        <div className="shopCard__controlGroup">
+                            <span className="shopCard__label">Material</span>
+                            <p className="shopCard__material">{material}</p>
+                        </div>
+                    )}
+                    {children}
+                </div>
+            </div>
+        </article>
     );
 }
 
@@ -68,6 +105,7 @@ function ShopPage() {
 
     const [selectedSizes, setSelectedSizes] = useState({});
     const [awaitingSizeSku, setAwaitingSizeSku] = useState(null);
+    const catalogUnavailable = Boolean(error) && !catalog;
 
     const productBySku = useMemo(() => {
         const map = new Map();
@@ -102,6 +140,18 @@ function ShopPage() {
         <>
             <div className="baseContainer">
                 <main className="shopPage">
+                {catalogUnavailable && (
+                    <div className="shopPage__catalogNotice">
+                        <p role="status">Ordering is unavailable right now. Products are shown as a preview.</p>
+                        <button
+                            type="button"
+                            className="shopPage__reload"
+                            onClick={() => retryCatalog()}
+                        >
+                            Reload
+                        </button>
+                    </div>
+                )}
                 <section className="shopPage__hero" aria-labelledby="shop-title">
                     <div className="shopPage__heroTop">
                         <span>Informatics Merch</span>
@@ -109,7 +159,12 @@ function ShopPage() {
                     </div>
                     <div className="shopPage__heroContent">
                         <div className="shopPage__heroIntro">
-                            <h1 id="shop-title">The Informatics <span>Fall Collection.</span></h1>
+                            <h1 id="shop-title">
+                                <span>The</span>{" "}
+                                <span>Informatics</span>{" "}
+                                <span>Fall</span>{" "}
+                                <span>Collection.</span>
+                            </h1>
                             <div className="shopPage__saleInfo" role="status">
                                 {catalog && catalog.saleState !== "open" && (
                                     <span>
@@ -152,121 +207,102 @@ function ShopPage() {
                     </div>
                 )}
 
-                {error && !catalog && (
-                    <div className="shopPage__error" role="status">
-                        <p>{error}</p>
-                        <button
-                            type="button"
-                            className="pill-button"
-                            onClick={() => retryCatalog()}
-                        >
-                            Try again
-                        </button>
-                    </div>
-                )}
-
-                {catalog && (
-                    <>
-                        <section className="shopPage__collection" aria-labelledby="collection-title">
-                            <div className="shopPage__collectionHeader">
-                                <h2 id="collection-title">The Fall Collection</h2>
+                {(catalog || catalogUnavailable) && (
+                    <section className="shopPage__collection" aria-labelledby="collection-title">
+                        <div className="shopPage__collectionHeader">
+                            <h2 id="collection-title">The Fall Collection</h2>
+                            {catalog && (
                                 <div className="shopPage__collectionCount">
                                     <p>{catalog.items.length} {catalog.items.length === 1 ? "item" : "items"}</p>
                                 </div>
-                            </div>
+                            )}
+                        </div>
 
-                            <div className="shopPage__grid">
-                                {catalog.items.map((item) => {
-                                    const product = productBySku.get(item.sku);
-                                    const formattedPrice = formatCents(item.unitPriceCents);
-                                    // The catalog crosses the network, so one item missing its
-                                    // sizes must not blank the whole storefront.
-                                    const sizes = Array.isArray(item.sizes) ? item.sizes : [];
-                                    const oneSize = sizes.length === 1 && sizes[0] === "One Size";
-                                    const selectedSize = oneSize ? "One Size" : selectedSizes[item.sku] || cart.find((line) => line.sku === item.sku)?.size;
-                                    const selectedQuantity = selectedSize ? getSizeQuantity(item.sku, selectedSize) : 0;
-                                    // The limit counts units across sizes, so one size in the bag can block the others too.
-                                    const atLimit = isSkuAtLimit(cart, item.sku, limitForSku(catalog, item.sku));
+                        <div className="shopPage__grid">
+                            {catalog && catalog.items.map((item) => {
+                                const product = productBySku.get(item.sku);
+                                const formattedPrice = formatCents(item.unitPriceCents);
+                                // The catalog crosses the network, so one item missing its
+                                // sizes must not blank the whole storefront.
+                                const sizes = Array.isArray(item.sizes) ? item.sizes : [];
+                                const oneSize = sizes.length === 1 && sizes[0] === "One Size";
+                                const selectedSize = oneSize ? "One Size" : selectedSizes[item.sku] || cart.find((line) => line.sku === item.sku)?.size;
+                                const selectedQuantity = selectedSize ? getSizeQuantity(item.sku, selectedSize) : 0;
+                                // The limit counts units across sizes, so one size in the bag can block the others too.
+                                const atLimit = isSkuAtLimit(cart, item.sku, limitForSku(catalog, item.sku));
 
-                                    return (
-                                        <article className="shopCard" key={item.sku}>
-                                            {product?.image && (
-                                                <div className="shopCard__imageWrap">
-                                                    <img
-                                                        src={product.image}
-                                                        alt={`${item.name} product mockup`}
-                                                        loading="lazy"
-                                                        decoding="async"
-                                                    />
-                                                </div>
-                                            )}
-                                            <div className="shopCard__details">
-                                                <div className="shopCard__info">
-                                                    <h3>{item.name}</h3>
-                                                    <p className="shopCard__price">{formattedPrice}</p>
-                                                </div>
-
-                                                <div className="shopCard__controls">
-                                                    {product?.material && (
-                                                        <div className="shopCard__controlGroup">
-                                                            <span className="shopCard__label">Material</span>
-                                                            <p className="shopCard__material">{product.material}</p>
-                                                        </div>
-                                                    )}
-                                                    {!oneSize && (
-                                                        <div className="shopCard__controlGroup">
-                                                            <span className="shopCard__label" id={`sizes-${item.sku}`}>Choose size</span>
-                                                            <div className="shopCard__sizeOptions" role="group" aria-labelledby={`sizes-${item.sku}`}>
-                                                                {sizes.map((size) => {
-                                                                    const quantity = getSizeQuantity(item.sku, size);
-                                                                    return (
-                                                                        <button
-                                                                            key={size}
-                                                                            type="button"
-                                                                            className={`shopCard__sizePill ${selectedSize === size ? "is-selected" : ""} ${quantity ? "is-in-cart" : ""}`}
-                                                                            aria-pressed={selectedSize === size}
-                                                                            aria-label={`${size}${quantity ? `, ${quantity} in cart` : ""}`}
-                                                                            onClick={() => {
-                                                                                setSelectedSizes((previous) => ({ ...previous, [item.sku]: size }));
-                                                                                setAwaitingSizeSku(null);
-                                                                            }}
-                                                                        >
-                                                                            {size}
-                                                                        </button>
-                                                                    );
-                                                                })}
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                    {awaitingSizeSku === item.sku && (
-                                                        <p className="shopCard__sizePrompt" role="alert">Choose a size before adding to cart.</p>
-                                                    )}
-                                                    {selectedQuantity > 0 ? (
-                                                        <div className="shopCard__cartPill">
-                                                            <QuantityInput
-                                                                label={`${item.name}${oneSize ? "" : ` ${selectedSize}`}`}
-                                                                quantity={selectedQuantity}
-                                                                removeAtOne
-                                                                canIncrease={!atLimit}
-                                                                onDecrease={() => setItemQuantity(item.sku, selectedSize, selectedQuantity - 1)}
-                                                                onIncrease={() => setItemQuantity(item.sku, selectedSize, selectedQuantity + 1)}
-                                                                onQuantityChange={(value) => setItemQuantity(item.sku, selectedSize, value)}
-                                                            />
-                                                        </div>
-                                                    ) : (
-                                                        <button type="button" className="shopCard__addToCart" disabled={atLimit} onClick={() => handleAddToCart(item, selectedSize)}>
-                                                            Add to cart
-                                                        </button>
-                                                    )}
+                                return (
+                                    <ShopCard
+                                        key={item.sku}
+                                        name={item.name}
+                                        image={product?.image}
+                                        material={product?.material}
+                                        price={formattedPrice}
+                                    >
+                                        {!oneSize && (
+                                            <div className="shopCard__controlGroup">
+                                                <span className="shopCard__label" id={`sizes-${item.sku}`}>Choose size</span>
+                                                <div className="shopCard__sizeOptions" role="group" aria-labelledby={`sizes-${item.sku}`}>
+                                                    {sizes.map((size) => {
+                                                        const quantity = getSizeQuantity(item.sku, size);
+                                                        return (
+                                                            <button
+                                                                key={size}
+                                                                type="button"
+                                                                className={`shopCard__sizePill ${selectedSize === size ? "is-selected" : ""} ${quantity ? "is-in-cart" : ""}`}
+                                                                aria-pressed={selectedSize === size}
+                                                                aria-label={`${size}${quantity ? `, ${quantity} in cart` : ""}`}
+                                                                onClick={() => {
+                                                                    setSelectedSizes((previous) => ({ ...previous, [item.sku]: size }));
+                                                                    setAwaitingSizeSku(null);
+                                                                }}
+                                                            >
+                                                                {size}
+                                                            </button>
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
-                                        </article>
-                                    );
-                                })}
-                            </div>
-                        </section>
+                                        )}
+                                        {awaitingSizeSku === item.sku && (
+                                            <p className="shopCard__sizePrompt" role="alert">Choose a size before adding to cart.</p>
+                                        )}
+                                        {selectedQuantity > 0 ? (
+                                            <div className="shopCard__cartPill">
+                                                <QuantityInput
+                                                    label={`${item.name}${oneSize ? "" : ` ${selectedSize}`}`}
+                                                    quantity={selectedQuantity}
+                                                    removeAtOne
+                                                    canIncrease={!atLimit}
+                                                    onDecrease={() => setItemQuantity(item.sku, selectedSize, selectedQuantity - 1)}
+                                                    onIncrease={() => setItemQuantity(item.sku, selectedSize, selectedQuantity + 1)}
+                                                    onQuantityChange={(value) => setItemQuantity(item.sku, selectedSize, value)}
+                                                />
+                                            </div>
+                                        ) : (
+                                            <button type="button" className="shopCard__addToCart" disabled={atLimit} onClick={() => handleAddToCart(item, selectedSize)}>
+                                                Add to cart
+                                            </button>
+                                        )}
+                                    </ShopCard>
+                                );
+                            })}
 
-                    </>
+                            {catalogUnavailable && shopProducts.map((product) => (
+                                <ShopCard
+                                    key={product.sku}
+                                    name={product.name}
+                                    image={product.image}
+                                    material={product.material}
+                                    price="Price unavailable"
+                                >
+                                    <button type="button" className="shopCard__addToCart" disabled>
+                                        Add to cart
+                                    </button>
+                                </ShopCard>
+                            ))}
+                        </div>
+                    </section>
                 )}
                 </main>
             </div>

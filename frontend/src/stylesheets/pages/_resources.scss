@@ -1,35 +1,21 @@
+@use "../abstracts" as *;
+@use "../base/misc";
+
 .resourcesPage {
     @extend %pageFrame;
-    max-width: 1120px;
-    margin-bottom: 96px;
+    margin-bottom: $space-24;
 
-    // Browsers give buttons their own font (Arial); use the site's NotoSans like the links beside them.
-    button { font-family: inherit; }
-}
-
-.resourcesHero {
-    padding: 72px 0 44px;
-    text-align: center;
-}
-
-.resourcesHeroCopy {
-    max-width: 760px;
-    margin: 0 auto;
-
-    h1 {
-        margin: 8px 0 18px;
-        color: black;
-        font-size: clamp(3rem, 6vw, 4.6rem);
-        line-height: 1;
-        text-transform: uppercase;
+    // Browsers give buttons their own font; use the site's like the links beside them.
+    button {
+        font-family: inherit;
     }
 
-    >p:last-child {
-        max-width: 680px;
-        margin: 0 auto;
-        color: $color-dark-gray;
-        font-size: 1.15rem;
-        line-height: 1.65;
+    // Search-term highlight in names, tags, and bullets.
+    mark {
+        padding: 0 2px;
+        border-radius: 3px;
+        background: theme(academic-secondary);
+        color: inherit;
     }
 }
 
@@ -37,21 +23,11 @@
     @extend %pageKicker;
     margin-bottom: 6px;
     padding: 0;
-    font-size: 0.85rem;
 }
 
 .resourcesKicker,
 .resourceCardCategory {
     @extend %pageKicker;
-    font-size: 0.85rem;
-}
-
-// Search-term highlight in names, tags, and bullets.
-.resourcesPage mark {
-    padding: 0 2px;
-    border-radius: 3px;
-    background: $color-academic-secondary;
-    color: inherit;
 }
 
 // Start Here band
@@ -59,31 +35,34 @@
 .resourcesStartHere {
     display: grid;
     grid-template-columns: minmax(220px, 280px) 1fr;
-    gap: 32px;
+    gap: $space-8;
     align-items: center;
-    margin-bottom: 48px;
-    padding: 32px;
+    margin-bottom: $space-12;
+    padding: $space-8;
     border-radius: $radius-card;
-    background: linear-gradient(135deg, $color-social-light 0%, $color-academic-light 55%, $color-career-light 100%);
+    background: linear-gradient(
+        135deg,
+        theme(social-light) 0%,
+        theme(academic-light) 55%,
+        theme(career-secondary) 100%
+    );
 
     h2 {
         margin: 6px 0 10px;
-        color: black;
-        font-size: 2.6rem;
     }
+}
 
-    .resourcesStartIntro > p:last-child {
-        margin: 0;
-        color: $color-dark-gray;
-        font-size: 1.05rem;
-        line-height: 1.55;
-    }
+.resourcesStartLead {
+    margin: 0;
+    color: theme(text-muted);
+    font-size: $font-size-body;
+    line-height: 1.55;
 }
 
 .resourcesStartList {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    gap: $space-3;
     margin: 0;
     padding: 0;
     list-style: none;
@@ -94,13 +73,15 @@
         box-sizing: border-box;
         align-items: center;
         gap: 14px;
-        padding: 14px 16px;
-        border: 1px solid rgba(white, 0.9);
+        padding: 14px $space-4;
+        border: 1px solid theme-alpha(page, 0.78);
         border-radius: $radius-card-media;
-        background: rgba(white, 0.75);
-        color: black;
+        background: theme-alpha(page, 0.78);
+        color: theme(text);
         text-decoration: none;
-        transition: background-color 150ms ease, box-shadow 150ms ease;
+        transition:
+            background-color 150ms ease,
+            box-shadow 150ms ease;
         @include focus-ring;
 
         .resourceCardIcon {
@@ -111,22 +92,24 @@
 
         > span:nth-child(2) {
             display: grid;
-            gap: 4px;
-            font-size: 0.98rem;
-            color: $color-dark-gray;
+            gap: $space-1;
+            color: theme(text-muted);
+            font-size: $font-size-small;
             line-height: 1.4;
         }
 
         strong {
-            color: black;
-            font-size: 1.15rem;
+            color: theme(text);
+            font-size: $font-size-body;
         }
 
         &:hover {
-            background: white;
-            box-shadow: 0 8px 20px rgba($color-shadow, 0.12);
+            background: theme(surface);
+            box-shadow: 0 8px 20px theme-alpha(shadow, 0.12);
 
-            strong { color: $color-primary; }
+            strong {
+                color: theme(accent);
+            }
         }
     }
 }
@@ -136,24 +119,30 @@
 .resourcesDirectory {
     display: grid;
     grid-template-columns: 280px minmax(0, 1fr);
-    gap: 32px;
+    gap: $space-8;
     align-items: start;
 }
 
+// Stays in view below the sticky navbar; a sidebar taller than the window scrolls on its own.
 .resourcesSidebar {
     position: sticky;
-    top: 24px;
+    top: $space-24;
     display: grid;
+    max-height: calc(100vh - #{$space-24 + $space-6});
+    box-sizing: border-box;
     gap: 18px;
-    padding: 20px;
+    overflow-y: auto;
+    padding: $space-5;
 
     fieldset {
-        margin: 0 0 12px;
+        margin: 0 0 $space-3;
         padding: 0;
         border: 0;
     }
 
-    legend { @extend %resourcesLegend; }
+    legend {
+        @extend %resourcesLegend;
+    }
 }
 
 .resourcesSidebarHeader {
@@ -163,8 +152,7 @@
 
     h2 {
         margin: 0;
-        color: black;
-        font-size: 1.8rem;
+        font-size: $font-size-subheading;
     }
 }
 
@@ -176,69 +164,76 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 7px 8px;
+    padding: 7px $space-2;
     border-radius: $radius;
-    color: black;
-    font-size: 1.05rem;
+    color: theme(text);
+    font-size: $font-size-body;
     cursor: pointer;
 
-    &:hover { background: $color-light-gray; }
+    &:hover {
+        background: theme(surface-light-gray);
+    }
 
     input {
         width: 18px;
         height: 18px;
         margin: 0;
-        accent-color: $color-primary;
+        accent-color: theme(accent);
     }
+}
 
-    > span:nth-child(2) { flex: 1; }
+.resourcesFilterName {
+    flex: 1;
 }
 
 .resourcesFilterCount {
     min-width: 22px;
     padding: 2px 6px;
     border-radius: $radius-pill;
-    background: $color-gray;
-    color: $color-dark-gray;
-    font-size: 0.82rem;
-    font-weight: 700;
+    background: theme(surface-gray);
+    color: theme(text-muted);
+    font-size: $font-size-label;
+    font-weight: $font-weight-medium;
     text-align: center;
 }
 
-// A text-only button that opts out of the global filled button styles.
+// A text-only button that opts out of the site-wide filled button styles.
 .resourcesClearButton {
     justify-self: start;
-    padding: 4px 2px;
+    padding: $space-1 2px;
     border-radius: 0;
     background: transparent;
-    color: $color-primary;
-    font-size: 1rem;
+    color: theme(accent);
+    font-size: $font-size-body;
     text-decoration: underline;
     text-underline-offset: 0.2em;
     @include focus-ring;
 
-    &:hover { color: $color-uw-purple; }
-    &::before { content: none; }
+    &:hover {
+        color: theme(heading);
+    }
+
+    &::before {
+        content: none;
+    }
 }
 
 // Results
 
 .resourcesResultsHeader {
     @include section-divider;
-    margin-bottom: 24px;
-    padding-bottom: 12px;
+    margin-bottom: $space-6;
+    padding-bottom: $space-3;
+}
 
-    h2 {
-        margin: 0 0 6px;
-        color: black;
-        font-size: clamp(2.1rem, 3.5vw, 2.8rem);
-        // Paging lands here; keep it clear of the sticky site header.
-        scroll-margin-top: 96px;
+.resourcesResultsTitle {
+    margin: 0 0 6px;
+    // Paging lands here; keep it clear of the sticky navbar.
+    scroll-margin-top: $space-24;
 
-        &:focus { outline: none; }
+    &:focus {
+        outline: none;
     }
-
-    p { margin: 0; }
 }
 
 .resourceResultsMeta {
@@ -246,34 +241,56 @@
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 8px 20px;
+    gap: $space-2 $space-5;
 }
 
 .resourcesResultCount {
-    color: $color-dark-gray;
-    font: 700 0.9rem / 1 $sans-serif;
-    letter-spacing: 0.06em;
+    margin: 0;
+    color: theme(text-muted);
+    font: $font-weight-medium #{$font-size-label}/ 1 $font-family-base;
+    letter-spacing: $letter-spacing-label;
     text-transform: uppercase;
 }
 
+// The chevron is drawn on the label, which ends at the select's right edge.
 .resourceSort {
+    position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    color: $color-dark-gray;
-    font-size: 0.95rem;
-    font-weight: 700;
+    gap: $space-2;
+    color: theme(text-muted);
+    font-size: $font-size-small;
+    font-weight: $font-weight-medium;
+
+    &::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        right: 14px;
+        width: 6px;
+        height: 6px;
+        border-right: 2px solid theme(accent);
+        border-bottom: 2px solid theme(accent);
+        transform: translateY(-70%) rotate(45deg);
+        pointer-events: none;
+    }
 
     select {
-        padding: 6px 30px 6px 14px;
-        border: 1px solid rgba($color-uw-purple, 0.25);
+        padding: 6px 34px 6px 14px;
+        border: 1px solid theme-alpha(brand, 0.25);
         border-radius: $radius-pill;
-        background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23704AAC' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 12px center;
-        color: black;
-        font: 0.95rem $sans-serif;
+        background: theme(surface);
+        color: theme(text);
+        // 16px or more, so iOS does not zoom the page when the select is focused.
+        font: #{$font-size-body} $font-family-base;
         appearance: none;
         cursor: pointer;
         @include focus-ring;
+
+        option {
+            background: theme(surface);
+            color: theme(text);
+        }
     }
 }
 
@@ -281,29 +298,32 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: $grid-gap;
-    padding: 2px 0 28px;
+    padding: 2px 0 $space-7;
 }
 
 .resourcePagination {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    font-size: 1.1rem;
+    gap: $space-3;
+    font-size: $font-size-body;
 
-    p { margin: 0; }
-
-    .pill-button:disabled {
-        opacity: 0.4;
-        background: white;
+    p {
+        margin: 0;
     }
+}
+
+.resourcePaginationButton:disabled {
+    opacity: 0.4;
+    background: theme(surface);
+    color: theme(text);
 }
 
 .resourcesEmptyState {
     display: grid;
     justify-items: center;
-    gap: 12px;
-    padding: 56px 24px;
+    gap: $space-3;
+    padding: $space-14 $space-6;
     text-align: center;
 
     h2,
@@ -311,62 +331,60 @@
         margin: 0;
     }
 
-    h2 {
-        color: black;
-    }
-
     p {
-        color: $color-dark-gray;
-        font-size: 1.05rem;
+        color: theme(text-muted);
     }
 }
 
 // Three cards per row once the sidebar leaves room for them.
-@include media("screen", ">=desktop") {
-    .resourceGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@include media(">=desktop") {
+    .resourceGrid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
 }
 
-@include media("screen", "<sm-desktop") {
-    .resourcesStartHere { grid-template-columns: 1fr; }
+@include media("<sm-desktop") {
+    .resourcesStartHere,
+    .resourcesDirectory {
+        grid-template-columns: 1fr;
+    }
 
-    .resourcesDirectory { grid-template-columns: 1fr; }
-
-    .resourcesSidebar { position: static; }
+    .resourcesSidebar {
+        position: static;
+        max-height: none;
+        overflow-y: visible;
+    }
 
     .resourcesSidebarHeader .resourcesFiltersToggle {
         display: inline-flex;
         height: 36px;
-        padding: 6px 16px;
-        font-size: 0.85rem;
+        padding: 6px $space-4;
+        font-size: $font-size-small;
     }
 
     .resourcesFilterGroups {
         display: none;
+    }
 
-        &.is-open {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 0 16px;
-        }
+    .resourcesFilterGroups--open {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0 $space-4;
     }
 }
 
-@include media("screen", "<tablet") {
+@include media("<tablet") {
     .resourcesPage {
         width: 100%;
-        margin-bottom: 64px;
+        margin-bottom: $space-16;
     }
 
-    .resourcesHero {
-        padding: 48px 0 32px;
+    .resourcesStartHere {
+        padding: 22px 18px;
     }
 
-    .resourcesStartHere { padding: 22px 18px; }
-
-    .resourcesStartList { grid-template-columns: 1fr; }
-
-    .resourcesFilterGroups.is-open { grid-template-columns: 1fr; }
-
+    .resourcesStartList,
+    .resourcesFilterGroups--open,
     .resourceGrid {
         grid-template-columns: 1fr;
     }

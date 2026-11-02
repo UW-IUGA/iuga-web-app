@@ -1,8 +1,12 @@
 import { primaryCategory } from "./eventCategoryIcons";
 
 describe("primaryCategory", () => {
-    test("a legacy Career label is drawn as Professional", () => {
-        expect(primaryCategory({ eLabels: ["Career"] })).toMatchObject({ name: "Professional", className: "professional" });
+    test("a Career label is drawn as Career", () => {
+        expect(primaryCategory({ eLabels: ["Career"] })).toMatchObject({ name: "Career", className: "career" });
+    });
+
+    test("a stored Professional label is drawn as Career", () => {
+        expect(primaryCategory({ eLabels: ["Professional"] })).toMatchObject({ name: "Career", className: "career" });
     });
 
     test("the first public category is the one used when an event has several", () => {

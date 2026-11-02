@@ -163,7 +163,7 @@ db.shoppurchases.aggregate([
 ])
 ```
 
-No route or screen records paid, not paid, or refunded yet; every purchase stays `pending`.
+This lists only purchases still `pending` (Unconfirmed). Officers with the `shop.purchases.review` permission record paid, dropped, and refunded orders on `/admin/shop/orders`; see `docs/FRONTEND.md`.
 
 ### 2.6 Pause new shop checkouts before an update
 
@@ -199,6 +199,22 @@ Turn checkout back on:
 db.shopsettings.updateOne({ key: "shop" }, { $set: { newCheckoutsPaused: false } })
 ```
 
+### 2.7 Give an officer access
+
+Officer tools need a **permission**, and permissions come only from roles. A user's `uType` ("Admin" or "Member") grants nothing. [BACKEND.md](./BACKEND.md#session-check-and-permissions) lists the permissions. Changes take effect on the officer's next request; they do not need to sign in again.
+
+An officer with `users.roles.manage` can create roles (`POST /api/v1/roles`) and assign them (`POST /api/v1/roles/users/<userId>/assignments` with `{ roleId, expiresAt }`). Set `expiresAt` to the end of the officer's term so access ends on its own. `DELETE /api/v1/roles/users/<userId>/assignments/<assignmentId>` removes access and keeps the record.
+
+The first role manager has to be set up in `mongosh`, because nobody can call those routes yet. Find the user, create the role, then assign it with the ids those commands return:
+
+```js
+db.users.find({ uEmail: "<officer>@uw.edu" }, { uDisplayName: 1 })
+db.roles.insertOne({ roleName: "Role manager", roleKey: "role_manager", permissions: ["users.roles.manage"], isActive: true })
+db.roleassignments.insertOne({ userId: ObjectId("<user id>"), roleId: ObjectId("<role id>"), isActive: true, expiresAt: null, assignedAt: new Date() })
+```
+
+**Upgrading from a release that used `uType: "Admin"`:** such accounts lose officer tools after the update until they receive a role with the permissions they need. Event request tools need `events.requests.manage`.
+
 ---
 
 ## 3. Observation Points (what to watch for)
@@ -226,6 +242,17 @@ Credentials are stored in Jenkins. This repository references them by ID only.
 | `SESSION_SECRET_DEV` / `_STAGING` / `_PROD` | As needed | [Team lead / IT] — *Escalate to fill* |
 
 When rotating, update the credential in Jenkins directly. No application code changes are needed.
+
+### GitHub Actions secrets (Netlify previews)
+
+These are stored in the GitHub repository (Settings → Secrets and variables → Actions), not in Jenkins.
+
+| Secret | Rotation frequency | Owner |
+|---|---|---|
+| `NETLIFY_SITE_ID` | When the Netlify site is replaced | [Team lead / IT] — *Escalate to fill* |
+| `NETLIFY_AUTH_TOKEN` | Per Netlify token policy | [Team lead / IT] — *Escalate to fill* |
+
+See [Pull Request Previews](NETLIFY_PREVIEWS.md) for how the secrets are used.
 
 ---
 

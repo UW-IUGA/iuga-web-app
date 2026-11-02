@@ -4,11 +4,11 @@ const ResourcePagination = ({ page, pageCount, onPageChange }) => {
 
     return (
         <nav className="resourcePagination" aria-label="Resource pages">
-            <button className="pill-button" type="button" disabled={page <= 1} onClick={() => onPageChange(page - 1)}>
+            <button className="pill-button resourcePaginationButton" type="button" disabled={page <= 1} onClick={() => onPageChange(page - 1)}>
                 <span aria-hidden="true">←</span> Previous
             </button>
             <p>Page <strong>{page}</strong> of <strong>{pageCount}</strong></p>
-            <button className="pill-button" type="button" disabled={page >= pageCount} onClick={() => onPageChange(page + 1)}>
+            <button className="pill-button resourcePaginationButton" type="button" disabled={page >= pageCount} onClick={() => onPageChange(page + 1)}>
                 Next <span aria-hidden="true">→</span>
             </button>
         </nav>

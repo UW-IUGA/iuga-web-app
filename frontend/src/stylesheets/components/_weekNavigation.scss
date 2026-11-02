@@ -3,10 +3,12 @@ Purpose: Style the previous/next week control.
 Expected Request Information: Classes emitted by WeekNavigation.
 Expected Response Information: Two round arrow buttons around the current week's date range.
 */
+@use "../abstracts" as *;
+
 .weekNavigation {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: $space-3;
 }
 
 .weekNavigation__button {
@@ -20,14 +22,17 @@ Expected Response Information: Two round arrow buttons around the current week's
     place-items: center;
     border: 1px solid rgba($color-primary, 0.24);
     border-radius: $radius-pill;
-    background: white;
+    background: $color-white;
     color: $color-primary;
     cursor: pointer;
-    transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
+    transition:
+        background-color 180ms ease,
+        color 180ms ease,
+        transform 180ms ease;
 
     &:hover {
         background: $color-primary;
-        color: white;
+        color: $color-white;
         transform: translateY(-2px);
     }
 
@@ -46,18 +51,18 @@ Expected Response Information: Two round arrow buttons around the current week's
 
     span {
         color: $color-dark-gray;
-        font-size: 0.66rem;
-        font-weight: 700;
-        letter-spacing: 0.14em;
+        font-size: $font-size-label;
+        font-weight: $font-weight-medium;
+        letter-spacing: $letter-spacing-label;
     }
 
     strong {
         color: $color-uw-purple;
-        font-size: 1rem;
+        font-size: $font-size-body;
     }
 }
 
-@include media("screen", "<phone") {
+@include media("<phone") {
     .weekNavigation__range {
         min-width: 0;
     }

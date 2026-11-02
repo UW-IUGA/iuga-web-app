@@ -1,0 +1,159 @@
+/*
+Purpose: Style the sidebar mini month and the phone date picker.
+Expected Request Information: Classes emitted by MiniMonth, MonthDays, MonthStrip and DatePicker, inside an .eventsCalendar root.
+Expected Response Information: A small month grid, and the drop-down month strip on a phone.
+*/
+@use "../../abstracts" as *;
+@use "../../abstracts/eventsCalendar" as *;
+
+.eventsCalendar {
+    $mini-row-gap: 2px;
+
+    .mini {
+        width: $calendar-mini-width;
+        padding: $calendar-space-md;
+        border-radius: $calendar-radius-lg;
+        background-color: $calendar-card-bg;
+        color: $calendar-text;
+
+        display: flex;
+        flex-direction: column;
+        gap: $calendar-space-sm;
+    }
+
+    .mini__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: $calendar-space-sm;
+    }
+
+    .mini__label {
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .mini__controls {
+        display: flex;
+        align-items: center;
+        gap: $calendar-space-2xs;
+    }
+
+    .mini__button {
+        padding: $calendar-space-2xs $calendar-space-sm;
+        background-color: transparent;
+        color: $calendar-text;
+        font-size: 12px;
+        border-radius: $calendar-radius-pill;
+        transition: background-color 0.15s;
+
+        &:hover {
+            background-color: $calendar-hover;
+        }
+
+        &--icon {
+            width: 24px;
+            height: 24px;
+            padding: 0;
+            display: grid;
+            place-items: center;
+            font-size: 16px;
+            line-height: 1;
+        }
+    }
+
+    .mini__weekdays,
+    .mini__week {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: $mini-row-gap;
+    }
+
+    // The weekday initials only. This used to be `span` under both rows, which
+    // also caught the number inside every day button: it painted the numbers
+    // muted grey over the colour their button set, so the picked day's number
+    // came out grey on its white fill at 2.2:1 (WCAG 1.4.3 asks 4.5:1), and it
+    // shrank them to 10px with letter-spacing besides.
+    .mini__weekdays span {
+        text-align: center;
+        font-size: 10px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: $calendar-copy-muted;
+    }
+
+    .mini__body {
+        // Held to a fixed height so moving between months never resizes the
+        // sidebar. Scrolls only when the viewport is short enough to need it.
+        max-height: 260px;
+        overflow-y: auto;
+
+        display: flex;
+        flex-direction: column;
+        gap: $mini-row-gap;
+    }
+
+    .mini__day {
+        position: relative;
+        aspect-ratio: 1;
+        padding: 0;
+
+        display: grid;
+        place-items: center;
+
+        background-color: transparent;
+        color: $calendar-text;
+        font-size: 12px;
+        border-radius: $calendar-radius-sm;
+        transition: background-color 0.15s;
+
+        &:hover {
+            background-color: $calendar-hover;
+        }
+
+        // A solid grey rather than 30% opacity, which put the numbers at 2.7:1
+        // against the card. This clears the 4.5:1 text needs (WCAG 1.4.3).
+        &--out {
+            color: $calendar-copy-muted;
+        }
+
+        // Today is a ring and the picked day a solid fill, so the two stay distinct
+        // when they coincide, and each clears the 3:1 a state indicator needs
+        // against the card (WCAG 1.4.11). The old 16% white fill was 1.7:1.
+        &--today {
+            box-shadow: inset 0 0 0 1.5px $calendar-text;
+
+            .mini__day-number {
+                font-weight: 700;
+            }
+        }
+
+        &--anchor {
+            background-color: $calendar-copy-bg;
+            color: $calendar-copy-text;
+
+            &:hover {
+                background-color: $calendar-copy-bg;
+            }
+
+            .mini__day-number {
+                font-weight: 600;
+            }
+        }
+    }
+
+    .mini__day-number {
+        line-height: 1;
+    }
+
+    .mini__dot {
+        position: absolute;
+        bottom: 3px;
+        left: 50%;
+        transform: translateX(-50%);
+
+        width: 4px;
+        height: 4px;
+        border-radius: $calendar-radius-pill;
+    }
+}

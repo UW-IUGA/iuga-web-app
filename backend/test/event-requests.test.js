@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import mongoose from "mongoose";
 import { eventRequestsSchema, eventsSchema, usersSchema } from "../schemas/schemas.js";
 import eventRequestsRouter from "../routes/api/v1/controllers/eventRequests.js";
-import { makeTestApi } from "./testApi.js";
+import { makeTestApi, roleAssignmentsGranting } from "./testApi.js";
 
 const organizerId = "507f1f77bcf86cd799439011";
 const reviewerId = "507f1f77bcf86cd799439012";
@@ -47,19 +47,8 @@ function query(value) {
   };
 }
 
-function permissionsFor(names) {
-  return {
-    find() {
-      return {
-        async populate() {
-          return [{ roleId: { isActive: true, permissions: names } }];
-        },
-      };
-    },
-  };
-}
-
-function makeModels({ request = submittedRequest, permissions = [] } = {}) {
+// The signed-in officer uses the event request workspace unless a test names other permissions.
+function makeModels({ request = submittedRequest, permissions = ["events.requests.manage"] } = {}) {
   return {
     EventRequests: {
       async create(fields) {
@@ -95,7 +84,7 @@ function makeModels({ request = submittedRequest, permissions = [] } = {}) {
       },
       async deleteOne() {},
     },
-    RoleAssignments: permissionsFor(permissions),
+    RoleAssignments: roleAssignmentsGranting(permissions),
   };
 }
 
@@ -109,7 +98,6 @@ describe("event request API", () => {
       models: makeModels(),
       session: {
         isAuthenticated: true,
-        isAdmin: true,
         userId: organizerId,
       },
     });
@@ -173,6 +161,19 @@ describe("event request API", () => {
       },
     );
     assert.equal(result.status, 401);
+  });
+
+  it("refuses an Admin account without the event request permission", async () => {
+    const result = await api.request(
+      "POST",
+      "/api/v1/event-requests",
+      {},
+      {
+        models: makeModels({ permissions: [] }),
+        session: { isAuthenticated: true, isAdmin: true, memberType: "Admin", userId: organizerId },
+      },
+    );
+    assert.equal(result.status, 403);
   });
 
   it("requires leadership permission to request changes", async () => {

@@ -10,7 +10,7 @@ import Navbar from "./Navbar";
 import { ShopCartProvider } from "../context/ShopCartContext";
 
 vi.mock("../context/AuthContext", () => ({
-    useAuthContext: () => ({ isAuthenticated: true, user: { uFirstName: "Yonie" } }),
+    useAuthContext: () => ({ isAuthenticated: true, user: { uFirstName: "Yonie" }, can: () => false }),
 }));
 
 const catalog = {

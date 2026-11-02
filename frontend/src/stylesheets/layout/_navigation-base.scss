@@ -1,35 +1,45 @@
+@use "../abstracts" as *;
+
 // Campus navigation: sticky primary bar with links and account controls.
 .site-navigation {
     position: sticky;
     top: 0;
     z-index: 100;
-    background: white;
-    color: $color-uw-purple;
-    border-bottom: 1px solid #e4dce9;
+    background: theme(page);
+    color: theme(heading);
+    border-bottom: 1px solid theme(line, #e4dce9);
 }
 
+// On the site's frame, so the logo and the last control line up with the page.
 .nav-container {
     position: relative;
-    box-sizing: border-box;
+    @include site-frame;
     display: flex;
-    width: min(100%, 1380px);
     min-height: 70px;
-    margin: 0 auto;
-    padding: 10px 30px;
+    padding-block: 10px;
     align-items: center;
     gap: 22px;
 }
 
-.nav-header { flex: none; }
+.nav-header {
+    flex: none;
+}
 .nav-logo {
     display: inline-flex;
     align-items: center;
     @include focus-ring;
 
-    img { display: block; width: 77px; height: auto; }
+    img {
+        display: block;
+        width: 77px;
+        height: auto;
+        filter: var(--artwork-filter);
+    }
 }
 
-.nav-mobile-menu { display: none; }
+.nav-mobile-menu {
+    display: none;
+}
 
 .nav-items-wrapper {
     display: flex;
@@ -45,11 +55,11 @@
     min-width: 0;
     align-items: center;
     justify-content: center;
-    gap: 28px;
+    gap: $space-7;
 }
 
 .nav-primary-links > a,
-.nav-account-toggle {
+.nav-toggle {
     box-sizing: border-box;
     display: inline-flex;
     min-height: 44px;
@@ -59,33 +69,43 @@
     border: 0;
     background: transparent;
     color: inherit;
-    font: 700 13px/1.3 $sans-serif;
+    font: $font-weight-medium #{$font-size-nav}/ 1.3 $font-family-base;
     text-decoration: none;
     white-space: nowrap;
     cursor: pointer;
     @include focus-ring;
 
-    &:hover, &.active { color: $color-primary; }
-    &.active { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 8px; }
+    &:hover,
+    &.active {
+        color: theme(accent);
+    }
+    &.active {
+        text-decoration: underline;
+        text-decoration-thickness: 2px;
+        text-underline-offset: 8px;
+    }
 }
 
-.nav-account-toggle svg { width: 10px; }
+.nav-toggle svg {
+    width: 10px;
+}
 
-.nav-account-actions {
+.nav-dropdown-menu {
     position: absolute;
     top: calc(100% + 6px);
     left: -12px;
     z-index: 10;
     display: none;
     width: 185px;
-    padding: 8px;
-    border: 1px solid $color-border-lavender;
-    border-radius: 16px;
-    background: white;
-    color: $color-uw-purple;
-    box-shadow: 0 14px 30px rgba($color-shadow, 0.13);
+    padding: $space-2;
+    border: 1px solid theme(border-subtle);
+    border-radius: $radius-card;
+    background: theme(surface);
+    color: theme(heading);
+    box-shadow: 0 14px 30px theme-alpha(shadow, 0.13);
 
-    button {
+    button,
+    a {
         box-sizing: border-box;
         display: block;
         width: 100%;
@@ -94,23 +114,51 @@
         border-radius: $radius;
         background: transparent;
         color: inherit;
-        font: 400 13px/1.3 $sans-serif;
+        font: $font-weight-regular #{$font-size-small}/ 1.3 $font-family-base;
         text-align: left;
         text-decoration: none;
         cursor: pointer;
         @include focus-ring;
 
-        &:hover, &.active { background: $color-lavender; }
+        &:hover,
+        &.active {
+            background: theme(tint);
+        }
     }
 }
 
-.nav-account { padding-left: 16px; }
-.nav-account-dropdown { position: relative; }
-.nav-account-toggle { max-width: 165px; overflow: hidden; text-overflow: ellipsis; }
-.nav-account-actions { display: flex; flex-direction: column; left: auto; right: 0; width: 205px; }
-.nav-account-actions span { padding: 9px 10px; color: #605775; font: 400 11px/1.4 $sans-serif; }
-.nav-account-cart-slot { display: flex; flex: none; align-items: center; }
+.nav-account {
+    padding-left: $space-4;
+}
+.nav-dropdown {
+    position: relative;
+}
+.nav-toggle {
+    max-width: 165px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.nav-dropdown-menu {
+    display: flex;
+    flex-direction: column;
+    left: auto;
+    right: 0;
+    width: 205px;
+}
+.nav-dropdown-menu span {
+    padding: 9px 10px;
+    color: theme(text-subtle, #605775);
+    font: $font-weight-regular #{$font-size-small}/ 1.4 $font-family-base;
+}
+.nav-account-cart-slot {
+    display: flex;
+    flex: none;
+    align-items: center;
+}
 
 @media (prefers-reduced-motion: reduce) {
-    .site-navigation * { transition: none !important; }
+    .site-navigation * {
+        /* stylelint-disable-next-line declaration-no-important */
+        transition: none !important;
+    }
 }

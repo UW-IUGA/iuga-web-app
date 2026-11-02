@@ -1,0 +1,128 @@
+/*
+Purpose: Style the day view: one time-grid column beside the agenda.
+Expected Request Information: Classes emitted by DayView and EventDetail, inside an .eventsCalendar root.
+Expected Response Information: A single-day schedule and a list of that day's events.
+*/
+@use "../../abstracts" as *;
+@use "../../abstracts/eventsCalendar" as *;
+
+.eventsCalendar {
+    .day {
+        display: flex;
+        flex-direction: column;
+        gap: $calendar-space-xl;
+        min-width: 0;
+    }
+
+    .day__agenda {
+        display: flex;
+        flex-direction: column;
+        gap: $calendar-space-md;
+    }
+
+    .day__agenda-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: $calendar-text;
+    }
+
+    .day__empty {
+        font-size: 14px;
+        color: $calendar-copy-muted;
+    }
+
+    .detail {
+        display: flex;
+        gap: $calendar-space-md;
+        padding: $calendar-space-lg;
+        border-radius: $calendar-radius-lg;
+        background-color: $calendar-card-bg;
+    }
+
+    .detail__accent {
+        flex: 0 0 4px;
+        align-self: stretch;
+        border-radius: $calendar-radius-pill;
+    }
+
+    .detail__body {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: $calendar-space-xs;
+    }
+
+    .detail__labels {
+        display: flex;
+        flex-wrap: wrap;
+        gap: $calendar-space-2xs;
+    }
+
+    .detail__chip {
+        padding: 2px $calendar-space-sm;
+        border-radius: $calendar-radius-pill;
+
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: $calendar-on-label;
+    }
+
+    .detail__name {
+        font-size: 18px;
+        font-weight: 600;
+        color: $calendar-text;
+    }
+
+    .detail__when {
+        font-size: 13px;
+        color: $calendar-copy-muted;
+    }
+
+    .detail__description {
+        margin-top: $calendar-space-2xs;
+        font-size: 14px;
+        line-height: 155%;
+        color: $calendar-text-soft;
+    }
+
+    .detail__meta {
+        margin-top: $calendar-space-sm;
+        padding-top: $calendar-space-sm;
+        border-top: 1px solid $calendar-rule;
+
+        font-size: 13px;
+        line-height: 155%;
+    }
+
+    .detail__pair {
+        display: flex;
+        gap: $calendar-space-xs;
+
+        dt {
+            min-width: 5.5rem;
+            font-weight: 500;
+            color: $calendar-copy-muted;
+        }
+
+        dd {
+            color: $calendar-text;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: underline;
+        }
+    }
+
+    .detail__questions {
+        margin-top: $calendar-space-2xs;
+        padding-left: $calendar-space-md;
+        color: $calendar-copy-muted;
+
+        li + li {
+            margin-top: 2px;
+        }
+    }
+}

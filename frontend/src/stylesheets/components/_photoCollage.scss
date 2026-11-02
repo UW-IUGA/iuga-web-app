@@ -3,15 +3,17 @@ Purpose: Style the overlapping three-photo collage.
 Expected Request Information: Classes emitted by PhotoCollage.
 Expected Response Information: Up to three tilted, overlapping photos.
 */
+@use "../abstracts" as *;
+
 .photoCollage {
     position: relative;
     height: 330px;
 
     img {
         position: absolute;
-        border: 5px solid white;
+        border: 5px solid $color-white;
         border-radius: $radius-card;
-        box-shadow: 0 10px 26px rgba(black, 0.18);
+        box-shadow: 0 10px 26px rgba($color-black, 0.18);
         object-fit: cover;
     }
 
@@ -43,13 +45,13 @@ Expected Response Information: Up to three tilted, overlapping photos.
     }
 }
 
-@include media("screen", "<sm-desktop") {
+@include media("<sm-desktop") {
     .photoCollage {
         height: 280px;
     }
 }
 
-@include media("screen", "<phone") {
+@include media("<phone") {
     .photoCollage {
         height: 230px;
     }

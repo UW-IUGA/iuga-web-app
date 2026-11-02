@@ -1,0 +1,156 @@
+/*
+Purpose: Lay out the calendar: the sidebar beside the view, and the year card grid.
+Expected Request Information: Classes emitted by the events page and YearView, inside an .eventsCalendar root.
+Expected Response Information: A sidebar-plus-view grid, or a fluid grid of month cards.
+*/
+@use "../../abstracts" as *;
+@use "../../abstracts/eventsCalendar" as *;
+
+.eventsCalendar {
+    // Sidebar beside the view. The mini month only appears for month, week and
+    // day; the year view is already a wall of months, so it renders without one.
+
+    // The two-column form is therefore opted into with `--with-sidebar` rather
+    // than being the default. Left on by default it bit the year view: a grid
+    // with a sidebar track and one child puts that child in the *auto* column,
+    // which sizes to its content, so the year grid was handed ~320px of usable
+    // width and drew a single card per row on every screen.
+    .events {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        align-items: start;
+        gap: $calendar-space-lg;
+
+        // A sidebar plus the view. `auto` lets the mini month take its natural
+        // width while the view keeps everything that is left.
+        @include media(">=#{$calendar-desktop}") {
+            &--with-sidebar {
+                grid-template-columns: auto minmax(0, 1fr);
+            }
+        }
+    }
+
+    // The sidebar: the mini month, and the colour legend under it.
+    .events__sidebar {
+        width: $calendar-mini-width;
+
+        display: flex;
+        flex-direction: column;
+        gap: $calendar-space-lg;
+
+        // Sticks alongside the time grid as that column scrolls.
+        align-self: start;
+        position: sticky;
+        top: $calendar-space-lg;
+
+        // Below this there is no room for a legible day grid. The toolbar's
+        // prev / next still covers date navigation, and its own copy of the legend
+        // takes over (.legend--narrow-only).
+        @include media("<=#{$calendar-mobile}") {
+            display: none;
+        }
+    }
+
+    // The legend's card, styled to match the mini month above it.
+    .events__legend {
+        padding: $calendar-space-md;
+        border-radius: $calendar-radius-lg;
+        background-color: $calendar-card-bg;
+    }
+
+    .events__main {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: $calendar-space-md;
+    }
+
+    // A swipe across it steps the view (useSwipeStep). Vertical panning and pinch
+    // zoom stay with the browser; only the sideways pan is handed to the swipe.
+    // Pinch zoom is listed on purpose: leaving it out would block zooming over
+    // the whole calendar (WCAG 1.4.4).
+    .events__main--swipe {
+        touch-action: pan-y pinch-zoom;
+    }
+
+    // On a phone the month, week and day run the full width of the screen, as
+    // Google Calendar's do: every pixel of the page's gutter is a pixel a day
+    // cannot use. The toolbar above keeps the gutter, so the controls and the
+    // heading still line up with the page. The year view is cards in a grid, and
+    // keeps it too.
+    @include media("<=#{$calendar-mobile}") {
+        .events--with-sidebar .events__main {
+            margin-inline: calc(-1 * var(--page-gutter));
+        }
+
+        // The day's agenda is text, not the grid, so it comes back in to the page.
+        .day__agenda {
+            padding-inline: var(--page-gutter);
+        }
+    }
+
+    // The year view's card grid: one card per month that holds events, across
+    // every year in the data. This is the layout the page shipped before
+    // month/week/day existed, restored as a fourth view.
+
+    // Mobile-first and fluid, with no media queries. Each track is the larger of
+    //   - the card's minimum width (or the whole row, if that is narrower), and
+    //   - an even share of the row at the maximum column count,
+    // so auto-fill adds a column whenever another minimum-width card fits, and
+    // stops adding them once the share-of-the-row floor is wider than the minimum:
+    // at that point only $calendar-year-max-columns tracks fit. The 1fr ceiling stretches
+    // the cards to fill the row.
+
+    // auto-fill (not auto-fit) so a partially-filled last row keeps its empty
+    // tracks and its cards stay the same width as the full row above.
+    .year {
+        display: grid;
+        grid-template-columns: repeat(
+            auto-fill,
+            minmax(
+                max(
+                    min(100%, #{$calendar-year-card-min}),
+                    calc(
+                        (100% - #{$calendar-year-card-gap * ($calendar-year-max-columns - 1)}) / #{$calendar-year-max-columns}
+                    )
+                ),
+                1fr
+            )
+        );
+        gap: $calendar-year-card-gap;
+    }
+
+    // What the calendar says while its list loads, or after it failed: one line
+    // over the view, in the toolbar's type, with the retry as a Today-style pill.
+    .events__status {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: $calendar-space-sm $calendar-space-md;
+
+        color: $calendar-text;
+        font-size: 15px;
+
+        // The view under it runs edge to edge on a phone; the words keep the gutter.
+        @include media("<=#{$calendar-mobile}") {
+            padding-inline: var(--page-gutter);
+        }
+    }
+
+    .events__retry {
+        min-height: 32px;
+        padding: 0 $calendar-space-lg;
+
+        background-color: transparent;
+        color: $calendar-text;
+        font-size: 15px;
+        font-weight: 500;
+        border: 1px solid $calendar-control-border;
+        border-radius: $calendar-radius-pill;
+        transition: background-color 0.15s;
+
+        &:hover {
+            background-color: $calendar-hover;
+        }
+    }
+}

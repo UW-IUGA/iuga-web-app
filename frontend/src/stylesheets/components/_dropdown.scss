@@ -1,3 +1,5 @@
+@use "../abstracts" as *;
+
 .dropdown-container {
     position: relative;
     display: inline-block;
@@ -8,22 +10,20 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
-    padding: 10px;
-    background-color: #ffffff;
-    color: black;
+    background-color: theme(surface);
+    color: theme(text);
     cursor: pointer;
     user-select: none;
-    border: 1px solid #445568;
+    border: 1px solid theme(line, #445568);
     border-radius: $radius;
-    ;
-    padding: 10px 20px;
+    padding: 10px $space-5;
 
-    &>span {
+    & > span {
         margin-top: 2px;
     }
 
     &:hover {
-        background-color: $color-gray;
+        background-color: theme(surface-gray);
     }
 }
 
@@ -32,10 +32,10 @@
     top: 110%;
     left: 0;
     display: block;
-    background-color: white;
-    border: 1px solid #ddd;
+    background-color: theme(surface);
+    border: 1px solid theme(line, #ddd);
     border-radius: 4px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba($color-black, 0.1);
     z-index: 1000;
     width: 100%;
     text-align: center;
@@ -45,7 +45,7 @@
         cursor: pointer;
 
         &:hover {
-            background-color: #f1f1f1;
+            background-color: theme(fill-subtle, #f1f1f1);
         }
     }
 }

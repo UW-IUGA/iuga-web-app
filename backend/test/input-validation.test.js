@@ -4,7 +4,7 @@ import eventsRouter from "../routes/api/v1/controllers/events.js";
 import eventRequestsRouter from "../routes/api/v1/controllers/eventRequests.js";
 import feedbackRouter from "../routes/api/v1/controllers/feedback.js";
 import userRouter from "../routes/api/v1/controllers/user.js";
-import { makeTestApi } from "./testApi.js";
+import { makeTestApi, roleAssignmentsGranting } from "./testApi.js";
 const validId = "507f1f77bcf86cd799439011";
 
 function unusedModel() {
@@ -36,14 +36,20 @@ describe("request validation", () => {
     eventRequestsApi = await makeTestApi({
       router: eventRequestsRouter,
       mountPath: "/api/v1/event-requests",
-      models: { EventRequests: unusedModel() },
-      session: { isAuthenticated: true, isAdmin: true, userId: validId },
+      models: {
+        EventRequests: unusedModel(),
+        RoleAssignments: roleAssignmentsGranting(["events.requests.manage"]),
+      },
+      session: { isAuthenticated: true, userId: validId },
     });
     feedbackApi = await makeTestApi({
       router: feedbackRouter,
       mountPath: "/api/v1/feedback",
-      models: { Feedback: unusedModel() },
-      session: { isAuthenticated: true, isAdmin: true, userId: validId },
+      models: {
+        Feedback: unusedModel(),
+        RoleAssignments: roleAssignmentsGranting(["feedback.manage"]),
+      },
+      session: { isAuthenticated: true, userId: validId },
     });
     userApi = await makeTestApi({
       router: userRouter,
@@ -101,6 +107,15 @@ describe("request validation", () => {
 
     assert.equal(response.status, 400);
     assert.equal(response.body.status, "error");
+  });
+
+  it("refuses feedback deletion without the feedback permission, even for an Admin account", async () => {
+    const response = await feedbackApi.request("DELETE", `/api/v1/feedback/?fID=${validId}`, undefined, {
+      models: { Feedback: unusedModel(), RoleAssignments: roleAssignmentsGranting([]) },
+      session: { isAdmin: true, memberType: "Admin" },
+    });
+
+    assert.equal(response.status, 403);
   });
 
   it("rejects malformed feedback identifiers before deletion", async () => {

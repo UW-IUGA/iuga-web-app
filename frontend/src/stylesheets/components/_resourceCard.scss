@@ -1,11 +1,15 @@
+@use "../abstracts" as *;
+
 .resourceCard {
     display: flex;
     gap: $margin-content;
     padding: 22px;
-    transition: transform 150ms ease, box-shadow 150ms ease;
+    transition:
+        transform 150ms ease,
+        box-shadow 150ms ease;
 
     &:hover {
-        box-shadow: 0 8px 20px rgba($color-uw-purple, 0.13);
+        box-shadow: 0 8px 20px theme-alpha(brand, 0.13);
         transform: translateY(-2px);
     }
 }
@@ -17,13 +21,13 @@
     flex: 0 0 60px;
     place-items: center;
     overflow: hidden;
-    border: 1px solid rgba($color-uw-purple, 0.14);
+    border: 1px solid theme-alpha(brand, 0.14);
     border-radius: 50%;
-    background: $color-lavender;
-    color: $color-uw-purple;
-    font-family: $serif;
+    background: theme(tint);
+    color: theme(heading);
+    font-family: $font-family-base;
     font-size: 1.6rem;
-    font-weight: 700;
+    font-weight: $font-weight-bold;
 
     img {
         width: 100%;
@@ -39,16 +43,16 @@
     flex-direction: column;
 
     h3 {
-        margin: 6px 0 10px;
-        color: black;
-        font-size: 1.35rem;
+        margin: $space-1 0 $space-2;
+        color: theme(text);
+        font-size: $font-size-subheading;
         line-height: 1.25;
     }
 
-    >p:not(.resourceCardCategory) {
-        margin: 0 0 20px;
-        color: $color-dark-gray;
-        font-size: 1.05rem;
+    > p:not(.resourceCardCategory) {
+        margin: 0 0 $space-5;
+        color: theme(text-muted);
+        font-size: $font-size-body;
         line-height: 1.55;
     }
 }
@@ -56,16 +60,16 @@
 .resourceHighlights {
     display: grid;
     gap: 6px;
-    margin: 0 0 20px;
+    margin: 0 0 $space-5;
     padding: 0;
     list-style: none;
-    color: $color-dark-gray;
-    font-size: 1.05rem;
+    color: theme(text-muted);
+    font-size: $font-size-body;
     line-height: 1.45;
 
     li {
         position: relative;
-        padding-left: 20px;
+        padding-left: $space-5;
 
         &::before {
             position: absolute;
@@ -75,7 +79,7 @@
             height: 7px;
             content: "";
             border-radius: 50%;
-            background: $color-primary;
+            background: theme(accent);
         }
     }
 }
@@ -87,17 +91,19 @@
 }
 
 .resourceCardPending {
-    color: $color-dark-gray;
-    font-size: 0.88rem;
-    font-weight: 700;
+    color: theme(text-muted);
+    font-size: $font-size-small;
+    font-weight: $font-weight-medium;
 }
 
 // Cards sit beside the filter sidebar on desktop, so the icon goes above the text to leave room for bullets.
-@include media("screen", ">=sm-desktop") {
-    .resourceCard { flex-direction: column; }
+@include media(">=sm-desktop") {
+    .resourceCard {
+        flex-direction: column;
+    }
 }
 
-@include media("screen", "<tablet") {
+@include media("<tablet") {
     .resourceCard {
         padding: 18px;
     }

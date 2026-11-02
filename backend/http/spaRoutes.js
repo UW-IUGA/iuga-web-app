@@ -14,6 +14,11 @@ export const SPA_ROUTES = [
   "/resources",
   "/student-voice",
   "/shop",
+  // Officer admin pages. Mirrors ADMIN_SECTIONS in frontend/src/adminSections.js, which this server list
+  // cannot import; a new admin page needs its path added in both places.
+  "/admin",
+  "/admin/shop/orders",
+  "/admin/shop/pickup",
   "/elections",
   "/electionfaq",
   "/about",

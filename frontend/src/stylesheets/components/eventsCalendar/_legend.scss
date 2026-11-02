@@ -1,0 +1,98 @@
+/*
+Purpose: Style the event category colour key.
+Expected Request Information: Classes emitted by Legend, inside an .eventsCalendar root.
+Expected Response Information: A row or column of coloured dots, each with its category name.
+*/
+@use "../../abstracts" as *;
+@use "../../abstracts/eventsCalendar" as *;
+
+.eventsCalendar {
+    // The colour key: what each event label's colour means.
+    // The elections pages style a global .legend as a sticky column. The
+    // calendar's key sets back what they set, so it lays out the same anywhere.
+    .legend {
+        position: static;
+        top: auto;
+        display: flex;
+        flex-direction: row;
+        list-style: none;
+    }
+
+    // In the toolbar, beside the range. Wraps rather than overflowing on a narrow
+    // screen.
+    .legend--row {
+        flex-wrap: wrap;
+        gap: $calendar-space-2xs $calendar-space-md;
+    }
+
+    // Under the mini month, one label to a line to fit the sidebar's width.
+    .legend--column {
+        flex-direction: column;
+        gap: $calendar-space-sm;
+    }
+
+    // The toolbar's copy in the month, week and day views. Those keep their
+    // legend under the mini month, so this one shows only where the sidebar is
+    // hidden — the same query that hides it, so exactly one copy is ever shown
+    // and a screen reader never meets two.
+    .legend--narrow-only {
+        display: none;
+
+        @include media("<=#{$calendar-mobile}") {
+            display: flex;
+        }
+    }
+
+    // The elections pages' .legend pads its li, gives it a pointer, and bolds it on
+    // hover. The calendar's key is not clickable, so it has none of that.
+    .legend__item,
+    .legend__item:hover {
+        padding: 0;
+        cursor: auto;
+        font-weight: inherit;
+    }
+
+    .legend__item {
+        display: flex;
+        align-items: center;
+        gap: $calendar-space-sm;
+
+        // The view switch's size, in full white. White clears 17:1 on the page and
+        // 15:1 on a card (WCAG 1.4.3 asks 4.5:1).
+        font-size: $calendar-control-font-size;
+        color: $calendar-text;
+    }
+
+    // The label colours clear 3:1 against the page and the cards, the minimum
+    // for a graphic that carries meaning (WCAG 1.4.11), so the swatch reads
+    // without a border.
+    .legend__swatch {
+        flex: 0 0 auto;
+        width: 13px;
+        height: 13px;
+        border-radius: 4px;
+    }
+
+    // One line on a narrow screen; the query below decides when it is two.
+    @include media("<=#{$calendar-mobile}") {
+        .legend--row {
+            flex-wrap: nowrap;
+            gap: $calendar-space-sm $calendar-space-md;
+        }
+    }
+
+    // In the toolbar on a narrow screen, four labels on a line, never wrapped to
+    // a stray three and one. Where the width under the range cannot hold all four
+    // at full size — the narrowest phones, or any phone at a large text size —
+    // it goes to two lines of two rather than shrinking the text.
+
+    // Asked of the width the legend is given (see .toolbar in _toolbar.scss),
+    // not of the screen, so zoom and text size are counted for free.
+    @container toolbar-legend (max-width: 330px) {
+        .legend--row {
+            display: grid;
+            grid-template-columns: repeat(2, max-content);
+            gap: $calendar-space-sm $calendar-space-lg;
+        }
+    }
+}

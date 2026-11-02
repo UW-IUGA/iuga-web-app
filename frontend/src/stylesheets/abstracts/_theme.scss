@@ -1,0 +1,218 @@
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "variables" as *;
+
+// The site's light and dark themes, as colour roles.
+
+// Partials never name a theme colour directly: they ask for a role with
+// `theme(heading)`, which becomes `var(--color-heading)`, and base/theme sets
+// each role's value for the theme on <html data-theme>. Every light value is
+// the site colour it replaces, so the light theme looks exactly as the site
+// did before themes. The dark values follow the events calendar's palette
+// (abstracts/eventsCalendar): #1a1a1a page, #272727 raised surface, white text.
+
+// Colours that read the same in both themes (photo captions, category capsules,
+// the brand gradient's stops) stay plain Sass tokens and are not listed here.
+
+$theme-light: (
+    // Text.
+    heading: $color-uw-purple,
+    text: $color-black,
+    ink: $color-ink,
+    text-muted: $color-dark-gray,
+    accent: $color-primary,
+    // Purple used as a fill, border, or outline, and the text on brand and accent fills.
+    brand: $color-uw-purple,
+    on-fill: $color-white,
+    // Surfaces, from the page up.
+    page: $color-white,
+    surface: $color-white,
+    surface-gray: $color-gray,
+    surface-light-gray: $color-light-gray,
+    surface-shop: $color-shop-surface,
+    surface-shop-hero: $color-shop-hero,
+    tint: $color-lavender,
+    border-subtle: $color-border-lavender,
+    shadow: $color-shadow,
+    // Event and resource categories.
+    social-primary: $color-social-primary,
+    social-secondary: $color-social-secondary,
+    social-light: $color-social-light,
+    career-primary: $color-career-primary,
+    career-secondary: $color-career-secondary,
+    academic-primary: $color-academic-primary,
+    academic-secondary: $color-academic-secondary,
+    academic-light: $color-academic-light,
+    // Errors.
+    error: $color-error,
+    error-dark: $color-error-dark
+);
+
+$theme-dark: (
+    heading: $color-white,
+    text: $color-white,
+    ink: $color-white,
+    // The calendar's muted grey: 6.9:1 on a raised surface.
+    text-muted: #b0b0b0,
+    // A light lavender that keeps the brand hue: 7.8:1 on a raised surface.
+    accent: #c4b1f6,
+    // Filled controls go white with dark text, like the calendar's Today and view pills.
+    brand: $color-white,
+    on-fill: #1a1a1a,
+    page: #1a1a1a,
+    surface: #272727,
+    surface-gray: #272727,
+    surface-light-gray: #272727,
+    surface-shop: #272727,
+    surface-shop-hero: #272727,
+    tint: #2d2541,
+    border-subtle: #3a3a3a,
+    shadow: $color-black,
+    // Category colours lifted to read as text on a raised surface (6:1 or more).
+    social-primary: #e48af5,
+    social-secondary: #3d2445,
+    social-light: #2f2234,
+    career-primary: #97a2f7,
+    career-secondary: #243049,
+    academic-primary: #e2b06a,
+    academic-secondary: #3d321d,
+    academic-light: #2e291f,
+    error: #f87171,
+    error-dark: #fca5a5,
+);
+
+@if map.keys($theme-light) != map.keys($theme-dark) {
+    @error "abstracts/theme: the light and dark themes must define the same roles, in the same order.";
+}
+
+// Roles only the dark theme sets. The light site uses many near-identical
+// greys and reds for these (one per component), so each use keeps its own
+// light colour as the fallback: `theme(line, #ddd)`.
+$theme-dark-only: (
+    // Hairlines and input borders.
+    line: #3a3a3a,
+    // Neutral fills: hovered rows, disabled controls, placeholders.
+    fill-subtle: #333,
+    // Body text set in a near-black of its own.
+    text-strong: $color-white,
+    // Secondary text, and the text and border of disabled controls.
+    text-subtle: #b0b0b0,
+    // Error banners.
+    error-fill: #3b1d1d,
+    error-line: #7f1d1d,
+    error-text: #fca5a5
+);
+
+// The colour for `$role` in whichever theme is on screen. A dark-only role
+// also takes the colour it keeps in the light theme.
+@function theme($role, $light: null) {
+    @if map.has-key($theme-light, $role) {
+        @if $light {
+            @error "abstracts/theme: `#{$role}` has a light value already; drop `#{$light}`.";
+        }
+        @return var(--color-#{$role});
+    }
+    @if map.has-key($theme-dark-only, $role) {
+        @if not $light {
+            @error "abstracts/theme: `#{$role}` is dark-only; pass its light colour, as in theme(#{$role}, #ddd).";
+        }
+        @return var(--color-#{$role}, #{$light});
+    }
+    @error "abstracts/theme: no colour role `#{$role}`.";
+}
+
+// The see-through shades of a role the stylesheets use, each set as its own
+// custom property (theme-properties) with Sass's rgba(): exactly the colour
+// the light theme had before, in every browser, with no relative colour syntax.
+$theme-alphas: (
+    accent: (
+        0.08,
+        0.1,
+        0.13,
+        0.2,
+        0.45,
+    ),
+    brand: (
+        0.035,
+        0.05,
+        0.07,
+        0.08,
+        0.1,
+        0.12,
+        0.13,
+        0.14,
+        0.15,
+        0.16,
+        0.18,
+        0.2,
+        0.22,
+        0.24,
+        0.25,
+        0.28,
+        0.3,
+        0.35,
+        0.4,
+        0.55,
+    ),
+    page: (
+        0.78,
+    ),
+    shadow: (
+        0.12,
+        0.13,
+        0.15,
+        0.16,
+        0.28,
+    ),
+    text-muted: (
+        0.25,
+    ),
+    academic-primary: (
+        0.4,
+    ),
+    social-light: (
+        0.16,
+        0.42,
+    ),
+);
+
+@each $role, $alphas in $theme-alphas {
+    @if not map.has-key($theme-light, $role) {
+        @error "abstracts/theme: $theme-alphas names `#{$role}`, which is not a colour role.";
+    }
+}
+
+@function -alpha-property($role, $alpha) {
+    @return --color-#{$role}-alpha-#{math.round($alpha * 1000)};
+}
+
+// `theme($role)` at `$alpha` opacity: the themed form of rgba($color, $alpha).
+// A new shade goes in $theme-alphas first.
+@function theme-alpha($role, $alpha) {
+    $alphas: map.get($theme-alphas, $role);
+    @if not $alphas or not list.index($alphas, $alpha) {
+        @error "abstracts/theme: add #{$alpha} to `#{$role}` in $theme-alphas to use theme-alpha(#{$role}, #{$alpha}).";
+    }
+    @return var(#{-alpha-property($role, $alpha)});
+}
+
+// Declares every role's custom property for one theme. In the light theme the
+// dark-only roles are cleared, so each use falls back to its own light colour.
+@mixin theme-properties($theme) {
+    @each $role, $value in $theme {
+        --color-#{$role}: #{$value};
+    }
+    @each $role, $alphas in $theme-alphas {
+        @each $alpha in $alphas {
+            #{-alpha-property($role, $alpha)}: #{rgba(map.get($theme, $role), $alpha)};
+        }
+    }
+    @each $role, $value in $theme-dark-only {
+        @if $theme == $theme-dark {
+            --color-#{$role}: #{$value};
+        } @else {
+            --color-#{$role}: initial;
+        }
+    }
+}

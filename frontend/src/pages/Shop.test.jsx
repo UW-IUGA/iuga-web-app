@@ -138,7 +138,7 @@ describe("when the catalog cannot load", () => {
         }
     });
 
-    test("Try again on the preview reloads the catalog and replaces the preview with live prices", async () => {
+    test("Reload on the preview reloads the catalog and replaces the preview with live prices", async () => {
         vi.mocked(globalThis.fetch).mockResolvedValueOnce({ ok: false, status: 503, json: async () => ({}) });
 
         render(
@@ -148,7 +148,7 @@ describe("when the catalog cannot load", () => {
         );
 
         expect(await screen.findByText(/ordering is unavailable right now/i)).toBeInTheDocument();
-        fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+        fireEvent.click(screen.getByRole("button", { name: "Reload" }));
 
         await waitFor(() => expect(screen.getAllByRole("button", { name: "Add to cart" })).toHaveLength(shopProducts.length));
         expect(screen.queryByText("Price unavailable")).not.toBeInTheDocument();

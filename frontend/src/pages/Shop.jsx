@@ -140,6 +140,18 @@ function ShopPage() {
         <>
             <div className="baseContainer">
                 <main className="shopPage">
+                {catalogUnavailable && (
+                    <div className="shopPage__catalogNotice">
+                        <p role="status">Ordering is unavailable right now. Products are shown as a preview.</p>
+                        <button
+                            type="button"
+                            className="shopPage__reload"
+                            onClick={() => retryCatalog()}
+                        >
+                            Reload
+                        </button>
+                    </div>
+                )}
                 <section className="shopPage__hero" aria-labelledby="shop-title">
                     <div className="shopPage__heroTop">
                         <span>Informatics Merch</span>
@@ -192,19 +204,6 @@ function ShopPage() {
                 {loading && !catalog && (
                     <div className="shopPage__loading" role="status">
                         <p>Loading merchandise catalog...</p>
-                    </div>
-                )}
-
-                {catalogUnavailable && (
-                    <div className="shopPage__error" role="status">
-                        <p>Ordering is unavailable right now. Products are shown as a preview.</p>
-                        <button
-                            type="button"
-                            className="pill-button"
-                            onClick={() => retryCatalog()}
-                        >
-                            Try again
-                        </button>
                     </div>
                 )}
 

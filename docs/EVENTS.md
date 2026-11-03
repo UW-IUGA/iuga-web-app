@@ -13,7 +13,7 @@ but no longer routed, so its parts can move to the homepage.
 |---|---|---|
 | Month (default) | `/events?date=2026-10-20` | One month, a chip for each event. Choosing a day opens it in the day view; choosing a chip opens the event in a popover. |
 | Week | `/events?view=week&date=…` | Seven days on an hourly time grid, with a line at the current time. |
-| Day | `/events?view=day&date=…` | One day on the time grid, with each event's details listed below it. |
+| Day | `/events?view=day&date=…` | One day on the time grid. Choosing an event opens it in a popover, as in the week view. |
 | Year | `/events?view=year&date=…` | Every month that has events, newest first. Choosing a day opens it in place. |
 
 - **State lives in the URL** (`hooks/useCalendarView.js`). `view` is omitted
@@ -27,20 +27,23 @@ but no longer routed, so its parts can move to the homepage.
   moves the view to a day when one is picked, and the colour key.
 - **Swipe** (`hooks/useSwipeStep.js`): a sideways swipe over the month, week,
   or day steps it, as the arrows do. A swipe from the screen's edge is left to
-  the browser's back gesture. Under reduced motion the step is immediate.
+  the browser's back gesture. A drag that drifts toward a diagonal counts as a
+  scroll and does not step. Under reduced motion the step is immediate.
 - **Categories**: the colour key and the chips show Academic, Social, and
-  Professional, the categories the rest of the site uses. Events labelled
-  `Career` show as Professional (`utils/eventStreams.js`'s `categoriesFor`).
+  Career, the categories the rest of the site uses. Events labelled
+  `Professional` show as Career (`utils/eventStreams.js`'s `categoriesFor`).
 - **Officers** with `events.requests.manage` get `EventOperations` below the
   calendar, as before, with the same permission checks.
-- **Event details and RSVP.** An event's details appear in the popover (month
-  and week views), the day view, and the year view's day overlay: its photo,
-  labels, time, location, organizers, and attendance when the event shares it.
-  An upcoming event with RSVP on shows an RSVP button under them. It opens the
-  event's questions, or with none it RSVPs at once, and a signed-out student is
-  asked to sign in first. When built-in RSVP is off and the event has its own
-  sign-up page, the block links to that page instead. A past event says "This
-  event has already happened." (`components/eventsCalendar/EventRsvp.jsx`)
+- **Event details and RSVP.** An event's details appear in the popover (month,
+  week, and day views) and the year view's day overlay: its photo, labels, time,
+  location, organizers, and attendance when the event shares it. On a phone the
+  popover opens above or below its event and starts below the site navigation
+  (`utils/calendar/popover.js`). An upcoming event with RSVP on shows an RSVP
+  button under its details. It opens the event's questions, or with none it
+  RSVPs at once, and a signed-out student is asked to sign in first. An event
+  with its own sign-up page also links to that page, whether or not built-in
+  RSVP is on. An event counts as past once it starts, and a past event shows no
+  RSVP block. (`components/eventsCalendar/EventRsvp.jsx`)
 - **Previous events.** Under the calendar, a "Previous events" section shows a
   card for each entry in `assets/data/PastEventsData.js`. Any photo, or "View
   Photos", opens the photo viewer on that event's photos, as the previous page

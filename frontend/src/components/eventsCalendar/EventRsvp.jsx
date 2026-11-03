@@ -40,13 +40,12 @@ function EventRsvpForm({ eId, questions, onSent }) {
     const submit = async (answers) => {
         setIsSending(true);
         setError(null);
-        const sentInSession = session;
         try {
             const data = await sendRsvp(eId, answers);
             if (data.status === "error") {
                 setError(data.message || "Your RSVP didn't go through. Please try again.");
             } else {
-                onSent(eId, sentInSession);
+                onSent(eId, session);
             }
         } catch (sendError) {
             console.error("Unable to RSVP", sendError);
@@ -131,12 +130,16 @@ function EventRsvp({ event }) {
     const { status, details } = detailsFor(event.id);
     const [isSigningIn, setIsSigningIn] = useState(false);
 
-    const isUpcoming = (event.end ?? event.start) >= new Date();
+    // An event is past once it starts, which is when the server stops taking RSVPs.
+    const isUpcoming = event.start >= new Date();
+    // Past events offer no attendance action, so the block is left out entirely.
+    if (!isUpcoming) return null;
+
+    // The event's own sign-up page, if it has one. It shows whether or not the event also takes an RSVP here.
+    const signUpLink = details?.eAltLink?.title && details?.eAltLink?.url ? details.eAltLink : null;
 
     let content;
-    if (!isUpcoming) {
-        content = <p className="eventRsvp__note">This event has already happened.</p>;
-    } else if (status === "loading") {
+    if (status === "loading") {
         content = (
             <p className="eventRsvp__note" role="status">
                 Loading RSVP details…
@@ -179,19 +182,28 @@ function EventRsvp({ event }) {
         );
     } else if (details.rsvpEnabled) {
         content = <EventRsvpForm eId={event.id} questions={details.rsvpQuestions ?? []} onSent={markRsvpd} />;
-    } else if (details.eAltLink?.title && details.eAltLink?.url) {
-        content = (
-            <a className="eventRsvp__button" href={details.eAltLink.url} target="_blank" rel="noreferrer">
-                {details.eAltLink.title}
-                <FontAwesomeIcon icon={faArrowUpRightFromSquare} aria-hidden="true" />
-                <span className="sr-only"> (opens in a new tab)</span>
-            </a>
-        );
-    } else {
+    } else if (!signUpLink) {
         content = <p className="eventRsvp__note">RSVP isn&apos;t available for this event.</p>;
     }
 
-    return <div className="eventRsvp">{content}</div>;
+    // Beside an RSVP control the sign-up link is the quieter option, so the RSVP keeps the one strong fill.
+    return (
+        <div className="eventRsvp">
+            {content}
+            {signUpLink && (
+                <a
+                    className={details.rsvpEnabled ? "eventRsvp__link" : "eventRsvp__button"}
+                    href={signUpLink.url}
+                    target="_blank"
+                    rel="noreferrer"
+                >
+                    {signUpLink.title}
+                    <FontAwesomeIcon icon={faArrowUpRightFromSquare} aria-hidden="true" />
+                    <span className="sr-only"> (opens in a new tab)</span>
+                </a>
+            )}
+        </div>
+    );
 }
 
 export default EventRsvp;

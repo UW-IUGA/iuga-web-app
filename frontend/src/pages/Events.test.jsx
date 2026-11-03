@@ -172,12 +172,13 @@ describe("Events page: the event list", () => {
     });
 
     it("shows a Career event as Career, not Professional", async () => {
-        const { container } = await visit("/events?view=day&date=2026-10-21");
+        await visit("/events?view=day&date=2026-10-21");
 
-        const agenda = container.querySelector(".detail");
-        expect(within(agenda).getByText("Resume Clinic")).toBeInTheDocument();
-        expect(within(agenda).getByText("Career")).toBeInTheDocument();
-        expect(within(agenda).queryByText("Professional")).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: /Resume Clinic/ }));
+
+        const details = screen.getByRole("dialog", { name: "Resume Clinic" });
+        expect(within(details).getByText("Career")).toBeInTheDocument();
+        expect(within(details).queryByText("Professional")).not.toBeInTheDocument();
     });
 
     it("lists only the categories a visitor can see in the colour key", async () => {
@@ -225,9 +226,11 @@ describe("Events page: event details and previous events", () => {
             ),
         );
 
-        const { container } = await visit(`/events?view=day&date=${pacificDay(start)}`);
+        await visit(`/events?view=day&date=${pacificDay(start)}`);
 
-        const details = container.querySelector(".detail");
+        fireEvent.click(screen.getByRole("button", { name: /Game Night/ }));
+
+        const details = screen.getByRole("dialog", { name: "Game Night" });
         expect(await within(details).findByRole("button", { name: "RSVP" })).toBeInTheDocument();
     });
 
@@ -391,14 +394,13 @@ describe("Events page: views and navigation", () => {
         expect(miniLabel(container)).toBe(home);
     });
 
-    it("shows seven days in week view, and one with its agenda in day view", async () => {
+    it("shows seven days in week view, and one in day view", async () => {
         const week = await visit("/events?view=week&date=2026-10-20");
         expect(week.container.querySelectorAll(".grid__col")).toHaveLength(7);
         week.unmount();
 
         const day = await visit("/events?view=day&date=2026-10-20");
         expect(day.container.querySelectorAll(".grid__col")).toHaveLength(1);
-        expect(day.container.querySelector(".day__agenda")).toBeTruthy();
     });
 
     it("switches view from the toggle, keeping the date", async () => {
@@ -541,6 +543,30 @@ describe("Events page: swiping across the calendar", () => {
         const scroll = await act(async () => swipe(main(container), -30, 120));
         expect(scroll.defaultPrevented).toBe(false);
         await act(async () => swipe(main(container), -30));
+
+        expect(range(container)).toBe("Oct 18 – Oct 24, 2026");
+    });
+
+    it("does not step for a diagonal drag that reads as a scroll", async () => {
+        const { container } = await visit("/events?view=week&date=2026-10-20");
+
+        // 60px sideways and 50px up: a drift toward 45 degrees, which is more scroll than swipe.
+        await act(async () => swipe(main(container), -60, -50));
+
+        expect(range(container)).toBe("Oct 18 – Oct 24, 2026");
+    });
+
+    it("judges the whole touch, so a sideways start cannot carry a scroll", async () => {
+        const { container } = await visit("/events?view=week&date=2026-10-20");
+        const el = main(container);
+
+        // It starts out across, then runs 140px down the page.
+        await act(async () => {
+            touch(el, "touchstart", [{ clientX: 500, clientY: 300 }]);
+            touch(el, "touchmove", [{ clientX: 486, clientY: 294 }]);
+            touch(el, "touchmove", [{ clientX: 440, clientY: 160 }]);
+            touch(el, "touchend", []);
+        });
 
         expect(range(container)).toBe("Oct 18 – Oct 24, 2026");
     });

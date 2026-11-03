@@ -1,7 +1,7 @@
 /*
-Purpose: Style the day view: one time-grid column beside the agenda.
+Purpose: Style the day view: one time-grid column, with each event's details in its popover.
 Expected Request Information: Classes emitted by DayView and EventDetail, inside an .eventsCalendar root.
-Expected Response Information: A single-day schedule and a list of that day's events.
+Expected Response Information: A single-day schedule; picking an event opens its details beside it.
 */
 @use "../../abstracts" as *;
 @use "../../abstracts/eventsCalendar" as *;
@@ -12,23 +12,6 @@ Expected Response Information: A single-day schedule and a list of that day's ev
         flex-direction: column;
         gap: $calendar-space-xl;
         min-width: 0;
-    }
-
-    .day__agenda {
-        display: flex;
-        flex-direction: column;
-        gap: $calendar-space-md;
-    }
-
-    .day__agenda-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: $calendar-text;
-    }
-
-    .day__empty {
-        font-size: 14px;
-        color: $calendar-copy-muted;
     }
 
     .detail {

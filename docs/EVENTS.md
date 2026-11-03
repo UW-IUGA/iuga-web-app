@@ -167,7 +167,13 @@ open, and composes these pieces:
   with its date, time, and location. The arrow buttons, the arrow keys, a
   click on the right or left half of the photo, and a swipe across it on a
   touch screen (through `hooks/useSwipeStep.js`, as the calendar does) move
-  through the set, wrapping around at both ends.
+  through the set, wrapping around at both ends. The viewer is one frame sized
+  from the viewport, so its arrows and caption stay put while photos load or
+  change. The whole photo sits inside it over a blurred copy of the same photo,
+  which is the photo's small file, already downloaded for the card, so any
+  proportion fills the frame. The event's name, date, time, and location are
+  drawn over the bottom of the photo, and the arrows sit at the middle of each
+  side. Clicking the caption does not navigate.
 
 To add a past event, run `scripts/past-event-photo.sh <original-photo> <name>`
 for each photo (it needs `ffmpeg` and `cwebp`), then add an entry to

@@ -1,38 +1,54 @@
 /*
-Purpose: Style the full-size photo viewer.
+Purpose: Style the full-size photo viewer as one fixed frame. A blurred copy of the photo fills
+  it, and the photo, caption, counter, and controls are drawn over it.
 Expected Request Information: Classes emitted by PhotoLightbox.
-Expected Response Information: One photo on a dimmed page with its caption and controls inside the photo.
+Expected Response Information: A rounded frame sized from the viewport alone, with no box around it;
+  the dimmed page behind it is the backdrop.
 */
 @use "../abstracts" as *;
 
+// Sized from the viewport only, so the frame does not change size as photos load or change.
 .photoLightbox {
-    // Just the photo on the dimmed page, with every control inside it.
-    width: fit-content;
-    max-width: min(1040px, calc(100vw - 32px));
-    max-height: calc(100vh - 32px);
+    width: min(90vw, 1100px);
+    height: min(80dvh, 760px);
+    max-width: calc(100vw - 16px);
+    max-height: calc(100dvh - 16px);
     padding: 0;
-    overflow: visible;
     border: 0;
     background: transparent;
+    color: $color-white;
+    overflow: visible;
 
     &::backdrop {
-        background: rgba($color-black, 0.45);
+        background: rgba($color-black, 0.7);
+        backdrop-filter: blur(6px);
     }
 
     figure {
         position: relative;
         margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        border-radius: $radius-card-media;
+        background: #0f0f0f;
+        box-shadow: 0 24px 60px rgba($color-black, 0.4);
+        // A sideways swipe moves through the photos, so the browser keeps only scrolling and zooming.
+        touch-action: pan-y pinch-zoom;
     }
 
-    // Same treatment as the About page's profile photos: white text over a dark fade.
+    // Over the bottom of the photo, fading up from a dark base so the text stays readable.
     figcaption {
         position: absolute;
-        inset: auto 0 0;
-        padding: $space-16 140px 22px $space-6;
-        background: linear-gradient(to top, rgba(15, 15, 15, 0.82), rgba(15, 15, 15, 0.4) 64%, transparent);
-        color: $color-white;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        padding: $space-16 $space-6 $space-6;
+        box-sizing: border-box;
+        background: linear-gradient(to top, rgba($color-black, 0.65), rgba($color-black, 0.3) 60%, transparent);
         text-align: left;
-        pointer-events: none;
+        text-shadow: 0 1px 2px rgba($color-black, 0.35);
+        overflow-wrap: anywhere;
 
         span,
         strong {
@@ -57,6 +73,7 @@ Expected Response Information: One photo on a dimmed page with its caption and c
         }
     }
 
+    // Translucent round controls, so they read over any photo and any page theme.
     button {
         position: absolute;
         font-family: inherit;
@@ -65,14 +82,15 @@ Expected Response Information: One photo on a dimmed page with its caption and c
         height: 44px;
         padding: 0;
         place-items: center;
-        border: 0;
+        border: 1px solid rgba($color-white, 0.22);
         border-radius: $radius-pill;
-        background: $color-white;
-        box-shadow: 0 4px 14px rgba($color-black, 0.22);
-        color: $color-black;
+        background: rgba(15, 15, 15, 0.55);
+        backdrop-filter: blur(8px);
+        color: $color-white;
+        cursor: pointer;
 
         &:hover {
-            background: #e4e4e4;
+            background: rgba(15, 15, 15, 0.8);
         }
 
         &:focus-visible {
@@ -82,29 +100,40 @@ Expected Response Information: One photo on a dimmed page with its caption and c
     }
 }
 
+// The blurred fill: the same photo, scaled up so its blurred edges fall outside the frame.
+.photoLightbox__backdrop {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.1);
+    filter: blur(36px) brightness(0.55) saturate(1.1);
+    pointer-events: none;
+}
+
 .photoLightbox__stage {
-    position: relative;
+    position: absolute;
+    inset: 0;
     // Clicking either half of the photo moves through the set.
     cursor: pointer;
-    display: block;
-    overflow: hidden;
-    border-radius: $radius-card-media;
-    box-shadow: 0 24px 60px rgba($color-black, 0.3);
-    // A sideways swipe moves through the photos, so the browser keeps only scrolling and zooming.
-    touch-action: pan-y pinch-zoom;
+}
 
-    img {
-        display: block;
-        max-width: 100%;
-        max-height: calc(100vh - 48px);
-        object-fit: contain;
-    }
+// The whole photo, centred over the blurred fill, with no crop and no bars drawn by the frame.
+.photoLightbox__photo {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 .photoLightbox__count {
     position: absolute;
-    top: 14px;
+    top: $space-4;
     left: 50%;
+    transform: translateX(-50%);
     padding: 6px 14px;
     border-radius: $radius-pill;
     background: rgba(15, 15, 15, 0.6);
@@ -112,47 +141,39 @@ Expected Response Information: One photo on a dimmed page with its caption and c
     font-size: $font-size-small;
     font-weight: $font-weight-medium;
     font-variant-numeric: tabular-nums;
-    transform: translateX(-50%);
+    backdrop-filter: blur(8px);
 }
 
 .photoLightbox .photoLightbox__close {
-    top: 12px;
-    right: 12px;
+    top: $space-4;
+    right: $space-4;
 }
 
-// Arrows sit in the bottom-right corner, on the dark fade and level with the text.
+// The arrows sit at the middle of each side, clear of the caption along the bottom.
 .photoLightbox .photoLightbox__previous,
 .photoLightbox .photoLightbox__next {
-    bottom: 18px;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 .photoLightbox .photoLightbox__previous {
-    right: 74px;
+    left: $space-4;
 }
 
 .photoLightbox .photoLightbox__next {
-    right: 20px;
+    right: $space-4;
 }
 
 @include media("<tablet") {
-    .photoLightbox {
-        max-width: calc(100vw - 24px);
-
-        figcaption {
-            padding: $space-14 124px $space-4 $space-4;
-        }
-    }
-
-    .photoLightbox .photoLightbox__previous,
-    .photoLightbox .photoLightbox__next {
-        bottom: 12px;
+    .photoLightbox figcaption {
+        padding: $space-12 $space-4 $space-4;
     }
 
     .photoLightbox .photoLightbox__previous {
-        right: 66px;
+        left: $space-2;
     }
 
     .photoLightbox .photoLightbox__next {
-        right: 12px;
+        right: $space-2;
     }
 }

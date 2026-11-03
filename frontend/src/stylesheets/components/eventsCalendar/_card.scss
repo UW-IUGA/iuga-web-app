@@ -344,13 +344,14 @@ Expected Response Information: A grid of day pads, with event chips or colour-fi
         }
     }
 
-    // The month that holds today, in the year view. An outline rather than a
-    // border, so it sits just outside the card without changing its size or
-    // shifting the grid, and it is not clipped by the card's own overflow.
-    // White on the page is 17:1, well over the 3:1 an indicator needs (1.4.11).
+    // The month that holds today, in the year view: a border on the card's own
+    // edge. An outline pulled inside by its width rather than a border, so it
+    // follows the card's corners without adding space, resizing the card, or
+    // shifting the grid. White on the page is 17:1, well over the 3:1 an
+    // indicator needs (1.4.11).
     .card--current {
         outline: 2px solid $calendar-text;
-        outline-offset: 3px;
+        outline-offset: -2px;
     }
 
     // The year view's cards. Twelve months share the page, so each pad is a

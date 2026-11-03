@@ -14,8 +14,10 @@ Expected Response Information: A floating card with the event's details and a cl
         position: fixed;
         top: 0;
         left: 0;
-        // Over the sticky nav (10) and its scrim (9), like any popup.
-        z-index: 20;
+        // Over the sticky site navigation (100), at the level the site gives its other
+        // popups (_dropdown, _alertDialog). At 20 the nav painted over the top of the
+        // popover on a phone, where it sits just below the nav.
+        z-index: 1000;
 
         // Wide enough that a typical event's description wraps to a few lines
         // rather than a tall column, so it rarely needs to scroll at all.
@@ -58,6 +60,8 @@ Expected Response Information: A floating card with the event's details and a cl
     }
 
     .popover__close {
+        // Stays on the right even when the bar has no View day button.
+        margin-left: auto;
         width: 32px;
         height: 32px;
         padding: 0;

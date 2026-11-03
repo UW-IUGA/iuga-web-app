@@ -1,14 +1,17 @@
 import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { gsap } from "gsap";
+import { MOBILE_QUERY } from "../../utils/calendar/breakpoints";
 import { formatFullDate } from "../../utils/calendar/calendar";
 import { prefersReducedMotion } from "../../utils/calendar/motion";
-import { placePopover } from "../../utils/calendar/popover";
+import { placePopover, placeStacked } from "../../utils/calendar/popover";
 import EventDetail from "./EventDetail";
 
-// Shows selected events beside their trigger, following it during scrolling.
-// Renders in the document body so the calendar grid cannot clip it.
-function EventPopover({ selected, onClose, onViewDay }) {
+// Shows selected events beside their trigger, following it during scrolling. On a
+// phone there is no room beside it, so it goes above or below instead, and never
+// over the event it belongs to. Renders in the document body so the calendar grid
+// cannot clip it.
+function EventPopover({ selected, onClose, onClosing, onViewDay }) {
     const popoverRef = useRef(null);
     const closeButtonRef = useRef(null);
     const closingRef = useRef(false);
@@ -17,20 +20,33 @@ function EventPopover({ selected, onClose, onViewDay }) {
         const popover = popoverRef.current;
         if (!popover || !selected) return;
         const triggerBounds = selected.el.getBoundingClientRect();
-        const { left, top } = placePopover(
-            triggerBounds,
-            { width: popover.offsetWidth, height: popover.offsetHeight },
-            selected.side,
-            { width: window.innerWidth, height: window.innerHeight },
-        );
-        popover.style.left = `${left}px`;
-        popover.style.top = `${top}px`;
+        // The height the content asks for. scrollHeight, not offsetHeight: the
+        // max-height set below would otherwise cap the very height being measured.
+        const popoverSize = {
+            width: popover.offsetWidth,
+            height: popover.scrollHeight + (popover.offsetHeight - popover.clientHeight),
+        };
+        const viewportSize = {
+            width: window.innerWidth,
+            height: window.innerHeight,
+        };
+        const onPhone = window.matchMedia?.(MOBILE_QUERY).matches ?? false;
+        // The site's sticky navigation. placeStacked ignores it once it has scrolled off screen.
+        const headerBottom = document.querySelector(".site-navigation")?.getBoundingClientRect().bottom;
+        const placed = onPhone
+            ? placeStacked(triggerBounds, popoverSize, viewportSize, headerBottom)
+            : placePopover(triggerBounds, popoverSize, selected.side, viewportSize);
+
+        popover.style.left = `${placed.left}px`;
+        popover.style.top = `${placed.top}px`;
+        popover.style.maxHeight = placed.maxHeight === undefined ? "" : `${placed.maxHeight}px`;
     }, [selected]);
 
     const dismiss = useCallback(
         ({ restoreFocus = true } = {}) => {
             if (closingRef.current || !selected) return;
             closingRef.current = true;
+            onClosing?.();
 
             const finishClosing = () => {
                 closingRef.current = false;
@@ -43,9 +59,15 @@ function EventPopover({ selected, onClose, onViewDay }) {
                 finishClosing();
                 return;
             }
-            gsap.to(popover, { opacity: 0, scale: 0.92, duration: 0.15, ease: "power1.in", onComplete: finishClosing });
+            gsap.to(popover, {
+                opacity: 0,
+                scale: 0.92,
+                duration: 0.15,
+                ease: "power1.in",
+                onComplete: finishClosing,
+            });
         },
-        [selected, onClose],
+        [selected, onClose, onClosing],
     );
 
     // Open, or re-open beside a different event: place it, then play it in.
@@ -68,7 +90,12 @@ function EventPopover({ selected, onClose, onViewDay }) {
             const origin = selected.side === "right" ? "left top" : "right top";
             gsap.fromTo(
                 popover,
-                { opacity: 0, scale: 0.85, x: selected.side === "right" ? -12 : 12, transformOrigin: origin },
+                {
+                    opacity: 0,
+                    scale: 0.85,
+                    x: selected.side === "right" ? -12 : 12,
+                    transformOrigin: origin,
+                },
                 { opacity: 1, scale: 1, x: 0, duration: 0.25, ease: "power2.out" },
             );
             gsap.fromTo(
@@ -96,6 +123,17 @@ function EventPopover({ selected, onClose, onViewDay }) {
             // clipped.
             popover.style.overflow = "";
         };
+    }, [selected, positionPopover]);
+
+    // What the popover holds can grow after it opens (its RSVP block fills in), and
+    // its place depends on its height, so it is placed again whenever its size changes.
+    useEffect(() => {
+        const popover = popoverRef.current;
+        if (!popover || !selected || typeof ResizeObserver === "undefined") return undefined;
+
+        const observer = new ResizeObserver(() => positionPopover());
+        observer.observe(popover);
+        return () => observer.disconnect();
     }, [selected, positionPopover]);
 
     // While open: follow the event as anything scrolls (capture, to hear the
@@ -145,18 +183,21 @@ function EventPopover({ selected, onClose, onViewDay }) {
                 aria-label={dialogLabel}
             >
                 <div className="popover__bar card-item">
-                    <button
-                        type="button"
-                        className="popover__button"
-                        // Straight to the day view, which replaces the week and this with
-                        // it, so there is nothing to animate out or hand focus back to.
-                        onClick={() => {
-                            onClose();
-                            onViewDay(date);
-                        }}
-                    >
-                        View day
-                    </button>
+                    {/* The day view leaves out onViewDay: the day is already on screen. */}
+                    {onViewDay && (
+                        <button
+                            type="button"
+                            className="popover__button"
+                            // Straight to the day view, which replaces the week and this with
+                            // it, so there is nothing to animate out or hand focus back to.
+                            onClick={() => {
+                                onClose();
+                                onViewDay(date);
+                            }}
+                        >
+                            View day
+                        </button>
+                    )}
                     <button
                         ref={closeButtonRef}
                         type="button"

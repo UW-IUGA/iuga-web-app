@@ -11,8 +11,8 @@ Expected Response Information: Day columns over an hour gutter, with event block
     // the column, so the two have to agree or events drift off their slots.
     $grid-hour-height: 48px;
     $grid-gutter-width: 56px;
-    // On a phone, just wide enough for "12 PM" at the gutter's 10px, which hands
-    // the rest back to the days.
+    // On a phone, wide enough for "10 AM" at the gutter's 11px, which hands the
+    // rest back to the days.
     $grid-gutter-width-narrow: 40px;
 
     // The day headers' height: the weekday, the 26px day number and their
@@ -160,7 +160,9 @@ Expected Response Information: Day columns over an hour gutter, with event block
             position: absolute;
             top: -0.5em;
             right: $calendar-space-sm;
-            font-size: 10px;
+            // The weekday names' 11px, so the hours are easy to read at a glance.
+            // Still muted, so they stay below the event titles and day numbers.
+            font-size: 11px;
             white-space: nowrap;
             color: $calendar-copy-muted;
         }

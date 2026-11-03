@@ -85,11 +85,13 @@ export default function useZoomOverlay() {
                 pointerEvents: "all",
                 duration: 0.075,
                 delay: 0.25,
+                // Items settle straight up into place. Rotation is left out: a swing
+                // reads as sideways motion, not content arriving.
                 onStart: () =>
                     gsap.fromTo(
                         items,
-                        { y: 50, rotation: () => gsap.utils.random(-20, 20), opacity: 0 },
-                        { y: 0, rotation: 0, opacity: 1, duration: 1, ease: "power2.out", stagger: 0.1 },
+                        { y: 16, opacity: 0 },
+                        { y: 0, opacity: 1, duration: 0.35, ease: "power2.out", stagger: 0.05 },
                     ),
             });
         }

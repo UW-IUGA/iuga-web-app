@@ -39,11 +39,13 @@ export default function useSwipeStep(ref, onStep, enabled = true) {
         let start = null;
         let axis = null;
         let dx = 0;
+        let dy = 0;
 
         const reset = () => {
             start = null;
             axis = null;
             dx = 0;
+            dy = 0;
         };
 
         const springBack = () => {
@@ -99,7 +101,8 @@ export default function useSwipeStep(ref, onStep, enabled = true) {
 
             const touch = event.touches[0];
             dx = touch.clientX - start.x;
-            axis ??= lockAxis(dx, touch.clientY - start.y);
+            dy = touch.clientY - start.y;
+            axis ??= lockAxis(dx, dy);
 
             if (axis === "y") {
                 reset();
@@ -117,7 +120,7 @@ export default function useSwipeStep(ref, onStep, enabled = true) {
                 reset();
                 return;
             }
-            const amount = swipeStep(dx);
+            const amount = swipeStep(dx, dy);
             reset();
             if (amount) step(amount);
             else springBack();

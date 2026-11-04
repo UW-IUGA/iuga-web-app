@@ -1,10 +1,16 @@
-import { useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { mockCalendarData } from "../assets/mock-data/MockCalendarData";
+import { mockUpcomingEvents } from "../assets/mock-data/MockUpcomingEvents";
+import { isProduction } from "../runtime";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCalendarDays } from "@fortawesome/free-solid-svg-icons";
 import heart from "../assets/gallery/heart.jpeg";
 import gameNight from "../assets/gallery/gamenight.jpg";
 import merch from "../assets/gallery/merch.jpeg";
+import EventAgenda from "../components/EventAgenda";
+
+const DEV_EVENTS = [...mockCalendarData, ...mockUpcomingEvents];
 
 const INFORMATICS_DESTINATIONS = [
     {
@@ -29,79 +35,53 @@ const INFORMATICS_DESTINATIONS = [
     },
 ];
 
-const eventMonthFormatter = new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    timeZone: "America/Los_Angeles",
-});
-const eventDayFormatter = new Intl.DateTimeFormat("en-US", {
-    day: "numeric",
-    timeZone: "America/Los_Angeles",
-});
-const eventTimeFormatter = new Intl.DateTimeFormat("en-US", {
-    weekday: "short",
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: "America/Los_Angeles",
-});
-
-function getUpcomingHomeEvents(upcomingEvents) {
-    const now = Date.now();
-    return (Array.isArray(upcomingEvents) ? upcomingEvents : [])
-        .map((event) => ({ event, start: Date.parse(event?.eStartDate) }))
-        .filter(({ start }) => Number.isFinite(start) && start > now)
-        .sort((first, second) => first.start - second.start)
-        .slice(0, 3)
-        .map(({ event }) => event);
-}
-
-function UpcomingEvents({ events }) {
-    return (
-        <section className="homeEvents" aria-labelledby="homeUpcomingEventsHeading">
-            <div className="homeEventsHeader">
-                <h2 id="homeUpcomingEventsHeading">Upcoming events</h2>
-            </div>
-            {events.length > 0 ? (
-                <ul className="homeEventList">
-                    {events.map((event) => {
-                        const start = new Date(event.eStartDate);
-                        return (
-                            <li key={`${event.eName}-${event.eStartDate}`}>
-                                <Link className="homeEventLink" to="/events">
-                                    <time className="homeEventDate" dateTime={event.eStartDate}>
-                                        <span>{eventMonthFormatter.format(start)}</span>
-                                        <strong>{eventDayFormatter.format(start)}</strong>
-                                    </time>
-                                    <div className="homeEventDetails">
-                                        <h3>{event.eName}</h3>
-                                        <p>{eventTimeFormatter.format(start)} Pacific</p>
-                                    </div>
-                                </Link>
-                            </li>
-                        );
-                    })}
-                </ul>
-            ) : (
-                <Link className="homeEmptyEventCard" to="/events">
-                    <span className="homeEventIcon" aria-hidden="true">
-                        <FontAwesomeIcon icon={faCalendarDays} />
-                    </span>
-                    <div>
-                        <h3>New dates are on the way.</h3>
-                        <p>Check the calendar for the next IUGA gathering.</p>
-                    </div>
-                </Link>
-            )}
-        </section>
-    );
-}
-
 function HomePage({ upcomingEvents = [] }) {
     const { pathname } = useLocation();
-    const events = getUpcomingHomeEvents(upcomingEvents);
+    const navigate = useNavigate();
 
     useEffect(() => {
         window.scrollTo(0, 0);
     }, [pathname]);
+
+    const [calendarEvents, setCalendarEvents] = useState([]);
+
+    // Tracks whether events are loading, ready, or failed
+    const [eventsStatus, setEventsStatus] = useState("loading");
+
+    // Allows retrying if the backend request fails
+    const [eventsRequest, setEventsRequest] = useState(0);
+
+    useEffect(() => {
+        let isCurrent = true;
+
+        if (!isProduction) {
+            // Use mock event data during development
+            setCalendarEvents(DEV_EVENTS);
+            setEventsStatus("ready");
+        } else {
+            // Retrieve real event data from the backend
+            setEventsStatus("loading");
+
+            fetch("/api/v1/events/", { method: "GET" })
+                .then((res) => {
+                    if (!res.ok) throw new Error("Unable to fetch events");
+                    return res.json();
+                })
+                .then((events) => {
+                    if (!isCurrent) return;
+                    setCalendarEvents(events);
+                    setEventsStatus("ready");
+                })
+                .catch((error) => {
+                    console.error("Unable to load home events", error);
+                    if (isCurrent) setEventsStatus("failed");
+                });
+        }
+
+        return () => {
+            isCurrent = false;
+        };
+    }, [eventsRequest]);
 
     return (
         <main className="baseContainer homePage">
@@ -129,9 +109,16 @@ function HomePage({ upcomingEvents = [] }) {
                         />
                     </div>
                 </div>
-
-                <UpcomingEvents events={events} />
             </div>
+
+            <section className="homeCalendarSection">
+                <EventAgenda
+                    events={calendarEvents}
+                    status={eventsStatus}
+                    onRetry={() => setEventsRequest((request) => request + 1)}
+                    homeMode
+                />
+            </section>
 
             <section className="homeExplore" aria-labelledby="homeExploreHeading">
                 <div className="homeSectionHeading">

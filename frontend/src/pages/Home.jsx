@@ -1,4 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { mockCalendarData } from "../assets/mock-data/MockCalendarData";
+import { mockUpcomingEvents } from "../assets/mock-data/MockUpcomingEvents";
+import { isProduction } from "../runtime";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCalendarDays } from "@fortawesome/free-solid-svg-icons";
@@ -6,6 +9,8 @@ import heart from "../assets/gallery/heart.jpeg";
 import gameNight from "../assets/gallery/gamenight.jpg";
 import merch from "../assets/gallery/merch.jpeg";
 import EventAgenda from "../components/EventAgenda";
+
+const DEV_EVENTS = [...mockCalendarData, ...mockUpcomingEvents];
 
 const INFORMATICS_DESTINATIONS = [
     {
@@ -38,6 +43,46 @@ function HomePage({ upcomingEvents = [] }) {
         window.scrollTo(0, 0);
     }, [pathname]);
 
+    const [calendarEvents, setCalendarEvents] = useState([]);
+
+    // Tracks whether events are loading, ready, or failed
+    const [eventsStatus, setEventsStatus] = useState("loading");
+
+    // Allows retrying if the backend request fails
+    const [eventsRequest, setEventsRequest] = useState(0);
+
+    useEffect(() => {
+        let isCurrent = true;
+
+        if (!isProduction) {
+            // Use mock event data during development
+            setCalendarEvents(DEV_EVENTS);
+            setEventsStatus("ready");
+        } else {
+            // Retrieve real event data from the backend
+            setEventsStatus("loading");
+
+            fetch("/api/v1/events/", { method: "GET" })
+                .then((res) => {
+                    if (!res.ok) throw new Error("Unable to fetch events");
+                    return res.json();
+                })
+                .then((events) => {
+                    if (!isCurrent) return;
+                    setCalendarEvents(events);
+                    setEventsStatus("ready");
+                })
+                .catch((error) => {
+                    console.error("Unable to load home events", error);
+                    if (isCurrent) setEventsStatus("failed");
+                });
+        }
+
+        return () => {
+            isCurrent = false;
+        };
+    }, [eventsRequest]);
+
     return (
         <main className="baseContainer homePage">
             <div className="homeOpening">
@@ -68,16 +113,10 @@ function HomePage({ upcomingEvents = [] }) {
 
             <section className="homeCalendarSection">
                 <EventAgenda
-                    events={upcomingEvents}
-                    homeMode={true}
-                    onSelectEvent={(event) => {
-                        navigate("/events", {
-                            state: {
-                                eId: event.eId,
-                                eStartDate: event.eStartDate,
-                            },
-                        });
-                    }}
+                    events={calendarEvents}
+                    status={eventsStatus}
+                    onRetry={() => setEventsRequest((request) => request + 1)}
+                    homeMode
                 />
             </section>
 

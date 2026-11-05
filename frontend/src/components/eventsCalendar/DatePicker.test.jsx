@@ -44,7 +44,7 @@ function renderCalendarControls(mode = "week") {
   render(
     <CalendarControls
       mode={mode}
-      anchor={anchor()}
+      selectedDate={anchor()}
       events={events}
       onModeChange={vi.fn()}
       onToday={vi.fn()}
@@ -245,7 +245,7 @@ describe("date picker", () => {
     render(
       <CalendarControls
         mode="week"
-        anchor={anchor()}
+        selectedDate={anchor()}
         events={events}
         onModeChange={vi.fn()}
         onToday={vi.fn()}
@@ -281,14 +281,14 @@ describe("date picker", () => {
       onPickDate: vi.fn(),
     };
     const { rerender } = render(
-      <CalendarControls {...props} anchor={anchor()} />,
+      <CalendarControls {...props} selectedDate={anchor()} />,
     );
     fireEvent.click(document.querySelector(".picker__toggle"));
 
     rerender(
       <CalendarControls
         {...props}
-        anchor={new Date("2026-10-27T20:00:00.000Z")}
+        selectedDate={new Date("2026-10-27T20:00:00.000Z")}
       />,
     );
 

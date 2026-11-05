@@ -21,7 +21,7 @@ const UNIT = {
  */
 function CalendarControls({
   mode,
-  anchor,
+  selectedDate,
   events = [],
   onModeChange,
   onToday,
@@ -36,7 +36,7 @@ function CalendarControls({
       {hasPicker && (
         <DatePicker
           mode={mode}
-          anchor={anchor}
+          anchor={selectedDate}
           events={events}
           onPickDate={onPickDate}
         />
@@ -73,7 +73,7 @@ function CalendarControls({
       <div className="calendar-controls__lead">
         {!hasPicker && (
           <p className="calendar-controls__range" aria-live="polite">
-            {formatRange(mode, anchor)}
+            {formatRange(mode, selectedDate)}
           </p>
         )}
         <Legend className={mode === "year" ? null : "legend--narrow-only"} />

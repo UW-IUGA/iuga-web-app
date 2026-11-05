@@ -58,7 +58,7 @@ function ListStatus({ status, onRetry }) {
 }
 
 function EventsPage() {
-  const { mode, selectedDate: anchor, goToDay, goToDate, goToToday, step, setMode } =
+  const { mode, selectedDate, goToDay, goToDate, goToToday, step, setMode } =
     useCalendarView();
   const { records, status, retry } = useEventList();
   const { can } = useAuthContext();
@@ -90,13 +90,13 @@ function EventsPage() {
   // Normalized once per list, so the grids' own memos keep their inputs.
   const events = useMemo(() => records.map(normalizeEvent), [records]);
 
-  const anchorParts = zonedParts(anchor);
+  const selectedDateParts = zonedParts(selectedDate);
 
   // The single month the month view shows, positioned by the selected date.
   const rows = useMemo(
     () =>
-      buildMonthGrid(anchorParts.year, anchorParts.month, events),
-    [anchorParts.year, anchorParts.month, events],
+      buildMonthGrid(selectedDateParts.year, selectedDateParts.month, events),
+    [selectedDateParts.year, selectedDateParts.month, events],
   );
 
   let view;
@@ -104,16 +104,16 @@ function EventsPage() {
     view = <YearView rawEvents={records} onPickDay={goToDay} />;
   } else if (mode === "week") {
     view = (
-      <WeekView anchor={anchor} events={events} onSelectDay={goToDay} />
+      <WeekView anchor={selectedDate} events={events} onSelectDay={goToDay} />
     );
   } else if (mode === "day") {
     view = (
-      <DayView anchor={anchor} events={events} onSelectDay={goToDay} />
+      <DayView anchor={selectedDate} events={events} onSelectDay={goToDay} />
     );
   } else {
     view = (
       <MonthCard
-        title={`${MONTH_NAMES[anchorParts.month]} ${anchorParts.year}`}
+        title={`${MONTH_NAMES[selectedDateParts.month]} ${selectedDateParts.year}`}
         rows={rows}
         onPickDay={goToDay}
       />
@@ -128,7 +128,7 @@ function EventsPage() {
 
           <CalendarControls
             mode={mode}
-            anchor={anchor}
+            selectedDate={selectedDate}
             events={events}
             onModeChange={setMode}
             onToday={onToday}
@@ -140,7 +140,7 @@ function EventsPage() {
             {hasSidebar && (
               <div className="events__sidebar">
                 <MiniMonth
-                  anchor={anchor}
+                  anchor={selectedDate}
                   events={events}
                   onPickDay={goToDate}
                   syncKey={navCount}

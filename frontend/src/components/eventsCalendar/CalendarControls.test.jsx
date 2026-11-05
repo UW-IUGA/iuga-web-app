@@ -22,7 +22,7 @@ function renderCalendarControls({ mode = "month", ...rest } = {}) {
   return {
     ...handlers,
     ...render(
-      <CalendarControls mode={mode} anchor={anchor()} {...handlers} />,
+      <CalendarControls mode={mode} selectedDate={anchor()} {...handlers} />,
     ),
   };
 }

@@ -33,7 +33,7 @@ The page shows a loading message before the first list arrives. If loading fails
 |---|---|---|
 | Month | `/events?date=2026-10-20` | A month grid with event chips. Selecting a date opens that day; selecting an event opens its details. |
 | Week | `/events?view=week&date=2026-10-20` | Seven days on an hourly time grid. Selecting an event opens its details. |
-| Day | `/events?view=day&date=2026-10-20` | One day's time grid and a full detail card for each event. |
+| Day | `/events?view=day&date=2026-10-20` | One day's time grid. Selecting an event opens its details in a popover. |
 | Year | `/events?view=year&date=2026-10-20` | The months that contain events, newest first. Selecting a day opens its events in an overlay. |
 
 `useCalendarView.js` keeps the selected view and date in the URL. Month is the default, so its `view` parameter is omitted. Dates use the Pacific calendar day (`YYYY-MM-DD`), which keeps the selected day stable across reloads and time zones. Changing views keeps the date; selecting a day from a calendar view switches to the day view. Each navigation step adds a browser history entry, so Back retraces it. Other query parameters are preserved.
@@ -44,7 +44,7 @@ Calendar dates and times use `America/Los_Angeles`. `normalizeEvent` converts th
 
 ## Event details and RSVP
 
-A visitor opens details by selecting an event. Month and week views use `EventPopover`; day view shows details below its time grid; year view uses `DayOverlay`. All three render `EventDetail`, so the event information and RSVP behavior stay consistent.
+A visitor opens details by selecting an event. Month, week, and day views use `EventPopover`; year view uses `DayOverlay`. Both render `EventDetail`, so the event information and RSVP behavior stay consistent.
 
 The event list does not include every detail. When an event's details are first shown, `EventRsvpContext.jsx` requests `GET /api/v1/events/id/:eId` and shares the result between open event details. It also tracks RSVPs made during the current sign-in session. If sign-in state changes, it clears those session-specific details and RSVP markers so they cannot carry over to another visitor.
 

@@ -219,7 +219,7 @@ export function dayLabel(date, eventCount, isToday = false) {
 
 /**
  * "All Events", "October 2026", "Oct 18 – Oct 24, 2026", "Thu, Oct 22, 2026" —
- * whatever the current view is actually showing, so the toolbar label never
+ * whatever the current view is actually showing, so the CalendarControls label never
  * claims a wider span than the grid beneath it.
  *
  * Year view is the whole archive rather than a single year, so it takes no

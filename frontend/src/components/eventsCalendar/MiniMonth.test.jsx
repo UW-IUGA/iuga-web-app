@@ -126,7 +126,7 @@ describe("MiniMonth", () => {
         expect(screen.getByText("January 2027")).toBeTruthy();
     });
 
-    it("has no Today control of its own — the toolbar owns it", () => {
+    it("has no Today control of its own — CalendarControls provides it", () => {
         renderMini();
 
         expect(screen.queryByRole("button", { name: "Today" })).toBeNull();
@@ -146,7 +146,7 @@ describe("MiniMonth", () => {
         fireEvent.click(screen.getByLabelText("Show next month"));
         expect(screen.getByText("November 2026")).toBeTruthy();
 
-        // A toolbar step a week on, still inside October.
+        // A calendar control step a week on, still inside October.
         rerender(<MiniMonth anchor={new Date("2026-10-27T20:00:00.000Z")} events={[]} onPickDay={vi.fn()} />);
 
         expect(screen.getByText("October 2026")).toBeTruthy();

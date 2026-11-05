@@ -2,7 +2,7 @@ import { colorForLabels, EVENT_LABELS } from "../../utils/calendar/calendar";
 
 // What the event colours mean. A list rather than a row of spans, so a screen
 // reader announces how many labels there are and can move through them. The
-// swatches are decorative: each label is spelled out beside its colour, so
+// color markers are decorative: each label is spelled out beside its colour, so
 // nothing rests on colour alone (WCAG 1.4.1).
 //
 // `layout` is "column" under the mini month, where the sidebar is narrow and

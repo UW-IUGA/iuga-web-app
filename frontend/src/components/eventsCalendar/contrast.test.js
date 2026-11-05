@@ -153,7 +153,7 @@ describe.each(Object.entries(PALETTES))("the %s palette", (_theme, values) => {
             expect(ratio(LIGHT, PAD_HOVER)).toBeGreaterThanOrEqual(3);
         });
 
-        it("shows the legend swatches against the page", () => {
+        it("shows the legend color markers against the page", () => {
             for (const label of LABELS) expect(ratio(label, BG)).toBeGreaterThanOrEqual(3);
         });
 

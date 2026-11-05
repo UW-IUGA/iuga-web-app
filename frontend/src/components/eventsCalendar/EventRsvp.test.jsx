@@ -30,6 +30,10 @@ const LISTED = {
 
 const QUESTION = { qId: "diet", qString: "Any dietary restrictions?" };
 
+const hoursFromNow = (hours) => new Date(Date.now() + hours * 3_600_000).toISOString();
+
+const SIGN_UP_LINK = { title: "Register on Handshake", url: "https://example.org" };
+
 const jsonResponse = (body) => ({ ok: true, status: 200, statusText: "OK", json: async () => body });
 
 // Answers the details request with the given overrides, and every RSVP with rsvpReply.
@@ -144,12 +148,25 @@ describe("EventRsvp", () => {
         expect(await screen.findByText("You're going. See you there.")).toBeInTheDocument();
     });
 
-    it("offers no RSVP for an event that has already happened", async () => {
-        mockApi();
-        renderDetail({ listed: { ...LISTED, eStartDate: new Date(Date.now() - 86_400_000).toISOString() } });
+    it("hides every attendance action once an event has already happened", async () => {
+        mockApi({ showParticipants: true, participants: 5, eAltLink: SIGN_UP_LINK });
+        renderDetail({ listed: { ...LISTED, eStartDate: hoursFromNow(-24) } });
 
-        expect(screen.getByText("This event has already happened.")).toBeInTheDocument();
+        expect(screen.queryByText("Loading RSVP details…")).not.toBeInTheDocument();
+        // The attendance count arrives with the details, so seeing it means the details have loaded.
+        expect(await screen.findByText("Attending")).toBeInTheDocument();
         expect(screen.queryByRole("button", { name: "RSVP" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("link", { name: /Register on Handshake/ })).not.toBeInTheDocument();
+        expect(screen.queryByText("This event has already happened.")).not.toBeInTheDocument();
+    });
+
+    it("hides every attendance action once an event has started, even while it is still going", async () => {
+        mockApi({ showParticipants: true, participants: 5, eAltLink: SIGN_UP_LINK });
+        renderDetail({ listed: { ...LISTED, eStartDate: hoursFromNow(-1), eEndDate: hoursFromNow(1) } });
+
+        expect(await screen.findByText("Attending")).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "RSVP" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("link", { name: /Register on Handshake/ })).not.toBeInTheDocument();
     });
 
     it("opens the questions before sending anything", async () => {
@@ -182,5 +199,21 @@ describe("EventRsvp", () => {
         const link = await screen.findByRole("link", { name: /Register on Handshake/ });
         expect(link).toHaveAttribute("href", "https://example.org");
         expect(link).toHaveAttribute("target", "_blank");
+    });
+
+    it("offers the RSVP and the event's own sign-up link together", async () => {
+        mockApi({ rsvpQuestions: [], eAltLink: SIGN_UP_LINK });
+        renderDetail();
+
+        expect(await screen.findByRole("button", { name: "RSVP" })).toBeInTheDocument();
+        const link = screen.getByRole("link", { name: /Register on Handshake/ });
+        expect(link).toHaveAttribute("href", "https://example.org");
+    });
+
+    it("says RSVP is not available when the event has neither RSVP nor a sign-up link", async () => {
+        mockApi({ rsvpEnabled: false });
+        renderDetail();
+
+        expect(await screen.findByText("RSVP isn't available for this event.")).toBeInTheDocument();
     });
 });

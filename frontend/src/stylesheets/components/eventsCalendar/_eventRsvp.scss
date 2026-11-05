@@ -48,6 +48,32 @@ Expected Response Information: The same palette, type, radii and focus ring as t
         }
     }
 
+    // Beside an RSVP control, the sign-up link is the quieter option, so the RSVP keeps the one strong fill.
+    .eventRsvp__link {
+        min-height: 40px;
+        padding: $calendar-space-sm $calendar-space-lg;
+
+        display: inline-flex;
+        align-items: center;
+        gap: $calendar-space-sm;
+
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        color: $calendar-text;
+        background-color: transparent;
+        border: 1px solid $calendar-control-border;
+        border-radius: $calendar-radius-pill;
+
+        &:hover {
+            background-color: $calendar-hover;
+        }
+
+        svg {
+            font-size: 12px;
+        }
+    }
+
     .eventRsvp__cancel {
         min-height: 40px;
         padding: $calendar-space-sm $calendar-space-md;

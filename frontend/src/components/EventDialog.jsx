@@ -102,9 +102,12 @@ function RsvpForm({ event, onRsvp }) {
 
 // What a visitor can do about attending, which depends on timing and the event's RSVP settings.
 function EventAttendance({ event, isLoading, onRsvp }) {
+    // An event is past once it starts. Past events offer no attendance action, so this slot
+    // stays empty for them, even while details load.
     const isUpcoming = new Date(event.eStartDate) >= new Date();
     const altLink = event.eAltLink?.title && event.eAltLink?.url ? event.eAltLink : null;
 
+    if (!isUpcoming) return null;
     if (isLoading) {
         return (
             <p className="eventDialog__note" role="status">
@@ -112,7 +115,6 @@ function EventAttendance({ event, isLoading, onRsvp }) {
             </p>
         );
     }
-    if (!isUpcoming) return <p className="eventDialog__note">This event has already happened.</p>;
     if (event.hasRSVPd) {
         return (
             <p className="eventDialog__confirmed" role="status">

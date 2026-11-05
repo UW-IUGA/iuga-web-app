@@ -128,11 +128,28 @@ describe("EventDialog", () => {
         expect(fetchSpy).toHaveBeenCalledTimes(1);
     });
 
-    test("a past event cannot be RSVPd to", () => {
+    test("a past event offers no RSVP and no note about its timing", () => {
         renderDialog(makeEvent({ eStartDate: new Date(2026, 9, 6, 16, 15).toISOString() }));
 
-        expect(screen.getByText("This event has already happened.")).toBeInTheDocument();
         expect(screen.queryByRole("button", { name: "RSVP" })).not.toBeInTheDocument();
+        expect(screen.queryByText("This event has already happened.")).not.toBeInTheDocument();
+    });
+
+    test("an event that has started but not ended offers no RSVP", () => {
+        renderDialog(
+            makeEvent({
+                eStartDate: new Date(NOW.getTime() - 60 * 60_000).toISOString(),
+                eEndDate: new Date(NOW.getTime() + 60 * 60_000).toISOString(),
+            }),
+        );
+
+        expect(screen.queryByRole("button", { name: "RSVP" })).not.toBeInTheDocument();
+    });
+
+    test("a past event shows no attendance note while its details are still loading", () => {
+        renderDialog(makeEvent({ eStartDate: new Date(2026, 9, 6, 16, 15).toISOString() }), { isLoading: true });
+
+        expect(screen.queryByText("Loading event details…")).not.toBeInTheDocument();
     });
 
     test("an event with its own sign-up page links to it instead of the RSVP form", () => {

@@ -1,45 +1,45 @@
 /*
-Purpose: Style the calendar toolbar.
-Expected Request Information: Classes emitted by CalendarToolbar, ViewToggle and ViewSelect, inside an .eventsCalendar root.
+Purpose: Style the calendar controls.
+Expected Request Information: Classes emitted by CalendarControls, ViewToggle and ViewSelect, inside an .eventsCalendar root.
 Expected Response Information: Today and the arrows, the range title, and the view switch.
 */
 @use "../../abstracts" as *;
 @use "../../abstracts/eventsCalendar" as *;
 
 .eventsCalendar {
-    // The navigation's height: Today and the arrows (.toolbar__arrow is this
+    // The navigation's height: Today and the arrows (.calendar-controls__arrow is this
     // tall).
-    $toolbar-row-height: 40px;
+    $calendar-controls-row-height: 40px;
 
     // The outlined pills on that line: Today, and the view dropdown on a narrow
     // screen. One height, so the two read as a set. Over the 24px minimum target
     // (WCAG 2.5.8).
-    $toolbar-pill-height: 32px;
+    $calendar-controls-pill-height: 32px;
 
     // Aligned to the top, with every control on a first line of
-    // $toolbar-row-height: the navigation is that tall, the range sets it as its
+    // $calendar-controls-row-height: the navigation is that tall, the range sets it as its
     // line height, and the switch is centred in a box of it. So that line sits
     // in the same place in every view, whatever hangs below it — the year view's
     // legend under "All Events" adds height under the range without moving the
-    // switch, which centring the whole toolbar would have done.
-    .toolbar {
+    // switch, which centring the whole controls would have done.
+    .calendar-controls {
         display: flex;
         align-items: flex-start;
         gap: $calendar-space-md;
         flex-wrap: wrap;
-        // The year view has no navigation; this keeps the toolbar that tall there
+        // The year view has no navigation; this keeps the controls that tall there
         // too, so the calendar below does not jump up.
-        min-height: $toolbar-row-height;
+        min-height: $calendar-controls-row-height;
     }
 
-    .toolbar__nav {
+    .calendar-controls__nav {
         display: flex;
         align-items: center;
         gap: $calendar-space-2xs;
     }
 
-    .toolbar__today {
-        height: $toolbar-pill-height;
+    .calendar-controls__today {
+        height: $calendar-controls-pill-height;
         padding: 0 $calendar-space-lg;
 
         background-color: transparent;
@@ -55,9 +55,9 @@ Expected Response Information: Today and the arrows, the range title, and the vi
         }
     }
 
-    .toolbar__arrow {
-        width: $toolbar-row-height;
-        height: $toolbar-row-height;
+    .calendar-controls__arrow {
+        width: $calendar-controls-row-height;
+        height: $calendar-controls-row-height;
         padding: 0;
 
         display: grid;
@@ -77,7 +77,7 @@ Expected Response Information: Today and the arrows, the range title, and the vi
 
     // The range, and the legend under it where there is one. Takes the free
     // space so the switch sits hard right.
-    .toolbar__lead {
+    .calendar-controls__lead {
         flex: 1 1 auto;
         min-width: 0;
 
@@ -86,19 +86,19 @@ Expected Response Information: Today and the arrows, the range title, and the vi
         gap: $calendar-space-xs;
     }
 
-    .toolbar__range {
+    .calendar-controls__range {
         min-width: 12ch;
         // Fills the first line exactly, so it lines up with the navigation and the
         // switch beside it.
-        line-height: $toolbar-row-height;
+        line-height: $calendar-controls-row-height;
 
         font-size: 24px;
         font-weight: 600;
         color: $calendar-text;
     }
 
-    .toolbar__switch {
-        height: $toolbar-row-height;
+    .calendar-controls__switch {
+        height: $calendar-controls-row-height;
         display: flex;
         align-items: center;
     }
@@ -194,7 +194,7 @@ Expected Response Information: Today and the arrows, the range title, and the vi
     .view-select__input {
         appearance: none;
         // Today's height, so it matches the pill at the other end of the line.
-        height: $toolbar-pill-height;
+        height: $calendar-controls-pill-height;
         // Today's side padding, and room on the right for the chevron.
         padding: 0 30px 0 15px;
 
@@ -227,16 +227,16 @@ Expected Response Information: Today and the arrows, the range title, and the vi
     // here, where the radio group's four options will not fit beside them — at
     // the right. The range and the legend wrap under it, in that order.
     @include media("<=#{$calendar-mobile}") {
-        .toolbar {
+        .calendar-controls {
             gap: $calendar-space-sm;
         }
 
-        .toolbar__today {
+        .calendar-controls__today {
             padding-inline: $calendar-space-md;
         }
 
         // Pushed hard right, whatever is beside it.
-        .toolbar__switch {
+        .calendar-controls__switch {
             margin-left: auto;
         }
 
@@ -250,17 +250,17 @@ Expected Response Information: Today and the arrows, the range title, and the vi
 
         // The date picker, standing in for the range, takes the first line, then
         // the controls, then the legend. The picker comes first in the source, so
-        // only the legend, left in .toolbar__lead, is moved: after the controls.
+        // only the legend, left in .calendar-controls__lead, is moved: after the controls.
         // Year view has no picker, so its lead keeps its range and the first line,
         // at the left beside the switch.
 
         // The lead is a size container, so the legend chooses its columns from the
         // width it is actually given (see _legend.scss).
-        .toolbar__lead {
-            container: toolbar-legend / inline-size;
+        .calendar-controls__lead {
+            container: calendar-controls-legend / inline-size;
         }
 
-        .toolbar__nav ~ .toolbar__lead {
+        .calendar-controls__nav ~ .calendar-controls__lead {
             order: 1;
             flex-basis: 100%;
         }
@@ -269,7 +269,7 @@ Expected Response Information: Today and the arrows, the range title, and the vi
             flex-basis: 100%;
         }
 
-        .toolbar__range {
+        .calendar-controls__range {
             font-size: 20px;
         }
     }
@@ -279,7 +279,7 @@ Expected Response Information: Today and the arrows, the range title, and the vi
     // Every level down to the strip may shrink below its content. A flex item
     // will not by default: it holds its min-content width, which for the strip is
     // all 36 months in a row, so the strip pushed the panel, the picker and the
-    // toolbar out past the screen instead of scrolling inside itself.
+    // controls out past the screen instead of scrolling inside itself.
     .picker {
         min-width: 0;
         max-width: 100%;
@@ -293,7 +293,7 @@ Expected Response Information: Today and the arrows, the range title, and the vi
     .picker__toggle {
         align-self: flex-start;
         // Over the 24px minimum target (WCAG 2.5.8) with the 20px range in it.
-        min-height: $toolbar-pill-height;
+        min-height: $calendar-controls-pill-height;
         padding: 0 $calendar-space-2xs;
         margin-left: -$calendar-space-2xs;
 

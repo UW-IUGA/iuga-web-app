@@ -18,7 +18,7 @@ Expected Response Information: A row or column of coloured dots, each with its c
         list-style: none;
     }
 
-    // In the toolbar, beside the range. Wraps rather than overflowing on a narrow
+    // In the controls, beside the range. Wraps rather than overflowing on a narrow
     // screen.
     .legend--row {
         flex-wrap: wrap;
@@ -31,7 +31,7 @@ Expected Response Information: A row or column of coloured dots, each with its c
         gap: $calendar-space-sm;
     }
 
-    // The toolbar's copy in the month, week and day views. Those keep their
+    // The copy in CalendarControls for month, week and day. Those views keep their
     // legend under the mini month, so this one shows only where the sidebar is
     // hidden — the same query that hides it, so exactly one copy is ever shown
     // and a screen reader never meets two.
@@ -81,14 +81,14 @@ Expected Response Information: A row or column of coloured dots, each with its c
         }
     }
 
-    // In the toolbar on a narrow screen, four labels on a line, never wrapped to
+    // In the controls on a narrow screen, four labels on a line, never wrapped to
     // a stray three and one. Where the width under the range cannot hold all four
     // at full size — the narrowest phones, or any phone at a large text size —
     // it goes to two lines of two rather than shrinking the text.
 
-    // Asked of the width the legend is given (see .toolbar in _toolbar.scss),
+    // Asked of the width the legend is given (see .calendar-controls in _calendarControls.scss),
     // not of the screen, so zoom and text size are counted for free.
-    @container toolbar-legend (max-width: 330px) {
+    @container calendar-controls-legend (max-width: 330px) {
         .legend--row {
             display: grid;
             grid-template-columns: repeat(2, max-content);

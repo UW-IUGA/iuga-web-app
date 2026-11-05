@@ -56,7 +56,7 @@ $calendar-palette-dark: (
     // clears 3:1 on a card, the level WCAG 1.4.11 sets for graphics that
     // carry meaning.
     divider: #737373,
-    // The outline of the toolbar's buttons and selects, and the view switch's track.
+    // The outline of the controls' buttons and selects, and the view switch's track.
     control-border: #333,
     track: #333,
     // Hover washes, from a button's to a grid cell's to an out-of-month day.
@@ -170,7 +170,7 @@ $calendar-radius-pill: 4em;
 $calendar-font-family: "Rubik";
 
 // Breakpoints, for `@include media(...)`. At and below $calendar-mobile the
-// sidebar goes and the toolbar takes the phone layout; it must agree with
+// sidebar goes and the controls take the phone layout; it must agree with
 // MOBILE_QUERY in utils/calendar/breakpoints.js (breakpoints.test.js checks).
 // $calendar-desktop is the floor the sidebar comes back at. $calendar-tablet
 // hands the year view back the roomier spacing its phone-first base trims.

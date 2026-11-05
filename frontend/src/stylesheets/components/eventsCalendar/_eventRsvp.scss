@@ -15,7 +15,7 @@ Expected Response Information: The same palette, type, radii and focus ring as t
         gap: $calendar-space-sm;
     }
 
-    // The one strong fill, as the toolbar's Today and the selected day use it.
+    // The one strong fill, as the Today button in CalendarControls and the selected day use it.
     .eventRsvp__button {
         min-height: 40px;
         padding: $calendar-space-sm $calendar-space-lg;

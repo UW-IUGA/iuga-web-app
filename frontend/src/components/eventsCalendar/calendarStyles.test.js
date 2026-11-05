@@ -91,7 +91,7 @@ describe("calendar styles", () => {
 
     it("keep every control past the 24px minimum target (2.5.8)", () => {
         expect(px(style(".pad__event, .pad__more")["min-height"])).toBeGreaterThanOrEqual(24);
-        expect(px(style(".toolbar__today").height)).toBeGreaterThanOrEqual(24);
+        expect(px(style(".calendar-controls__today").height)).toBeGreaterThanOrEqual(24);
         expect(px(style(".picker__toggle")["min-height"])).toBeGreaterThanOrEqual(24);
         expect(px(style(".strip__month")["min-height"])).toBeGreaterThanOrEqual(24);
         expect(px(style(".strip__month")["min-width"])).toBeGreaterThanOrEqual(24);

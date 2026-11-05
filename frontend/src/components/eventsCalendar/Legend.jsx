@@ -19,7 +19,7 @@ function Legend({ layout = "row", className }) {
       {EVENT_LABELS.map((label) => (
         <li className="legend__item" key={label}>
           <span
-            className="legend__swatch"
+            className="legend__color"
             aria-hidden="true"
             style={{ backgroundColor: colorForLabels([label]) }}
           />

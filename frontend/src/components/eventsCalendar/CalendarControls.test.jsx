@@ -103,7 +103,7 @@ describe("CalendarControls", () => {
     ]);
     // Each swatch is decorative: the label beside it carries the meaning.
     for (const item of items) {
-      const swatch = item.querySelector(".legend__swatch");
+      const swatch = item.querySelector(".legend__color");
       expect(swatch.getAttribute("aria-hidden")).toBe("true");
       expect(swatch.style.backgroundColor).not.toBe("");
     }

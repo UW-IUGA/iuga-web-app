@@ -8,7 +8,7 @@ import MonthDays from "./MonthDays";
 //
 // Its arrows browse a month of its own and never move the main view: they are
 // for looking ahead, not for navigating. Navigation runs the other way only.
-// Whenever the anchor moves, or the toolbar's Today / arrows are pressed
+// Whenever the anchor moves, or Today / arrows in CalendarControls are pressed
 // (`syncKey` changes), the sidebar snaps back to the anchor's month.
 
 function MiniMonth({ anchor, events, onPickDay, syncKey = 0 }) {
@@ -20,7 +20,7 @@ function MiniMonth({ anchor, events, onPickDay, syncKey = 0 }) {
     // Snap back during render rather than in an effect: the label and the grid
     // must change together, and an effect would flash a frame in which they
     // disagree. The whole day is part of the key, not just its month, so a
-    // toolbar step that stays inside the anchor's month still brings a browsed
+    // calendar control step that stays inside the anchor's month still brings a browsed
     // sidebar home; `syncKey` covers a Today press that does not move the
     // anchor at all.
     const seenKey = `${dayKeyOf(anchor)}|${syncKey}`;

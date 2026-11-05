@@ -101,11 +101,11 @@ describe("CalendarControls", () => {
       "Career",
       "Social",
     ]);
-    // Each swatch is decorative: the label beside it carries the meaning.
+    // Each color marker is decorative: the label beside it carries the meaning.
     for (const item of items) {
-      const swatch = item.querySelector(".legend__color");
-      expect(swatch.getAttribute("aria-hidden")).toBe("true");
-      expect(swatch.style.backgroundColor).not.toBe("");
+      const colorMarker = item.querySelector(".legend__color");
+      expect(colorMarker.getAttribute("aria-hidden")).toBe("true");
+      expect(colorMarker.style.backgroundColor).not.toBe("");
     }
   });
 

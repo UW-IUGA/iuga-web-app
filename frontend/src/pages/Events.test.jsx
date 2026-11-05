@@ -99,7 +99,7 @@ async function visit(url = "/events") {
 }
 
 const written = () => new URLSearchParams(currentLocation.search);
-const range = (container) => container.querySelector(".toolbar__range").textContent;
+const range = (container) => container.querySelector(".calendar-controls__range").textContent;
 const miniLabel = (container) => container.querySelector(".mini__label").textContent;
 
 let fetchSpy;
@@ -316,17 +316,17 @@ describe("Events page: views and navigation", () => {
         }
     });
 
-    it("puts Today and the arrows in the toolbar, not the sidebar", async () => {
+    it("puts Today and the arrows in the controls, not the sidebar", async () => {
         const { container } = await visit("/events?date=2026-10-20");
 
-        const toolbar = container.querySelector(".toolbar");
-        expect(within(toolbar).getByRole("button", { name: "Today" })).toBeInTheDocument();
-        expect(within(toolbar).getByRole("button", { name: "Previous month" })).toBeInTheDocument();
-        expect(within(toolbar).getByRole("button", { name: "Next month" })).toBeInTheDocument();
+        const controls = container.querySelector(".calendar-controls");
+        expect(within(controls).getByRole("button", { name: "Today" })).toBeInTheDocument();
+        expect(within(controls).getByRole("button", { name: "Previous month" })).toBeInTheDocument();
+        expect(within(controls).getByRole("button", { name: "Next month" })).toBeInTheDocument();
         expect(within(container.querySelector(".mini")).queryByRole("button", { name: "Today" })).toBeNull();
     });
 
-    it("carries the mini month along when the toolbar steps into another month", async () => {
+    it("carries the mini month along when the controls steps into another month", async () => {
         const { container } = await visit("/events?date=2026-10-20");
 
         fireEvent.click(screen.getByRole("button", { name: "Next month" }));
@@ -368,7 +368,7 @@ describe("Events page: views and navigation", () => {
         }
     });
 
-    it("brings a browsed mini month back with a toolbar step", async () => {
+    it("brings a browsed mini month back with a CalendarControls step", async () => {
         const { container } = await visit("/events?view=week&date=2026-10-13");
 
         fireEvent.click(within(container.querySelector(".mini")).getByRole("button", { name: "Show next month" }));

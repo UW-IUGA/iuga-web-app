@@ -29,11 +29,11 @@ function CalendarControls({
   onPickDate,
 }) {
   const unit = UNIT[mode];
-  const hasPicker = useMediaQuery(MOBILE_QUERY) && Boolean(unit);
+  const showDatePicker = useMediaQuery(MOBILE_QUERY) && Boolean(unit);
 
   return (
     <div className="calendar-controls">
-      {hasPicker && (
+      {showDatePicker && (
         <DatePicker
           mode={mode}
           anchor={selectedDate}
@@ -71,7 +71,7 @@ function CalendarControls({
       )}
 
       <div className="calendar-controls__lead">
-        {!hasPicker && (
+        {!showDatePicker && (
           <p className="calendar-controls__range" aria-live="polite">
             {formatRange(mode, selectedDate)}
           </p>

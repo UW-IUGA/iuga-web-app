@@ -83,23 +83,10 @@ describe("DayView", () => {
         expect(screen.getByText("IUGA x HCDEsa")).toBeTruthy();
     });
 
-    it("links out when the source carries an alt link", () => {
-        renderDay({ events: [rich()] });
-
-        const link = screen.getByRole("link", { name: "Event page" });
-        expect(link.getAttribute("href")).toBe("https://example.com/panel");
-    });
-
     it("reports the attendance count", () => {
         renderDay({ events: [rich()] });
 
         expect(screen.getByText("42")).toBeTruthy();
-    });
-
-    it("lists RSVP questions when the event asks any", () => {
-        renderDay({ events: [rich()] });
-
-        expect(screen.getByText("Any dietary restrictions?")).toBeTruthy();
     });
 
     it("omits meta rows the source did not fill in", () => {

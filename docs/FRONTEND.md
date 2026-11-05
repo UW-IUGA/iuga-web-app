@@ -31,15 +31,15 @@ frontend/src/
 │   ├── Dropdown.jsx
 │   ├── ElectionFAQCard.jsx
 │   ├── EmailContactDialog.jsx ← Mail-provider compose dialog for committee and shop contact
-│   ├── EventAgenda.jsx        ← One week of events: day buttons above a list of event rows
-│   ├── EventsOverview.jsx     ← The previous /events page, kept unrouted for the homepage (see EVENTS.md)
-│   ├── eventsCalendar/        ← The events calendar's views and controls (see EVENTS.md)
-│   ├── EventCategoryPills.jsx ← Compact category labels for an event
-│   ├── EventDialog.jsx        ← Event details and RSVP in a modal dialog
-│   ├── EventThumbnail.jsx     ← An event's photo, or a category tile when it has none
+│   ├── EventAgenda.jsx        ← Legacy weekly agenda; not used by the current routes (see EVENTS.md)
+│   ├── EventsOverview.jsx     ← Legacy weekly events page; not routed (see EVENTS.md)
+│   ├── eventsCalendar/        ← The events calendar's views and controls, event RSVP, and previous events (see EVENTS.md)
+│   ├── EventCategoryPills.jsx ← Category labels for the legacy weekly agenda
+│   ├── EventDialog.jsx        ← Details and RSVP dialog for the legacy weekly page
+│   ├── EventThumbnail.jsx     ← Event photo or category tile for the legacy weekly agenda
 │   ├── GradientLine.jsx
 │   ├── PastEventCard.jsx      ← Past event recap with a cover photo and thumbnails
-│   ├── PhotoCollage.jsx       ← Up to three overlapping photos
+│   ├── PhotoCollage.jsx       ← Up to three overlapping photos for the legacy weekly page
 │   ├── PhotoLightbox.jsx      ← Full-size photo viewer for a set of photos
 │   ├── ResourceCard.jsx
 │   ├── RolePage.jsx
@@ -122,9 +122,9 @@ changing its value.
   Their shared tokens and focus mixin live in `abstracts/_admin.scss`, loaded
   explicitly by the admin bar, Orders, and Pickup modules rather than inherited
   from another page's import order.
-- The events calendar likewise keeps the prototype's darker palette in
+- The events calendar keeps its own dark and light palettes in
   `abstracts/_eventsCalendar.scss`, and scopes every rule inside an
-  `.eventsCalendar` root (see [EVENTS.md](./EVENTS.md#styles)).
+  `.eventsCalendar` root (see [EVENTS.md](./EVENTS.md)).
 - Put rules targeting all elements of a kind in `base/_elements.scss`;
   component-specific rules belong with their component.
 
@@ -220,7 +220,7 @@ Defined in `src/App.jsx`:
 | Path | Page Component | Data Source |
 |---|---|---|
 | `/` | `HomePage` | `upcomingEvents` (prop — mock or API) |
-| `/events` | `EventsPage` | Mock data or `GET /api/v1/events`; officers also call `/api/v1/event-requests`. See [EVENTS.md](./EVENTS.md) |
+| `/events` | `EventsPage` | Mock data or `GET /api/v1/events`; an event's details use `GET /api/v1/events/id/{eId}`, its RSVP posts to `POST /api/v1/events/rsvp`, and officers also call `/api/v1/event-requests`. See [EVENTS.md](./EVENTS.md) |
 | `/resources` | `ResourcesPage` | Static data from `assets/data/ResourcesData.js` |
 | `/shop` | `ShopPage` | Static data from `assets/data/ShopData.js` and `GET /api/v1/shop/catalog` plus authenticated `POST /api/v1/shop/checkout`. If the catalog cannot load (for example on a Netlify preview with no backend), the static products show as a read-only preview: image, name, and material, with "Price unavailable" in place of the price, no size choices, a disabled Add to cart, and a notice with Try again. |
 | `/shop/checkout/:holdId` | `ShopCheckoutPage` | Authenticated `GET` and `DELETE` `/api/v1/shop/holds/:holdId`, `PATCH` `/api/v1/shop/holds/:holdId/lines`, and `POST` `/api/v1/shop/holds/:holdId/confirm`. Shows the Venmo QR code (`assets/shop/venmo-qr.webp`) beside the exact amount due and the IUGA-UW handle, each line, the total, a countdown, and the required Venmo username and phone number entries. The Venmo username is prefilled from the student's earlier purchase; entering a different one blocks Confirm and offers a prefilled email to `iuga@uw.edu`. |
@@ -235,13 +235,12 @@ The backend also serves `index.html` for each of these paths to enable deep link
 
 ### Events page
 
-`/events` is a calendar with year, month, week, and day views, kept in the URL
-(`?view=week&date=2026-10-20`). `pages/Events.jsx` composes the toolbar, the
-mini month and colour key, and the chosen view from `components/eventsCalendar/`,
-and loads events with `hooks/useEventList.js`. Officers with
-`events.requests.manage` get event operations below it. The previous page, a
-weekly agenda with RSVP and past event photos, is kept unrouted as
-`components/EventsOverview.jsx`. See [EVENTS.md](./EVENTS.md) for both.
+`/events` is IUGA's public calendar. It has year, month, week, and day views,
+kept in the URL, and loads event records from the backend. Event details load
+when opened and include RSVP when the event supports it. Officers with
+`events.requests.manage` also see the request workspace below the calendar.
+The homepage shows up to three upcoming events and links to the calendar. See
+[EVENTS.md](./EVENTS.md) for the visitor flow, data sources, and code map.
 
 ### Venmo checkout hold
 
@@ -289,8 +288,8 @@ tracking or proof of payment.
 In Vite dev mode, the frontend uses **mock data**:
 
 - **Homepage events**: `MockCalendarData.js`
-- **Calendar events**: `MockCalendarData.js` plus `MockUpcomingEvents.js` (imported directly, no fetch). The latter mirrors the real events in `backend/publishedEvents.js` and adds sample events dated relative to today, so the agenda always has something upcoming
-- **Single event details**: the listed mock event, with `mockEvent` from `MockCalendarData.js` supplying any RSVP fields it lacks. The RSVP button still calls the API, so it needs the backend running and a signed-in student
+- **Calendar events**: `MockCalendarData.js` plus `MockUpcomingEvents.js` (imported directly, no fetch). The latter mirrors the real events in `backend/publishedEvents.js` and adds sample events dated relative to today, so the calendar always has something upcoming
+- **Single event details**: the listed mock event, with `mockEvent` from `MockCalendarData.js` supplying any RSVP fields it lacks. The calendar's RSVP answers locally after a short wait and sends no request, but it still needs a signed-in student
 
 No backend is required for frontend development. The exception is the shop: it reads its catalog and prices from the API in both dev and production, because prices and sizes must never be duplicated in the frontend — in dev the Vite `/api` proxy to the backend must be running for live prices and sizes. Without it, `/shop` shows the read-only preview described in the routing table.
 
@@ -301,6 +300,7 @@ In production, the frontend fetches from same-origin API routes:
 - `GET /api/v1/events/upcoming` → homepage
 - `GET /api/v1/events` → calendar
 - `GET /api/v1/events/id/{eId}` → event details
+- `POST /api/v1/events/rsvp` → RSVP from an event's details, signed in only
 
 MSAL returns to the origin serving the frontend. `VITE_API_URL` is the backend address for development readiness checks, not the sign-in callback address.
 
@@ -345,8 +345,8 @@ The backend creates **server-side sessions** (express-session), so the frontend 
 
 ### Theme
 
-The site has a light theme (the site as it always looked) and a dark one (the
-events prototype's palette: `#1a1a1a` page, `#272727` surfaces, white headings).
+The site has a light theme and a dark theme. The events calendar uses its dark
+palette for `#1a1a1a` pages, `#272727` surfaces, and white headings.
 
 - **Which theme.** A visitor's own choice, stored in `localStorage` under
   `iuga-theme`; until they choose, their system setting
@@ -370,8 +370,8 @@ events prototype's palette: `#1a1a1a` page, `#272727` surfaces, white headings).
 - **Exceptions.** The officer pages (`/admin/*`) stay light: `App.jsx` sets
   `data-theme="light"` on their root. Photos keep their own colours; the black
   logo and footer icons turn white through `--artwork-filter`. The events
-  calendar keeps its own palette tokens (`docs/EVENTS.md`). The previous, unrouted
-  events components were not themed.
+  calendar keeps its own palette tokens (`docs/EVENTS.md`). The legacy weekly
+  events components are outside the current calendar theme.
 
 ---
 

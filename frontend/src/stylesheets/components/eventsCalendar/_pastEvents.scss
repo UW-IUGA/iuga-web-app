@@ -1,0 +1,134 @@
+/*
+Purpose: Style the previous events under the calendar: a grid of recap cards on the calendar's own surface.
+Expected Request Information: Classes emitted by PastEvents and PastEventCard, inside an .eventsCalendar root.
+  The photo viewer is portalled out, so it is styled in components/pastEventsLightbox.
+Expected Response Information: The same palette, type, radii and focus ring as the rest of the calendar.
+*/
+@use "../../abstracts" as *;
+@use "../../abstracts/eventsCalendar" as *;
+
+.eventsCalendar {
+    // Previous events: a grid of recap cards under the calendar, on the
+    // calendar's own card surface rather than the old page's white cards.
+    .pastEvents {
+        margin-top: $calendar-space-xl;
+        padding-top: $calendar-space-xl;
+        border-top: 1px solid $calendar-rule;
+
+        display: flex;
+        flex-direction: column;
+        gap: $calendar-space-lg;
+    }
+
+    .pastEvents__title {
+        font-size: clamp(1.5rem, 3vw, 2rem);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        color: $calendar-heading;
+    }
+
+    .pastEvents__list {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: $calendar-space-lg;
+
+        @include media(">=#{$calendar-tablet}") {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    // The calendar's button reset gives every button a pill and a fill; a photo is neither.
+    .pastEvents .pastEventCard__photo {
+        padding: 0;
+        border-radius: 0;
+        background-color: $calendar-pad;
+        cursor: zoom-in;
+    }
+
+    .pastEvents .pastEventCard__cover {
+        min-height: 0;
+        height: auto;
+        aspect-ratio: 16 / 10;
+        border-radius: 0;
+    }
+
+    .pastEvents .pastEventCard {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+
+        background-color: $calendar-card-bg;
+        border: 1px solid $calendar-popover-border;
+        border-radius: $calendar-radius-lg;
+        box-shadow: none;
+
+        // In a grid every card reads top to bottom, so none swaps sides.
+        &--reversed .pastEventCard__cover {
+            order: 0;
+        }
+
+        h3 {
+            margin-bottom: $calendar-space-xs;
+            font-family: $calendar-font-family;
+            font-size: 20px;
+            font-weight: 600;
+            color: $calendar-text;
+        }
+
+        p {
+            margin-bottom: $calendar-space-md;
+            font-size: 14px;
+            line-height: 155%;
+            color: $calendar-text-soft;
+        }
+    }
+
+    .pastEvents .pastEventCard__body {
+        flex: 1;
+        padding: $calendar-space-lg;
+        justify-content: flex-start;
+    }
+
+    .pastEvents .pastEventCard__thumbs {
+        margin-bottom: $calendar-space-md;
+        gap: $calendar-space-sm;
+
+        .pastEventCard__photo {
+            border-radius: $calendar-radius-sm;
+        }
+    }
+
+    .pastEvents .pastEventCard__more {
+        font-family: $calendar-font-family;
+    }
+
+    .pastEvents .pastEventCard__viewPhotos {
+        min-height: 40px;
+        margin-top: auto;
+        padding: $calendar-space-sm $calendar-space-lg;
+
+        font-size: 14px;
+        font-weight: 600;
+        background-color: transparent;
+        color: $calendar-text;
+        border: 1px solid $calendar-control-border;
+        border-radius: $calendar-radius-pill;
+
+        // White in the dark theme, so the outline stands out on the dark card.
+        &:where([data-theme="dark"] *) {
+            border-color: #fff;
+        }
+
+        &:hover {
+            background-color: $calendar-hover;
+            color: $calendar-text;
+        }
+
+        &:focus-visible {
+            background-color: $calendar-hover;
+            color: $calendar-text;
+            outline: 2px solid $calendar-text;
+            outline-offset: 2px;
+        }
+    }
+}

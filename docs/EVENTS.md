@@ -70,6 +70,8 @@ The request workspace calls `/api/v1/event-requests`. See [BACKEND.md](./BACKEND
 
 The `Previous events` section below the calendar is a separate, local collection. `PastEvents.jsx` reads entries from `assets/data/PastEventsData.js`; it does not fetch them from the event API. Each entry has event copy and a list of photos. `PastEventCard.jsx` shows the recap, and `PhotoLightbox.jsx` opens the photos in a viewer rendered outside the calendar's layout.
 
+The photo viewer keeps its arrows and caption in a fixed, viewport-sized frame while photos load or change. The full photo sits over a blurred copy of its thumbnail, so photos of different proportions fit without moving the controls. Arrow buttons, arrow keys, taps on either half of the photo, and swipes move through the set. Clicking the caption does not navigate.
+
 Each photo has a full-size WebP and a smaller thumbnail in `assets/gallery/past-events/`. `scripts/past-event-photo.sh` prepares the files. Add or change the recap in `PastEventsData.js` and keep the photo names and alt text there in sync with the files.
 
 ## Where to look in the code

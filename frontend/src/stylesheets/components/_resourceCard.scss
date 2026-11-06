@@ -1,8 +1,9 @@
 @use "../abstracts" as *;
 
+// The icon sits above the text at every width, so the title and bullets start at the card's left edge.
 .resourceCard {
     display: flex;
-    min-height: 230px;
+    flex-direction: column;
     gap: $margin-content;
     padding: 22px;
     transition:
@@ -53,8 +54,35 @@
     > p:not(.resourceCardCategory) {
         margin: 0 0 $space-5;
         color: theme(text-muted);
-        font-size: $font-size-small;
+        font-size: $font-size-body;
         line-height: 1.55;
+    }
+}
+
+.resourceHighlights {
+    display: grid;
+    gap: 6px;
+    margin: 0 0 $space-5;
+    padding: 0;
+    list-style: none;
+    color: theme(text-muted);
+    font-size: $font-size-body;
+    line-height: 1.45;
+
+    li {
+        position: relative;
+        padding-left: $space-5;
+
+        &::before {
+            position: absolute;
+            top: 0.55em;
+            left: 2px;
+            width: 7px;
+            height: 7px;
+            content: "";
+            border-radius: 50%;
+            background: theme(accent);
+        }
     }
 }
 
@@ -72,7 +100,6 @@
 
 @include media("<tablet") {
     .resourceCard {
-        min-height: 0;
         padding: 18px;
     }
 

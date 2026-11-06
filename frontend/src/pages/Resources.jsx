@@ -1,9 +1,9 @@
 /*
- * Purpose: The Resources page: a Start Here band of prominent iSchool resources, then every resource beside a
- *   filter sidebar.
+ * Purpose: The Resources page: Start Here cards for prominent iSchool resources beside the page title, then every
+ *   resource beside a filter sidebar.
  * Expected Request: GET /resources, with `resources` grouped by category. Reads ?q=, ?tags=, ?sort=, and the
  *   legacy ?category=.
- * Expected Response: Searchable, tag-filtered resource cards, 15 to a page.
+ * Expected Response: Searchable, tag-filtered resource cards, with fewer to a page on smaller screens.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import PageHeader from "../components/PageHeader";
@@ -14,11 +14,15 @@ import ResourceSort from "../components/ResourceSort";
 import { pickStartHere, tagGroups, tagResources } from "../assets/data/ResourceTagData";
 import usePagination from "../hooks/usePagination";
 import useResourceFilters from "../hooks/useResourceFilters";
-
-// Five rows of three cards.
-const PAGE_SIZE = 15;
+import useResourcePageSize from "../hooks/useResourcePageSize";
 
 const resultLabel = (count) => `${count} ${count === 1 ? "resource" : "resources"}`;
+
+// Kept from the original Resources page.
+const INTRO = "IUGA is just one of many RSOs and groups affiliated with the iSchool that makes the iSchool everything it "
+    + "is. Explore the resources below to take full advantage of everything the iSchool offers its students! From academic "
+    + "and career resources to personal mental health, the iSchool community does its best to support its students in every "
+    + "area it can.";
 
 function ResourcesPage({ resources }) {
     const taggedResources = useMemo(() => tagResources(resources), [resources]);
@@ -29,7 +33,7 @@ function ResourcesPage({ resources }) {
         filteredResources, tagCounts, highlightPattern, isFiltering,
     } = filters;
     const [filtersOpen, setFiltersOpen] = useState(false);
-    const pagination = usePagination(filteredResources, PAGE_SIZE);
+    const pagination = usePagination(filteredResources, useResourcePageSize());
     const resultsHeadingRef = useRef(null);
 
     useEffect(() => {
@@ -43,38 +47,33 @@ function ResourcesPage({ resources }) {
         resultsHeadingRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     };
 
+    const startHereSection = startHere.length > 0 && (
+        <section className="resourcesStartHere" aria-labelledby="resources-start-here">
+            <p className="resourcesKicker">New to the iSchool?</p>
+            <h2 id="resources-start-here">Start Here</h2>
+            <ul className="resourcesStartList">
+                {startHere.map((resource) => (
+                    <li key={resource.rName}>
+                        <a className="resourcesStartLink" href={resource.rLink} target="_blank" rel="noreferrer">
+                            <span className="resourceCardIcon"><img src={resource.rImage} alt="" /></span>
+                            <span>{resource.rName}</span>
+                            <span className="sr-only"> (opens in a new tab)</span>
+                        </a>
+                    </li>
+                ))}
+            </ul>
+        </section>
+    );
+
     return (
         <div className="baseContainer">
             <main className="resourcesPage">
                 <PageHeader
-                    label="Resources"
-                    title="Find support at the iSchool and UW."
-                    intro="Academic, career, wellbeing, and community resources, plus student organizations. Each is run by its own group, not IUGA."
+                    label="iSchool Resources"
+                    title="Make the most of the iSchool."
+                    intro={INTRO}
+                    visual={startHereSection}
                 />
-
-                {startHere.length > 0 && (
-                    <section className="resourcesStartHere" aria-labelledby="resources-start-here">
-                        <div className="resourcesStartIntro">
-                            <p className="resourcesKicker">New to the iSchool?</p>
-                            <h2 id="resources-start-here">Start Here</h2>
-                            <p className="resourcesStartLead">A few of the iSchool's most prominent resources to begin with.</p>
-                        </div>
-                        <ul className="resourcesStartList">
-                            {startHere.map((resource) => (
-                                <li key={resource.rName}>
-                                    <a href={resource.rLink} target="_blank" rel="noreferrer">
-                                        <span className="resourceCardIcon"><img src={resource.rImage} alt="" /></span>
-                                        <span>
-                                            <strong>{resource.rName}</strong>
-                                            <span>{resource.note}</span>
-                                        </span>
-                                        <span className="sr-only"> (opens in a new tab)</span>
-                                    </a>
-                                </li>
-                            ))}
-                        </ul>
-                    </section>
-                )}
 
                 <div className="resourcesDirectory">
                     <aside className="resourcesSidebar editorial-card" aria-label="Filters">

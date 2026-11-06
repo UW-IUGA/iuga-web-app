@@ -46,6 +46,19 @@ beforeEach(() => {
     Element.prototype.scrollIntoView = vi.fn();
 });
 
+afterEach(() => {
+    delete window.matchMedia;
+});
+
+function setScreenWidth(width) {
+    window.matchMedia = (query) => ({
+        matches: width <= Number(query.match(/max-width: (\d+)px/)[1]),
+        media: query,
+        addEventListener() {},
+        removeEventListener() {},
+    });
+}
+
 function renderResourcesPage(resourceList = resources, path = "/resources") {
     return render(
         <MemoryRouter initialEntries={[path]}>
@@ -60,7 +73,10 @@ describe("ResourcesPage", () => {
     test("shows the page header, Start Here picks, and every resource as a card", () => {
         renderResourcesPage();
 
-        expect(screen.getByRole("heading", { level: 1, name: "Find support at the iSchool and UW." })).toBeInTheDocument();
+        const header = screen.getByRole("region", { name: "Make the most of the iSchool." });
+        expect(within(header).getByRole("heading", { level: 1 })).toHaveTextContent("Make the most of the iSchool.");
+        expect(within(header).getByText("iSchool Resources")).toBeInTheDocument();
+        expect(within(header).getByText(/^IUGA is just one of many RSOs/)).toBeInTheDocument();
         const startHere = screen.getByRole("region", { name: "Start Here" });
         expect(within(startHere).getByText("iSchool Career Services (Canvas)")).toBeInTheDocument();
 
@@ -69,6 +85,15 @@ describe("ResourcesPage", () => {
         const link = screen.getByRole("link", { name: /More Info about UW CLUE Program/ });
         expect(link).toHaveAttribute("href", "https://academicsupport.uw.edu/clue/");
         expect(link).toHaveAttribute("target", "_blank");
+    });
+
+    test("shows Start Here beside the page title", () => {
+        renderResourcesPage();
+
+        const header = screen.getByRole("region", { name: "Make the most of the iSchool." });
+        const startHere = within(header).getByRole("region", { name: "Start Here" });
+        expect(within(startHere).getByRole("link", { name: /iSchool Career Services \(Canvas\)/ }))
+            .toHaveAttribute("href", "https://ischool.uw.edu/career");
     });
 
     test("tags each card and falls back to the description and a pending note", () => {
@@ -131,6 +156,22 @@ describe("ResourcesPage", () => {
         expect(pages).toHaveTextContent("Page 2 of 2");
         expect(within(pages).getByRole("button", { name: /Next/ })).toBeDisabled();
         expect(screen.getByRole("heading", { name: "All Resources" })).toHaveFocus();
+    });
+
+    test.each([
+        [390, 6],
+        [767, 6],
+        [768, 8],
+        [1023, 8],
+        [1024, 12],
+        [1299, 12],
+        [1300, 15],
+    ])("at %ipx wide, shows %i cards to a page", (width, cardsPerPage) => {
+        setScreenWidth(width);
+
+        renderResourcesPage(manyResources);
+
+        expect(resultCards()).toHaveLength(cardsPerPage);
     });
 
     test("hides the page controls when everything fits on one page", () => {

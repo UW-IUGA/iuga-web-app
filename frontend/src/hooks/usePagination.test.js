@@ -25,6 +25,17 @@ describe("usePagination", () => {
         expect(result.current.page).toBe(1);
     });
 
+    it("stays on the page holding the first item in view when the page size changes", () => {
+        const { result, rerender } = renderHook(({ size }) => usePagination(items, size), { initialProps: { size: 6 } });
+        act(() => result.current.setPage(3));
+        expect(result.current.firstShown).toBe(13);
+
+        rerender({ size: 8 });
+
+        expect(result.current.page).toBe(2);
+        expect(result.current.pageItems).toContain(13);
+    });
+
     it("has one empty page for an empty list", () => {
         const { result } = renderHook(() => usePagination([], 15));
         expect(result.current).toMatchObject({ page: 1, pageCount: 1, firstShown: 0, lastShown: 0, pageItems: [] });

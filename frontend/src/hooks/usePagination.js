@@ -7,6 +7,14 @@ import { useEffect, useState } from "react";
 
 function usePagination(items, pageSize) {
     const [page, setPage] = useState(1);
+    const [previousPageSize, setPreviousPageSize] = useState(pageSize);
+
+    // A new page size (the window was resized or rotated) stays on the page holding the first item in view.
+    if (pageSize !== previousPageSize) {
+        setPreviousPageSize(pageSize);
+        setPage(Math.floor(((page - 1) * previousPageSize) / pageSize) + 1);
+    }
+
     const pageCount = Math.max(1, Math.ceil(items.length / pageSize));
     const currentPage = Math.min(page, pageCount);
 

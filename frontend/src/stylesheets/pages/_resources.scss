@@ -30,87 +30,92 @@
     @extend %pageKicker;
 }
 
-// Start Here band
+// Start Here: four small cards beside the page title. They stretch to the header text's height, so their top and
+// bottom line up with the label and the end of the intro.
 
-.resourcesStartHere {
-    display: grid;
-    grid-template-columns: minmax(220px, 280px) 1fr;
+// The text column is only as wide as the title and intro need (36rem holds the title's longest line and the
+// intro at desktop sizes, so neither rewraps), and the panel fills the rest of the row.
+.resourcesPage .pageHeader--withVisual {
+    grid-template-columns: minmax(0, 36rem) minmax(0, 1fr);
     gap: $space-8;
-    align-items: center;
-    margin-bottom: $space-12;
-    padding: $space-8;
-    border-radius: $radius-card;
-    background: linear-gradient(
-        135deg,
-        theme(social-light) 0%,
-        theme(academic-light) 55%,
-        theme(career-secondary) 100%
-    );
+    align-items: stretch;
+}
+
+.resourcesPage .pageHeader__visual {
+    display: flex;
+}
+
+// No panel behind Start Here: each pick is its own small site card that lifts on hover, like the resource cards.
+.resourcesStartHere {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: $space-3;
 
     h2 {
-        margin: 6px 0 10px;
+        margin: 2px 0 0;
+        font-size: $font-size-subheading;
     }
 }
 
-.resourcesStartLead {
-    margin: 0;
-    color: theme(text-muted);
-    font-size: $font-size-body;
-    line-height: 1.55;
-}
-
+// Two by two; the rows grow to fill the height beside the header text.
 .resourcesStartList {
     display: grid;
+    flex: 1;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: $space-3;
+    grid-auto-rows: 1fr;
+    gap: $space-2;
     margin: 0;
     padding: 0;
     list-style: none;
+}
 
-    a {
-        display: flex;
-        height: 100%;
-        box-sizing: border-box;
-        align-items: center;
-        gap: 14px;
-        padding: 14px $space-4;
-        border: 1px solid theme-alpha(page, 0.78);
-        border-radius: $radius-card-media;
-        background: theme-alpha(page, 0.78);
-        color: theme(text);
-        text-decoration: none;
-        transition:
-            background-color 150ms ease,
-            box-shadow 150ms ease;
-        @include focus-ring;
+.resourcesStartLink {
+    display: flex;
+    height: 100%;
+    box-sizing: border-box;
+    align-items: center;
+    gap: 10px;
+    padding: $space-2 $space-3;
+    border: 1px solid theme-alpha(brand, 0.12);
+    border-radius: $radius-card-media;
+    background: theme(surface);
+    box-shadow: 0 2px 10px theme-alpha(brand, 0.08);
+    color: theme(text);
+    font-size: $font-size-small;
+    font-weight: $font-weight-bold;
+    line-height: 1.3;
+    text-decoration: none;
+    transition:
+        box-shadow 150ms ease,
+        transform 150ms ease;
+    @include focus-ring;
 
-        .resourceCardIcon {
-            width: 50px;
-            height: 50px;
-            flex-basis: 50px;
-        }
+    .resourceCardIcon {
+        width: 36px;
+        height: 36px;
+        flex-basis: 36px;
+    }
 
-        > span:nth-child(2) {
-            display: grid;
-            gap: $space-1;
-            color: theme(text-muted);
-            font-size: $font-size-small;
-            line-height: 1.4;
-        }
+    &:hover {
+        box-shadow: 0 8px 20px theme-alpha(brand, 0.13);
+        color: theme(accent);
+        transform: translateY(-2px);
+    }
+}
 
-        strong {
-            color: theme(text);
-            font-size: $font-size-body;
-        }
+// Below desktop width the panel's column is too narrow to fit beside the header text, so it moves under
+// the text (as PageHeader does on tablets), with all four picks in one row while there is room.
+@include media("<desktop") {
+    .resourcesPage .pageHeader--withVisual {
+        grid-template-columns: minmax(0, 1fr);
+        gap: $space-8;
+    }
+}
 
-        &:hover {
-            background: theme(surface);
-            box-shadow: 0 8px 20px theme-alpha(shadow, 0.12);
-
-            strong {
-                color: theme(accent);
-            }
-        }
+@include media(">=sm-desktop", "<desktop") {
+    .resourcesStartList {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 }
 
@@ -221,9 +226,9 @@
 // Results
 
 .resourcesResultsHeader {
-    @include section-divider;
     margin-bottom: $space-6;
     padding-bottom: $space-3;
+    border-bottom: 1px solid theme(border-subtle);
 }
 
 .resourcesResultsTitle {
@@ -344,7 +349,6 @@
 }
 
 @include media("<sm-desktop") {
-    .resourcesStartHere,
     .resourcesDirectory {
         grid-template-columns: 1fr;
     }
@@ -377,10 +381,6 @@
     .resourcesPage {
         width: 100%;
         margin-bottom: $space-16;
-    }
-
-    .resourcesStartHere {
-        padding: 22px 18px;
     }
 
     .resourcesStartList,

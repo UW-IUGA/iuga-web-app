@@ -1,7 +1,9 @@
 @use "../abstracts" as *;
 
+// The icon sits above the text at every width, so the title and bullets start at the card's left edge.
 .resourceCard {
     display: flex;
+    flex-direction: column;
     gap: $margin-content;
     padding: 22px;
     transition:
@@ -94,13 +96,6 @@
     color: theme(text-muted);
     font-size: $font-size-small;
     font-weight: $font-weight-medium;
-}
-
-// Cards sit beside the filter sidebar on desktop, so the icon goes above the text to leave room for bullets.
-@include media(">=sm-desktop") {
-    .resourceCard {
-        flex-direction: column;
-    }
 }
 
 @include media("<tablet") {

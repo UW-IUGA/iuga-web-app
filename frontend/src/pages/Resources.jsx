@@ -97,7 +97,6 @@ function ResourcesPage({ resources }) {
         <div className="baseContainer">
             <main className="resourcesPage">
                 <PageHeader
-                    label="Resources"
                     title="Find support at the iSchool and UW."
                     intro="Academic, career, wellbeing, and community resources, plus student organizations. Each is run by its own group, not IUGA."
                 />

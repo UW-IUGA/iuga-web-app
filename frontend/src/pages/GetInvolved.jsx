@@ -124,7 +124,6 @@ function GetInvolvedPage() {
         <div className="baseContainer">
             <main className="getInvolved">
                 <PageHeader
-                    label="Get involved"
                     title="Make your mark at IUGA."
                     intro="Join a student-led committee and help shape what happens in the Informatics community."
                     visual={

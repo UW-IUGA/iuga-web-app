@@ -2,7 +2,7 @@
 Purpose: The shared top of every page, so each page introduces itself the same way.
 
 Expected Request Information:
-- label: the page's name as it appears in the navigation.
+- label: optional small line above the title; pages that leave it out show only the title.
 - title: what a student can do on this page; it becomes the page's only main heading.
 - intro: optional one or two sentences shown under the title.
 - children: optional page actions shown under the intro.
@@ -19,7 +19,7 @@ function PageHeader({ label, title, intro, children, visual }) {
     return (
         <section className={`pageHeader${visual ? " pageHeader--withVisual" : ""}`} aria-labelledby={titleId}>
             <div className="pageHeader__text">
-                <p className="pageHeader__label">{label}</p>
+                {label && <p className="pageHeader__label">{label}</p>}
                 <h1 id={titleId}>{title}</h1>
                 {intro && <p className="pageHeader__intro">{intro}</p>}
                 {children && <div className="pageHeader__actions">{children}</div>}

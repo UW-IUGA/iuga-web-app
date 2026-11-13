@@ -179,6 +179,28 @@ describe("event Mongoose boundaries", () => {
     assert.equal(result.status, 400);
   });
 
+  for (const offset of [-1, 0, 1]) {
+    it(`enforces the RSVP cutoff when the event starts in ${offset} ms`, async (t) => {
+      const now = new Date("2026-10-13T09:00:00Z");
+      t.mock.timers.enable({ apis: ["Date"], now });
+      const event = makeEvent({ eStartDate: new Date(now.getTime() + offset) });
+      let saved = false;
+      event.save = async () => {};
+      class Participant {
+        constructor(fields) { Object.assign(this, fields); }
+        async save() {
+          saved = true;
+          return { _id: participantId };
+        }
+      }
+      const result = await api.request("POST", "/api/v1/events/rsvp",
+        { eId: eventId, rsvpAnswers: [] },
+        { models: { Events: { findById: () => query(event) }, Participants: Participant } });
+      assert.equal(result.status, offset > 0 ? 200 : 400);
+      assert.equal(saved, offset > 0);
+    });
+  }
+
   it("converts the authenticated user id before saving an RSVP", async () => {
     const event = makeEvent();
     let savedParticipant;

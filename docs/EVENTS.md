@@ -50,10 +50,10 @@ The event list does not include every detail. When an event's details are first 
 
 The RSVP block depends on the event and visitor:
 
-- Past events show that the event has already happened.
+- Once an event starts, its RSVP block is hidden.
 - Events with built-in RSVP require sign-in. If the event has questions, the visitor answers them before submitting; if it has none, one press submits the RSVP.
 - A successful RSVP is confirmed in the event details. The backend rejects duplicate RSVPs, invalid answers, and RSVPs after the event starts.
-- If built-in RSVP is off but the event has an outside sign-up link, the block opens that link.
+- An upcoming event with an outside sign-up link shows that link whether or not built-in RSVP is enabled.
 - If neither sign-up option is available, the details say RSVP is unavailable.
 
 In development, sample event details come from the mock data and RSVP succeeds locally after a short delay. No RSVP request is sent to the backend.

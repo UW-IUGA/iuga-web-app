@@ -68,6 +68,8 @@ $calendar-palette-dark: (
     label-academic: #5fa5f9,
     label-career: #2cd4bf,
     label-social: #e879f9,
+    label-career-tint: rgba(44, 212, 191, 0.14),
+    label-career-line: rgba(44, 212, 191, 0.45),
 );
 
 $calendar-palette-light: (
@@ -100,6 +102,8 @@ $calendar-palette-light: (
     // white text needs: 4.6:1, and 4.1:1 against a card.
     label-career: #1b8376,
     label-social: #a21caf,
+    label-career-tint: rgba(27, 131, 118, 0.14),
+    label-career-line: rgba(27, 131, 118, 0.45),
 );
 
 @if map.keys($calendar-palette-dark) != map.keys($calendar-palette-light) {

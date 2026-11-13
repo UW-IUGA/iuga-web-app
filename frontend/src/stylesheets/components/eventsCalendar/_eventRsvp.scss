@@ -48,6 +48,32 @@ Expected Response Information: The same palette, type, radii and focus ring as t
         }
     }
 
+    // Beside an RSVP control, the sign-up link is the quieter option, so the RSVP keeps the one strong fill.
+    .eventRsvp__link {
+        min-height: 40px;
+        padding: $calendar-space-sm $calendar-space-lg;
+
+        display: inline-flex;
+        align-items: center;
+        gap: $calendar-space-sm;
+
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        color: $calendar-text;
+        background-color: transparent;
+        border: 1px solid $calendar-control-border;
+        border-radius: $calendar-radius-pill;
+
+        &:hover {
+            background-color: $calendar-hover;
+        }
+
+        svg {
+            font-size: 12px;
+        }
+    }
+
     .eventRsvp__cancel {
         min-height: 40px;
         padding: $calendar-space-sm $calendar-space-md;
@@ -73,23 +99,47 @@ Expected Response Information: The same palette, type, radii and focus ring as t
     }
 
     .eventRsvp__confirmed {
-        padding: $calendar-space-sm $calendar-space-md;
-
-        display: inline-flex;
+        align-self: stretch;
+        display: flex;
         align-items: center;
-        gap: $calendar-space-sm;
+        gap: $calendar-space-md;
+        padding: $calendar-space-md;
 
-        font-size: 14px;
-        font-weight: 600;
+        background-color: var(--calendar-label-career-tint);
+        border: 1px solid var(--calendar-label-career-line);
+        border-radius: $calendar-radius-md;
         color: $calendar-text;
-        background-color: $calendar-card-bg;
-        border: 1px solid $calendar-control-border;
-        border-radius: $calendar-radius-pill;
         // Settles in where the button was, so the change reads as the RSVP landing.
         animation: event-rsvp-confirmed 320ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
 
-        svg {
-            color: var(--calendar-label-career);
+    .eventRsvp__badge {
+        flex: none;
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        font-size: 14px;
+        color: $calendar-bg;
+        background-color: var(--calendar-label-career);
+        border-radius: 50%;
+    }
+
+    .eventRsvp__confirmedText {
+        display: flex;
+        flex-direction: column;
+        gap: $calendar-space-2xs;
+
+        strong {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        span {
+            font-size: 13px;
+            color: $calendar-copy-muted;
         }
     }
 

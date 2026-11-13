@@ -13,7 +13,7 @@ This directory contains the full documentation set for the **Informatics Undergr
 | [Development](DEVELOPMENT.md) | Developers | Setup, scripts, environment configuration, code conventions, common tasks, testing |
 | [Scripts](SCRIPTS.md) | Developers | Writing project scripts: where they go, safety rules for data scripts, testing |
 | [Frontend](FRONTEND.md) | Frontend devs | Tech stack, directory layout, routing, data flow, authentication, styling, dependencies |
-| [Events](EVENTS.md) | Frontend devs | The events calendar, its data and styles, the previous events page kept for the homepage, open decisions |
+| [Events](EVENTS.md) | Frontend devs | Homepage event teaser, calendar and RSVP flow, officer event requests, previous-event recaps, and code map |
 | [Backend](BACKEND.md) | Backend devs | Entry points, directory layout, SPA routes, API routes, authentication, database, middleware stack, dependencies |
 | [Discord Events](DISCORD.md) | Discord `/event` submission, moderator approval, env vars, and the Interactions URL |
 | [Deployment](DEPLOYMENT.md) | Maintainers | Pipeline overview, Jenkinsfile comparison, credentials, Docker build, runtime architecture, verification, rollback |

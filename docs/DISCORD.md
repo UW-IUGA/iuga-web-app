@@ -16,7 +16,7 @@ Status: the backend flow is in place and tested with fakes. It has not run end t
 
 Who can see the cards is set in Discord's channel permissions, not in code. Anyone who can view `#events-approvals` sees every card, including the RSO, the event details, and the submitter's display name. The bot only checks who can click. Only members with the moderator role, or Discord's Administrator permission, can approve or deny. Anyone else who clicks gets a private "Only moderators can approve events" reply.
 
-To keep the cards to moderators, limit the channel's View Channel permission to the moderator role in Discord's channel settings. Check this before testing, because a role that can view the channel will see the cards.
+To keep the cards to moderators, limit the channel's View Channel permission to the moderator role in Discord's channel settings. The officer role (`DISCORD_OFFICER_ROLE_ID`) must not have View Channel on this channel, because officers submit with `/event` and should never see the cards. Check this before testing.
 
 ## How a review moves
 
@@ -49,7 +49,7 @@ Every `Events` row is public the moment it's inserted, which is why pending requ
 | `DISCORD_GUILD_ID` | The server ID for guild command registration. Only the registration script uses it. |
 | `DISCORD_PUBLIC_KEY` | Verifies that requests really come from Discord. The interactions route is not mounted when this is unset. |
 | `DISCORD_BOT_TOKEN` | Lets the bot post cards and send DMs. Never log it. |
-| `DISCORD_OFFICER_ROLE_ID` | Role that may run `/event`. |
+| `DISCORD_OFFICER_ROLE_ID` | Role that may run `/event`. Keep it out of the approval channel's permissions. |
 | `DISCORD_MOD_ROLE_ID` | Role that may approve or deny. |
 | `DISCORD_APPROVAL_CHANNEL_ID` | Channel where approval cards are posted. |
 | `DISCORD_RSO_OFFICERS` | JSON object keyed by Discord user ID. See below. |

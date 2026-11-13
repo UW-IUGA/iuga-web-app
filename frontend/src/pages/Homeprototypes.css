@@ -1,0 +1,1017 @@
+/* Prototype switcher */
+
+.protoPage { overflow-x: clip; }
+
+.protoSwitch { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; padding: 8px; background: #fff; border: 1px solid #e6e0ee; border-radius: 999px; box-shadow: 0 8px 24px rgba(59,0,104,.25); }
+
+.protoSwitch button { border: 2px solid #3b0068; background: none; color: #3b0068; border-radius: 999px; padding: 6px 14px; font: inherit; font-weight: 700; cursor: pointer; }
+
+.protoSwitch button[aria-pressed="true"] { background: #3b0068; color: #fff; }
+
+.protoSwitch button:focus-visible { outline: 3px solid #9461ce; outline-offset: 3px; }
+
+
+
+/* Shared styles for photo-backed prototypes */
+
+.protoAccent { color: #b78be6; }
+
+.protoHeroPhoto { position: relative; overflow: hidden; color: #fff; display: grid; align-items: end; }
+
+.protoPage .protoHeroBg { position: absolute !important; inset: 0; width: 100% !important; height: 100% !important; max-width: none !important; object-fit: cover; object-position: center 30%; }
+
+.protoHeroPhoto::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(43,0,87,.9), rgba(43,0,87,0) 75%); pointer-events: none; }
+
+.protoHeroText, .protoHeroCards { position: relative; z-index: 2; }
+
+.protoHeroPhoto h1 { text-transform: uppercase; line-height: .9; margin: 10px 0 18px; color: #fff; }
+
+.protoHeroPhoto .homeAffiliation { color: #e6d5fa; }
+
+.protoHeroPhoto .homeSummary { color: #fff; max-width: 520px; }
+
+.protoHeroPhoto .protoAccent { color: #cfb0f5; }
+
+.protoHeroPhoto a.pill-button.homePrimaryLink { background: #e6d5fa; border-color: #e6d5fa; color: #3b0068; }
+
+.protoHeroPhoto a.pill-button.homeSecondaryLink { background: none; border-color: #fff; color: #fff; }
+
+
+
+/* Prototype 1 — collage */
+
+.protoOneHero { display: grid; grid-template-columns: 1.1fr 1fr; gap: 30px; align-items: center; padding: 56px 0 40px; }
+
+.protoOneHero h1 { font-size: clamp(40px,7vw,76px); line-height: 1.05; margin: 12px 0 18px; }
+
+.protoCollage { display: flex !important; align-items: center; justify-content: center; width: 100%; max-width: 560px; height: auto !important; justify-self: center; }
+
+.protoCollage .protoPhoto { position: relative !important; flex: 0 0 auto; box-sizing: border-box; overflow: hidden; border: 6px solid #fff; border-radius: 20px; box-shadow: 0 12px 30px rgba(59,0,104,.27); }
+
+.protoCollage .protoPhoto img { position: absolute !important; inset: 0; display: block; width: 100% !important; height: 100% !important; max-width: none !important; object-fit: cover; }
+
+.protoCollage .protoCollageLeft { width: 28%; aspect-ratio: 3/4; margin-right: -4%; transform: rotate(-5deg); }
+
+.protoCollage .protoCollageMain { width: 36%; aspect-ratio: 2/3; z-index: 2; transform: rotate(2deg); }
+
+.protoCollage .protoCollageRight { width: 28%; aspect-ratio: 3/4; margin-left: -4%; transform: rotate(5deg); }
+
+.protoOneExplore { padding: 56px 0; }
+
+.protoOneExplore h2 { font-size: clamp(30px,5vw,48px); margin-bottom: 8px; }
+
+.protoTiles { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 16px; margin-top: 20px; }
+
+.protoTile { display: block; padding: 22px; min-height: 170px; border-radius: 26px; border: 3px solid #3b0068; box-shadow: 6px 6px 0 #3b0068; color: #3b0068; text-decoration: none; transition: transform .2s; }
+
+.protoTile:nth-child(1) { background: #f1e8fc; }
+
+.protoTile:nth-child(2) { background: #e7d9fa; }
+
+.protoTile:nth-child(3) { background: #dcc9f6; }
+
+.protoTile:nth-child(4) { background: #e7d9fa; }
+
+.protoTile:hover { transform: rotate(-2deg) translateY(-4px); }
+
+.protoTile h3 { font-size: 22px; margin-bottom: 8px; }
+
+.protoTile p { font-size: 14px; margin: 0; }
+
+
+
+/* Prototype 2 — photo hero and carousel */
+
+
+/* Prototype 2 hero layout */
+
+.protoPage .protoTwoHero {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 30px;
+
+    min-height: 480px;
+    margin-top: 24px;
+    padding: 56px 40px;
+
+    border-radius: 28px;
+    overflow: hidden;
+    isolation: isolate;
+    box-sizing: border-box;
+}
+
+.protoPage .protoTwoHero::after {
+    background: linear-gradient(
+        90deg,
+        rgba(255,255,255,.96) 0%,
+        rgba(255,255,255,.88) 55%,
+        rgba(255,255,255,.4) 100%
+    );
+    z-index: 0;
+}
+
+.protoPage .protoTwoHero .protoHeroText,
+.protoPage .protoTwoHero .protoHeroCards {
+    position: relative;
+    z-index: 1;
+}
+
+.protoPage .protoTwoHero h1,
+.protoPage .protoTwoHero .protoAccent {
+    color: #3b0068;
+}
+
+.protoPage .protoTwoHero .homeAffiliation,
+.protoPage .protoTwoHero .homeSummary {
+    color: #333;
+}
+
+.protoPage .protoTwoHero a.pill-button.homePrimaryLink {
+    background: #3b0068;
+    border-color: #3b0068;
+    color: #fff;
+}
+
+.protoPage .protoTwoHero a.pill-button.homeSecondaryLink {
+    background: transparent;
+    border-color: #3b0068;
+    color: #3b0068;
+}
+
+/* Right-side overlapping photos */
+
+.protoPage .protoTwoHero .protoHeroCards {
+    width: 100%;
+    height: 340px;
+    min-width: 0;
+}
+
+.protoPage .protoTwoHero .protoHeroCards img {
+    position: absolute !important;
+    display: block;
+    max-width: none !important;
+    object-fit: cover;
+    border: 6px solid #fff;
+    border-radius: 20px;
+    box-sizing: border-box;
+    box-shadow: 0 12px 30px rgba(59,0,104,.33);
+}
+
+.protoPage .protoTwoHero .protoHeroCards img:first-child {
+    width: 62% !important;
+    height: 70% !important;
+    right: 26%;
+    top: 0;
+    transform: rotate(-5deg);
+}
+
+.protoPage .protoTwoHero .protoHeroCards img:last-child {
+    width: 50% !important;
+    height: 58% !important;
+    right: 0;
+    bottom: 0;
+    transform: rotate(5deg);
+}
+
+@media (max-width: 900px) {
+    .protoPage .protoTwoHero {
+        grid-template-columns: 1fr;
+        padding: 40px 30px;
+    }
+
+    .protoPage .protoTwoHero .protoHeroCards {
+        height: 280px;
+    }
+}
+
+@media (max-width: 600px) {
+    .protoPage .protoTwoHero {
+        padding: 36px 22px;
+        min-height: 0;
+    }
+
+    .protoPage .protoTwoHero .protoHeroCards {
+        height: 220px;
+    }
+}
+
+
+/* ==========================================
+   Prototype 2 carousel (black / white + purple splash)
+   ========================================== */
+
+.protoPage .protoCarouselRedesign {
+    width: 100%;
+    margin: 0 auto;
+    padding: 64px 0;
+    box-sizing: border-box;
+}
+
+/* Header */
+.protoCarouselRedesign .protoCarouselHeader {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 30px;
+    margin-bottom: 24px;
+}
+
+.protoCarouselRedesign .protoCarouselEyebrow {
+    color: #4b2d83;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    margin: 0 0 8px;
+}
+
+.protoCarouselRedesign .protoCarouselHeader h2 {
+    color: #111;
+    font-size: clamp(32px, 4vw, 48px);
+    line-height: 1.1;
+    margin: 0;
+}
+
+.protoCarouselRedesign .protoCarouselHeader h2 span {
+    color: #4b2d83;
+}
+
+/*.protoCarouselRedesign .protoCarouselIntro {
+    max-width: 300px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #555;
+    margin: 0;
+}
+
+/* Viewport */
+.protoPage .protoCarouselRedesign .protoCarouselView {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 390px;
+    overflow: hidden;
+    border-radius: 26px;
+    background: #111;
+    isolation: isolate;
+    box-sizing: border-box;
+}
+
+/* Sliding track */
+.protoPage .protoCarouselRedesign .protoCarouselTrack {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.65s ease-in-out;
+}
+
+/* Slides */
+.protoPage .protoCarouselRedesign .protoSlide {
+    position: relative;
+    display: block;
+    flex: 0 0 100%;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    box-sizing: border-box;
+    color: #fff;
+}
+
+.protoPage .protoCarouselRedesign .protoSlide > img {
+    position: absolute !important;
+    inset: 0;
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    object-fit: cover;
+    object-position: center;
+    border: none;
+    border-radius: 0;
+}
+
+/* Neutral dark overlay */
+.protoPage .protoCarouselRedesign .protoSlideOverlay {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    background: linear-gradient(
+        90deg,
+        rgba(0, 0, 0, 0.85) 0%,
+        rgba(0, 0, 0, 0.55) 45%,
+        rgba(0, 0, 0, 0.05) 100%
+    );
+    pointer-events: none;
+}
+
+/* Caption */
+.protoPage .protoCarouselRedesign .protoSlideCaption {
+    position: absolute;
+    z-index: 3;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    width: min(65%, 620px);
+    height: 100%;
+    padding: 48px 60px;
+    margin: 0;
+    background: transparent;
+    color: #fff;
+    box-sizing: border-box;
+}
+
+.protoCarouselRedesign .protoSlideNumber {
+    display: block;
+    color: #d9d9d9;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    margin-bottom: 16px;
+}
+
+.protoPage .protoCarouselRedesign .protoSlideCaption h3 {
+    display: block;
+    color: #fff;
+    font-size: clamp(30px, 4vw, 52px);
+    font-weight: 800;
+    line-height: 1.05;
+    margin: 0 0 16px;
+}
+
+.protoPage .protoCarouselRedesign .protoSlideCaption p {
+    display: block;
+    color: #eee;
+    font-size: 16px;
+    line-height: 1.6;
+    max-width: 390px;
+    margin: 0 0 26px;
+}
+
+/* Explore more button */
+.protoPage .protoCarouselRedesign .protoSlideLink {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding: 12px 22px;
+    border-radius: 999px;
+    background: #fff;
+    color: #111;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.protoPage .protoCarouselRedesign .protoSlideLink:hover {
+    background: #9461ce;
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+/* Arrows */
+.protoPage .protoCarouselRedesign .protoCarouselArrows {
+    position: absolute;
+    z-index: 5;
+    right: 24px;
+    bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.protoPage .protoCarouselRedesign .protoCarouselArrows button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    min-width: 46px;
+    min-height: 46px;
+    padding: 0;
+    margin: 0;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    font-family: inherit;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.protoPage .protoCarouselRedesign .protoCarouselArrows button:hover {
+    background: #9461ce;
+    border-color: #9461ce;
+    color: #fff;
+    transform: scale(1.07);
+}
+
+/* Progress bars */
+.protoPage .protoCarouselRedesign .protoCarouselProgress {
+    display: flex;
+    width: 100%;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.protoPage .protoCarouselRedesign .protoProgressDot {
+    flex: 1;
+    display: block;
+    height: 14px;
+    padding: 5px 0;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+.protoPage .protoCarouselRedesign .protoProgressDot span {
+    display: block;
+    width: 100%;
+    height: 4px;
+    border-radius: 99px;
+    background: #ddd;
+    transition: background 0.3s ease;
+}
+
+.protoPage .protoCarouselRedesign .protoProgressDot.active span {
+    background: #9461ce;
+}
+
+/* Focus rings */
+.protoCarouselRedesign button:focus-visible,
+.protoCarouselRedesign a:focus-visible {
+    outline: 3px solid #9461ce;
+    outline-offset: 3px;
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+    .protoPage .protoCarouselRedesign .protoCarouselView {
+        height: 360px;
+    }
+
+    .protoPage .protoCarouselRedesign .protoSlideCaption {
+        width: 80%;
+        padding: 35px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+    .protoPage .protoCarouselRedesign {
+        padding: 40px 0;
+    }
+
+    .protoCarouselRedesign .protoCarouselHeader {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .protoPage .protoCarouselRedesign .protoCarouselView {
+        height: 380px;
+    }
+
+    .protoPage .protoCarouselRedesign .protoSlideOverlay {
+        background: linear-gradient(
+            to top,
+            rgba(0, 0, 0, 0.9),
+            rgba(0, 0, 0, 0.1)
+        );
+    }
+
+    .protoPage .protoCarouselRedesign .protoSlideCaption {
+        width: 100%;
+        justify-content: flex-end;
+        padding: 26px 22px 78px;
+    }
+
+    .protoPage .protoCarouselRedesign .protoSlideCaption h3 {
+        font-size: 30px;
+    }
+
+    .protoPage .protoCarouselRedesign .protoSlideCaption p {
+        font-size: 14px;
+    }
+
+    .protoPage .protoCarouselRedesign .protoCarouselArrows {
+        right: 16px;
+        bottom: 16px;
+    }
+
+    .protoPage .protoCarouselRedesign .protoCarouselArrows button {
+        width: 38px;
+        height: 38px;
+        min-width: 38px;
+        min-height: 38px;
+        font-size: 18px;
+    }
+}
+/* Mobile adjustments */
+@media (max-width: 600px) {
+    .protoPage .protoThreeHero {
+        min-height: 65vh;
+        padding: 40px 22px;
+    }
+
+    .protoPage .protoThreeHero h1 {
+        font-size: clamp(42px, 11vw, 72px);
+    }
+}
+
+/* ==========================================
+   Prototype 2: Explore Informatics selector
+   Paste at the bottom of HomePrototypes.css.
+   You can delete the old ".protoCarouselRedesign" rules once you're done.
+   ========================================== */
+
+.protoPage .protoSelector {
+    width: 100%;
+    max-width: none;
+    margin: 0 auto;
+    padding: 64px 0;
+    box-sizing: border-box;
+}
+
+/* ---------- Header ---------- */
+
+.protoPage .protoSelectorHeader {
+    margin-bottom: 28px;
+}
+
+.protoPage .protoSelectorEyebrow {
+    color: #4b2d83;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    margin: 0 0 8px;
+}
+
+.protoPage .protoSelectorHeader h2 {
+    color: #111;
+    font-size: clamp(32px, 4vw, 48px);
+    line-height: 1.1;
+    margin: 0 0 12px;
+}
+
+.protoPage .protoSelectorHeader h2 span {
+    color: #4b2d83;
+}
+
+.protoPage .protoSelectorIntro {
+    max-width: 520px;
+    margin: 0;
+    color: #333;
+}
+
+/* ---------- Layout ---------- */
+
+.protoPage .protoSelectorGrid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: 28px;
+    align-items: start;
+}
+
+/* ---------- Left: destination list ---------- */
+
+.protoPage .protoSelectorList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.protoPage .protoSelectorRow {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    min-height: 0;
+    margin: 0;
+    padding: 14px 18px;
+    border: 1px solid #e3e3e3;
+    border-radius: 20px;
+    background: #fff;
+    color: #111;
+    font: inherit;
+    text-align: left;
+    box-shadow: none;
+    cursor: pointer;
+    appearance: none;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.protoPage .protoSelectorRow.active,
+.protoPage .protoSelectorRow:hover {
+    background: #111;
+    border-color: #111;
+    color: #fff;
+}
+
+.protoPage .protoSelectorThumb {
+    flex: 0 0 auto;
+    display: block;
+    width: 64px !important;
+    height: 64px !important;
+    max-width: none !important;
+    border-radius: 14px;
+    object-fit: cover;
+}
+
+.protoPage .protoSelectorText {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.protoPage .protoSelectorTitle {
+    display: block;
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1.2;
+    color: inherit;
+}
+
+.protoPage .protoSelectorDesc {
+    display: block;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #666;
+}
+
+.protoPage .protoSelectorRow.active .protoSelectorDesc,
+.protoPage .protoSelectorRow:hover .protoSelectorDesc {
+    color: #d6d6d6;
+}
+
+.protoPage .protoSelectorChevron {
+    margin-left: auto;
+    font-size: 28px;
+    line-height: 1;
+    color: #bbb;
+    transition: color 0.2s ease;
+}
+
+.protoPage .protoSelectorRow.active .protoSelectorChevron,
+.protoPage .protoSelectorRow:hover .protoSelectorChevron {
+    color: #b78be6;
+}
+
+/* ---------- Right: preview card ---------- */
+
+.protoPage .protoSelectorCard {
+    overflow: hidden;
+    border: 1px solid #e3e3e3;
+    border-radius: 24px;
+    background: #fff;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+}
+
+.protoPage .protoSelectorPhoto {
+    position: relative;
+    height: 300px;
+    background: #111;
+    clip-path: polygon(0 0, 100% 0, 100% 90%, 0 100%);
+}
+
+.protoPage .protoSelectorPhoto img {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    object-fit: cover;
+    animation: protoSelectorFade 0.35s ease;
+}
+
+.protoPage .protoSelectorBody {
+    padding: 8px 28px 28px;
+}
+
+.protoPage .protoSelectorBody h3 {
+    margin: 0 0 10px;
+    color: #111;
+    font-size: clamp(24px, 2.6vw, 32px);
+    line-height: 1.1;
+}
+
+.protoPage .protoSelectorBody p {
+    margin: 0 0 22px;
+    color: #555;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.protoPage .protoSelectorButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 24px;
+    border-radius: 999px;
+    background: #111;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.protoPage .protoSelectorButton span {
+    color: #b78be6;
+}
+
+.protoPage .protoSelectorButton:hover {
+    background: #4b2d83;
+    transform: translateY(-2px);
+}
+
+.protoPage .protoSelectorButton:hover span {
+    color: #fff;
+}
+
+/* ---------- Focus ---------- */
+
+.protoSelector button:focus-visible,
+.protoSelector a:focus-visible {
+    outline: 3px solid #4b2d83;
+    outline-offset: 3px;
+}
+
+/* ---------- Animation ---------- */
+
+@keyframes protoSelectorFade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .protoPage .protoSelectorPhoto img {
+        animation: none;
+    }
+
+    .protoPage .protoSelectorRow,
+    .protoPage .protoSelectorChevron,
+    .protoPage .protoSelectorButton {
+        transition: none;
+    }
+}
+
+/* ---------- Tablet ---------- */
+
+@media (max-width: 900px) {
+    .protoPage .protoSelectorGrid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .protoPage .protoSelectorPhoto {
+        height: 240px;
+    }
+}
+
+/* ---------- Mobile ---------- */
+
+@media (max-width: 600px) {
+    .protoPage .protoSelector {
+        padding: 40px 0;
+    }
+
+    .protoPage .protoSelectorRow {
+        gap: 12px;
+        padding: 12px;
+    }
+
+    .protoPage .protoSelectorThumb {
+        width: 52px !important;
+        height: 52px !important;
+    }
+
+    .protoPage .protoSelectorTitle {
+        font-size: 16px;
+    }
+
+    .protoPage .protoSelectorBody {
+        padding: 8px 20px 22px;
+    }
+}
+
+
+
+/* Prototype 4 — community hub */
+
+.protoFourHero { display: grid; grid-template-columns: .95fr 1.05fr; align-items: center; gap: 48px; padding: 70px 48px; margin-top: 24px; margin-bottom: 48px; background: #f7f2ff; border-radius: 32px; }
+
+.protoFourIntro { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; }
+
+.protoFourIntro .homeAffiliation { color: #73518f; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+
+.protoFourEyebrow { display: inline-block; padding: 9px 16px; margin: 28px 0 20px; background: #e8d9fa; color: #3b0068; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: .1em; }
+
+.protoFourIntro h1 { margin: 0 0 24px; color: #3b0068; font-size: clamp(40px,4.8vw,72px); font-weight: 800; line-height: 1.06; letter-spacing: -.045em; }
+
+.protoFourAccent { color: #9461ce; }
+
+.protoFourSummary { max-width: 440px; margin: 0; color: #51435d; font-size: 16px; line-height: 1.8; }
+
+.protoFourActions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+
+.protoFourButton { display: inline-flex; align-items: center; justify-content: center; gap: 18px; padding: 14px 22px; border: 2px solid #3b0068; border-radius: 999px; font-size: 14px; font-weight: 700; text-decoration: none; transition: transform .2s ease,background .2s ease,box-shadow .2s ease; }
+
+.protoFourPrimary { background: transparent; color: #fff; }
+
+.protoFourSecondary { background: transparent; color: #3b0068; }
+
+.protoFourButton:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(59,0,104,.15); }
+
+/* ===== Prototype 4: Larger Icons ===== */
+
+
+
+.protoFourCardIcon {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+
+
+    width: 76px;
+
+    height: 76px;
+
+
+
+    margin: 18px 0 0 20px;
+
+    padding: 0;
+
+
+
+    background: rgba(255, 255, 255, 0.55);
+
+    border-radius: 20px;
+
+
+
+    color: #3b0068;
+
+    font-size: 48px;
+    line-height: 1;
+
+    flex-shrink: 0;
+
+}
+
+
+
+.protoFourTextCard {
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: space-between;
+
+
+
+    min-height: 230px;
+
+    padding-top: 0;
+
+}
+
+
+
+.protoFourTextCard .protoFourCardContent {
+
+    padding: 18px 22px 22px;
+
+}
+
+
+
+.protoFourTextCard h2 {
+
+    font-size: 25px;
+
+    line-height: 1.2;
+
+}
+
+
+
+.protoFourTextCard p {
+
+    font-size: 14px;
+
+    line-height: 1.5;
+
+}
+
+
+
+@media (max-width: 600px) {
+.protoFourCardIcon {
+
+        width: 56px;
+
+        height: 56px;
+
+        margin: 12px 0 0 12px;
+
+        font-size: 34px;
+
+        border-radius: 14px;
+
+    }
+
+
+
+    .protoFourTextCard {
+
+        min-height: 190px;
+
+    }
+
+
+
+    .protoFourTextCard h2 {
+
+        font-size: 19px;
+
+    }
+
+}
+/* Prototype 4 — card grid and photo cards */
+.protoFourGrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; min-width:0; }
+.protoFourCard { position:relative; display:flex; flex-direction:column; min-width:0; min-height:230px; overflow:hidden; border-radius:22px; text-decoration:none; background:#e9dcf9; color:#3b0068; transition:transform .2s ease,box-shadow .2s ease; }
+.protoFourCard:hover { transform:translateY(-4px); box-shadow:0 12px 25px rgba(59,0,104,.15); }
+.protoFourPhotoCard { justify-content:flex-end; background:#3b0068; color:white; }
+.protoFourPhotoCard > img { position:absolute; inset:0; display:block; width:100%; height:100%; object-fit:cover; }
+.protoFourPhotoCard::after { content:""; position:absolute; inset:0; background:linear-gradient(transparent 20%,rgba(35,0,65,.85)); pointer-events:none; }
+.protoFourCardContent { position:relative; z-index:1; padding:20px 22px; }
+.protoFourCardLabel { display:block; font-size:11px; font-weight:800; letter-spacing:.1em; margin-bottom:8px; }
+.protoFourCard h2 { margin:0 0 8px; font-size:clamp(20px,2vw,27px); line-height:1.15; color:inherit; }
+.protoFourCard p { margin:0; }
+.protoFourCardArrow { display:inline-block; margin-top:10px; font-size:23px; }
+.protoFourResources { background:#e2d1f6; }
+@media (max-width:900px) {
+ .protoFourHero { grid-template-columns:1fr; padding:40px 26px; gap:28px; }
+}
+@media (max-width:760px) {
+ .protoOneHero,.protoTwoHero { grid-template-columns:1fr; }
+ .protoTwoHero { padding:32px 20px; }
+ .protoHeroCards { height:300px; }
+ .protoRows span { display:none; }
+}
+@media (max-width:520px) {
+ .protoFourGrid { grid-template-columns:1fr; }
+ .protoFourCard { min-height:205px; }
+ .protoFourHero { padding:28px 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .protoCarouselRedesign .protoCarouselTrack,
+    .protoCarouselRedesign .protoSlideLink,
+    .protoCarouselRedesign .protoCarouselArrows button {
+        transition: none;
+    }
+}
+
+/* Prototype 4 — matching text cards */
+
+.protoFourCommunity {
+    background: #e9dcf9;
+}
+
+.protoFourEvents {
+    background: #e2d1f6;
+}
+
+.protoFourGrid .protoFourTextCard {
+    color: #3b0068;
+}
+
+.protoFourGrid .protoFourTextCard h2 {
+    color: #3b0068;
+}

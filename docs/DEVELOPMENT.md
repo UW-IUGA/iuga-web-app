@@ -301,16 +301,6 @@ git submodule update --init backend/schemas
 git submodule update --remote backend/schemas
 ```
 
-#### 2. Agent Documentation & Plans (`context`) — Optional (Private)
-For authorized officers and developers with access to `UW-IUGA/iUGA-Agent-Docs`:
-```bash
-# Initialize or pull the internal planning repository
-git submodule update --init context
-
-# Pull the latest architecture plans from main
-git submodule update --remote context
-```
-
 ---
 
 ## Testing

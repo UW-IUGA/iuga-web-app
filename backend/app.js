@@ -12,7 +12,9 @@ import apiv1Router from "./routes/api/v1/apiv1.js";
 import {
   configureTrustedProxy,
   createApiRateLimiter,
+  createRateLimiter,
 } from "./routes/api/v1/utils/rateLimit.js";
+import { createDiscordRouter } from "./routes/api/v1/controllers/discord.js";
 import { httpErrorHandler, sendSpaError } from "./http/errors.js";
 import {
   isAllowedOrigin,
@@ -78,6 +80,21 @@ Expected Request Information:
 - Any HTTP request handled by the application.
 */
 app.use(logger("dev"));
+/*
+Purpose: Receive Discord interaction requests ahead of the JSON parser, so each signature is checked against the raw body.
+Authentication/Authorization Requirements: Discord request signature, verified by the router. Mounted only when DISCORD_PUBLIC_KEY is set.
+
+Expected Response Information:
+- Unsigned requests receive 401; signed interactions receive a Discord interaction response.
+*/
+if (process.env.DISCORD_PUBLIC_KEY) {
+  app.use(
+    "/api/v1/discord",
+    createRateLimiter({ limit: 60, windowMs: 60_000 }),
+    createDiscordRouter({ publicKey: process.env.DISCORD_PUBLIC_KEY }),
+  );
+}
+
 /*
 Purpose: Parse JSON and URL-encoded bodies while rejecting payloads above 32 KB.
 Authentication/Authorization Requirements: None

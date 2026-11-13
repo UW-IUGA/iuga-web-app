@@ -10,17 +10,19 @@ const EPHEMERAL_FLAG = 64;
 
 /*
  * @behavior Receive Discord interaction requests. Rejects unsigned requests, answers PING, and
- *           replies with a private placeholder for every other interaction until commands exist.
+ *           hands every other verified interaction to the flow. A thrown flow error becomes a
+ *           private generic reply, and only the error message is logged.
  * @param publicKey — the application's Ed25519 public key, as hex
+ * @param flow — { handle(interaction) } returning a Discord interaction response
  */
-export function createDiscordRouter({ publicKey }) {
+export function createDiscordRouter({ publicKey, flow }) {
   const router = express.Router();
 
   // Parse the body as raw bytes: the signature covers the exact bytes Discord sent.
   router.post(
     "/interactions",
     express.raw({ type: "application/json", limit: REQUEST_BODY_LIMIT }),
-    (req, res) => {
+    async (req, res) => {
       const verified = verifyDiscordSignature({
         publicKeyHex: publicKey,
         signature: req.get("X-Signature-Ed25519"),
@@ -42,10 +44,15 @@ export function createDiscordRouter({ publicKey }) {
         return res.json({ type: INTERACTION_RESPONSE_PONG });
       }
 
-      return res.json({
-        type: INTERACTION_RESPONSE_MESSAGE,
-        data: { content: "This command is not available yet.", flags: EPHEMERAL_FLAG },
-      });
+      try {
+        return res.json(await flow.handle(interaction));
+      } catch (error) {
+        console.error(`Discord interaction failed: ${error.message}`);
+        return res.json({
+          type: INTERACTION_RESPONSE_MESSAGE,
+          data: { content: "Something went wrong. Try again in a few minutes.", flags: EPHEMERAL_FLAG },
+        });
+      }
     },
   );
 

@@ -12,13 +12,13 @@ The website database is still the source of truth. A social post is not an event
 4. If the input passes, the request is saved as `pending` in `DiscordEventSubmissions`, and an approval card is posted to `DISCORD_APPROVAL_CHANNEL_ID`. If that post fails, the pending row is deleted and the officer is asked to try again.
 5. The officer gets a private confirmation. Nobody else sees it.
 
-Who can see the cards is set in Discord's channel permissions, not in code. Anyone who can view `#events-approvals` sees every card, including the RSO, the event details, and the submitter's display name. The bot only checks who can click. Only members with the moderator role, or Discord's Administrator permission, can approve or deny. Anyone else who clicks gets a private "Only moderators can approve events" reply.
+Who can see the cards is set in Discord's channel permissions, not in code. Anyone who can view `#events-approvals` sees every card, including the RSO, the event details, and the submitter's display name. The bot only checks who can click. Only members with the moderator role, the IUGA officer role, or Discord's Administrator permission can approve or deny. Anyone else who clicks gets a private "Only moderators or IUGA officers can approve events" reply.
 
-To keep the cards to moderators, limit the channel's View Channel permission to the moderator role in Discord's channel settings. The officer role (`DISCORD_OFFICER_ROLE_ID`) must not have View Channel on this channel, because officers submit with `/event` and should never see the cards. Check this before testing.
+To keep the cards to moderators, limit the channel's View Channel permission to the moderator and IUGA officer roles in Discord's channel settings. The RSO officer role (`DISCORD_OFFICER_ROLE_ID`) must not have View Channel on this channel, because RSO officers submit with `/event` and should never see the cards. Check this before testing.
 
 ## How a review moves
 
-- **Who can review.** Anyone with `DISCORD_MOD_ROLE_ID`, or anyone with the Discord Administrator permission, can use the buttons. The submitter can't approve or deny their own event.
+- **Who can review.** Anyone with `DISCORD_MOD_ROLE_ID` or `DISCORD_IUGA_OFFICER_ROLE_ID`, or anyone with the Discord Administrator permission, can use the buttons. The submitter can't approve or deny their own event.
 - **Approve.** The approval checks that the request is still pending before it does anything. Then it marks the request approved, creates the `Events` row, and updates the card to show who approved it. The buttons come off the card.
 - **A second approve.** Clicking again gets "already reviewed." No second event is created. Two clicks at the same moment can't publish twice, because only one update can move the row out of `pending`.
 - **Publish fails.** If the `Events` insert fails, the request goes back to `pending`, and the moderator is asked to try again.
@@ -49,6 +49,7 @@ Every `Events` row is public the moment it's inserted, which is why pending requ
 | `DISCORD_BOT_TOKEN` | Lets the bot post cards and send DMs. Never log it. |
 | `DISCORD_OFFICER_ROLE_ID` | Role that may run `/event`. Keep it out of the approval channel's permissions. |
 | `DISCORD_MOD_ROLE_ID` | Role that may approve or deny. |
+| `DISCORD_IUGA_OFFICER_ROLE_ID` | IUGA board role that may also approve or deny. |
 | `DISCORD_APPROVAL_CHANNEL_ID` | Channel where approval cards are posted. |
 | `DISCORD_RSO_OFFICERS` | JSON object keyed by Discord user ID. See below. |
 
@@ -73,10 +74,11 @@ Create each of these as a Secret text credential:
 - `DISCORD_BOT_TOKEN`
 - `DISCORD_OFFICER_ROLE_ID`
 - `DISCORD_MOD_ROLE_ID`
+- `DISCORD_IUGA_OFFICER_ROLE_ID`
 - `DISCORD_APPROVAL_CHANNEL_ID`
 - `DISCORD_RSO_OFFICERS`
 
-`dev.jenkinsfile` binds all five as credentials in the Deploy stage, and `ci/deploy.groovy` passes them to the dev container with `docker run -e`. The image itself doesn't contain any of them. Only dev forwards these values for now. If a credential is missing in Jenkins, the Deploy stage fails before the container starts.
+`dev.jenkinsfile` binds all six as credentials in the Deploy stage, and `ci/deploy.groovy` passes them to the dev container with `docker run -e`. The image itself doesn't contain any of them. Only dev forwards these values for now. If a credential is missing in Jenkins, the Deploy stage fails before the container starts.
 
 ## Interactions Endpoint URL
 

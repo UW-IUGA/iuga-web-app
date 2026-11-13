@@ -43,7 +43,7 @@ const timeFormat = new Intl.DateTimeFormat("en-US", { timeZone: PACIFIC, timeSty
  * @param models — provides DiscordEventSubmissions and Events
  * @param registry — resolves a Discord user ID to { rsoKey, rsoName }
  * @param client — Discord REST client with postMessage and sendDirectMessage
- * @param config — { officerRoleId, modRoleId, approvalChannelId }
+ * @param config — { officerRoleId, modRoleId, iugaOfficerRoleId, approvalChannelId }
  * @param now — returns the current Date
  */
 export function createDiscordApprovals({ models, registry, client, config, now = () => new Date() }) {
@@ -64,9 +64,9 @@ export function createDiscordApprovals({ models, registry, client, config, now =
     return Array.isArray(who?.roles) && who.roles.includes(roleId);
   }
 
-  function isModerator(who) {
+  function canReview(who) {
     if (!who?.user) return false;
-    if (hasRole(who, config.modRoleId)) return true;
+    if (hasRole(who, config.modRoleId) || hasRole(who, config.iugaOfficerRoleId)) return true;
     return (BigInt(who.permissions ?? 0) & ADMINISTRATOR) === ADMINISTRATOR;
   }
 
@@ -155,7 +155,7 @@ export function createDiscordApprovals({ models, registry, client, config, now =
 
   async function handleApprove(interaction, id) {
     const reviewer = interaction.member;
-    if (!isModerator(reviewer)) return reply("Only moderators can approve events.");
+    if (!canReview(reviewer)) return reply("Only moderators or IUGA officers can approve events.");
     if (!OBJECT_ID.test(id)) return reply(STALE_MESSAGE);
 
     const row = await submissions().findById(id);
@@ -194,7 +194,7 @@ export function createDiscordApprovals({ models, registry, client, config, now =
 
   async function handleDenyStart(interaction, id) {
     const reviewer = interaction.member;
-    if (!isModerator(reviewer)) return reply("Only moderators can deny events.");
+    if (!canReview(reviewer)) return reply("Only moderators or IUGA officers can deny events.");
     if (!OBJECT_ID.test(id)) return reply(STALE_MESSAGE);
 
     const row = await submissions().findById(id);
@@ -228,7 +228,7 @@ export function createDiscordApprovals({ models, registry, client, config, now =
 
   async function handleDenySubmit(interaction, id) {
     const reviewer = interaction.member;
-    if (!isModerator(reviewer)) return reply("Only moderators can deny events.");
+    if (!canReview(reviewer)) return reply("Only moderators or IUGA officers can deny events.");
     if (!OBJECT_ID.test(id)) return reply(STALE_MESSAGE);
 
     const existing = await submissions().findById(id);

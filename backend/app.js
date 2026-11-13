@@ -98,6 +98,7 @@ if (process.env.DISCORD_PUBLIC_KEY) {
     config: {
       officerRoleId: process.env.DISCORD_OFFICER_ROLE_ID,
       modRoleId: process.env.DISCORD_MOD_ROLE_ID,
+      iugaOfficerRoleId: process.env.DISCORD_IUGA_OFFICER_ROLE_ID,
       approvalChannelId: process.env.DISCORD_APPROVAL_CHANNEL_ID,
     },
   });

@@ -19,7 +19,12 @@ function DayView({ anchor, events, onSelectDay }) {
                 onPickEvent={pickEvent}
                 openEventKey={popoverSelection?.key}
             />
-            <EventPopover selected={popoverSelection} onClose={closePopover} onClosing={beginClosing} />
+            <EventPopover
+                selected={popoverSelection}
+                onClose={closePopover}
+                onClosing={beginClosing}
+                flipSide={false}
+            />
         </div>
     );
 }

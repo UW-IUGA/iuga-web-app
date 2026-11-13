@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { placePopover, placeStacked } from "./popover";
+import { chooseSide, placePopover, placeStacked } from "./popover";
 
 const viewport = { width: 1400, height: 900 };
 const popover = { width: 340, height: 400 };
@@ -39,6 +39,43 @@ describe("placePopover", () => {
         const high = { left: 600, right: 760, top: -50 };
 
         expect(placePopover(high, popover, "right", viewport).top).toBe(16);
+    });
+});
+
+describe("chooseSide", () => {
+    const sameSpot = { left: 600, right: 760, top: 300 };
+
+    it("keeps the preferred side when the whole popover fits there", () => {
+        expect(chooseSide(sameSpot, popover, "right", viewport)).toBe("right");
+        expect(chooseSide(sameSpot, popover, "left", viewport)).toBe("left");
+    });
+
+    it("flips to the left when there is no room on the right", () => {
+        const nearRight = { left: 1000, right: 1160, top: 300 };
+
+        expect(chooseSide(nearRight, popover, "right", viewport)).toBe("left");
+    });
+
+    it("flips to the right when there is no room on the left", () => {
+        const nearLeft = { left: 120, right: 280, top: 300 };
+
+        expect(chooseSide(nearLeft, popover, "left", viewport)).toBe("right");
+    });
+
+    it("takes the side with more room when neither side fits the whole popover", () => {
+        const narrow = { width: 500, height: 900 };
+        const middle = { left: 200, right: 360, top: 300 };
+
+        expect(chooseSide(middle, popover, "right", narrow)).toBe("left");
+    });
+
+    it("never places a flipped popover over the event it belongs to", () => {
+        const nearRight = { left: 1000, right: 1160, top: 300 };
+        const side = chooseSide(nearRight, popover, "right", viewport);
+        const { left } = placePopover(nearRight, popover, side, viewport);
+
+        const overlapsEvent = left < nearRight.right && left + popover.width > nearRight.left;
+        expect(overlapsEvent).toBe(false);
     });
 });
 

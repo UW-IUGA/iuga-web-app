@@ -291,10 +291,10 @@ router.post("/rsvp", requireAuth, async function (req, res) {
       return sendError(res, 400, "RSVP is not enabled for this event");
     }
 
-    // Check if today's date is past the start date
+    // RSVP closes when the event starts.
     const today = new Date();
     const eventStartDate = new Date(event.eStartDate);
-    if (today > eventStartDate) {
+    if (today >= eventStartDate) {
       return sendError(res, 400, "The event has already started or passed.");
     }
 

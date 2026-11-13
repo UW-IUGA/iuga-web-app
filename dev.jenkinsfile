@@ -32,6 +32,7 @@ def cfg = [
     uploadsDir: '/var/lib/iuga-web-app/uploads/dev',
     network:   false,   // dev container does not join the shared docker network
     shopManualCheckout: true,   // dev uses MongoDB Atlas, a replica set, which shop holds need
+    discordPublicKey: true,     // dev forwards the Discord public key so the interactions endpoint mounts
 ]
 
 void setBuildStatus(String credential_id, String context, String state, String message) {
@@ -91,6 +92,7 @@ pipeline {
                 withCredentials([
                     string(credentialsId: 'DB_URI', variable: 'DB_URI'),
                     string(credentialsId: 'SESSION_SECRET_DEV', variable: 'SESSION_SECRET_DEV'),
+                    string(credentialsId: 'DISCORD_PUBLIC_KEY', variable: 'DISCORD_PUBLIC_KEY'),
                 ]) {
                     script { deploy.healthGatedDeploy(cfg) }
                 }

@@ -27,7 +27,7 @@ Two jobs run in order:
 
 ### 1. `build` — no secrets
 
-1. Checks out the PR merge commit with `submodules: false`, so the private `context` submodule is never cloned.
+1. Checks out the PR merge commit with `submodules: false`; frontend previews do not need the backend schema submodule.
 2. Installs frontend dependencies with `npm ci`.
 3. Builds with `npm run build -- --mode development`.
 4. Uploads `frontend/build` as the `frontend-build` artifact.
@@ -71,7 +71,7 @@ The deploy job checks `/events` on the preview URL for exactly this reason. If t
 
 The Netlify site is **not linked to Git**. It was created with Netlify Drop, and GitHub Actions is the only deployer.
 
-That is deliberate. A Git-linked Netlify site clones every submodule before building, including the private `context` submodule, and fails during "preparing repo" with `could not read Username for 'https://github.com'`.
+This setup originally avoided clone failures caused by the private `context` submodule, which has since been removed. GitHub Actions remains the only deployer.
 
 ### Repository secrets
 
@@ -126,7 +126,7 @@ The workflow takes about 40 seconds end to end: roughly 25 seconds to build and 
 | Smoke test fails with `curl: (22) ... 404` | `frontend/public/_redirects` is missing or was not copied into the build | Confirm the file exists and `frontend/build/_redirects` is present |
 | Build fails with `VITE_API_URL is required for production builds` | The workflow built without `--mode development` | Use `npm run build -- --mode development` |
 | Workflow does not run | The PR is from a fork or Dependabot | Open the PR from a branch in this repository |
-| Netlify clone fails with `could not read Username` | The Netlify site is Git-linked and is cloning the private `context` submodule | Keep the Netlify site unlinked; GitHub Actions must be the deployer |
+| Netlify clone fails with `could not read Username` | A Git-linked site is building an older revision that still includes the private `context` submodule | Keep the Netlify site unlinked; GitHub Actions must be the deployer |
 
 ---
 

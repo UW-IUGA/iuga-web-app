@@ -46,7 +46,7 @@ const timeFormat = new Intl.DateTimeFormat("en-US", { timeZone: PACIFIC, timeSty
  * @param config — { officerRoleId, modRoleId, approvalChannelId }
  * @param now — returns the current Date
  */
-export function createDiscordFlow({ models, registry, client, config, now = () => new Date() }) {
+export function createDiscordApprovals({ models, registry, client, config, now = () => new Date() }) {
   const submissions = () => models.DiscordEventSubmissions;
 
   function reply(content) {

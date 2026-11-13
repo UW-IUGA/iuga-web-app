@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createDiscordFlow } from "../discordFlow.js";
+import { createDiscordApprovals } from "../discordApprovals.js";
 import { EVENT_COMMAND } from "../discordCommandDefinition.js";
 import { createRsoRegistry } from "../rsoRegistry.js";
 
@@ -92,7 +92,7 @@ function setup() {
     Events: createCollection(),
   };
   const client = createClient();
-  const flow = createDiscordFlow({
+  const flow = createDiscordApprovals({
     models,
     registry: createRsoRegistry({
       [OFFICER_ID]: { rsoKey: "iuga", rsoName: "IUGA" },

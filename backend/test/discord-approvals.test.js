@@ -73,7 +73,9 @@ function createClient() {
     failDm: false,
     async postMessage(channelId, body) {
       calls.push({ method: "postMessage", channelId, body });
-      if (client.failPost) throw new Error("Discord POST /channels/x/messages failed with status 500");
+      if (client.failPost) {
+        throw new Error('Discord POST /channels/x/messages failed with status 403, code 50001 "Missing Access"');
+      }
       messageSequence += 1;
       return { id: String(messageSequence) };
     },
@@ -234,6 +236,16 @@ describe("/event submission", () => {
     assert.match(response.data.content, /not submitted/);
     assert.equal(models.DiscordEventSubmissions.docs.length, 0);
   });
+
+  it("logs the Discord failure detail but keeps it out of the officer's reply", async (t) => {
+    const logged = t.mock.method(console, "error", () => {});
+    const { client, flow } = setup();
+    client.failPost = true;
+    const response = await flow.handle(commandInteraction(officer()));
+
+    assert.match(logged.mock.calls[0].arguments.join(" "), /50001 "Missing Access"/);
+    assert.doesNotMatch(response.data.content, /Discord POST|status|50001|Missing Access/);
+  });
 });
 
 describe("approval", () => {
@@ -326,6 +338,17 @@ describe("approval", () => {
     const [row] = models.DiscordEventSubmissions.docs;
     assert.equal(row.status, "pending");
     assert.equal(row.reviewerDiscordId, undefined);
+  });
+
+  it("logs the insert failure detail but keeps it out of the moderator's reply", async (t) => {
+    const logged = t.mock.method(console, "error", () => {});
+    const { id, models, flow } = await pendingSubmission();
+    models.Events.failCreate = true;
+
+    const response = await flow.handle(componentInteraction(mod(), `approve:${id}`));
+
+    assert.match(logged.mock.calls[0].arguments.join(" "), /simulated insert failure/);
+    assert.doesNotMatch(response.data.content, /simulated insert failure/);
   });
 });
 

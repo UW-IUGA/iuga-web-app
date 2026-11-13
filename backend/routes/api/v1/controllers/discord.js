@@ -47,7 +47,7 @@ export function createDiscordRouter({ publicKey, flow }) {
       try {
         return res.json(await flow.handle(interaction));
       } catch (error) {
-        console.error(`Discord interaction failed: ${error.message}`);
+        console.error("Discord interaction failed:", error);
         return res.json({
           type: INTERACTION_RESPONSE_MESSAGE,
           data: { content: "Something went wrong. Try again in a few minutes.", flags: EPHEMERAL_FLAG },

@@ -305,15 +305,13 @@ describe("approval", () => {
     assert.match(response.data.content, /already been reviewed/);
   });
 
-  it("refuses self-approval", async () => {
+  it("lets a moderator approve their own event", async () => {
     const { id, models, flow } = await pendingSubmission();
-    const selfReviewer = member(OFFICER_ID, [OFFICER_ROLE, MOD_ROLE]);
-    const response = await flow.handle(componentInteraction(selfReviewer, `approve:${id}`));
+    const submitterWhoModerates = member(OFFICER_ID, [OFFICER_ROLE, MOD_ROLE]);
+    await flow.handle(componentInteraction(submitterWhoModerates, `approve:${id}`));
 
-    assert.equal(response.data.flags, EPHEMERAL);
-    assert.match(response.data.content, /cannot approve your own event/);
-    assert.equal(models.Events.docs.length, 0);
-    assert.equal(models.DiscordEventSubmissions.docs[0].status, "pending");
+    assert.equal(models.Events.docs.length, 1);
+    assert.equal(models.DiscordEventSubmissions.docs[0].status, "approved");
   });
 
   it("lets a server administrator approve", async () => {
@@ -360,6 +358,14 @@ describe("denial", () => {
     assert.equal(response.type, MODAL);
     assert.equal(response.data.custom_id, `deny-reason:${id}`);
     assert.equal(models.DiscordEventSubmissions.docs[0].status, "pending");
+  });
+
+  it("lets a moderator open the denial for their own event", async () => {
+    const { id, flow } = await pendingSubmission();
+    const submitterWhoModerates = member(OFFICER_ID, [OFFICER_ROLE, MOD_ROLE]);
+    const response = await flow.handle(componentInteraction(submitterWhoModerates, `deny:${id}`));
+
+    assert.equal(response.type, MODAL);
   });
 
   it("records the denial and reason, updates the card, and DMs the submitter", async () => {

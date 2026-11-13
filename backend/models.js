@@ -19,6 +19,7 @@ import {
   shopSettingsSchema,
 } from "./schemas/schemas.js";
 import { committeeRecruitmentSchema } from "./committeeRecruitment.js";
+import { discordSubmissionsSchema } from "./discordSubmissions.js";
 
 // Preserve the Mongoose 6 unknown-filter behavior during the staged upgrade.
 mongoose.set("strictQuery", true);
@@ -51,6 +52,7 @@ async function connectToDatabase(){
   models.EventReviews = mongoose.model("EventReviews", eventReviewsSchema);
   models.Committees = mongoose.model("Committees", committeesSchema);
   models.CommitteeRecruitment = mongoose.model("CommitteeRecruitment", committeeRecruitmentSchema);
+  models.DiscordEventSubmissions = mongoose.model("DiscordEventSubmissions", discordSubmissionsSchema);
 
   console.log(`[startup] mongoose models created after ${Date.now() - connectionStartedAt}ms`);
 }

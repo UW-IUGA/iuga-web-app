@@ -161,7 +161,6 @@ export function createDiscordApprovals({ models, registry, client, config, now =
     const row = await submissions().findById(id);
     if (!row) return reply(STALE_MESSAGE);
     if (row.status !== "pending") return reply(REVIEWED_MESSAGE);
-    if (row.submitterDiscordId === reviewer.user.id) return reply("You cannot approve your own event.");
 
     const claimed = await submissions().findOneAndUpdate(
       { _id: id, status: "pending" },
@@ -200,7 +199,6 @@ export function createDiscordApprovals({ models, registry, client, config, now =
     const row = await submissions().findById(id);
     if (!row) return reply(STALE_MESSAGE);
     if (row.status !== "pending") return reply(REVIEWED_MESSAGE);
-    if (row.submitterDiscordId === reviewer.user.id) return reply("You cannot deny your own event.");
 
     return {
       type: RESPONSE_MODAL,
@@ -233,7 +231,6 @@ export function createDiscordApprovals({ models, registry, client, config, now =
 
     const existing = await submissions().findById(id);
     if (!existing) return reply(STALE_MESSAGE);
-    if (existing.submitterDiscordId === reviewer.user.id) return reply("You cannot deny your own event.");
 
     const reason = neutralizeMentions(modalText(interaction, "reason").trim()).slice(0, REASON_LIMIT);
     const set = { status: "denied", reviewerDiscordId: reviewer.user.id };

@@ -18,7 +18,7 @@ To keep the cards to moderators, limit the channel's View Channel permission to 
 
 ## How a review moves
 
-- **Who can review.** Anyone with `DISCORD_MOD_ROLE_ID`, or anyone with the Discord Administrator permission, can use the buttons. The submitter can't approve or deny their own event.
+- **Who can review.** Anyone with `DISCORD_MOD_ROLE_ID`, or anyone with the Discord Administrator permission, can use the buttons. A moderator can review an event they submitted.
 - **Approve.** The approval checks that the request is still pending before it does anything. Then it marks the request approved, creates the `Events` row, and updates the card to show who approved it. The buttons come off the card.
 - **A second approve.** Clicking again gets "already reviewed." No second event is created. Two clicks at the same moment can't publish twice, because only one update can move the row out of `pending`.
 - **Publish fails.** If the `Events` insert fails, the request goes back to `pending`, and the moderator is asked to try again.

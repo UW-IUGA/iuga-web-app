@@ -54,7 +54,7 @@ describe("HomePage", () => {
 
         expect(screen.getByRole("link", { name: /Student organizations/ })).toHaveAttribute("href", "/resources?category=Community");
         expect(screen.getByRole("link", { name: /^Resources/ })).toHaveAttribute("href", "/resources");
-        expect(screen.getByRole("link", { name: /^Student Voice/ })).toHaveAttribute("href", "/student-voice");
+        expect(screen.queryByRole("link", { name: /^Student Voice/ })).not.toBeInTheDocument();
         expect(screen.getByRole("link", { name: /^About IUGA/ })).toHaveAttribute("href", "/about");
     });
 

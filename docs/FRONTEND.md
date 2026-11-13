@@ -162,7 +162,7 @@ markup at every breakpoint. Its presentation is split across these partials:
 - `_navigation-desktop.scss` — compact laptop link spacing
 
 The header holds the logo on the left and one centered group of page links:
-Events, Resources, Student Voice, Shop, About, and Get Involved. The account
+Events, Resources, Merch, About, and Get Involved. The account
 control sits to the right of the group. On smaller desktops the link spacing
 tightens to keep the navigation on one line; below the sm-desktop breakpoint
 the links collapse into a hamburger panel. Only one dropdown is open at a time,
@@ -192,9 +192,15 @@ site", and Sign out. `/admin` and unknown `/admin/...` addresses redirect to Ord
 **Archived, not deleted:** the Elections and Election FAQ pages are still routed
 at `/elections` and `/electionfaq`, but the navigation intentionally does not
 link to them. The About dropdown that used to surface them was removed, and Get
-Involved and Student Voice are now separate top-level links. The pages are
+Involved remains a separate top-level link. The pages are
 unreachable from the UI on purpose — reach them by URL. If a future release
 re-exposes them, restore the nav entry rather than assuming the pages are gone.
+
+Student Voice is also archived from public promotion: neither the navbar
+(including its mobile menu) nor the homepage links to it. Its code and
+UW-sign-in-protected `/student-voice` route remain intact while IUGA decides
+how to approach student voice and advocacy. See [STUDENT_VOICE.md](./STUDENT_VOICE.md)
+for the archive decision and reactivation guidance.
 
 Use the shared variables in `stylesheets/abstracts/_variables.scss` for layout
 tokens such as `$radius-pill`, `$radius-card`, and `$pill-height`. Avoid hard-coded
@@ -222,6 +228,7 @@ Defined in `src/App.jsx`:
 | `/` | `HomePage` | `upcomingEvents` (prop — mock or API) |
 | `/events` | `EventsPage` | Mock data or `GET /api/v1/events`; officers also call `/api/v1/event-requests`. See [EVENTS.md](./EVENTS.md) |
 | `/resources` | `ResourcesPage` | Static data from `assets/data/ResourcesData.js` |
+| `/student-voice` | `StudentVoicePage` | Archived from navigation and homepage; direct URL still requires UW sign-in. Existing forms come from `assets/data/StudentVoiceData.js`. See [STUDENT_VOICE.md](./STUDENT_VOICE.md). |
 | `/shop` | `ShopPage` | Static data from `assets/data/ShopData.js` and `GET /api/v1/shop/catalog` plus authenticated `POST /api/v1/shop/checkout`. If the catalog cannot load (for example on a Netlify preview with no backend), the static products show as a read-only preview: image, name, and material, with "Price unavailable" in place of the price, no size choices, a disabled Add to cart, and a notice with Try again. |
 | `/shop/checkout/:holdId` | `ShopCheckoutPage` | Authenticated `GET` and `DELETE` `/api/v1/shop/holds/:holdId`, `PATCH` `/api/v1/shop/holds/:holdId/lines`, and `POST` `/api/v1/shop/holds/:holdId/confirm`. Shows the Venmo QR code (`assets/shop/venmo-qr.webp`) beside the exact amount due and the IUGA-UW handle, each line, the total, a countdown, and the required Venmo username and phone number entries. The Venmo username is prefilled from the student's earlier purchase; entering a different one blocks Confirm and offers a prefilled email to `iuga@uw.edu`. |
 | `/admin` | redirect | Sends to `/admin/shop/orders`, the first admin page. Unknown `/admin/...` addresses redirect there too. |

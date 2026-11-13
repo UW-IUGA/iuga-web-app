@@ -42,6 +42,11 @@ const chip = (name) => screen.getByRole("button", { name });
 
 afterEach(cleanup);
 
+// jsdom lays nothing out, so a chip sits at the origin with no room to its left.
+// This test is about the preferred side, so it places the chip mid-window, where both fit.
+let midWindowSpy;
+afterEach(() => midWindowSpy?.mockRestore());
+
 describe("MonthCard", () => {
     it("opens an event in a popover beside its chip", () => {
         const { container, onPickDay } = renderMonth();
@@ -67,6 +72,9 @@ describe("MonthCard", () => {
     });
 
     it("opens any other day to the left", () => {
+        midWindowSpy = vi
+            .spyOn(Element.prototype, "getBoundingClientRect")
+            .mockReturnValue({ left: 600, right: 760, top: 300, bottom: 340, width: 160, height: 40, x: 600, y: 300, toJSON() {} });
         renderMonth();
 
         fireEvent.click(chip("Industry Panel"));

@@ -240,6 +240,17 @@ describe("DayView", () => {
             expect(screen.getByRole("dialog").classList).toContain("popover--right");
         });
 
+        it("keeps the card on the right even when the window leaves no room there", () => {
+            setViewport(1000, 800);
+            renderDay({ events: [rich()] });
+            const block = eventButton("Industry Panel");
+            placeBlock(block, { top: 300, left: 500, right: 900 });
+
+            fireEvent.click(block);
+
+            expect(screen.getByRole("dialog").classList).toContain("popover--right");
+        });
+
         it("leaves out View day, since the day is already on screen", () => {
             renderDay({ events: [rich()] });
 

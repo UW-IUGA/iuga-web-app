@@ -43,6 +43,16 @@ const timed = (id, name, start, end, labels = []) =>
 
 afterEach(cleanup);
 
+// jsdom lays nothing out, so an event sits at the origin with no room to its left.
+// Tests about which side a popover prefers place the event mid-window, where both fit.
+let midWindowSpy;
+function placeMidWindow() {
+    midWindowSpy = vi
+        .spyOn(Element.prototype, "getBoundingClientRect")
+        .mockReturnValue({ left: 600, right: 760, top: 300, bottom: 340, width: 160, height: 40, x: 600, y: 300, toJSON() {} });
+}
+afterEach(() => midWindowSpy?.mockRestore());
+
 describe("WeekView", () => {
     it("renders seven day columns", () => {
         const { container } = renderWeek();
@@ -186,6 +196,7 @@ describe("WeekView", () => {
         });
 
         it("opens any other day to the left", () => {
+            placeMidWindow();
             renderWeek({ events: [tuesday()] });
 
             fireEvent.click(eventButton("Coffee & Networking"));

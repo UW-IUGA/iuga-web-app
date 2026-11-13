@@ -74,7 +74,6 @@ function Navbar({ signIn, signOut }) {
                     <div className="nav-primary-links">
                         <NavLink to="/events" onClick={handleNavigation}>Events</NavLink>
                         <NavLink to="/resources" onClick={handleNavigation}>Resources</NavLink>
-                        <NavLink to="/student-voice" onClick={handleNavigation}>Student Voice</NavLink>
                         <NavLink to="/shop" onClick={handleNavigation}>Merch</NavLink>
                         <NavLink to="/about" onClick={handleNavigation}>About</NavLink>
                         <NavLink to="/get-involved" onClick={handleNavigation}>Get Involved</NavLink>

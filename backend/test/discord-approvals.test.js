@@ -8,6 +8,7 @@ const NOW = new Date("2026-11-12T20:00:00Z");
 const APPROVAL_CHANNEL = "approvals-channel";
 const OFFICER_ROLE = "officer-role";
 const MOD_ROLE = "mod-role";
+const IUGA_OFFICER_ROLE = "iuga-officer-role";
 
 const OFFICER_ID = "1001";
 const MOD_ID = "2001";
@@ -103,6 +104,7 @@ function setup() {
     config: {
       officerRoleId: OFFICER_ROLE,
       modRoleId: MOD_ROLE,
+      iugaOfficerRoleId: IUGA_OFFICER_ROLE,
       approvalChannelId: APPROVAL_CHANNEL,
     },
     now: () => NOW,
@@ -314,6 +316,23 @@ describe("approval", () => {
     assert.match(response.data.content, /cannot approve your own event/);
     assert.equal(models.Events.docs.length, 0);
     assert.equal(models.DiscordEventSubmissions.docs[0].status, "pending");
+  });
+
+  it("lets an IUGA officer approve", async () => {
+    const { id, models, flow } = await pendingSubmission();
+    const iugaOfficer = member(ADMIN_ID, [IUGA_OFFICER_ROLE]);
+    const response = await flow.handle(componentInteraction(iugaOfficer, `approve:${id}`));
+
+    assert.equal(response.type, UPDATE_MESSAGE);
+    assert.equal(models.Events.docs.length, 1);
+  });
+
+  it("lets an IUGA officer open the denial", async () => {
+    const { id, flow } = await pendingSubmission();
+    const iugaOfficer = member(ADMIN_ID, [IUGA_OFFICER_ROLE]);
+    const response = await flow.handle(componentInteraction(iugaOfficer, `deny:${id}`));
+
+    assert.equal(response.type, MODAL);
   });
 
   it("lets a server administrator approve", async () => {

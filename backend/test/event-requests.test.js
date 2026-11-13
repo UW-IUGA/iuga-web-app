@@ -203,6 +203,38 @@ describe("event request API", () => {
     assert.equal(result.body.event.eName, "IUGA Workshop");
   });
 
+  it("publishes the outside link the organizer gave with the event", async () => {
+    const result = await api.request(
+      "POST",
+      `/api/v1/event-requests/${requestId}/approve`,
+      {},
+      {
+        models: makeModels({
+          permissions: ["events.leadership.approve"],
+          request: { ...submittedRequest, altLink: { kind: "luma", url: "https://lu.ma/iuga-workshop" } },
+        }),
+      },
+    );
+    assert.equal(result.status, 200);
+    assert.deepEqual(result.body.event.eAltLink, { url: "https://lu.ma/iuga-workshop", kind: "luma" });
+  });
+
+  it("rejects an outside link that is not https", async () => {
+    const result = await api.request(
+      "POST",
+      "/api/v1/event-requests",
+      {
+        eventName: "IUGA Workshop",
+        requestingGroup: "Tech Committee",
+        description: "A useful workshop",
+        proposedStartDate: "2026-09-01T18:00:00Z",
+        altLink: { url: "http://example.org/rsvp" },
+      },
+      { models: makeModels() },
+    );
+    assert.equal(result.status, 400);
+  });
+
   it("records the external review link and receipt actor", async () => {
     const result = await api.request(
       "PATCH",

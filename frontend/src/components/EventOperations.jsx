@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
+import { EVENT_LINK_OPTIONS } from "../utils/eventLink";
 
 const API_PATH = "/api/v1/event-requests";
 const CHECKPOINTS = [
@@ -19,6 +20,8 @@ const emptyForm = {
     proposedStartDate: "",
     proposedEndDate: "",
     audience: "",
+    altLinkKind: "",
+    altLinkUrl: "",
 };
 
 async function apiRequest(path, options = {}) {
@@ -80,9 +83,13 @@ function EventRequestForm({ onCreated, onCancel }) {
         event.preventDefault();
         setSaving(true);
         try {
-            const payload = { ...form };
+            const { altLinkKind, altLinkUrl, ...payload } = form;
             if (!payload.audience) delete payload.audience;
             if (!payload.proposedEndDate) delete payload.proposedEndDate;
+            // The link is optional; with no platform picked, the event page works it out from the link itself.
+            if (altLinkUrl.trim()) {
+                payload.altLink = { url: altLinkUrl.trim(), kind: altLinkKind || undefined };
+            }
             const data = await apiRequest("/", {
                 method: "POST",
                 body: JSON.stringify(payload),
@@ -112,6 +119,13 @@ function EventRequestForm({ onCreated, onCancel }) {
                 <label className="form-label">Proposed start<input className="form-input" type="datetime-local" name="proposedStartDate" value={form.proposedStartDate} onChange={update} required /></label>
                 <label className="form-label">Proposed end<input className="form-input" type="datetime-local" name="proposedEndDate" value={form.proposedEndDate} onChange={update} /></label>
                 <label className="form-label event-ops-full-width">Audience<input className="form-input" name="audience" value={form.audience} onChange={update} maxLength="500" placeholder="Who is this event for?" /></label>
+                <label className="form-label">Where people RSVP
+                    <select className="form-input" name="altLinkKind" value={form.altLinkKind} onChange={update}>
+                        <option value="">Detect from link</option>
+                        {EVENT_LINK_OPTIONS.map((option) => <option key={option.kind} value={option.kind}>{option.label}</option>)}
+                    </select>
+                </label>
+                <label className="form-label">Link (optional)<input className="form-input" type="url" name="altLinkUrl" value={form.altLinkUrl} onChange={update} placeholder="https://" maxLength="2000" /></label>
                 <label className="form-label event-ops-full-width">Description<textarea className="form-input" name="description" value={form.description} onChange={update} required maxLength="2000" rows="4" /></label>
             </div>
             <div className="event-ops-form-actions">

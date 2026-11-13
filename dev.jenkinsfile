@@ -93,6 +93,11 @@ pipeline {
                     string(credentialsId: 'DB_URI', variable: 'DB_URI'),
                     string(credentialsId: 'SESSION_SECRET_DEV', variable: 'SESSION_SECRET_DEV'),
                     string(credentialsId: 'DISCORD_PUBLIC_KEY', variable: 'DISCORD_PUBLIC_KEY'),
+                    string(credentialsId: 'DISCORD_BOT_TOKEN', variable: 'DISCORD_BOT_TOKEN'),
+                    string(credentialsId: 'DISCORD_OFFICER_ROLE_ID', variable: 'DISCORD_OFFICER_ROLE_ID'),
+                    string(credentialsId: 'DISCORD_MOD_ROLE_ID', variable: 'DISCORD_MOD_ROLE_ID'),
+                    string(credentialsId: 'DISCORD_APPROVAL_CHANNEL_ID', variable: 'DISCORD_APPROVAL_CHANNEL_ID'),
+                    string(credentialsId: 'DISCORD_RSO_OFFICERS', variable: 'DISCORD_RSO_OFFICERS'),
                 ]) {
                     script { deploy.healthGatedDeploy(cfg) }
                 }

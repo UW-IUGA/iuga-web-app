@@ -2,8 +2,8 @@
 Purpose: Show one photo from a set at full size, with controls to move through the set.
 
 Expected Request Information:
-- photos: array of { src, alt, thumbnail }. thumbnail is an optional smaller copy of the
-  same photo; it fills the frame behind the photo, so it should be the copy already shown on the page.
+- photos: array of { src, alt, thumbnail }. thumbnail is a smaller copy of the same photo,
+  required; it fills the frame behind the photo, so it should be the copy already shown on the page.
 - index: position of the photo to show, or null to keep the viewer closed.
 - title: name shown over the photo; also labels the dialog.
 - eyebrow: optional short line shown above the title.
@@ -55,7 +55,6 @@ function PhotoLightbox({ photos = [], index = null, title, eyebrow, onIndexChang
     useSwipeStep(frameRef, step, Boolean(photo));
 
     // Clicking the photo's right half goes forward and its left half goes back.
-    // The caption, counter, and buttons are drawn over the photo but sit outside it, so they keep their own behavior.
     const handlePhotoClick = (clickEvent) => {
         const { left, width } = clickEvent.currentTarget.getBoundingClientRect();
         step(clickEvent.clientX - left < width / 2 ? -1 : 1);
@@ -75,11 +74,11 @@ function PhotoLightbox({ photos = [], index = null, title, eyebrow, onIndexChang
             {...dialogProps}
         >
             {photo && (
-                <figure ref={frameRef}>
+                <figure ref={frameRef} className="photoLightbox__frame">
                     {/* A blurred copy of the photo fills the frame behind it. It is decoration, so assistive technology skips it. */}
                     <img
                         className="photoLightbox__backdrop"
-                        src={photo.thumbnail ?? photo.src}
+                        src={photo.thumbnail}
                         alt=""
                         aria-hidden="true"
                     />

@@ -37,7 +37,6 @@ Expected Response Information: A rounded frame sized from the viewport alone, wi
         touch-action: pan-y pinch-zoom;
     }
 
-    // Over the bottom of the photo, fading up from a dark base so the text stays readable.
     figcaption {
         position: absolute;
         right: 0;

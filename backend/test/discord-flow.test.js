@@ -95,7 +95,7 @@ function setup() {
   const flow = createDiscordFlow({
     models,
     registry: createRsoRegistry({
-      [OFFICER_ID]: { rsoKey: "sigma", rsoName: "Sigma Society" },
+      [OFFICER_ID]: { rsoKey: "iuga", rsoName: "IUGA" },
     }),
     client,
     config: {
@@ -114,12 +114,12 @@ function member(id, roles = [], extra = {}) {
 
 function eventOptions(overrides = {}) {
   const values = {
-    name: "Game Night",
+    name: "IUGA Study Break",
     date: "2026-12-01",
     start_time: "18:00",
-    location: "Mary Gates Hall 110",
+    location: "Mary Gates Hall",
     category: "Social",
-    description: "Board games and snacks.",
+    description: "Snacks and a quiet room for Informatics undergrads.",
     ...overrides,
   };
   return Object.entries(values)
@@ -209,8 +209,8 @@ describe("/event submission", () => {
     const [row] = rows;
     assert.equal(row.status, "pending");
     assert.equal(row.submitterDiscordId, OFFICER_ID);
-    assert.equal(row.rsoKey, "sigma");
-    assert.equal(row.rsoName, "Sigma Society");
+    assert.equal(row.rsoKey, "iuga");
+    assert.equal(row.rsoName, "IUGA");
     assert.equal(row.eLabel, "Social");
     assert.equal(row.discordMessageId, "1001");
 
@@ -255,10 +255,10 @@ describe("approval", () => {
 
     assert.equal(models.Events.docs.length, 1);
     const [event] = models.Events.docs;
-    assert.equal(event.eName, "Game Night");
-    assert.equal(event.eOrganizers, "Sigma Society");
-    assert.equal(event.eLocation, "Mary Gates Hall 110");
-    assert.equal(event.eDescription, "Board games and snacks.");
+    assert.equal(event.eName, "IUGA Study Break");
+    assert.equal(event.eOrganizers, "IUGA");
+    assert.equal(event.eLocation, "Mary Gates Hall");
+    assert.equal(event.eDescription, "Snacks and a quiet room for Informatics undergrads.");
     assert.deepEqual(event.eLabels, ["Social"]);
     assert.deepEqual(event.eStartDate, new Date("2026-12-02T02:00:00Z"));
     assert.equal(event.eEndDate, undefined);

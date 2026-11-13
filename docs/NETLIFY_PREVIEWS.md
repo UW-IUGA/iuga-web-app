@@ -71,8 +71,6 @@ The deploy job checks `/events` on the preview URL for exactly this reason. If t
 
 The Netlify site is **not linked to Git**. It was created with Netlify Drop, and GitHub Actions is the only deployer.
 
-This setup originally avoided clone failures caused by the private `context` submodule, which has since been removed. GitHub Actions remains the only deployer.
-
 ### Repository secrets
 
 Stored in GitHub under **Settings → Secrets and variables → Actions**:

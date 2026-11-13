@@ -113,4 +113,4 @@ The mount also sits outside the session and CSRF stack, because Discord doesn't 
 - `backend/routes/api/v1/controllers/discord.js`: signature check and routing
 - `backend/scripts/registerDiscordCommands.mjs`: command registration
 
-Run the tests from `backend/` with `npm test`. `test/discord-flow.test.js` covers the flow with in-memory fakes.
+Run the tests from `backend/` with `npm test`. `test/discord-approvals.test.js` covers the flow with in-memory fakes.

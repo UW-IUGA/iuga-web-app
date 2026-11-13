@@ -15,6 +15,9 @@ import {
   createRateLimiter,
 } from "./routes/api/v1/utils/rateLimit.js";
 import { createDiscordRouter } from "./routes/api/v1/controllers/discord.js";
+import { createDiscordApprovals } from "./discordApprovals.js";
+import { createDiscordClient } from "./discordClient.js";
+import { rsoRegistryFromEnv } from "./rsoRegistry.js";
 import { httpErrorHandler, sendSpaError } from "./http/errors.js";
 import {
   isAllowedOrigin,
@@ -88,10 +91,20 @@ Expected Response Information:
 - Unsigned requests receive 401; signed interactions receive a Discord interaction response.
 */
 if (process.env.DISCORD_PUBLIC_KEY) {
+  const discordApprovals = createDiscordApprovals({
+    models,
+    registry: rsoRegistryFromEnv(process.env.DISCORD_RSO_OFFICERS),
+    client: createDiscordClient({ botToken: process.env.DISCORD_BOT_TOKEN }),
+    config: {
+      officerRoleId: process.env.DISCORD_OFFICER_ROLE_ID,
+      modRoleId: process.env.DISCORD_MOD_ROLE_ID,
+      approvalChannelId: process.env.DISCORD_APPROVAL_CHANNEL_ID,
+    },
+  });
   app.use(
     "/api/v1/discord",
     createRateLimiter({ limit: 60, windowMs: 60_000 }),
-    createDiscordRouter({ publicKey: process.env.DISCORD_PUBLIC_KEY }),
+    createDiscordRouter({ publicKey: process.env.DISCORD_PUBLIC_KEY, flow: discordApprovals }),
   );
 }
 

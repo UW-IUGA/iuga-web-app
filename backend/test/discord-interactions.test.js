@@ -17,10 +17,18 @@ function sign(body, timestamp = "1700000000", key = privateKey) {
 describe("Discord interactions endpoint", () => {
   let server;
   let baseUrl;
+  const handled = [];
 
   before(async () => {
     const app = express();
-    app.use("/api/v1/discord", createDiscordRouter({ publicKey: publicKeyHex }));
+    const flow = {
+      async handle(interaction) {
+        handled.push(interaction);
+        if (interaction.data?.custom_id === "explode") throw new Error("boom");
+        return { type: 4, data: { content: "from the flow" } };
+      },
+    };
+    app.use("/api/v1/discord", createDiscordRouter({ publicKey: publicKeyHex, flow }));
     app.use((err, _req, res, _next) => res.status(err.status ?? 500).json({ error: err.type ?? "error" }));
     server = app.listen(0);
     await once(server, "listening");
@@ -68,8 +76,17 @@ describe("Discord interactions endpoint", () => {
     assert.equal(response.status, 413);
   });
 
-  it("answers a signed non-PING interaction with an ephemeral placeholder", async () => {
+  it("hands a signed non-PING interaction to the flow and returns its response", async () => {
     const body = Buffer.from(JSON.stringify({ type: 2, data: { name: "event" } }));
+    const response = await post(body, sign(body));
+    assert.equal(response.status, 200);
+    const json = await response.json();
+    assert.deepEqual(json, { type: 4, data: { content: "from the flow" } });
+    assert.deepEqual(handled, [{ type: 2, data: { name: "event" } }]);
+  });
+
+  it("returns a private generic reply when the flow throws", async () => {
+    const body = Buffer.from(JSON.stringify({ type: 3, data: { custom_id: "explode" } }));
     const response = await post(body, sign(body));
     assert.equal(response.status, 200);
     const json = await response.json();

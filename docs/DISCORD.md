@@ -4,8 +4,6 @@ Officers of a registered student organization (RSO) can submit an event from Dis
 
 The website database is still the source of truth. A social post is not an event listing, and nothing gets published from Discord text alone.
 
-Status: the backend flow is in place and tested with fakes. It has not run end to end against the Discord test server yet. The Jenkins and container wiring is written but not pushed, and it needs the five credentials to exist first (see [Secrets](#secrets-in-jenkins)).
-
 ## How a submission moves
 
 1. An officer runs `/event` and fills in the name, date, start time, location, category, and description. End time and RSVP link are optional.
@@ -116,9 +114,3 @@ The mount also sits outside the session and CSRF stack, because Discord doesn't 
 - `backend/scripts/registerDiscordCommands.mjs`: command registration
 
 Run the tests from `backend/` with `npm test`. `test/discord-flow.test.js` covers the flow with in-memory fakes.
-
-## Still open
-
-- Create the five Jenkins credentials, then verify the dev deploy passes them through.
-- Run the full path on the test server: `/event` as an officer, approve as a moderator, approve again, and try as a non-officer and a non-moderator.
-- Test the approve claim against a real MongoDB replica set under concurrent clicks. The fakes can't show that.

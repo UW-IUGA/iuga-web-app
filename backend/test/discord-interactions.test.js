@@ -24,7 +24,7 @@ describe("Discord interactions endpoint", () => {
     const flow = {
       async handle(interaction) {
         handled.push(interaction);
-        if (interaction.data?.custom_id === "explode") throw new Error("boom");
+        if (interaction.data?.custom_id === "explode") throw new Error("internal failure detail");
         return { type: 4, data: { content: "from the flow" } };
       },
     };
@@ -85,12 +85,24 @@ describe("Discord interactions endpoint", () => {
     assert.deepEqual(handled, [{ type: 2, data: { name: "event" } }]);
   });
 
-  it("returns a private generic reply when the flow throws", async () => {
+  it("returns a private generic reply when the flow throws", async (t) => {
+    t.mock.method(console, "error", () => {});
     const body = Buffer.from(JSON.stringify({ type: 3, data: { custom_id: "explode" } }));
     const response = await post(body, sign(body));
     assert.equal(response.status, 200);
     const json = await response.json();
     assert.equal(json.type, 4);
     assert.equal(json.data.flags, 64);
+    assert.doesNotMatch(json.data.content, /internal failure detail/);
+  });
+
+  it("logs the thrown error with its stack trace when the flow throws", async (t) => {
+    const logged = t.mock.method(console, "error", () => {});
+    const body = Buffer.from(JSON.stringify({ type: 3, data: { custom_id: "explode" } }));
+    await post(body, sign(body));
+
+    const loggedError = logged.mock.calls[0].arguments.find((argument) => argument instanceof Error);
+    assert.ok(loggedError, "expected the Error object to be logged");
+    assert.match(loggedError.stack, /internal failure detail/);
   });
 });

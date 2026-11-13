@@ -102,6 +102,24 @@ In `backend/app.js`, the Discord router is mounted before `express.json`. That o
 
 The mount also sits outside the session and CSRF stack, because Discord doesn't carry a session cookie. It's rate-limited to 60 requests per minute. If you move it below `express.json`, every real interaction starts failing verification.
 
+## When something fails
+
+Officers and moderators only ever see a short, generic reply, such as "The approval post failed, so your event was not submitted." The details go to the server log, not to Discord.
+
+On dev, read them on the VM:
+
+```sh
+docker logs iuga-web-dev --tail 200 | grep -E "Approval card post failed|Event publish failed|Denial DM failed|Discord interaction failed"
+```
+
+A failed Discord call logs the route, the HTTP status, Discord's error code and message, and a likely cause when the code is a common one. Example:
+
+```text
+Approval card post failed: Discord POST /channels/<id>/messages failed with status 403, code 50001 "Missing Access". Likely cause: the bot is not in the server or cannot view this channel
+```
+
+When Discord rejects a card's content, the log lists the invalid fields by path and error code (for example `embeds.0.title BASE_TYPE_MAX_LENGTH`), without the submitted values. Unexpected errors log the full stack trace.
+
 ## Code map
 
 - `backend/discordApprovals.js`: submission, approve, deny, and publish

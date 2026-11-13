@@ -1,6 +1,6 @@
 # Discord event approval
 
-Officers of a registered student organization (RSO) can submit an event from Discord with `/event`. The request lands in a private `#events-approvals` channel with Approve and Deny buttons. When a moderator approves it, the event is published to the same `Events` collection the website already reads from.
+Officers of a registered student organization (RSO) can submit an event from Discord with `/event`. The request lands in the `#events-approvals` channel with Approve and Deny buttons. When a moderator approves it, the event is published to the same `Events` collection the website already reads from.
 
 The website database is still the source of truth. A social post is not an event listing, and nothing gets published from Discord text alone.
 
@@ -14,7 +14,9 @@ Status: the backend flow is in place and tested with fakes. It has not run end t
 4. If the input passes, the request is saved as `pending` in `DiscordEventSubmissions`, and an approval card is posted to `DISCORD_APPROVAL_CHANNEL_ID`. If that post fails, the pending row is deleted and the officer is asked to try again.
 5. The officer gets a private confirmation. Nobody else sees it.
 
-Officers never see the approval channel. Only the moderator role can act on it.
+Who can see the cards is set in Discord's channel permissions, not in code. Anyone who can view `#events-approvals` sees every card, including the RSO, the event details, and the submitter's display name. The bot only checks who can click. Only members with the moderator role, or Discord's Administrator permission, can approve or deny. Anyone else who clicks gets a private "Only moderators can approve events" reply.
+
+To keep the cards to moderators, limit the channel's View Channel permission to the moderator role in Discord's channel settings. Check this before testing, because a role that can view the channel will see the cards.
 
 ## How a review moves
 

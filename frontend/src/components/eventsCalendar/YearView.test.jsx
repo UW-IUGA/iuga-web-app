@@ -276,11 +276,11 @@ describe("YearView", () => {
         expect(screen.queryByRole("dialog")).toBeNull();
     });
 
-    it("outlines the card for the month that holds today, and only that one", () => {
+    it("marks the card for the month that holds today, and only that one", () => {
         at("2026-10-21T19:00:00Z", () => {
             const { container } = renderYear();
 
-            const current = [...container.querySelectorAll(".card--current")];
+            const current = [...container.querySelectorAll('[aria-current="date"]')];
             expect(current).toHaveLength(1);
             expect(current[0].querySelector(".card-title__heading").firstChild.textContent).toBe("October 2026");
         });
@@ -299,22 +299,21 @@ describe("YearView", () => {
         });
     });
 
-    it("outlines the same month in another year only in that year", () => {
+    it("marks the same month in another year only in that year", () => {
         // April 2026 and April 2024 both have cards.
         at("2024-04-15T19:00:00Z", () => {
             const { container } = renderYear();
 
-            const current = container.querySelector(".card--current .card-title__heading");
+            const current = container.querySelector('[aria-current="date"] .card-title__heading');
             expect(current.firstChild.textContent).toBe("April 2024");
-            expect(container.querySelectorAll(".card--current")).toHaveLength(1);
+            expect(container.querySelectorAll('[aria-current="date"]')).toHaveLength(1);
         });
     });
 
-    it("outlines nothing when this month has no events, so no card", () => {
+    it("marks nothing when this month has no events, so no card", () => {
         at("2025-07-01T19:00:00Z", () => {
             const { container } = renderYear();
 
-            expect(container.querySelector(".card--current")).toBeNull();
             expect(container.querySelector('[aria-current="date"]')).toBeNull();
         });
     });

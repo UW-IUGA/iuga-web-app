@@ -36,7 +36,7 @@ frontend/src/
 ├── components/        ← Shared UI pieces
 │   ├── eventsCalendar/ ← The events calendar's views and controls, RSVP, and previous events (see EVENTS.md)
 │   ├── AdminBar.jsx   ← Officer admin bar shown on every /admin page
-│   ├── PageHeader.jsx ← The shared top of the About, Get Involved, Resources, and Student Voice pages
+│   ├── PageHeader.jsx ← The shared top of the About, Get Involved, Resources, and Student Voice pages and the sign-in preview
 │   ├── ShopCart.jsx, ShopMaintenanceBanner.jsx ← The site-wide cart drawer and maintenance notice
 │   ├── PastEventCard.jsx, PhotoLightbox.jsx ← Past event recaps and the full-size photo viewer, used by the calendar's previous events
 │   └── EventsOverview.jsx, EventAgenda.jsx, EventDialog.jsx, EventCategoryPills.jsx, EventThumbnail.jsx,

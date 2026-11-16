@@ -19,7 +19,7 @@ import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import AdminBar from "../components/AdminBar";
 import { AmountForm, FollowUpForm, Modal, ModalButtons, ReasonConfirm, StatusChangeForm } from "../components/shopOrders/OrderDialogs";
 import { OrderDrawer } from "../components/shopOrders/OrderDrawer";
-import { OrderRow, Overview, TABLE_COLUMNS } from "../components/shopOrders/OrderList";
+import { OrderRow, OrderTableHead, Overview, ResultRow } from "../components/shopOrders/OrderList";
 import { PickupWarning } from "../components/shopOrders/OrderTags";
 import { useAuthContext } from "../context/AuthContext";
 import { useLockPageScroll } from "../hooks/useLockPageScroll";
@@ -703,17 +703,7 @@ export default function ShopOrdersPage() {
                                 <div className="shopAdmin__tableWrap">
                                     <table className="shopAdmin__table">
                                         <caption className="sr-only">Orders</caption>
-                                        <thead>
-                                            <tr>
-                                                <th scope="col" className="shopAdmin__select"><span className="sr-only">Select</span></th>
-                                                <th scope="col">Amount</th>
-                                                <th scope="col">Venmo</th>
-                                                <th scope="col">Customer</th>
-                                                <th scope="col">Items</th>
-                                                <th scope="col">Date</th>
-                                                <th scope="col"><span className="sr-only">Actions</span></th>
-                                            </tr>
-                                        </thead>
+                                        <OrderTableHead />
                                         {items.map((item) => (item.order ? (
                                             <OrderRow
                                                 key={item.id}
@@ -727,11 +717,7 @@ export default function ShopOrdersPage() {
                                                 buyerButtonRef={(node) => { buyerButtons.current[item.id] = node; }}
                                             />
                                         ) : (
-                                            <tbody key={item.id} className="shopAdmin__order">
-                                                <tr className="shopAdmin__resultRow">
-                                                    <td colSpan={TABLE_COLUMNS}>{item.result}</td>
-                                                </tr>
-                                            </tbody>
+                                            <ResultRow key={item.id} result={item.result} />
                                         )))}
                                     </table>
                                 </div>

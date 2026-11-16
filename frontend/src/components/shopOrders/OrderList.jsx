@@ -1,7 +1,8 @@
 /*
- * Purpose: The officer Orders page's overview cards and the table row for one order.
+ * Purpose: The officer Orders page's overview cards and its order table's columns: the header, the row for
+ *          one order, and the line left behind when an order leaves the list.
  * Expected Request Information: Counts and totals from the review API, or one listed order.
- * Expected Response Information: The overview group and a <tbody> per order.
+ * Expected Response Information: The overview group, the table's <thead>, and a <tbody> per order.
  */
 
 import { ActionsMenu } from "./OrderMenus";
@@ -10,7 +11,8 @@ import { formatCents, formatDateTime } from "../../utils/shopFormat";
 import { buyerLabel, canMarkPaid, itemSummary } from "../../utils/shopOrders/orderRules";
 import { plural } from "../../utils/shopOrders/orderText";
 
-export const TABLE_COLUMNS = 7;
+// Kept in step with OrderTableHead and OrderRow, so a notice or result line spans the whole row.
+const TABLE_COLUMNS = 7;
 
 // The three figures an officer acts on: money on orders not yet confirmed, money received on confirmed (Paid) orders,
 // and open follow-ups. Unconfirmed and Follow-up open their tabs. Color marks only money: amber while any is still
@@ -127,6 +129,33 @@ export function OrderRow({ item, checked, open, actions, onCheck, onOpen, onMark
                     <td colSpan={TABLE_COLUMNS}><p className="shopAdmin__notice" role="alert">{notice}</p></td>
                 </tr>
             )}
+        </tbody>
+    );
+}
+
+export function OrderTableHead() {
+    return (
+        <thead>
+            <tr>
+                <th scope="col" className="shopAdmin__select"><span className="sr-only">Select</span></th>
+                <th scope="col">Amount</th>
+                <th scope="col">Venmo</th>
+                <th scope="col">Customer</th>
+                <th scope="col">Items</th>
+                <th scope="col">Date</th>
+                <th scope="col"><span className="sr-only">Actions</span></th>
+            </tr>
+        </thead>
+    );
+}
+
+// What stays in the table after an order leaves the current list, such as "Added to log: <name>".
+export function ResultRow({ result }) {
+    return (
+        <tbody className="shopAdmin__order">
+            <tr className="shopAdmin__resultRow">
+                <td colSpan={TABLE_COLUMNS}>{result}</td>
+            </tr>
         </tbody>
     );
 }

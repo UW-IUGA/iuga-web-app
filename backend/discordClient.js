@@ -32,6 +32,7 @@ function nonJsonExcerpt(text) {
 /*
  * @behavior Describe a failed Discord call for operators: route, status, Discord's code and message,
  *   a likely cause when the code is well known, and any invalid fields. Never includes the token.
+ * @returns { message, discordCode } where discordCode is Discord's numeric code, or undefined
  */
 async function describeFailure(method, path, response) {
   const summary = `Discord ${method} ${path} failed with status ${response.status}`;
@@ -42,7 +43,7 @@ async function describeFailure(method, path, response) {
     body = JSON.parse(text);
   } catch {
     const excerpt = nonJsonExcerpt(text);
-    return excerpt ? `${summary}: ${excerpt}` : summary;
+    return { message: excerpt ? `${summary}: ${excerpt}` : summary, discordCode: undefined };
   }
 
   const hasDiscordCode = typeof body?.code === "number";
@@ -53,11 +54,12 @@ async function describeFailure(method, path, response) {
   if (likelyCause) sentences.push(`Likely cause: ${likelyCause}`);
   const invalidFields = invalidFieldEntries(body?.errors);
   if (invalidFields.length) sentences.push(`Invalid fields: ${invalidFields.join("; ")}`);
-  return sentences.join(". ");
+  return { message: sentences.join(". "), discordCode: hasDiscordCode ? body.code : undefined };
 }
 
 /*
- * @behavior Call the Discord REST API as the bot. Errors name the route, status, and Discord's reason, never the token.
+ * @behavior Call the Discord REST API as the bot. Errors name the route, status, and Discord's reason, never the token,
+ *   and carry Discord's numeric code as error.discordCode when Discord sent one.
  * @param botToken — the bot token from the environment
  * @param fetchImpl — fetch to use; injected so tests never reach Discord
  */
@@ -69,7 +71,8 @@ export function createDiscordClient({ botToken, fetchImpl = fetch }) {
       body: body === undefined ? undefined : JSON.stringify(body),
     });
     if (!response.ok) {
-      throw new Error(await describeFailure(method, path, response));
+      const { message, discordCode } = await describeFailure(method, path, response);
+      throw Object.assign(new Error(message), { discordCode });
     }
     return response.status === 204 ? null : response.json();
   }
@@ -80,6 +83,18 @@ export function createDiscordClient({ botToken, fetchImpl = fetch }) {
     },
     registerGuildCommands(applicationId, guildId, commands) {
       return call("PUT", `/applications/${applicationId}/guilds/${guildId}/commands`, commands);
+    },
+    listRoles(guildId) {
+      return call("GET", `/guilds/${guildId}/roles`);
+    },
+    createRole(guildId, { name }) {
+      return call("POST", `/guilds/${guildId}/roles`, { name, permissions: "0", mentionable: false, hoist: false });
+    },
+    addMemberRole(guildId, userId, roleId) {
+      return call("PUT", `/guilds/${guildId}/members/${userId}/roles/${roleId}`);
+    },
+    deleteRole(guildId, roleId) {
+      return call("DELETE", `/guilds/${guildId}/roles/${roleId}`);
     },
     async sendDirectMessage(userId, body) {
       const channel = await call("POST", "/users/@me/channels", { recipient_id: userId });

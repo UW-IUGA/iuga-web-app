@@ -62,19 +62,24 @@ backend/
 
 ## SPA Routes
 
-These routes in `app.js` serve the built frontend (`frontend/build/index.html`) for every path the React Router handles. This enables **deep linking** — users can navigate directly to `/events` and get the SPA shell.
+`SPA_ROUTES` in `http/spaRoutes.js` is the list of browser paths that get the built
+frontend (`frontend/build/index.html`), so a visitor can open `/events` directly and
+React Router takes it from there. `app.js` mounts it with `createSpaRouter`. Read that
+list for the exact paths; in short it covers:
 
-| Route | Purpose |
+| Route | Page |
 |---|---|
-| `GET /` | Home page |
-| `GET /events` | Events calendar |
-| `GET /resources` | Resources page |
-| `GET /get-involved` | Get involved page (team, committees, idea engagement) |
-| `GET /electionfaq` | Election FAQ |
-| `GET /contact` | Contact page |
-| `GET /admin`, `/admin/shop/orders`, `/admin/shop/pickup` | Officer admin pages. Keep in step with `ADMIN_SECTIONS` in `frontend/src/adminSections.js`. |
+| `/`, `/events`, `/resources`, `/about`, `/get-involved` | The public pages |
+| `/shop`, `/shop/checkout/:holdId` | Merchandise storefront and Venmo checkout (`holdId` must be 24 hex characters) |
+| `/student-voice` | Student Voice (archived from the navigation; see STUDENT_VOICE.md) |
+| `/elections`, `/electionfaq` | Archived election pages, reachable by URL only |
+| `/admin`, `/admin/shop/orders`, `/admin/shop/pickup` | Officer admin pages. Keep in step with `ADMIN_SECTIONS` in `frontend/src/adminSections.js`. |
+| `/contact` | Still served, but the frontend has no `/contact` route, so it shows the navbar and footer with no page between them |
 
-Each handler reads `../frontend/build/index.html` and sends it. If the build directory is missing, these routes return 500.
+A new frontend route needs its path in both `frontend/src/App.jsx` and `SPA_ROUTES`;
+a path missing from `SPA_ROUTES` works when reached by a link but returns 404 when
+opened directly. If `index.html` can't be sent (for example, the frontend was never
+built), the request falls through to the error handler and returns 500.
 
 Express also serves:
 - Static files from `../frontend/build/` (line: `app.use(express.static("../frontend/build"))`)

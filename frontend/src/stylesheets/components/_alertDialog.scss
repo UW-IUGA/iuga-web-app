@@ -93,10 +93,6 @@
         font-weight: $font-weight-medium;
         @include focus-ring;
 
-        &::before {
-            content: none;
-        }
-
         &:hover {
             background: theme(tint);
         }

@@ -31,11 +31,6 @@
         background-color: theme(tint);
     }
 
-    &:hover::before,
-    &:focus-visible::before {
-        opacity: 0;
-    }
-
     &:active {
         transform: translateY(1px);
     }
@@ -94,13 +89,6 @@
 .cta-secondary {
     background-color: theme(tint);
     color: theme(accent);
-}
-
-.cta-primary:hover::before,
-.cta-primary:focus-visible::before,
-.cta-secondary:hover::before,
-.cta-secondary:focus-visible::before {
-    opacity: 0;
 }
 
 .editorial-card {

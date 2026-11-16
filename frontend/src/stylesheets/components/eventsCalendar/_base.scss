@@ -50,10 +50,6 @@ Expected Response Information: The calendar's font, box model, buttons, focus ri
         transition: revert;
     }
 
-    :where(button)::before {
-        content: none;
-    }
-
     :where(button:disabled) {
         background: revert;
         color: revert;

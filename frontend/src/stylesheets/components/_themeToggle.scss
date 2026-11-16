@@ -21,11 +21,6 @@ $thumb-inset: 2px;
     color: inherit;
     cursor: pointer;
     @include focus-ring;
-
-    // Not the site button's hover glow.
-    &::before {
-        display: none;
-    }
 }
 
 .themeToggle__track {

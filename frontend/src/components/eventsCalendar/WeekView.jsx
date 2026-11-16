@@ -12,8 +12,8 @@ function WeekView({ anchor, events, onSelectDay }) {
     const columns = useMemo(() => buildDayColumns(buildWeekDates(anchor), events), [anchor, events]);
     const { popoverSelection, pickEvent, beginClosing, closePopover } = useEventPopover(columns[0].key);
 
-    // On a phone a day's column is the target, as a month's day is: a tap goes
-    // to that day, where each event has the full width (see TimeGrid).
+    // On a phone a tap on a day's empty space goes to that day, as a month's
+    // day does; a tap on an event still opens its popover (see TimeGrid).
     const tapDays = useMediaQuery(MOBILE_QUERY);
 
     return (

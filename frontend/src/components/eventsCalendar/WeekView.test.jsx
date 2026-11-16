@@ -294,8 +294,7 @@ describe("WeekView", () => {
 });
 
 describe("WeekView on a phone", () => {
-    // Overlapping events split a ~40px column, under the 24px minimum target
-    // (2.5.8), so there the day's column is the target instead.
+    // A tap on a day's empty space goes to the day; a tap on an event opens it.
     const phone = () => {
         window.matchMedia = (query) => ({
             matches: query === "(max-width: 900px)",
@@ -313,7 +312,7 @@ describe("WeekView on a phone", () => {
         timed(2, "Design Workshop", "2026-10-20T17:30:00.000Z", "2026-10-20T19:00:00.000Z"),
     ];
 
-    it("goes to the day for a press anywhere in its column", () => {
+    it("goes to the day for a press on its column's empty space", () => {
         phone();
         const { container, onSelectDay } = renderWeek({ events: overlapping });
 
@@ -325,15 +324,16 @@ describe("WeekView on a phone", () => {
         expect(container.querySelector(".grid").classList).toContain("grid--tap-days");
     });
 
-    it("keeps every event a button, so a keyboard or screen reader still opens it", () => {
+    it("opens a tapped event in its popover rather than going to the day", () => {
         phone();
-        renderWeek({ events: overlapping });
+        const { onSelectDay } = renderWeek({ events: overlapping });
 
         const event = screen.getByRole("button", { name: /Design Workshop/ });
         expect(event.getAttribute("aria-haspopup")).toBe("dialog");
-        fireEvent.keyDown(event, { key: "Enter" });
         fireEvent.click(event);
-        expect(screen.getByRole("dialog")).toBeTruthy();
+
+        expect(screen.getByRole("dialog", { name: "Design Workshop" })).toBeTruthy();
+        expect(onSelectDay).not.toHaveBeenCalled();
     });
 
     it("adds no tab stop for the columns: the day header is the keyboard way to the day", () => {

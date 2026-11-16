@@ -103,6 +103,21 @@ describe("buildMonthGrid", () => {
         expect(rows.flat().every((cell) => cell.events.length === 0)).toBe(true);
     });
 
+    it("files the months either side's events on their outside days, when asked", () => {
+        // April 2024: Sun Mar 31 leads in, and May 1 to 11 trail out.
+        const march = normalizeEvent({ eId: "mar", eName: "March", eStartDate: "2024-03-31T19:00:00.000Z" });
+        const may = normalizeEvent({ eId: "may", eName: "May", eStartDate: "2024-05-03T19:00:00.000Z" });
+        const late = normalizeEvent({ eId: "late", eName: "Late May", eStartDate: "2024-05-20T19:00:00.000Z" });
+
+        const cells = buildMonthGrid(2024, 3, [march, may, late], { withOutside: true }).flat();
+
+        expect(cells[0].events).toEqual([march]);
+        // May 3 is three cells past May 1, which follows Tue Apr 30 at index 30.
+        expect(cells[33].events).toEqual([may]);
+        // Past the grid's last day: nowhere to put it.
+        expect(cells.flatMap((cell) => cell.events)).not.toContain(late);
+    });
+
     it("carries the real date of every cell, including the spill from adjacent months", () => {
         // April 2024 begins on a Monday, so cell 0 is Sun Mar 31.
         const rows = buildMonthGrid(2024, 3, []);

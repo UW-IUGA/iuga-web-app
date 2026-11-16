@@ -72,7 +72,7 @@ async function violations(root) {
 }
 
 const VIEWS = [
-    ["month view", "/events?date=2026-10-20"],
+    ["month view", "/events?view=month&date=2026-10-20"],
     ["week view", "/events?view=week&date=2026-10-20"],
     ["day view", "/events?view=day&date=2026-10-22"],
     ["year view", "/events?view=year&date=2026-10-20"],
@@ -100,7 +100,7 @@ describe("Events page: WCAG 2.2 AA (axe)", () => {
     }
 
     it("finds nothing with a month-view event popover open", async () => {
-        const { container } = await visit("/events?date=2026-10-20");
+        const { container } = await visit("/events?view=month&date=2026-10-20");
 
         fireEvent.click(container.querySelector(".pad__event"));
 

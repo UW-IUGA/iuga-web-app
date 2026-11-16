@@ -188,6 +188,45 @@ describe("DayView", () => {
         expect(screen.queryByRole("button", { name: /Some other day/ })).toBeNull();
     });
 
+    describe("scroll position", () => {
+        const jam = (id, day, hour) =>
+            normalizeEvent({
+                eId: id,
+                eName: id,
+                // Pacific is UTC-7 in late October; Date.UTC rolls an hour past 23
+                // over into the next day.
+                eStartDate: new Date(Date.UTC(2026, 9, day, hour + 7)).toISOString(),
+                eEndDate: new Date(Date.UTC(2026, 9, day, hour + 8)).toISOString(),
+            });
+        const events = [jam("late", 22, 15), jam("early", 22, 10), jam("next", 23, 18)];
+
+        it("opens scrolled to the first event of the day, then the next day's", () => {
+            const { container, rerender } = render(<DayView anchor={anchor()} events={events} onSelectDay={vi.fn()} />);
+            const scroller = container.querySelector(".grid__scroll");
+
+            // 10am at 48px an hour, less the 8px left above it.
+            expect(scroller.scrollTop).toBe(10 * 48 - 8);
+
+            rerender(
+                <DayView anchor={new Date("2026-10-23T20:00:00.000Z")} events={events} onSelectDay={vi.fn()} />,
+            );
+            expect(scroller.scrollTop).toBe(18 * 48 - 8);
+        });
+
+        it("lands on the first event once the list arrives, and stays put for the same list again", () => {
+            const { container, rerender } = render(<DayView anchor={anchor()} events={[]} onSelectDay={vi.fn()} />);
+            const scroller = container.querySelector(".grid__scroll");
+
+            rerender(<DayView anchor={anchor()} events={events} onSelectDay={vi.fn()} />);
+            expect(scroller.scrollTop).toBe(10 * 48 - 8);
+
+            // The viewer scrolls on, then the same events load again.
+            scroller.scrollTop = 900;
+            rerender(<DayView anchor={anchor()} events={[...events]} onSelectDay={vi.fn()} />);
+            expect(scroller.scrollTop).toBe(900);
+        });
+    });
+
     describe("event popover", () => {
         it("opens the clicked event in a popover with its details", () => {
             renderDay({ events: [rich()] });
@@ -258,6 +297,17 @@ describe("DayView", () => {
 
             expect(screen.getByRole("button", { name: "Close" })).toBeTruthy();
             expect(screen.queryByRole("button", { name: "View day" })).toBeNull();
+        });
+
+        it("puts the date in View day's place, beside Close, and only there", () => {
+            renderDay({ events: [rich()] });
+
+            fireEvent.click(eventButton("Industry Panel"));
+
+            const close = screen.getByRole("button", { name: "Close" });
+            const dates = within(screen.getByRole("dialog")).getAllByText("Thursday, October 22, 2026");
+            expect(dates).toHaveLength(1);
+            expect(dates[0].parentElement).toBe(close.parentElement);
         });
 
         it("closes from its close button, and hands focus back to the event", () => {

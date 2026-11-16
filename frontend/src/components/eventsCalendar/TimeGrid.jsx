@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useLayoutEffect, useMemo, useRef } from "react";
 import useNow from "../../hooks/useNow";
 import { colorForLabels, formatClockTime, formatWeekday, overlapBox, zonedParts } from "../../utils/calendar/calendar";
+import { firstEvent, scrollTopFor } from "../../utils/calendar/gridScroll";
 
-// Where to land when the view opens somewhere other than today. Mid-morning
-// shows a populated stretch rather than six empty hours above it.
+// Where to land on a day or week with no events, other than today.
+// Mid-morning shows a likely stretch rather than six empty hours above it.
 const DEFAULT_SCROLL_HOUR = 7;
 
 // In pixels, so it has to agree with _time-grid.scss.
@@ -33,14 +34,24 @@ function TimeGrid({ columns, onSelectDay, onPickEvent, openEventKey = null, onPi
     const nowFraction = ((nowParts.hour * 60 + nowParts.minute) / 1440) * 100;
     const anyToday = useMemo(() => columns.some((column) => column.isToday), [columns]);
 
-    // Run once on mount. Re-running per anchor change would yank the scroll
-    // position away from wherever the viewer has moved to.
-    useEffect(() => {
+    // Each day or week opens with its first event at the top, so nobody has to
+    // scroll to find what is on. With no events it opens two hours before now
+    // for today, or mid-morning. Keyed by the days shown rather than the
+    // columns' identity, so a date picked inside the same week does not move
+    // the view out from under the viewer. The first event's start is in the key
+    // too: the grid is up while the event list loads, so it lands again once the
+    // events arrive, but a reload of the same list leaves it alone. Before paint,
+    // so it never flashes at midnight first.
+    const first = firstEvent(columns);
+    const scrollKey = `${columns.map((column) => column.key).join()}|${first?.startMinutes ?? ""}`;
+    useLayoutEffect(() => {
         const scroller = scrollRef.current;
         if (!scroller) return;
-        scroller.scrollTop = (anyToday ? Math.max(nowParts.hour - 2, 0) : DEFAULT_SCROLL_HOUR) * HOUR_HEIGHT;
+        scroller.scrollTop = first
+            ? scrollTopFor(first, HOUR_HEIGHT)
+            : (anyToday ? Math.max(nowParts.hour - 2, 0) : DEFAULT_SCROLL_HOUR) * HOUR_HEIGHT;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [scrollKey]);
 
     return (
         <div className={`grid${onPickColumn ? " grid--tap-days" : ""}`} style={{ "--grid-cols": columns.length }}>
@@ -81,8 +92,9 @@ function TimeGrid({ columns, onSelectDay, onPickEvent, openEventKey = null, onPi
                     {columns.map((column, columnIndex) => (
                         // A pointer shortcut only: the day header above is the same
                         // action for a keyboard, so the column is not a second tab stop.
-                        // On a phone, overlapping events make blocks narrower than the
-                        // 24px minimum target (WCAG 2.5.8), so the column is the target.
+                        // On a phone the day header is a small target, so a press on a
+                        // day's empty space goes to the day; a press on an event still
+                        // opens it.
                         <div
                             className="grid__col"
                             key={column.key}
@@ -108,14 +120,18 @@ function TimeGrid({ columns, onSelectDay, onPickEvent, openEventKey = null, onPi
                                           "data-popover-trigger": "",
                                           "aria-haspopup": "dialog",
                                           "aria-expanded": openEventKey === `${column.key}|${key}`,
-                                          onClick: (click) =>
+                                          onClick: (click) => {
+                                              // The event, not the day: keep it from the
+                                              // column's tap-to-day beneath.
+                                              click.stopPropagation();
                                               onPickEvent({
                                                   event: item.event,
                                                   date: column.date,
                                                   columnIndex,
                                                   key: `${column.key}|${key}`,
                                                   el: click.currentTarget,
-                                              }),
+                                              });
+                                          },
                                       }
                                     : {};
 

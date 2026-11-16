@@ -92,10 +92,13 @@ function EventsPage() {
 
   const selectedDateParts = zonedParts(selectedDate);
 
-  // The single month the month view shows, positioned by the selected date.
+  // The single month the month view shows, positioned by the selected date,
+  // with the days either side of it filled in too.
   const rows = useMemo(
     () =>
-      buildMonthGrid(selectedDateParts.year, selectedDateParts.month, events),
+      buildMonthGrid(selectedDateParts.year, selectedDateParts.month, events, {
+        withOutside: true,
+      }),
     [selectedDateParts.year, selectedDateParts.month, events],
   );
 

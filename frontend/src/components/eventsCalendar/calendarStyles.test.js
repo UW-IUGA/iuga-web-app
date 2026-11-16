@@ -97,9 +97,27 @@ describe("calendar styles", () => {
         expect(px(style(".strip__month")["min-width"])).toBeGreaterThanOrEqual(24);
     });
 
-    it("pass a phone's tap through the chips too small to aim at, to their day (2.5.8)", () => {
-        expect(style(".pad__event, .pad__more", PHONE)["pointer-events"]).toBe("none");
-        expect(style(".grid--tap-days .grid__event--button")["pointer-events"]).toBe("none");
+    it("let a phone's tap open a month chip or a week event, as on a wide screen", () => {
+        expect(style(".pad__event, .pad__more", PHONE)["pointer-events"]).toBeUndefined();
+        expect(rules.some((rule) => rule.selector.includes(".grid--tap-days .grid__event--button"))).toBe(false);
+    });
+
+    it("keep the phone chips at the 24px minimum target, now that a tap opens them (2.5.8)", () => {
+        expect(px(style(".pad__event, .pad__more", PHONE)["min-height"])).toBeGreaterThanOrEqual(24);
+    });
+
+    it("fit three phone chips in a phone's day", () => {
+        // The chips and their two 2px gaps, under the offset below the day number.
+        const chips = 3 * px(style(".pad__event, .pad__more", PHONE)["min-height"]) + 2 * 2;
+        const offset = px(style(".pad__events", PHONE)["margin-top"]);
+        expect(px(style(".pad", PHONE)["min-height"])).toBeGreaterThanOrEqual(chips + offset);
+    });
+
+    it("keep the month the week and day's height on a phone, rather than shrinking its weeks", () => {
+        expect(style(".card--month", PHONE)["min-height"]).toBeUndefined();
+        expect(rules.some((rule) => rule.media === PHONE && rule.selector.includes(".row:not(.weekday-header)"))).toBe(
+            false,
+        );
     });
 
     it("set the phone's view dropdown at 16px, so iOS does not zoom in on it", () => {

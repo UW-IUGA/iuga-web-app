@@ -9,7 +9,7 @@ import { addDays, addMonths, addWeeks, buildWeekDates, zonedMidnight, zonedParts
 // keeps it. Year view is the whole archive and ignores the selected date entirely.
 
 export const VIEW_MODES = ["year", "month", "week", "day"];
-export const DEFAULT_VIEW = "month";
+export const DEFAULT_VIEW = "year";
 
 // What the view switch calls each view: the radio group on a wide screen and
 // the dropdown on a narrow one, so the two cannot name a view differently.

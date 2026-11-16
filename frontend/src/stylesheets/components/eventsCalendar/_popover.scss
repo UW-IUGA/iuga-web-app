@@ -1,5 +1,5 @@
 /*
-Purpose: Style the event popover opened from the month and week views.
+Purpose: Style the event popover opened from the month, week and day views.
 Expected Request Information: Classes emitted by EventPopover, rendered into document.body, inside an .eventsCalendar root.
 Expected Response Information: A floating card with the event's details and a close button.
 */
@@ -7,7 +7,7 @@ Expected Response Information: A floating card with the event's details and a cl
 @use "../../abstracts/eventsCalendar" as *;
 
 .eventsCalendar {
-    // The event popover, shared by the week and month views. Fixed to the
+    // The event popover, shared by the month, week and day views. Fixed to the
     // viewport and placed beside the event from script (EventPopover), outside
     // the calendar so its clipping cannot cut it off.
     .popover {

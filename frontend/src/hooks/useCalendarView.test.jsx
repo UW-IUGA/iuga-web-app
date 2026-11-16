@@ -24,10 +24,10 @@ function setup(entry = "/events") {
 afterEach(cleanup);
 
 describe("useCalendarView", () => {
-    it("defaults to the month view on today", () => {
+    it("defaults to the year view on today", () => {
         const { result } = setup("/events");
 
-        expect(result.current.mode).toBe("month");
+        expect(result.current.mode).toBe("year");
         expect(result.current.isDefaultMode).toBe(true);
         expect(result.current.selectedDate.toDateString()).toBe(new Date().toDateString());
     });
@@ -45,20 +45,20 @@ describe("useCalendarView", () => {
         expect(zonedParts(result.current.selectedDate)).toMatchObject({ year: 2026, month: 9, day: 20, hour: 0 });
     });
 
-    it("falls back to month for an unknown view", () => {
+    it("falls back to year for an unknown view", () => {
         const { result } = setup("/events?view=fortnight");
 
-        expect(result.current.mode).toBe("month");
+        expect(result.current.mode).toBe("year");
     });
 
     it("falls back to today for a malformed date", () => {
-        const { result } = setup("/events?date=whenever");
+        const { result } = setup("/events?view=month&date=whenever");
 
         expect(result.current.selectedDate.toDateString()).toBe(new Date().toDateString());
     });
 
     it("writes a chosen view into the URL, keeping the page", () => {
-        const { result, written } = setup("/events?date=2026-10-20");
+        const { result, written } = setup("/events?view=month&date=2026-10-20");
 
         act(() => result.current.setMode("week"));
 
@@ -70,7 +70,7 @@ describe("useCalendarView", () => {
     it("omits the view when it is the default", () => {
         const { result, written } = setup("/events?view=week&date=2026-10-20");
 
-        act(() => result.current.setMode("month"));
+        act(() => result.current.setMode("year"));
 
         expect(written().has("view")).toBe(false);
         expect(written().get("date")).toBe("2026-10-20");
@@ -86,7 +86,7 @@ describe("useCalendarView", () => {
     });
 
     it("leaves query parameters it does not own alone", () => {
-        const { result, written } = setup("/events?ref=newsletter&date=2026-10-20");
+        const { result, written } = setup("/events?ref=newsletter&view=month&date=2026-10-20");
 
         act(() => result.current.step(1));
 
@@ -97,20 +97,20 @@ describe("useCalendarView", () => {
         const { result } = setup("/events?view=year&date=2026-10-20");
 
         expect(result.current.mode).toBe("year");
-        expect(result.current.isDefaultMode).toBe(false);
+        expect(result.current.isDefaultMode).toBe(true);
     });
 
     it("steps the month view a month at a time", () => {
-        const { result, written } = setup("/events?date=2026-10-20");
+        const { result, written } = setup("/events?view=month&date=2026-10-20");
 
         act(() => result.current.step(1));
 
         expect(written().get("date")).toBe("2026-11-20");
-        expect(written().has("view")).toBe(false);
+        expect(written().get("view")).toBe("month");
     });
 
     it("clamps a month step to the end of a shorter month", () => {
-        const { result, written } = setup("/events?date=2026-01-31");
+        const { result, written } = setup("/events?view=month&date=2026-01-31");
 
         act(() => result.current.step(1));
 
@@ -162,12 +162,12 @@ describe("useCalendarView", () => {
     });
 
     it("keeps the month view on a date pick, too", () => {
-        const { result, written } = setup("/events?date=2026-10-20");
+        const { result, written } = setup("/events?view=month&date=2026-10-20");
 
         act(() => result.current.goToDate(new Date("2026-12-09T20:00:00.000Z")));
 
         expect(written().get("date")).toBe("2026-12-09");
-        expect(written().has("view")).toBe(false);
+        expect(written().get("view")).toBe("month");
     });
 
     it("does not step the year view", () => {
@@ -179,11 +179,11 @@ describe("useCalendarView", () => {
     });
 
     it("moves the month view to the current month and stays in month view", () => {
-        const { result, written } = setup("/events?date=2024-04-08");
+        const { result, written } = setup("/events?view=month&date=2024-04-08");
 
         act(() => result.current.goToToday());
 
-        expect(written().get("view")).toBeNull();
+        expect(written().get("view")).toBe("month");
         expect(written().get("date")).toBe(todayISO());
     });
 

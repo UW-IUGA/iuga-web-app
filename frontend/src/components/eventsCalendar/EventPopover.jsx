@@ -104,7 +104,7 @@ function EventPopover({ selected, onClose, onClosing, onViewDay, flipSide = true
                     x: side === "right" ? -12 : 12,
                     transformOrigin: origin,
                 },
-                { opacity: 1, scale: 1, x: 0, duration: 0.25, ease: "power2.out" },
+                { opacity: 1, scale: 1, x: 0, duration: 0.15, ease: "power2.out" },
             );
             gsap.fromTo(
                 popover.querySelectorAll(".card-item"),
@@ -191,8 +191,10 @@ function EventPopover({ selected, onClose, onClosing, onViewDay, flipSide = true
                 aria-label={dialogLabel}
             >
                 <div className="popover__bar card-item">
-                    {/* The day view leaves out onViewDay: the day is already on screen. */}
-                    {onViewDay && (
+                    {/* The day view leaves out onViewDay: the day is already on screen.
+                        The date then moves up beside Close, rather than leaving the bar
+                        empty above it. */}
+                    {onViewDay ? (
                         <button
                             type="button"
                             className="popover__button"
@@ -205,6 +207,8 @@ function EventPopover({ selected, onClose, onClosing, onViewDay, flipSide = true
                         >
                             View day
                         </button>
+                    ) : (
+                        <p className="popover__date">{formatFullDate(date)}</p>
                     )}
                     <button
                         ref={closeButtonRef}
@@ -217,7 +221,7 @@ function EventPopover({ selected, onClose, onClosing, onViewDay, flipSide = true
                     </button>
                 </div>
 
-                <p className="popover__date card-item">{formatFullDate(date)}</p>
+                {onViewDay && <p className="popover__date card-item">{formatFullDate(date)}</p>}
 
                 {events.map((event) => (
                     <div className="card-item" key={event.id}>

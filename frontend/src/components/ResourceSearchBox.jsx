@@ -1,8 +1,9 @@
 /*
  * Purpose: Search box for the resources pages that doubles as the way into the tag filters.
  * Expected Request: An id and label, plus `filters`, the object returned by useResourceFilters.
- * Expected Response: A combobox with the selected tags as removable chips and a suggestion list of matching
- *   tags (applied as filters) and resource names (searched for), usable with the keyboard.
+ * Expected Response: A combobox with a suggestion list of matching tags (applied as filters) and resource names
+ *   (searched for), usable with the keyboard. Selected tags show as checked boxes in the sidebar, not chips in the
+ *   field, so picking one never changes the field's height and moves the filters below it.
  */
 import { Fragment, useState } from "react";
 import HighlightMatch from "./HighlightMatch";
@@ -14,7 +15,7 @@ const GROUP_LABELS = {
 
 const ResourceSearchBox = ({ id, label, showLabel = false, placeholder, className = "", filters }) => {
     const {
-        searchTerm, setSearchTerm, selectedTags, toggleTag, suggestions, applyTagSuggestion, applyResourceSuggestion,
+        searchTerm, setSearchTerm, selectedTags, suggestions, applyTagSuggestion, applyResourceSuggestion,
         highlightPattern,
     } = filters;
     const [open, setOpen] = useState(false);
@@ -56,8 +57,6 @@ const ResourceSearchBox = ({ id, label, showLabel = false, placeholder, classNam
         } else if (event.key === "Escape") {
             setOpen(false);
             setActiveIndex(-1);
-        } else if (event.key === "Backspace" && searchTerm === "" && selectedTags.length > 0) {
-            toggleTag(selectedTags[selectedTags.length - 1]);
         }
     };
 
@@ -65,12 +64,6 @@ const ResourceSearchBox = ({ id, label, showLabel = false, placeholder, classNam
         <div className={`resourceSearchBox ${className}`.trim()}>
             <label className={showLabel ? "resourceSearchLabel" : "sr-only"} htmlFor={id}>{label}</label>
             <div className="resourceSearchField">
-                {selectedTags.map((tag) => (
-                    <span className="resourceSearchChip" key={tag}>
-                        {tag}
-                        <button type="button" aria-label={`Remove ${tag} filter`} onClick={() => toggleTag(tag)}>×</button>
-                    </span>
-                ))}
                 <input
                     id={id}
                     type="search"
@@ -80,7 +73,7 @@ const ResourceSearchBox = ({ id, label, showLabel = false, placeholder, classNam
                     aria-expanded={expanded}
                     aria-controls={listboxId}
                     aria-activedescendant={expanded && activeIndex >= 0 ? optionId(activeIndex) : undefined}
-                    placeholder={selectedTags.length > 0 ? "Search within these filters" : placeholder}
+                    placeholder={selectedTags.length > 0 ? "Search these results" : placeholder}
                     value={searchTerm}
                     onChange={(event) => {
                         setSearchTerm(event.target.value);

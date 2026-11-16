@@ -106,15 +106,30 @@ describe("ResourcesPage", () => {
         expect(within(club).queryByRole("link")).not.toBeInTheDocument();
     });
 
-    test("narrows results with tag filters and clears them", () => {
+    test("lists resources A–Z with no sort menu", () => {
         renderResourcesPage();
 
+        const names = resultCards().map((card) => within(card).getByRole("heading").textContent);
+        expect(names).toEqual(["Example Student Club", "iSchool Career Services (Canvas)", "UW CLUE Program"]);
+        expect(screen.queryByRole("combobox", { name: "Sort" })).not.toBeInTheDocument();
+    });
+
+    test("narrows results with tag filters and clears them all", () => {
+        renderResourcesPage();
+        const clearAll = screen.getByRole("button", { name: "Clear All Filters" });
+        expect(clearAll).toBeDisabled();
+
         fireEvent.click(screen.getByRole("checkbox", { name: /^Career/ }));
+        fireEvent.change(screen.getByRole("combobox", { name: "Search" }), { target: { value: "advising" } });
         expect(resultCards()).toHaveLength(1);
         expect(screen.getByText("1 resource · Career")).toBeInTheDocument();
+        expect(clearAll).toBeEnabled();
 
-        fireEvent.click(screen.getByRole("button", { name: "Clear filters" }));
+        fireEvent.click(clearAll);
         expect(resultCards()).toHaveLength(3);
+        expect(screen.getByRole("checkbox", { name: /^Career/ })).not.toBeChecked();
+        expect(screen.getByRole("combobox", { name: "Search" })).toHaveValue("");
+        expect(clearAll).toBeDisabled();
     });
 
     test("searches by keyword and highlights the match", () => {

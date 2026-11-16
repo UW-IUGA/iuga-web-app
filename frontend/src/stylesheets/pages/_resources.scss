@@ -119,17 +119,31 @@
     }
 }
 
-// Filter sidebar beside the results
+// Filter sidebar beside the results. The results header takes the first row over the cards' column only, so the
+// sidebar starts level with the first row of cards.
 
 .resourcesDirectory {
     display: grid;
+    grid-template-areas:
+        ". header"
+        "sidebar results";
     grid-template-columns: 280px minmax(0, 1fr);
-    gap: $space-8;
+    gap: 0 $space-8;
     align-items: start;
+}
+
+// Taller than the sticky sidebar can be, so moving the results to the top of the view after a filter change
+// (see Resources.jsx) always has room, and the sidebar keeps its place even with no results. The scroll margin
+// matches the sidebar's sticky offset.
+.resourcesResults {
+    grid-area: results;
+    min-height: calc(100vh - #{$space-24});
+    scroll-margin-top: $space-24;
 }
 
 // Stays in view below the sticky navbar; a sidebar taller than the window scrolls on its own.
 .resourcesSidebar {
+    grid-area: sidebar;
     position: sticky;
     top: $space-24;
     display: grid;
@@ -202,16 +216,17 @@
     text-align: center;
 }
 
-// A text-only button that opts out of the site-wide filled button styles.
-.resourcesClearButton {
-    justify-self: start;
-    padding: $space-1 2px;
-    border-radius: 0;
+// Text-only, in the same small capitals as the "Search" label above it, centered under the search bar. It opts out
+// of the site-wide filled button styles. The shared rule in components/_buttons.scss that pads buttons between 1024px
+// and 1299px compiles to specificity 0,3,1; this selector matches it and loads later, so the button keeps its own
+// padding at every width.
+.resourcesPage .resourcesSidebar button.resourcesClearButton {
+    @extend %pageKicker;
+    justify-self: center;
+    margin-top: -$space-1;
+    padding: $space-1 $space-2;
+    border-radius: $radius;
     background: transparent;
-    color: theme(accent);
-    font-size: $font-size-body;
-    text-decoration: underline;
-    text-underline-offset: 0.2em;
     @include focus-ring;
 
     &:hover {
@@ -221,11 +236,20 @@
     &::before {
         content: none;
     }
+
+    // Nothing to clear yet: plain muted text rather than the site-wide grey disabled button.
+    &:disabled {
+        border: 0;
+        background: transparent;
+        color: theme(text-muted);
+        opacity: 0.7;
+    }
 }
 
 // Results
 
 .resourcesResultsHeader {
+    grid-area: header;
     margin-bottom: $space-6;
     padding-bottom: $space-3;
     border-bottom: 1px solid theme(border-subtle);
@@ -241,62 +265,16 @@
     }
 }
 
-.resourceResultsMeta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: $space-2 $space-5;
-}
-
+// Always one line, so the header's height never changes as tags are picked; the checked boxes list them all.
 .resourcesResultCount {
+    overflow: hidden;
     margin: 0;
     color: theme(text-muted);
-    font: $font-weight-medium #{$font-size-label}/ 1 $font-family-base;
+    font: $font-weight-medium #{$font-size-label}/ 1.4 $font-family-base;
     letter-spacing: $letter-spacing-label;
+    text-overflow: ellipsis;
     text-transform: uppercase;
-}
-
-// The chevron is drawn on the label, which ends at the select's right edge.
-.resourceSort {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    gap: $space-2;
-    color: theme(text-muted);
-    font-size: $font-size-small;
-    font-weight: $font-weight-medium;
-
-    &::after {
-        content: "";
-        position: absolute;
-        top: 50%;
-        right: 14px;
-        width: 6px;
-        height: 6px;
-        border-right: 2px solid theme(accent);
-        border-bottom: 2px solid theme(accent);
-        transform: translateY(-70%) rotate(45deg);
-        pointer-events: none;
-    }
-
-    select {
-        padding: 6px 34px 6px 14px;
-        border: 1px solid theme-alpha(brand, 0.25);
-        border-radius: $radius-pill;
-        background: theme(surface);
-        color: theme(text);
-        // 16px or more, so iOS does not zoom the page when the select is focused.
-        font: #{$font-size-body} $font-family-base;
-        appearance: none;
-        cursor: pointer;
-        @include focus-ring;
-
-        option {
-            background: theme(surface);
-            color: theme(text);
-        }
-    }
+    white-space: nowrap;
 }
 
 .resourceGrid {
@@ -349,13 +327,24 @@
 }
 
 @include media("<sm-desktop") {
+    // Filters first, as before, then the results header and cards.
     .resourcesDirectory {
-        grid-template-columns: 1fr;
+        grid-template-areas:
+            "sidebar"
+            "header"
+            "results";
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    // The sidebar is not sticky here, so the results only need their own height.
+    .resourcesResults {
+        min-height: 0;
     }
 
     .resourcesSidebar {
         position: static;
         max-height: none;
+        margin-bottom: $space-8;
         overflow-y: visible;
     }
 

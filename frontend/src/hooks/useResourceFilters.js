@@ -1,20 +1,14 @@
 /*
- * Purpose: Search, tag filtering, sorting, and search suggestions for the Resources page, kept in the URL.
+ * Purpose: Search, tag filtering, and search suggestions for the Resources page, kept in the URL.
  * Expected Request: useResourceFilters(resources) under a router, with resources that each carry `tags` and
- *   `highlights`. Reads ?q=, ?tags= (comma-separated), and ?sort=best|category|az; a legacy ?category= is read
- *   as its matching tag.
- * Expected Response: Filter state, setters, the matching resources in display order, per-tag match counts,
+ *   `highlights`. Reads ?q= and ?tags= (comma-separated); a legacy ?category= is read as its matching tag.
+ * Expected Response: Filter state, setters, the matching resources in A–Z order, per-tag match counts,
  *   a highlight pattern for the search words, and tag and resource suggestions for the search box.
  */
 import { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { allTags, searchSynonyms, tagForCategory, tagGroups } from "../assets/data/ResourceTagData";
 import { buildHighlightPattern, scoreResource, textMatchesTokens, tokenize } from "../utils/resourceSearch";
-
-export const SORT_BEST = "best";
-export const SORT_DEFAULT = "category";
-export const SORT_AZ = "az";
-const SORT_ORDERS = [SORT_BEST, SORT_DEFAULT, SORT_AZ];
 
 const MAX_TAG_SUGGESTIONS = 4;
 const MAX_RESOURCE_SUGGESTIONS = 5;
@@ -43,19 +37,13 @@ const useResourceFilters = (resources) => {
     const tokens = useMemo(() => tokenize(searchTerm), [searchTerm]);
     const hasQuery = tokens.length > 0;
 
-    // Without an explicit choice, searching sorts by best match and browsing keeps the category order.
-    const automaticSort = hasQuery ? SORT_BEST : SORT_DEFAULT;
-    const requestedSort = searchParams.get("sort");
-    const sortOrder = SORT_ORDERS.includes(requestedSort) && (requestedSort !== SORT_BEST || hasQuery)
-        ? requestedSort
-        : automaticSort;
-    const sortOptions = hasQuery ? SORT_ORDERS : [SORT_DEFAULT, SORT_AZ];
-
-    // Every write re-saves the tags so a legacy ?category= is converted rather than lost.
+    // Every write re-saves the tags so a legacy ?category= is converted rather than lost. A ?sort= from an older
+    // link is dropped, since results are always A–Z.
     const updateParams = (changes, options) => {
         setSearchParams((currentParams) => {
             const nextParams = new URLSearchParams(currentParams);
             nextParams.delete("category");
+            nextParams.delete("sort");
             Object.entries({ tags: selectedTags.join(","), ...changes }).forEach(([key, value]) => {
                 if (value) {
                     nextParams.set(key, value);
@@ -67,9 +55,8 @@ const useResourceFilters = (resources) => {
         }, options);
     };
 
-    // Typing and sorting replace the history entry; tag changes push one so Back undoes them.
+    // Typing replaces the history entry; tag changes push one so Back undoes them.
     const setSearchTerm = (value) => updateParams({ q: value }, { replace: true });
-    const setSortOrder = (order) => updateParams({ sort: order === automaticSort ? "" : order }, { replace: true });
     const clearFilters = () => updateParams({ q: "", tags: "" });
     const toggleTag = (tag) => {
         const nextTags = selectedTags.includes(tag)
@@ -85,13 +72,11 @@ const useResourceFilters = (resources) => {
         .map((resource) => ({ resource, score: hasQuery ? scoreResource(resource, tokens, searchSynonyms) : 0 }))
         .filter(({ score }) => !hasQuery || score > 0), [resources, tokens, hasQuery]);
 
-    const filteredResources = useMemo(() => {
-        const matches = scoredMatches.filter(({ resource }) => matchesTagGroups(resource, selectedTags));
-        // Array.prototype.sort is stable, so equal scores keep the category order.
-        if (sortOrder === SORT_BEST) matches.sort((first, second) => second.score - first.score);
-        if (sortOrder === SORT_AZ) matches.sort((first, second) => compareNames(first.resource, second.resource));
-        return matches.map(({ resource }) => resource);
-    }, [scoredMatches, selectedTags, sortOrder]);
+    // Results are always A–Z, whether browsing, filtering, or searching.
+    const filteredResources = useMemo(() => scoredMatches
+        .filter(({ resource }) => matchesTagGroups(resource, selectedTags))
+        .map(({ resource }) => resource)
+        .sort(compareNames), [scoredMatches, selectedTags]);
 
     // A tag's count is how many results there would be with it selected, given the other groups' selections.
     const tagCounts = useMemo(() => Object.fromEntries(tagGroups.flatMap((group) => group.tags.map((tag) => [
@@ -125,9 +110,6 @@ const useResourceFilters = (resources) => {
         clearFilters,
         applyTagSuggestion,
         applyResourceSuggestion,
-        sortOrder,
-        sortOptions,
-        setSortOrder,
         filteredResources,
         tagCounts,
         highlightPattern,

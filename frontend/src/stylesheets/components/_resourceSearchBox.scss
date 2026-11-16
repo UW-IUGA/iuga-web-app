@@ -1,5 +1,5 @@
 /*
-Purpose: Style the Resources search box: selected tags as chips inside the field and a suggestion list below it.
+Purpose: Style the Resources search box and the suggestion list below it.
 Expected Request Information: Classes emitted by ResourceSearchBox.
 */
 @use "../abstracts" as *;
@@ -17,7 +17,6 @@ Expected Request Information: Classes emitted by ResourceSearchBox.
 
 .resourceSearchField {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
     gap: 6px;
     min-height: 48px;
@@ -50,40 +49,6 @@ Expected Request Information: Classes emitted by ResourceSearchBox.
 
         &:focus {
             outline: none;
-        }
-    }
-}
-
-.resourceSearchChip {
-    display: inline-flex;
-    align-items: center;
-    gap: 2px;
-    padding: $space-1 $space-1 $space-1 $space-3;
-    border-radius: $radius-pill;
-    background: theme(tint);
-    color: theme(heading);
-    font-size: $font-size-small;
-    font-weight: $font-weight-medium;
-
-    button {
-        display: grid;
-        width: 24px;
-        height: 24px;
-        place-items: center;
-        padding: 0;
-        border-radius: 50%;
-        background: transparent;
-        color: theme(heading);
-        font-size: 1.1rem;
-        line-height: 1;
-        @include focus-ring;
-
-        &::before {
-            content: none;
-        }
-
-        &:hover {
-            background: theme(surface);
         }
     }
 }

@@ -15,7 +15,8 @@ This directory contains the full documentation set for the **Informatics Undergr
 | [Frontend](FRONTEND.md) | Frontend devs | Tech stack, directory layout, routing, data flow, authentication, styling, dependencies |
 | [Events](EVENTS.md) | Frontend devs | Homepage event teaser, calendar and RSVP flow, officer event requests, previous-event recaps, and code map |
 | [Backend](BACKEND.md) | Backend devs | Entry points, directory layout, SPA routes, API routes, authentication, database, middleware stack, dependencies |
-| [Discord Events](DISCORD.md) | Discord `/event` submission, moderator approval, env vars, and the Interactions URL |
+| [Discord Board Guide](DISCORD-EVENTS.md) | How the board runs `/rso-verify` and `/event`: flows, roles, private channels, and checks |
+| [Discord Bot Setup](DISCORD.md) | `/rso-verify` and `/event` internals, env vars, Jenkins, logs, and the Interactions URL |
 | [Deployment](DEPLOYMENT.md) | Maintainers | Pipeline overview, Jenkinsfile comparison, credentials, Docker build, runtime architecture, verification, rollback |
 | [Pull Request Previews](NETLIFY_PREVIEWS.md) | Maintainers | Netlify preview deploys from GitHub Actions: triggers, secrets, deep links, trust boundary |
 | [Maintainers](MAINTAINERS.md) | Maintainers | Monitoring checks, maintenance procedures, observation points, credential rotation |

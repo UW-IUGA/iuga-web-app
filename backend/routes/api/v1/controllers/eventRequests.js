@@ -21,6 +21,31 @@ const LEADERSHIP_STATUSES = ["submitted", "changes_requested"];
 function validId(value) {
   return mongoose.isValidObjectId(value);
 }
+// Where an event's outside link goes. Mirrors EVENT_LINK_OPTIONS in frontend/src/utils/eventLink.js.
+const ALT_LINK_KINDS = ["luma", "eventbrite", "partiful", "meetup", "google_form", "microsoft_form", "other"];
+
+function readAltLink(value) {
+  if (value === undefined || value === null) return { fields: null };
+  if (typeof value !== "object" || Array.isArray(value)) return { error: "altLink must be an object" };
+
+  const url = typeof value.url === "string" ? value.url.trim() : "";
+  if (!url) return { error: "altLink.url is required" };
+  if (url.length > 2000) return { error: "altLink.url must be 2000 characters or fewer" };
+
+  let parsed;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return { error: "altLink.url must be a valid URL" };
+  }
+  if (parsed.protocol !== "https:") return { error: "altLink.url must use https" };
+
+  if (value.kind !== undefined && !ALT_LINK_KINDS.includes(value.kind)) {
+    return { error: `altLink.kind must be one of ${ALT_LINK_KINDS.join(", ")}` };
+  }
+  return { fields: { url, ...(value.kind ? { kind: value.kind } : {}) } };
+}
+
 function readRsvpQuestions(value) {
   if (!Array.isArray(value)) return { error: "rsvpQuestions must be an array" };
 
@@ -119,6 +144,11 @@ function readRequestFields(body = {}) {
     const questions = readRsvpQuestions(body.rsvpQuestions);
     if (questions.error) return questions;
     fields.rsvpQuestions = questions.fields;
+  }
+  if (body.altLink !== undefined) {
+    const altLink = readAltLink(body.altLink);
+    if (altLink.error) return altLink;
+    fields.altLink = altLink.fields;
   }
   if (body.slideTemplate !== undefined) {
     const template = body.slideTemplate;
@@ -376,6 +406,7 @@ router.post("/:id/approve", requirePermission("events.leadership.approve"), asyn
       eDescription: eventRequest.description,
       eRsvpEnabled: eventRequest.rsvpEnabled,
       rsvpQuestions: eventRequest.rsvpQuestions || [],
+      ...(eventRequest.altLink?.url ? { eAltLink: { url: eventRequest.altLink.url, kind: eventRequest.altLink.kind } } : {}),
     });
     const updated = await transitionRequest(req, req.params.id, LEADERSHIP_STATUSES, {
       status: "approved",

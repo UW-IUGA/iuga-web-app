@@ -6,176 +6,260 @@ import EventDialog from "./EventDialog";
 let isAuthenticated = true;
 
 vi.mock("../context/AuthContext", () => ({
-    useAuthContext: () => ({ isAuthenticated }),
+  useAuthContext: () => ({ isAuthenticated }),
 }));
 
 vi.mock("react-toastify", () => ({
-    toast: { error: vi.fn(), success: vi.fn() },
+  toast: { error: vi.fn(), success: vi.fn() },
 }));
 
 const NOW = new Date(2026, 9, 13, 9, 0);
 
 const makeEvent = (overrides = {}) => ({
-    eId: "game-night",
-    eName: "Game Night",
-    eStartDate: new Date(2026, 9, 14, 17, 30).toISOString(),
-    eLocation: "MGH 120",
-    eOrganizers: "IUGA",
-    eDescription: "Board games and snacks.",
-    eLabels: ["Social"],
-    rsvpEnabled: true,
-    rsvpQuestions: [{ qId: "diet", qString: "Any dietary restrictions?" }],
-    ...overrides,
+  eId: "game-night",
+  eName: "Game Night",
+  eStartDate: new Date(2026, 9, 14, 17, 30).toISOString(),
+  eLocation: "MGH 120",
+  eOrganizers: "IUGA",
+  eDescription: "Board games and snacks.",
+  eLabels: ["Social"],
+  rsvpEnabled: true,
+  rsvpQuestions: [{ qId: "diet", qString: "Any dietary restrictions?" }],
+  ...overrides,
 });
 
 const renderDialog = (event, props = {}) => {
-    const handlers = { onRsvp: vi.fn(), onClose: vi.fn() };
-    render(<EventDialog event={event} {...handlers} {...props} />);
-    return handlers;
+  const handlers = { onRsvp: vi.fn(), onClose: vi.fn() };
+  render(<EventDialog event={event} {...handlers} {...props} />);
+  return handlers;
 };
 
 const rsvpResponse = (body) => ({ ok: true, json: async () => body });
 
 describe("EventDialog", () => {
-    beforeEach(() => {
-        isAuthenticated = true;
-        vi.useFakeTimers({ toFake: ["Date"] });
-        vi.setSystemTime(NOW);
+  beforeEach(() => {
+    isAuthenticated = true;
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(NOW);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+    vi.clearAllMocks();
+  });
+
+  test("shows when and where the event is, who hosts it, and its description", () => {
+    renderDialog(makeEvent());
+
+    expect(
+      screen.getByRole("dialog", { name: "Game Night" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Wednesday, October 14 at 5:30 PM"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("MGH 120")).toBeInTheDocument();
+    expect(screen.getByText("Hosted by IUGA")).toBeInTheDocument();
+    expect(screen.getByText("Board games and snacks.")).toBeInTheDocument();
+  });
+
+  test("a signed-in student's RSVP sends their answers and reports success", async () => {
+    const fetchSpy = vi
+      .spyOn(global, "fetch")
+      .mockResolvedValue(
+        rsvpResponse({ status: "success", message: "RSVP successful!" }),
+      );
+    const { onRsvp } = renderDialog(makeEvent());
+
+    fireEvent.change(screen.getByLabelText("Any dietary restrictions?"), {
+      target: { value: "None" },
     });
+    fireEvent.click(screen.getByRole("button", { name: "RSVP" }));
 
-    afterEach(() => {
-        vi.useRealTimers();
-        vi.restoreAllMocks();
-        vi.clearAllMocks();
+    await waitFor(() => expect(onRsvp).toHaveBeenCalledTimes(1));
+    expect(fetchSpy).toHaveBeenCalledWith(
+      "/api/v1/events/rsvp",
+      expect.objectContaining({ method: "POST" }),
+    );
+    expect(JSON.parse(fetchSpy.mock.calls[0][1].body)).toEqual({
+      eId: "game-night",
+      rsvpAnswers: [{ qId: "diet", aString: "None" }],
     });
+    expect(toast.success).toHaveBeenCalledWith("RSVP successful!");
+  });
 
-    test("shows when and where the event is, who hosts it, and its description", () => {
-        renderDialog(makeEvent());
+  test("a signed-out visitor is asked to log in and nothing is sent", () => {
+    isAuthenticated = false;
+    const fetchSpy = vi.spyOn(global, "fetch");
+    const { onRsvp } = renderDialog(makeEvent({ rsvpQuestions: [] }));
 
-        expect(screen.getByRole("dialog", { name: "Game Night" })).toBeInTheDocument();
-        expect(screen.getByText("Wednesday, October 14 at 5:30 PM")).toBeInTheDocument();
-        expect(screen.getByText("MGH 120")).toBeInTheDocument();
-        expect(screen.getByText("Hosted by IUGA")).toBeInTheDocument();
-        expect(screen.getByText("Board games and snacks.")).toBeInTheDocument();
-    });
+    fireEvent.click(screen.getByRole("button", { name: "RSVP" }));
 
-    test("a signed-in student's RSVP sends their answers and reports success", async () => {
-        const fetchSpy = vi.spyOn(global, "fetch").mockResolvedValue(
-            rsvpResponse({ status: "success", message: "RSVP successful!" }),
-        );
-        const { onRsvp } = renderDialog(makeEvent());
+    expect(toast.error).toHaveBeenCalledWith("Please login first to RSVP!");
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(onRsvp).not.toHaveBeenCalled();
+  });
 
-        fireEvent.change(screen.getByLabelText("Any dietary restrictions?"), { target: { value: "None" } });
-        fireEvent.click(screen.getByRole("button", { name: "RSVP" }));
+  test("a rejected RSVP shows the server's message and does not mark the student as going", async () => {
+    vi.spyOn(global, "fetch").mockResolvedValue(
+      rsvpResponse({ status: "error", message: "Already registered" }),
+    );
+    const { onRsvp } = renderDialog(makeEvent({ rsvpQuestions: [] }));
 
-        await waitFor(() => expect(onRsvp).toHaveBeenCalledTimes(1));
-        expect(fetchSpy).toHaveBeenCalledWith("/api/v1/events/rsvp", expect.objectContaining({ method: "POST" }));
-        expect(JSON.parse(fetchSpy.mock.calls[0][1].body)).toEqual({
-            eId: "game-night",
-            rsvpAnswers: [{ qId: "diet", aString: "None" }],
-        });
-        expect(toast.success).toHaveBeenCalledWith("RSVP successful!");
-    });
+    fireEvent.click(screen.getByRole("button", { name: "RSVP" }));
 
-    test("a signed-out visitor is asked to log in and nothing is sent", () => {
-        isAuthenticated = false;
-        const fetchSpy = vi.spyOn(global, "fetch");
-        const { onRsvp } = renderDialog(makeEvent({ rsvpQuestions: [] }));
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith("Already registered"),
+    );
+    expect(onRsvp).not.toHaveBeenCalled();
+  });
 
-        fireEvent.click(screen.getByRole("button", { name: "RSVP" }));
+  test("a failed request tells the student to try again", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(global, "fetch").mockRejectedValue(new Error("offline"));
+    const { onRsvp } = renderDialog(makeEvent({ rsvpQuestions: [] }));
 
-        expect(toast.error).toHaveBeenCalledWith("Please login first to RSVP!");
-        expect(fetchSpy).not.toHaveBeenCalled();
-        expect(onRsvp).not.toHaveBeenCalled();
-    });
+    fireEvent.click(screen.getByRole("button", { name: "RSVP" }));
 
-    test("a rejected RSVP shows the server's message and does not mark the student as going", async () => {
-        vi.spyOn(global, "fetch").mockResolvedValue(rsvpResponse({ status: "error", message: "Already registered" }));
-        const { onRsvp } = renderDialog(makeEvent({ rsvpQuestions: [] }));
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(
+        "RSVP was not successful :( Please try again.",
+      ),
+    );
+    expect(onRsvp).not.toHaveBeenCalled();
+  });
 
-        fireEvent.click(screen.getByRole("button", { name: "RSVP" }));
+  test("pressing RSVP again while the first press is being sent sends one request", async () => {
+    let answerRequest;
+    const fetchSpy = vi.spyOn(global, "fetch").mockReturnValue(
+      new Promise((resolve) => {
+        answerRequest = resolve;
+      }),
+    );
+    const { onRsvp } = renderDialog(makeEvent({ rsvpQuestions: [] }));
+    const rsvpButton = screen.getByRole("button", { name: "RSVP" });
 
-        await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Already registered"));
-        expect(onRsvp).not.toHaveBeenCalled();
-    });
+    fireEvent.click(rsvpButton);
+    fireEvent.click(rsvpButton);
+    answerRequest(
+      rsvpResponse({ status: "success", message: "RSVP successful!" }),
+    );
 
-    test("a failed request tells the student to try again", async () => {
-        vi.spyOn(console, "error").mockImplementation(() => {});
-        vi.spyOn(global, "fetch").mockRejectedValue(new Error("offline"));
-        const { onRsvp } = renderDialog(makeEvent({ rsvpQuestions: [] }));
+    await waitFor(() => expect(onRsvp).toHaveBeenCalledTimes(1));
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
 
-        fireEvent.click(screen.getByRole("button", { name: "RSVP" }));
+  test("a past event offers no RSVP and no note about its timing", () => {
+    renderDialog(
+      makeEvent({ eStartDate: new Date(2026, 9, 6, 16, 15).toISOString() }),
+    );
 
-        await waitFor(() => expect(toast.error).toHaveBeenCalledWith("RSVP was not successful :( Please try again."));
-        expect(onRsvp).not.toHaveBeenCalled();
-    });
+    expect(
+      screen.queryByRole("button", { name: "RSVP" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("This event has already happened."),
+    ).not.toBeInTheDocument();
+  });
 
-    test("pressing RSVP again while the first press is being sent sends one request", async () => {
-        let answerRequest;
-        const fetchSpy = vi.spyOn(global, "fetch").mockReturnValue(
-            new Promise((resolve) => {
-                answerRequest = resolve;
-            }),
-        );
-        const { onRsvp } = renderDialog(makeEvent({ rsvpQuestions: [] }));
-        const rsvpButton = screen.getByRole("button", { name: "RSVP" });
+  test.each([0, -1, -60 * 60_000])(
+    "attendance actions are closed when the event starts in %i ms",
+    (offset) => {
+      renderDialog(
+        makeEvent({
+          eStartDate: new Date(NOW.getTime() + offset).toISOString(),
+          eEndDate: new Date(NOW.getTime() + 60 * 60_000).toISOString(),
+          eAltLink: { title: "Register", url: "https://example.test/register" },
+        }),
+      );
 
-        fireEvent.click(rsvpButton);
-        fireEvent.click(rsvpButton);
-        answerRequest(rsvpResponse({ status: "success", message: "RSVP successful!" }));
+      expect(
+        screen.queryByRole("button", { name: "RSVP" }),
+      ).not.toBeInTheDocument();
+    },
+  );
 
-        await waitFor(() => expect(onRsvp).toHaveBeenCalledTimes(1));
-        expect(fetchSpy).toHaveBeenCalledTimes(1);
-    });
+  test("an external sign-up link is hidden at the event's start", () => {
+    renderDialog(
+      makeEvent({
+        eStartDate: NOW.toISOString(),
+        rsvpEnabled: false,
+        eAltLink: { title: "Register", url: "https://example.test/register" },
+      }),
+    );
+    expect(
+      screen.queryByRole("link", { name: "Register" }),
+    ).not.toBeInTheDocument();
+  });
 
-    test("a past event cannot be RSVPd to", () => {
-        renderDialog(makeEvent({ eStartDate: new Date(2026, 9, 6, 16, 15).toISOString() }));
+  test("a past event shows no attendance note while its details are still loading", () => {
+    renderDialog(
+      makeEvent({ eStartDate: new Date(2026, 9, 6, 16, 15).toISOString() }),
+      { isLoading: true },
+    );
 
-        expect(screen.getByText("This event has already happened.")).toBeInTheDocument();
-        expect(screen.queryByRole("button", { name: "RSVP" })).not.toBeInTheDocument();
-    });
+    expect(
+      screen.queryByText("Loading event details…"),
+    ).not.toBeInTheDocument();
+  });
 
-    test("an event with its own sign-up page links to it instead of the RSVP form", () => {
-        renderDialog(makeEvent({ rsvpEnabled: false, eAltLink: { title: "Register", url: "https://example.test/register" } }));
+  test("an event with its own sign-up page links to it instead of the RSVP form", () => {
+    renderDialog(
+      makeEvent({
+        rsvpEnabled: false,
+        eAltLink: { title: "Register", url: "https://example.test/register" },
+      }),
+    );
 
-        expect(screen.getByRole("link", { name: "Register" })).toHaveAttribute("href", "https://example.test/register");
-        expect(screen.queryByRole("button", { name: "RSVP" })).not.toBeInTheDocument();
-    });
+    expect(screen.getByRole("link", { name: "More info" })).toHaveAttribute(
+      "href",
+      "https://example.test/register",
+    );
+    expect(
+      screen.queryByRole("button", { name: "RSVP" }),
+    ).not.toBeInTheDocument();
+  });
 
-    test("an event without RSVP says so", () => {
-        renderDialog(makeEvent({ rsvpEnabled: false, eAltLink: { title: "", url: "" } }));
+  test("an event without RSVP says so", () => {
+    renderDialog(
+      makeEvent({ rsvpEnabled: false, eAltLink: { title: "", url: "" } }),
+    );
 
-        expect(screen.getByText("RSVP is not available for this event.")).toBeInTheDocument();
-    });
+    expect(
+      screen.getByText("RSVP is not available for this event."),
+    ).toBeInTheDocument();
+  });
 
-    test("no RSVP choice is offered while the details are still loading", () => {
-        renderDialog(makeEvent({ rsvpEnabled: undefined }), { isLoading: true });
+  test("no RSVP choice is offered while the details are still loading", () => {
+    renderDialog(makeEvent({ rsvpEnabled: undefined }), { isLoading: true });
 
-        expect(screen.getByText("Loading event details…")).toBeInTheDocument();
-        expect(screen.queryByText("RSVP is not available for this event.")).not.toBeInTheDocument();
-    });
+    expect(screen.getByText("Loading event details…")).toBeInTheDocument();
+    expect(
+      screen.queryByText("RSVP is not available for this event."),
+    ).not.toBeInTheDocument();
+  });
 
-    test("shows the participant count only when the event shares it", () => {
-        renderDialog(makeEvent({ showParticipants: true, participants: 1 }));
+  test("shows the participant count only when the event shares it", () => {
+    renderDialog(makeEvent({ showParticipants: true, participants: 1 }));
 
-        expect(screen.getByText("1 participant")).toBeInTheDocument();
-    });
+    expect(screen.getByText("1 participant")).toBeInTheDocument();
+  });
 
-    test("a click inside the content leaves it open", () => {
-        const { onClose } = renderDialog(makeEvent());
+  test("a click inside the content leaves it open", () => {
+    const { onClose } = renderDialog(makeEvent());
 
-        fireEvent.click(screen.getByText("Board games and snacks."));
+    fireEvent.click(screen.getByText("Board games and snacks."));
 
-        expect(onClose).not.toHaveBeenCalled();
-    });
+    expect(onClose).not.toHaveBeenCalled();
+  });
 
-    test("selecting text in the content and releasing on the dimmed area leaves it open", () => {
-        const { onClose } = renderDialog(makeEvent());
+  test("selecting text in the content and releasing on the dimmed area leaves it open", () => {
+    const { onClose } = renderDialog(makeEvent());
 
-        fireEvent.mouseDown(screen.getByText("Board games and snacks."));
-        fireEvent.mouseUp(screen.getByRole("dialog"));
-        fireEvent.click(screen.getByRole("dialog"));
+    fireEvent.mouseDown(screen.getByText("Board games and snacks."));
+    fireEvent.mouseUp(screen.getByRole("dialog"));
+    fireEvent.click(screen.getByRole("dialog"));
 
-        expect(onClose).not.toHaveBeenCalled();
-    });
+    expect(onClose).not.toHaveBeenCalled();
+  });
 });

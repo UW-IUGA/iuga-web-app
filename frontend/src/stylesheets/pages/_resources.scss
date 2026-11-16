@@ -64,14 +64,20 @@
     border-bottom: 2px solid theme(text);
 }
 
+// These layout lines used to reach this header from the Elections FAQ page,
+// which had a class of the same name. They are written here now so the header
+// keeps its look. Flex shrinks the h2 to its text, so the toggle button inside
+// it is only as wide as its label, not the full row.
 .resourceCategoryHeader {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+
     h2 {
         margin: 0;
     }
-}
-
-.resourcesPage .resourceCategoryHeader::after {
-    content: none;
 }
 
 .resourceCategoryToggle {

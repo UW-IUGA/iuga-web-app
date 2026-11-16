@@ -33,18 +33,18 @@ The page shows a loading message before the first list arrives. If loading fails
 |---|---|---|
 | Month | `/events?date=2026-10-20` | A month grid with event chips. Selecting a date opens that day; selecting an event opens its details. |
 | Week | `/events?view=week&date=2026-10-20` | Seven days on an hourly time grid. Selecting an event opens its details. |
-| Day | `/events?view=day&date=2026-10-20` | One day's time grid and a full detail card for each event. |
+| Day | `/events?view=day&date=2026-10-20` | One day's time grid. Selecting an event opens its details in a popover. |
 | Year | `/events?view=year&date=2026-10-20` | The months that contain events, newest first. Selecting a day opens its events in an overlay. |
 
 `useCalendarView.js` keeps the selected view and date in the URL. Month is the default, so its `view` parameter is omitted. Dates use the Pacific calendar day (`YYYY-MM-DD`), which keeps the selected day stable across reloads and time zones. Changing views keeps the date; selecting a day from a calendar view switches to the day view. Each navigation step adds a browser history entry, so Back retraces it. Other query parameters are preserved.
 
-`CalendarControls.jsx` provides Today, previous and next, the current date range, and the view switch. Year view covers the whole archive and has no previous/next controls. On smaller screens, the date range becomes a date picker and the view switch becomes a dropdown. Month, week, and day views also show `MiniMonth` beside the main view; selecting a date there changes the selected date without changing the current view. The colour key lists the calendar's event categories. A swipe across the main view can move month, week, or day just like the arrows; the arrows remain available for keyboard and assistive technology users.
+`CalendarControls.jsx` provides Today, previous and next, the current date range, and the view switch. Year view covers the whole archive and has no previous/next controls. On smaller screens, the date range becomes a date picker and the view switch becomes a dropdown. Month, week, and day views also show `MiniMonth` beside the main view; selecting a date there changes the selected date without changing the current view. The colour key lists the calendar's event categories. A sideways swipe across the main view can move month, week, or day just like the arrows; the arrows remain available for keyboard and assistive technology users. Diagonal drags scroll without stepping, and edge swipes remain available for the browser's Back gesture. Steps are immediate under reduced motion.
 
 Calendar dates and times use `America/Los_Angeles`. `normalizeEvent` converts the API's `e*` fields into the values used by the views and maps the stored `Professional` label to the displayed `Career` label. `utils/calendar/calendar.js` contains the date formatting, event grouping, month grids, and time-grid calculations.
 
 ## Event details and RSVP
 
-A visitor opens details by selecting an event. Month and week views use `EventPopover`; day view shows details below its time grid; year view uses `DayOverlay`. All three render `EventDetail`, so the event information and RSVP behavior stay consistent.
+A visitor opens details by selecting an event. Month, week, and day views use `EventPopover`; year view uses `DayOverlay`. Both render `EventDetail`, so the event information and RSVP behavior stay consistent. On a phone, the popover opens above or below its event and stays below the site navigation (`utils/calendar/popover.js`).
 
 The event list does not include every detail. When an event's details are first shown, `EventRsvpContext.jsx` requests `GET /api/v1/events/id/:eId` and shares the result between open event details. It also tracks RSVPs made during the current sign-in session. If sign-in state changes, it clears those session-specific details and RSVP markers so they cannot carry over to another visitor.
 

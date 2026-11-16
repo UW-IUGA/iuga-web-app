@@ -8,11 +8,7 @@ Expected Response Information: A row or column of coloured dots, each with its c
 
 .eventsCalendar {
     // The colour key: what each event label's colour means.
-    // The elections pages style a global .legend as a sticky column. The
-    // calendar's key sets back what they set, so it lays out the same anywhere.
     .legend {
-        position: static;
-        top: auto;
         display: flex;
         flex-direction: row;
         list-style: none;
@@ -41,15 +37,6 @@ Expected Response Information: A row or column of coloured dots, each with its c
         @include media("<=#{$calendar-mobile}") {
             display: flex;
         }
-    }
-
-    // The elections pages' .legend pads its li, gives it a pointer, and bolds it on
-    // hover. The calendar's key is not clickable, so it has none of that.
-    .legend__item,
-    .legend__item:hover {
-        padding: 0;
-        cursor: auto;
-        font-weight: inherit;
     }
 
     .legend__item {

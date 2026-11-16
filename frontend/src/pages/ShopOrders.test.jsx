@@ -2001,3 +2001,107 @@ describe("orders changed after pickup", () => {
         expect(screen.queryByRole("button", { name: "Undo mark paid for Example Student" })).not.toBeInTheDocument();
     });
 });
+
+// Details the rest of this file did not yet pin down, each checked by breaking the code and watching the
+// test fail. They lock in today's wording and rules so the page can be reorganized without changing them.
+describe("details an officer relies on", () => {
+    it("shows an 11-digit US number with its country code, and a foreign number with a leading plus", async () => {
+        mockApi({ [PENDING]: listed([order()]), [`GET ${LIST}/${ORDER_ID}`]: saved(detailed({ buyer: { phone: "12065550100" } })) });
+        renderPage();
+        expect(await openContact(await openDrawer())).toHaveTextContent("+1 (206) 555-0100");
+        cleanup();
+        vi.restoreAllMocks();
+
+        mockApi({ [PENDING]: listed([order()]), [`GET ${LIST}/${ORDER_ID}`]: saved(detailed({ buyer: { phone: "442071234567" } })) });
+        renderPage();
+        expect(await openContact(await openDrawer())).toHaveTextContent("+442071234567");
+    });
+
+    it("says in the activity when a follow-up was cleared", async () => {
+        const history = [{ actor: "Olive Officer", at: "2030-02-28T17:00:00.000Z", kind: "follow_up", from: "will_pay", to: "none" }];
+        mockApi({ [PENDING]: listed([order({ history })]), [`GET ${LIST}/${ORDER_ID}`]: saved(detailed({ history })) });
+        renderPage();
+
+        const activity = within(await openDrawer()).getByRole("list", { name: "Activity" });
+
+        expect(activity).toHaveTextContent("Olive Officer cleared the follow-up");
+    });
+
+    it("explains an empty Balance remaining list and an empty Refunded list", async () => {
+        mockApi({
+            [PENDING]: listed([]),
+            [`GET ${LIST}?status=all&followUp=all&balance=short`]: listed([]),
+            [`GET ${LIST}?status=refunded&followUp=all`]: listed([]),
+        });
+        renderPage();
+
+        fireEvent.click(await screen.findByRole("tab", { name: /^Balance remaining/ }));
+        expect(await screen.findByText("No orders have a balance remaining.")).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole("tab", { name: /^Refunded/ }));
+        expect(await screen.findByText("No refunded orders.")).toBeInTheDocument();
+    });
+
+    it("warns before marking a dropped order paid that it takes its items again", async () => {
+        mockApi({ [`GET ${LIST}?status=not_paid&followUp=all`]: listed([order({ status: "not_paid" })]), [PENDING]: listed([]) });
+        renderPage();
+        fireEvent.click(screen.getByRole("tab", { name: /^Dropped/ }));
+
+        fireEvent.click(within(await findRow()).getByRole("button", { name: "Mark paid" }));
+
+        expect(confirmDialog("Mark $72.00 as paid?")).toHaveTextContent(
+            "Only do this after finding the payment from @example-student in IUGA's Venmo. If this was a mistake, you can change its status from the order. This retakes the items, so it works only if every item still fits current stock and the student's limit."
+        );
+    });
+
+    it("reads one typed decimal place as tens of cents", async () => {
+        const fetchSpy = mockApi({
+            [PENDING]: listed([order()]),
+            [`GET ${LIST}/${ORDER_ID}`]: saved(detailed()),
+            [`PATCH ${LIST}/${ORDER_ID}/amount-received`]: saved(detailed({ amountReceivedCents: 5050, revision: 4 })),
+        });
+        renderPage();
+        const drawer = await openDrawer();
+        fireEvent.click(within(within(drawer).getByRole("group", { name: "Payment" })).getByRole("button", { name: "Enter amount received" }));
+        const dialog = confirmDialog("Amount received");
+
+        fireEvent.change(within(dialog).getByLabelText("Amount received ($)"), { target: { value: "50.5" } });
+        expect(dialog).toHaveTextContent("$21.50 will remain.");
+        fireEvent.click(within(dialog).getByRole("button", { name: "Save amount" }));
+
+        await waitFor(() => expect(writes(fetchSpy)).toEqual([{ url: `${LIST}/${ORDER_ID}/amount-received`, body: { amountReceivedCents: 5050, expectedRevision: 3 } }]));
+    });
+
+    it("takes an order out of Ready for pickup when a saved change shows it was picked up elsewhere", async () => {
+        const paid = { status: "paid", amountReceivedCents: 7200 };
+        const pickedUp = { pickedUpAt: "2030-02-28T18:00:00.000Z", pickedUpBy: "Pat Officer" };
+        mockApi({
+            [PENDING]: listed([]),
+            [`GET ${LIST}?status=paid&followUp=all&pickup=ready`]: listed([order(paid)]),
+            [`GET ${LIST}/${ORDER_ID}`]: saved(detailed(paid)),
+            [`POST ${LIST}/${ORDER_ID}/notes`]: saved(detailed({ ...paid, revision: 4, pickup: pickedUp })),
+        });
+        renderPage();
+        fireEvent.click(await screen.findByRole("tab", { name: /^Ready for pickup/ }));
+        const drawer = await openDrawer();
+
+        fireEvent.click(within(drawer).getByRole("button", { name: "Add to log" }));
+        const dialog = confirmDialog("Log follow-up for Example Student");
+        fireEvent.click(within(dialog).getByRole("radio", { name: "Other" }));
+        fireEvent.change(within(dialog).getByLabelText("Topic"), { target: { value: "Asked about sizes" } });
+        fireEvent.click(within(dialog).getByRole("button", { name: "Save" }));
+
+        await expectAnnounced("Added to log: Example Student");
+        const table = screen.getByRole("table", { name: "Orders" });
+        await waitFor(() => expect(within(table).queryByRole("button", { name: "Example Student" })).not.toBeInTheDocument());
+        expect(table).toHaveTextContent("Added to log: Example Student");
+    });
+
+    it("names a buyer with no name on file by their email", async () => {
+        const buyer = { id: "64b0000000000000000000bb", name: null, email: "example@uw.edu" };
+        mockApi({ [PENDING]: listed([order({ buyer })]) });
+        renderPage();
+
+        expect(await findRow("example@uw.edu")).toHaveTextContent("example@uw.edu");
+    });
+});

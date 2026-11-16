@@ -52,6 +52,17 @@ Expected Response Information: A single-day schedule and a list of that day's ev
         gap: $calendar-space-xs;
     }
 
+    // The event's photo, at the top of its detail.
+    .detail__photo {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 16 / 9;
+        margin-bottom: $calendar-space-sm;
+        object-fit: cover;
+        border-radius: $calendar-radius-md;
+        background-color: $calendar-card-bg;
+    }
+
     .detail__labels {
         display: flex;
         flex-wrap: wrap;

@@ -1,0 +1,150 @@
+/*
+Purpose: Style the RSVP block in a calendar event's detail: the RSVP button, its questions, and the confirmed state.
+Expected Request Information: Classes emitted by EventRsvp, inside an .eventsCalendar root.
+Expected Response Information: The same palette, type, radii and focus ring as the rest of the calendar.
+*/
+@use "../../abstracts" as *;
+@use "../../abstracts/eventsCalendar" as *;
+
+.eventsCalendar {
+    .eventRsvp {
+        margin-top: $calendar-space-md;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: $calendar-space-sm;
+    }
+
+    // The one strong fill, as the Today button in CalendarControls and the selected day use it.
+    .eventRsvp__button {
+        min-height: 40px;
+        padding: $calendar-space-sm $calendar-space-lg;
+
+        display: inline-flex;
+        align-items: center;
+        gap: $calendar-space-sm;
+
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        background-color: $calendar-copy-bg;
+        color: $calendar-copy-text;
+        border-radius: $calendar-radius-pill;
+        transition:
+            transform 120ms ease,
+            opacity 120ms ease;
+
+        &:disabled {
+            opacity: 0.6;
+            cursor: progress;
+        }
+
+        &:active:not(:disabled) {
+            transform: translateY(1px);
+        }
+
+        svg {
+            font-size: 12px;
+        }
+    }
+
+    .eventRsvp__cancel {
+        min-height: 40px;
+        padding: $calendar-space-sm $calendar-space-md;
+
+        font-size: 14px;
+        background-color: transparent;
+        color: $calendar-text;
+        border: 1px solid $calendar-control-border;
+
+        &:hover:not(:disabled) {
+            background-color: $calendar-hover;
+        }
+    }
+
+    .eventRsvp__note {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: $calendar-space-sm;
+
+        font-size: 13px;
+        color: $calendar-copy-muted;
+    }
+
+    .eventRsvp__confirmed {
+        padding: $calendar-space-sm $calendar-space-md;
+
+        display: inline-flex;
+        align-items: center;
+        gap: $calendar-space-sm;
+
+        font-size: 14px;
+        font-weight: 600;
+        color: $calendar-text;
+        background-color: $calendar-card-bg;
+        border: 1px solid $calendar-control-border;
+        border-radius: $calendar-radius-pill;
+        // Settles in where the button was, so the change reads as the RSVP landing.
+        animation: event-rsvp-confirmed 320ms cubic-bezier(0.16, 1, 0.3, 1);
+
+        svg {
+            color: var(--calendar-label-career);
+        }
+    }
+
+    @keyframes event-rsvp-confirmed {
+        from {
+            opacity: 0;
+            transform: translateY(4px) scale(0.96);
+        }
+
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    .eventRsvp__error {
+        font-size: 13px;
+        color: $calendar-now-line;
+    }
+
+    .eventRsvp__form {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: $calendar-space-md;
+    }
+
+    .eventRsvp__field {
+        display: flex;
+        flex-direction: column;
+        gap: $calendar-space-xs;
+
+        label {
+            font-size: 13px;
+            font-weight: 500;
+            color: $calendar-text;
+        }
+
+        input {
+            width: 100%;
+            min-height: 40px;
+            padding: $calendar-space-sm $calendar-space-md;
+
+            font: inherit;
+            font-size: 14px;
+            color: $calendar-text;
+            background-color: $calendar-bg;
+            border: 1px solid $calendar-divider;
+            border-radius: $calendar-radius-sm;
+        }
+    }
+
+    .eventRsvp__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: $calendar-space-sm;
+    }
+}

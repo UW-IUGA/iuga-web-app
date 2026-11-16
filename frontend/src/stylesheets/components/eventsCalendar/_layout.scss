@@ -43,7 +43,7 @@ Expected Response Information: A sidebar-plus-view grid, or a fluid grid of mont
         position: sticky;
         top: $calendar-space-lg;
 
-        // Below this there is no room for a legible day grid. The toolbar's
+        // Below this there is no room for a legible day grid. CalendarControls'
         // prev / next still covers date navigation, and its own copy of the legend
         // takes over (.legend--narrow-only).
         @include media("<=#{$calendar-mobile}") {
@@ -75,7 +75,7 @@ Expected Response Information: A sidebar-plus-view grid, or a fluid grid of mont
 
     // On a phone the month, week and day run the full width of the screen, as
     // Google Calendar's do: every pixel of the page's gutter is a pixel a day
-    // cannot use. The toolbar above keeps the gutter, so the controls and the
+    // cannot use. CalendarControls keeps the gutter, so the controls and the
     // heading still line up with the page. The year view is cards in a grid, and
     // keeps it too.
     @include media("<=#{$calendar-mobile}") {
@@ -121,7 +121,7 @@ Expected Response Information: A sidebar-plus-view grid, or a fluid grid of mont
     }
 
     // What the calendar says while its list loads, or after it failed: one line
-    // over the view, in the toolbar's type, with the retry as a Today-style pill.
+    // over the view, in CalendarControls' type, with the retry as a Today-style pill.
     .events__status {
         display: flex;
         flex-wrap: wrap;

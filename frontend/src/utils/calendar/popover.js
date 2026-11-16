@@ -20,6 +20,24 @@ export function placePopover(anchor, popover, side, viewport) {
 }
 
 /**
+ * The side the popover opens on: the preferred side when the whole popover fits
+ * there, else the other side when it fits, else whichever side has more room.
+ * A side is only chosen whole-fit when one exists, so the popover never sits over
+ * the event it belongs to.
+ */
+export function chooseSide(anchor, popover, preferred, viewport) {
+    const room = {
+        right: viewport.width - EDGE - (anchor.right + GAP),
+        left: anchor.left - GAP - EDGE,
+    };
+    const other = preferred === "right" ? "left" : "right";
+
+    if (room[preferred] >= popover.width) return preferred;
+    if (room[other] >= popover.width) return other;
+    return room.right >= room.left ? "right" : "left";
+}
+
+/**
  * Where the popover goes on a phone, where there is no room beside the event:
  * above or below it, so it never covers the event it belongs to. It takes the
  * side that has room for it whole, or else the side with more room, and is cut

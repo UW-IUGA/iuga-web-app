@@ -4,17 +4,19 @@ import { gsap } from "gsap";
 import { MOBILE_QUERY } from "../../utils/calendar/breakpoints";
 import { formatFullDate } from "../../utils/calendar/calendar";
 import { prefersReducedMotion } from "../../utils/calendar/motion";
-import { placePopover, placeStacked } from "../../utils/calendar/popover";
+import { chooseSide, placePopover, placeStacked } from "../../utils/calendar/popover";
 import EventDetail from "./EventDetail";
 
 // Shows selected events beside their trigger, following it during scrolling. On a
 // phone there is no room beside it, so it goes above or below instead, and never
 // over the event it belongs to. Renders in the document body so the calendar grid
 // cannot clip it.
-function EventPopover({ selected, onClose, onClosing, onViewDay }) {
+function EventPopover({ selected, onClose, onClosing, onViewDay, flipSide = true }) {
     const popoverRef = useRef(null);
     const closeButtonRef = useRef(null);
     const closingRef = useRef(false);
+    // The side the popover landed on, which can differ from the one it was asked for.
+    const placedSideRef = useRef(null);
 
     const positionPopover = useCallback(() => {
         const popover = popoverRef.current;
@@ -33,14 +35,19 @@ function EventPopover({ selected, onClose, onClosing, onViewDay }) {
         const onPhone = window.matchMedia?.(MOBILE_QUERY).matches ?? false;
         // The site's sticky navigation. placeStacked ignores it once it has scrolled off screen.
         const headerBottom = document.querySelector(".site-navigation")?.getBoundingClientRect().bottom;
+        const side =
+            onPhone || !flipSide ? selected.side : chooseSide(triggerBounds, popoverSize, selected.side, viewportSize);
         const placed = onPhone
             ? placeStacked(triggerBounds, popoverSize, viewportSize, headerBottom)
-            : placePopover(triggerBounds, popoverSize, selected.side, viewportSize);
+            : placePopover(triggerBounds, popoverSize, side, viewportSize);
 
+        placedSideRef.current = side;
+        popover.classList.toggle("popover--right", side === "right");
+        popover.classList.toggle("popover--left", side === "left");
         popover.style.left = `${placed.left}px`;
         popover.style.top = `${placed.top}px`;
         popover.style.maxHeight = placed.maxHeight === undefined ? "" : `${placed.maxHeight}px`;
-    }, [selected]);
+    }, [selected, flipSide]);
 
     const dismiss = useCallback(
         ({ restoreFocus = true } = {}) => {
@@ -87,13 +94,14 @@ function EventPopover({ selected, onClose, onClosing, onViewDay }) {
             popover.style.overflow = "hidden";
 
             // Grows from the edge nearest the event, so it reads as coming out of it.
-            const origin = selected.side === "right" ? "left top" : "right top";
+            const side = placedSideRef.current ?? selected.side;
+            const origin = side === "right" ? "left top" : "right top";
             gsap.fromTo(
                 popover,
                 {
                     opacity: 0,
                     scale: 0.85,
-                    x: selected.side === "right" ? -12 : 12,
+                    x: side === "right" ? -12 : 12,
                     transformOrigin: origin,
                 },
                 { opacity: 1, scale: 1, x: 0, duration: 0.25, ease: "power2.out" },

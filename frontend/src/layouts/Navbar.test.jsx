@@ -38,7 +38,8 @@ describe("global navigation", () => {
         renderNavigation();
         const nav = screen.getByRole("navigation", { name: "Primary navigation" });
         const links = [...nav.querySelectorAll("a")].map((link) => link.textContent || link.querySelector("img")?.alt);
-        expect(links.slice(0, 6)).toEqual(["IUGA home", "Events", "Resources", "Student Voice", "Shop", "About"]);
+        expect(links.slice(0, 6)).toEqual(["IUGA home", "Events", "Resources", "Merch", "About", "Get Involved"]);
+        expect(screen.queryByRole("link", { name: "Student Voice" })).not.toBeInTheDocument();
         expect(screen.getByRole("link", { name: "About" })).toHaveAttribute("href", "/about");
         expect(screen.getByRole("link", { name: "Get Involved" })).toHaveAttribute("href", "/get-involved");
         expect(screen.queryByRole("button", { name: /button styles/i })).not.toBeInTheDocument();
@@ -88,18 +89,18 @@ describe("global navigation", () => {
     });
 
     test.each(["/admin", "/admin/shop/orders", "/admin/shop/pickup"])(
-        "on %s, marks Admin as the current page and leaves the public Shop link unmarked",
+        "on %s, marks Admin as the current page and leaves the public Merch link unmarked",
         (path) => {
             auth.permissions = ["shop.purchases.review"];
             renderNavigation(path);
             expect(screen.getByRole("link", { name: "Admin" })).toHaveAttribute("aria-current", "page");
-            expect(screen.getByRole("link", { name: "Shop" })).not.toHaveAttribute("aria-current");
+            expect(screen.getByRole("link", { name: "Merch" })).not.toHaveAttribute("aria-current");
         }
     );
 
-    test("marks the public Shop link as current on the checkout page", () => {
+    test("marks the public Merch link as current on the checkout page", () => {
         renderNavigation("/shop/checkout/hold-1");
-        expect(screen.getByRole("link", { name: "Shop" })).toHaveAttribute("aria-current", "page");
+        expect(screen.getByRole("link", { name: "Merch" })).toHaveAttribute("aria-current", "page");
     });
 
     test("hamburger opens a temporary menu and a destination closes it", () => {
@@ -107,6 +108,7 @@ describe("global navigation", () => {
         const toggle = screen.getByRole("button", { name: "Open menu" });
         fireEvent.click(toggle);
         expect(screen.getByRole("button", { name: "Close menu" })).toHaveAttribute("aria-expanded", "true");
+        expect(screen.queryByRole("link", { name: "Student Voice" })).not.toBeInTheDocument();
         fireEvent.click(screen.getByRole("link", { name: "Events" }));
         expect(screen.getByRole("button", { name: "Open menu" })).toHaveAttribute("aria-expanded", "false");
     });

@@ -37,6 +37,18 @@ void healthGatedDeploy(Map cfg) {
     // Forward the deployment-specific secret under its own runtime name so the
     // app can select it by DEPLOY_ENV (backend/http/session.js).
     def secretEnv = cfg.deployEnv == 'development' ? 'SESSION_SECRET_DEV' : cfg.deployEnv == 'staging' ? 'SESSION_SECRET_STAGING' : 'SESSION_SECRET_PROD'
+    // Discord values are forwarded only where cfg.discordPublicKey is set (dev, for now).
+    // The app mounts the Discord endpoint only when DISCORD_PUBLIC_KEY is non-empty.
+    def discordEnv = cfg.discordPublicKey ? (
+      '-e DISCORD_PUBLIC_KEY="$DISCORD_PUBLIC_KEY" \\\n' +
+      '        -e DISCORD_BOT_TOKEN="$DISCORD_BOT_TOKEN" \\\n' +
+      '        -e DISCORD_OFFICER_ROLE_ID="$DISCORD_OFFICER_ROLE_ID" \\\n' +
+      '        -e DISCORD_MOD_ROLE_ID="$DISCORD_MOD_ROLE_ID" \\\n' +
+      '        -e DISCORD_IUGA_OFFICER_ROLE_ID="$DISCORD_IUGA_OFFICER_ROLE_ID" \\\n' +
+      '        -e DISCORD_APPROVAL_CHANNEL_ID="$DISCORD_APPROVAL_CHANNEL_ID" \\\n' +
+      '        -e DISCORD_RSO_OFFICERS="$DISCORD_RSO_OFFICERS" \\\n' +
+      '        '
+    ) : ''
     sh """
     CANDIDATE="${cfg.container}-candidate"
     CONTAINER="${cfg.container}"
@@ -54,7 +66,7 @@ void healthGatedDeploy(Map cfg) {
         -e DB_URI="\$DB_URI" \\
         -e ${secretEnv}="\$${secretEnv}" \\
         -e SHOP_MANUAL_CHECKOUT_EXPOSED=${cfg.shopManualCheckout ? 'true' : 'false'} \\
-        -v ${cfg.uploadsDir}:/app/backend/public/uploads \\
+        ${discordEnv}-v ${cfg.uploadsDir}:/app/backend/public/uploads \\
         ${netFlag}\\
         "\$3"
     }

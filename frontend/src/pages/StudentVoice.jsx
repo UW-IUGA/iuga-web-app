@@ -36,7 +36,6 @@ function StudentVoicePage({ forms = studentVoiceForms }) {
         <div className="baseContainer">
             <main className="studentVoice">
                 <PageHeader
-                    label="Student Voice"
                     title="Tell IUGA what you think."
                     intro="Your feedback helps IUGA advocate for Informatics students and plan its events and programs."
                 />

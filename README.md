@@ -25,6 +25,7 @@ See [Quickstart Guide](docs/QUICKSTART.md) for full setup instructions.
 | [Frontend](docs/FRONTEND.md) | Frontend structure, pages, components, styling, auth |
 | [Backend](docs/BACKEND.md) | Backend structure, API routes, controllers, models, database |
 | [Deployment](docs/DEPLOYMENT.md) | Environments, CI/CD, Docker |
+| [Discord Events](docs/DISCORD.md) | Discord `/event` submission, moderator approval, env vars, and the Interactions URL |
 | [Pull Request Previews](docs/NETLIFY_PREVIEWS.md) | Netlify preview deploys from GitHub Actions |
 | [Maintainers](docs/MAINTAINERS.md) | Monitoring, maintenance, incident response |
 | [Troubleshooting](docs/TROUBLESHOOTING.md) | Diagnosis guide for pipeline and runtime failures |
@@ -36,7 +37,6 @@ See [Quickstart Guide](docs/QUICKSTART.md) for full setup instructions.
 ├── backend/           # Express.js API (MongoDB, express-session)
 │   ├── env/           # Environment files (gitignored except .env.example)
 │   └── schemas/       # Git submodule — shared Mongoose schemas
-├── context/           # Git submodule (private) — internal architecture plans
 ├── docs/              # Project documentation (start here)
 ├── Dockerfile         # Multi-stage production build
 ├── dev.jenkinsfile    # CI/CD pipeline — development

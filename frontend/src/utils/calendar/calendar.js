@@ -245,7 +245,11 @@ export function formatRange(mode, anchor) {
     return MONTH_YEAR_FMT.format(anchor);
 }
 
-export function buildMonthGrid(year, month, events) {
+// Six weeks of cells around `month`. Only the month's own days take events
+// unless `withOutside` is set: the month view fills the days spilling in from
+// the months either side too, while the year view and the mini month leave
+// them empty.
+export function buildMonthGrid(year, month, events, { withOutside = false } = {}) {
     const firstWeekDay = new Date(Date.UTC(year, month, 1)).getUTCDay();
     const dayCount = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
     // Every cell gets its real date, so consumers navigate without re-deriving
@@ -260,11 +264,18 @@ export function buildMonthGrid(year, month, events) {
         events: [],
     }));
 
+    // The outside days, by their real date, for an event from another month.
+    const outside = withOutside
+        ? new Map(cells.filter((cell) => !cell.inMonth).map((cell) => [dayKeyOf(cell.date), cell]))
+        : null;
+
     for (const event of events) {
         // Bucketing alone is not enough: an event on the 21st of another month
         // would otherwise land in this grid's 21st cell.
-        if (event.year !== year || event.month !== month) continue;
-        const cell = cells[firstWeekDay + event.day - 1];
+        const cell =
+            event.year === year && event.month === month
+                ? cells[firstWeekDay + event.day - 1]
+                : outside?.get(`${event.year}-${event.month}-${event.day}`);
         if (cell) cell.events.push(event);
     }
 

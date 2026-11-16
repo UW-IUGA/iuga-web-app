@@ -121,7 +121,7 @@ afterEach(() => {
 
 describe("Events page: the event list", () => {
     it("shows the events the list request returns", async () => {
-        await visit("/events?date=2026-10-20");
+        await visit("/events?view=month&date=2026-10-20");
 
         expect(fetchSpy).toHaveBeenCalledWith("/api/v1/events/", { method: "GET" });
         expect(screen.getByRole("button", { name: /Study Jam/ })).toBeInTheDocument();
@@ -130,7 +130,7 @@ describe("Events page: the event list", () => {
     it("says it is loading until the list arrives, without claiming the month is empty", async () => {
         let answer;
         fetchSpy.mockReturnValue(new Promise((resolve) => (answer = resolve)));
-        render(page("/events?date=2026-10-20"));
+        render(page("/events?view=month&date=2026-10-20"));
 
         expect(screen.getByRole("status")).toHaveTextContent("Loading events…");
 
@@ -142,7 +142,7 @@ describe("Events page: the event list", () => {
 
     it("says events could not be loaded when the request fails, and loads them on Try again", async () => {
         fetchSpy.mockResolvedValueOnce(jsonResponse(null, { ok: false, status: 500, statusText: "Server Error" }));
-        await visit("/events?date=2026-10-20");
+        await visit("/events?view=month&date=2026-10-20");
 
         expect(screen.getByRole("alert")).toHaveTextContent("We couldn't load events. Please try again.");
         expect(screen.queryByRole("button", { name: /Study Jam/ })).not.toBeInTheDocument();
@@ -156,12 +156,12 @@ describe("Events page: the event list", () => {
     });
 
     it("loads the list again on signing in, keeping the calendar up meanwhile", async () => {
-        const { rerender } = await visit("/events?date=2026-10-20");
+        const { rerender } = await visit("/events?view=month&date=2026-10-20");
         let answer;
         fetchSpy.mockReturnValue(new Promise((resolve) => (answer = resolve)));
 
         isAuthenticated = true;
-        rerender(page("/events?date=2026-10-20"));
+        rerender(page("/events?view=month&date=2026-10-20"));
 
         expect(fetchSpy).toHaveBeenCalledTimes(2);
         expect(screen.queryByRole("status")).not.toBeInTheDocument();
@@ -182,7 +182,7 @@ describe("Events page: the event list", () => {
     });
 
     it("lists only the categories a visitor can see in the colour key", async () => {
-        await visit("/events?date=2026-10-20");
+        await visit("/events?view=month&date=2026-10-20");
 
         const [legend] = screen.getAllByRole("list", { name: "Event colours" });
         expect(
@@ -194,7 +194,7 @@ describe("Events page: the event list", () => {
 
     it("shows the sample events without a request outside production", async () => {
         production = false;
-        await visit("/events?date=2024-04-20");
+        await visit("/events?view=month&date=2024-04-20");
 
         expect(fetchSpy).not.toHaveBeenCalled();
         expect(screen.getByRole("button", { name: /IUGA Game Night/ })).toBeInTheDocument();
@@ -235,7 +235,7 @@ describe("Events page: event details and previous events", () => {
     });
 
     it("lists the previous events under the calendar", async () => {
-        await visit("/events?date=2026-10-20");
+        await visit("/events?view=month&date=2026-10-20");
 
         expect(screen.getByRole("heading", { name: "Previous events" })).toBeInTheDocument();
     });
@@ -267,7 +267,7 @@ describe("Events page: officer event operations", () => {
             }
             throw new Error(`Unexpected API request: ${url}`);
         });
-        await visit("/events?date=2026-10-20");
+        await visit("/events?view=month&date=2026-10-20");
 
         expect(await screen.findByRole("heading", { name: "Event operations" })).toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: /autumn workshop/i }));
@@ -279,7 +279,7 @@ describe("Events page: officer event operations", () => {
     });
 
     it("shows a visitor only the calendar", async () => {
-        await visit("/events?date=2026-10-20");
+        await visit("/events?view=month&date=2026-10-20");
 
         expect(screen.queryByRole("heading", { name: "Event operations" })).not.toBeInTheDocument();
         expect(fetchSpy).toHaveBeenCalledTimes(1);
@@ -287,11 +287,11 @@ describe("Events page: officer event operations", () => {
 });
 
 describe("Events page: views and navigation", () => {
-    it("opens on the month view with no params", async () => {
+    it("opens on the year view with no params", async () => {
         const { container } = await visit("/events");
 
-        expect(container.querySelector(".card")).toBeTruthy();
-        expect(screen.getByRole("radio", { name: "Month" })).toHaveAttribute("aria-checked", "true");
+        expect(container.querySelector(".year")).toBeTruthy();
+        expect(screen.getByRole("radio", { name: "Year" })).toHaveAttribute("aria-checked", "true");
     });
 
     it("shows the whole archive in year view, across every year, with no mini month", async () => {
@@ -309,7 +309,7 @@ describe("Events page: views and navigation", () => {
 
     it("shows the mini month in month, week and day view", async () => {
         for (const url of [
-            "/events?date=2026-10-20",
+            "/events?view=month&date=2026-10-20",
             "/events?view=week&date=2026-10-20",
             "/events?view=day&date=2026-10-20",
         ]) {
@@ -320,7 +320,7 @@ describe("Events page: views and navigation", () => {
     });
 
     it("puts Today and the arrows in the controls, not the sidebar", async () => {
-        const { container } = await visit("/events?date=2026-10-20");
+        const { container } = await visit("/events?view=month&date=2026-10-20");
 
         const controls = container.querySelector(".calendar-controls");
         expect(within(controls).getByRole("button", { name: "Today" })).toBeInTheDocument();
@@ -330,7 +330,7 @@ describe("Events page: views and navigation", () => {
     });
 
     it("carries the mini month along when the controls steps into another month", async () => {
-        const { container } = await visit("/events?date=2026-10-20");
+        const { container } = await visit("/events?view=month&date=2026-10-20");
 
         fireEvent.click(screen.getByRole("button", { name: "Next month" }));
 
@@ -351,7 +351,7 @@ describe("Events page: views and navigation", () => {
 
     it("moves the current view to a day picked in the mini month", async () => {
         const cases = [
-            ["/events?date=2026-10-20", "October 2026", null],
+            ["/events?view=month&date=2026-10-20", "October 2026", "month"],
             ["/events?view=week&date=2026-10-20", "Oct 25 – Oct 31, 2026", "week"],
             ["/events?view=day&date=2026-10-20", "Wed, Oct 28, 2026", "day"],
         ];
@@ -383,7 +383,7 @@ describe("Events page: views and navigation", () => {
     });
 
     it("brings a browsed mini month back with Today, even when already on today", async () => {
-        const { container } = await visit("/events");
+        const { container } = await visit("/events?view=month");
         const home = miniLabel(container);
 
         fireEvent.click(within(container.querySelector(".mini")).getByRole("button", { name: "Show next month" }));
@@ -404,7 +404,7 @@ describe("Events page: views and navigation", () => {
     });
 
     it("switches view from the toggle, keeping the date", async () => {
-        const { container } = await visit("/events?date=2026-10-20");
+        const { container } = await visit("/events?view=month&date=2026-10-20");
 
         fireEvent.click(screen.getByRole("radio", { name: "Week" }));
         expect(written().get("view")).toBe("week");
@@ -412,12 +412,13 @@ describe("Events page: views and navigation", () => {
         expect(container.querySelectorAll(".grid__col")).toHaveLength(7);
 
         fireEvent.click(screen.getByRole("radio", { name: "Year" }));
-        expect(written().get("view")).toBe("year");
+        // Year is the default, so it leaves the URL rather than being written.
+        expect(written().has("view")).toBe(false);
         expect(container.querySelector(".mini")).toBeNull();
     });
 
     it("opens a day when a month pad is clicked", async () => {
-        const { container } = await visit("/events?date=2026-10-20");
+        const { container } = await visit("/events?view=month&date=2026-10-20");
 
         fireEvent.click(container.querySelector(".pad__open"));
 
@@ -425,9 +426,9 @@ describe("Events page: views and navigation", () => {
     });
 
     it("takes the month and week views to the current period from Today", async () => {
-        const month = await visit("/events?date=2024-04-08");
+        const month = await visit("/events?view=month&date=2024-04-08");
         fireEvent.click(screen.getByRole("button", { name: "Today" }));
-        expect(written().get("view")).toBeNull();
+        expect(written().get("view")).toBe("month");
         expect(range(month.container)).toBe(formatMonthYear(new Date()));
         month.unmount();
 
@@ -448,7 +449,7 @@ describe("Events page: views and navigation", () => {
 
 describe("Events page: keyboard", () => {
     it("makes the view toggle a single tab stop (radio group)", async () => {
-        await visit("/events?date=2026-10-20");
+        await visit("/events?view=month&date=2026-10-20");
 
         const options = within(screen.getByRole("radiogroup")).getAllByRole("radio");
         expect(options.filter((option) => option.tabIndex === 0).map((option) => option.textContent)).toEqual([
@@ -457,7 +458,7 @@ describe("Events page: keyboard", () => {
     });
 
     it("moves between views with the arrow keys, keeping focus on the toggle", async () => {
-        await visit("/events?date=2026-10-20");
+        await visit("/events?view=month&date=2026-10-20");
 
         const month = screen.getByRole("radio", { name: "Month" });
         month.focus();
@@ -467,7 +468,8 @@ describe("Events page: keyboard", () => {
         expect(document.activeElement).toBe(screen.getByRole("radio", { name: "Week" }));
 
         fireEvent.keyDown(document.activeElement, { key: "Home" });
-        expect(written().get("view")).toBe("year");
+        // Year is the default, so landing on it drops the view from the URL.
+        expect(written().has("view")).toBe(false);
 
         // Wraps from the first view to the last.
         fireEvent.keyDown(document.activeElement, { key: "ArrowLeft" });
@@ -521,7 +523,7 @@ describe("Events page: swiping across the calendar", () => {
     });
 
     it("steps the month and the day view too, by their own unit", async () => {
-        const month = await visit("/events?date=2026-10-20");
+        const month = await visit("/events?view=month&date=2026-10-20");
         await act(async () => swipe(main(month.container), -120));
         expect(range(month.container)).toBe("November 2026");
         month.unmount();

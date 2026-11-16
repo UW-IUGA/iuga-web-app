@@ -31,12 +31,12 @@ The page shows a loading message before the first list arrives. If loading fails
 
 | View | URL example | What it shows |
 |---|---|---|
-| Month | `/events?date=2026-10-20` | A month grid with event chips. Selecting a date opens that day; selecting an event opens its details. |
-| Week | `/events?view=week&date=2026-10-20` | Seven days on an hourly time grid. Selecting an event opens its details. |
-| Day | `/events?view=day&date=2026-10-20` | One day's time grid. Selecting an event opens its details in a popover. |
-| Year | `/events?view=year&date=2026-10-20` | The months that contain events, newest first. Selecting a day opens its events in an overlay. |
+| Year | `/events` | The months that contain events, newest first. Selecting a day opens its events in an overlay. |
+| Month | `/events?view=month&date=2026-10-20` | A month grid with event chips. The days leading in from the month before and trailing into the month after show their real date, muted, with their events. Selecting a date opens that day; selecting an event opens its details. |
+| Week | `/events?view=week&date=2026-10-20` | Seven days on an hourly time grid, scrolled so the week's earliest event, by time of day, starts at the top. Selecting an event opens its details. |
+| Day | `/events?view=day&date=2026-10-20` | One day's time grid, scrolled to its first event. Selecting an event opens its details in a popover, with the date beside Close in place of View day. |
 
-`useCalendarView.js` keeps the selected view and date in the URL. Month is the default, so its `view` parameter is omitted. Dates use the Pacific calendar day (`YYYY-MM-DD`), which keeps the selected day stable across reloads and time zones. Changing views keeps the date; selecting a day from a calendar view switches to the day view. Each navigation step adds a browser history entry, so Back retraces it. Other query parameters are preserved.
+`useCalendarView.js` keeps the selected view and date in the URL. Year is the default, so its `view` parameter is omitted. Dates use the Pacific calendar day (`YYYY-MM-DD`), which keeps the selected day stable across reloads and time zones. Changing views keeps the date; selecting a day from a calendar view switches to the day view. Each navigation step adds a browser history entry, so Back retraces it. Other query parameters are preserved.
 
 `CalendarControls.jsx` provides Today, previous and next, the current date range, and the view switch. Year view covers the whole archive and has no previous/next controls. On smaller screens, the date range becomes a date picker and the view switch becomes a dropdown. Month, week, and day views also show `MiniMonth` beside the main view; selecting a date there changes the selected date without changing the current view. The colour key lists the calendar's event categories. A sideways swipe across the main view can move month, week, or day just like the arrows; the arrows remain available for keyboard and assistive technology users. Diagonal drags scroll without stepping, and edge swipes remain available for the browser's Back gesture. Steps are immediate under reduced motion.
 
@@ -44,7 +44,7 @@ Calendar dates and times use `America/Los_Angeles`. `normalizeEvent` converts th
 
 ## Event details and RSVP
 
-A visitor opens details by selecting an event. Month, week, and day views use `EventPopover`; year view uses `DayOverlay`. Both render `EventDetail`, so the event information and RSVP behavior stay consistent. On a phone, the popover opens above or below its event and stays below the site navigation (`utils/calendar/popover.js`).
+A visitor opens details by selecting an event. Month, week, and day views use `EventPopover`; year view uses `DayOverlay`. Both render `EventDetail`, so the event information and RSVP behavior stay consistent. On a phone, the popover opens above or below its event and stays below the site navigation (`utils/calendar/popover.js`). A tap on a month chip or a week event opens its popover, as on a wide screen, so the phone chips stay at the 24px minimum target; a tap on a day's empty space opens that day.
 
 The event list does not include every detail. When an event's details are first shown, `EventRsvpContext.jsx` requests `GET /api/v1/events/id/:eId` and shares the result between open event details. It also tracks RSVPs made during the current sign-in session. If sign-in state changes, it clears those session-specific details and RSVP markers so they cannot carry over to another visitor.
 

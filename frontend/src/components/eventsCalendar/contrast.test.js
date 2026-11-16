@@ -48,6 +48,17 @@ function hex(value) {
 const channels = (color) =>
   [1, 3, 5].map((i) => parseInt(color.slice(i, i + 2), 16));
 
+// A translucent rgba() colour as it shows over a solid `base`, as six-digit hex.
+function over(value, base) {
+  const match = value.match(/^rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)$/);
+  if (!match) throw new Error(`not an rgba colour: ${value}`);
+  const alpha = Number(match[4]);
+  const mixed = channels(base).map((under, i) =>
+    Math.round(Number(match[i + 1]) * alpha + under * (1 - alpha)),
+  );
+  return `#${mixed.map((channel) => channel.toString(16).padStart(2, "0")).join("")}`;
+}
+
 function luminance(color) {
   const [r, g, b] = channels(color).map((value) => {
     const c = value / 255;
@@ -76,7 +87,7 @@ it("keeps the dark palette the prototype's", () => {
     "copy-muted": "#b0b0b0",
     "now-line": "#f97362",
     "label-academic": "#5fa5f9",
-    "label-social": "#e879f9",
+    "label-social": "#a78bfa",
     "label-career": "#2cd4bf",
   });
 });
@@ -134,6 +145,11 @@ describe.each(Object.entries(PALETTES))("the %s palette", (_theme, values) => {
       ["a day cell on hover", PAD_HOVER],
     ])("keeps muted text readable on %s", (_name, surface) => {
       expect(ratio(MUTED, surface)).toBeGreaterThanOrEqual(4.5);
+    });
+
+    it("keeps an outside day's muted number readable on its faded cell, hovered or not", () => {
+      for (const fill of [values["pad-out"], values["pad-out-hover"]])
+        expect(ratio(MUTED, over(fill, CARD))).toBeGreaterThanOrEqual(4.5);
     });
 
     it("keeps body text readable on every surface", () => {

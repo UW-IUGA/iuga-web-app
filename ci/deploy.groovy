@@ -46,7 +46,7 @@ void healthGatedDeploy(Map cfg) {
       '        -e DISCORD_MOD_ROLE_ID="$DISCORD_MOD_ROLE_ID" \\\n' +
       '        -e DISCORD_IUGA_OFFICER_ROLE_ID="$DISCORD_IUGA_OFFICER_ROLE_ID" \\\n' +
       '        -e DISCORD_APPROVAL_CHANNEL_ID="$DISCORD_APPROVAL_CHANNEL_ID" \\\n' +
-      '        -e DISCORD_RSO_OFFICERS="$DISCORD_RSO_OFFICERS" \\\n' +
+      '        -e DISCORD_RSO_APPROVAL_CHANNEL_ID="$DISCORD_RSO_APPROVAL_CHANNEL_ID" \\\n' +
       '        '
     ) : ''
     sh """

@@ -1,3 +1,5 @@
+import { neutralizeMentions } from "./discordInteractions.js";
+
 export const CATEGORIES = ["Academic", "Social", "Career"];
 
 const LIMITS = { name: 120, location: 120, description: 1000, rsvpUrl: 300 };
@@ -53,13 +55,6 @@ function isRealCalendarDate(date) {
     candidate.getUTCMonth() === month - 1 &&
     candidate.getUTCDate() === day
   );
-}
-
-/*
- * @behavior Stop mention tokens from pinging anyone when text is posted back into Discord.
- */
-export function neutralizeMentions(text) {
-  return text.replace(/<[@#][!&]?\d+>/g, "").replace(/@/g, "@​");
 }
 
 /*

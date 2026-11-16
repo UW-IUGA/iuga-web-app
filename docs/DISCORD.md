@@ -1,20 +1,56 @@
-# Discord event approval
+# Discord bot: RSO officer verification and event approval
 
-Officers of a registered student organization (RSO) can submit an event from Discord with `/event`. The request lands in the `#events-approvals` channel with Approve and Deny buttons. When a moderator approves it, the event is published to the same `Events` collection the website already reads from.
+The bot does two jobs, both run from inside Discord with no developer step:
+
+1. **RSO officer verification.** An RSO officer runs `/rso-verify`, and the IUGA board approves or denies it in a private `#rso-approvals` channel. Approval gives the officer their RSO's role.
+2. **Event approval.** A verified officer submits an event with `/event`, and moderators approve it in `#events-approvals`.
+
+## Setting up the server (one time, no code)
+
+Do these once in Discord. After that, the board runs everything with buttons.
+
+1. **Create `#rso-approvals`.** In the channel's settings, under Permissions, turn off View Channel for `@everyone` and turn it on for the moderator role and the IUGA officer role. RSO officers and members must not see it.
+2. **Let the bot give roles.** In Server Settings > Roles, give the bot's role the **Manage Roles** permission. Nothing else is needed for verification.
+3. **Put the bot's role in the right spot.** In Server Settings > Roles, drag the bot's role **below** the moderator and admin roles and **above** every RSO role. Discord only lets a bot give roles that sit below its own, so this keeps the bot away from moderator and admin roles.
+4. **Copy the channel ID** of `#rso-approvals` (turn on Developer Mode in User Settings > Advanced, then right-click the channel > Copy Channel ID) and give it to whoever manages the Jenkins credentials as `DISCORD_RSO_APPROVAL_CHANNEL_ID`.
+5. **Register the commands** (see [Interactions Endpoint URL](#interactions-endpoint-url)) so `/rso-verify` shows up.
+
+## How RSO officer verification moves
+
+1. An officer runs `/rso-verify`, picks their RSO from the list (or types the full name if it's new), and enters their position.
+2. A card appears in `#rso-approvals` with the requester, the RSO, and the position. An RSO the bot hasn't seen yet is marked **New RSO**. RSO names match ignoring capitals and extra spaces, so "HCI Club" and "hci club" are the same RSO.
+3. A moderator, IUGA officer, or server admin clicks **Approve** or **Deny**. Nobody can review their own request, and anyone else who clicks gets a private refusal.
+4. **Approve:** the bot gives the officer their RSO's role and the general RSO officer role. If the RSO is new, the bot creates its role first, named exactly like the RSO, with **no permissions**. The card shows who approved, and the officer gets a DM saying they can now use `/event`.
+5. **Deny:** a reason is required. The officer gets it by DM, and the card shows who denied it.
+
+What the board might see:
+
+- **"The server already has a role named …"**: someone asked for an RSO named like an existing non-RSO role, such as "Moderator." Deny it and ask them to use the RSO's full name.
+- **"The bot isn't allowed to give roles…"**: redo setup steps 2 and 3, then click Approve again.
+- **"Closed: the requester left the server."**: the bot closed the request on its own. Nothing to do.
+- **"already been reviewed"**: someone else got there first.
+
+Each member can have one open request per RSO. To take someone's officer status away, remove their RSO role in Discord; the bot reads roles every time, so nothing else needs changing.
+
+The RSO list and each RSO's role live in the `DiscordRsos` collection, and requests live in `DiscordRsoRequests`. `backend/rsoDirectory.js` is the only code that reads or writes RSOs or gives RSO roles.
+
+## Event approval
+
+Verified RSO officers can submit an event from Discord with `/event`. The request lands in the `#events-approvals` channel with Approve and Deny buttons. When a moderator approves it, the event is published to the same `Events` collection the website already reads from.
 
 The website database is still the source of truth. A social post is not an event listing, and nothing gets published from Discord text alone.
 
 ## How a submission moves
 
 1. An officer runs `/event` and fills in the name, date, start time, location, category, and description. End time and RSVP link are optional.
-2. The bot checks that the officer has the officer role, then looks up their Discord user ID in `DISCORD_RSO_OFFICERS` to find their RSO. Each RSO has one officer, so the command never asks which RSO they mean.
+2. The bot reads the officer's RSO from their RSO role. A member with no RSO role is told to use `/rso-verify`. A member verified for more than one RSO is told that choosing an RSO isn't available yet.
 3. The input goes through the same rules every time. Names and locations are capped at 120 characters, descriptions at 1000, and RSVP links at 300. The RSVP link must be `https://`. The date must be a real date in the future. Times are read as Pacific time and stored in UTC, and the end time must come after the start. Mentions in free text are stripped.
 4. If the input passes, the request is saved as `pending` in `DiscordEventSubmissions`, and an approval card is posted to `DISCORD_APPROVAL_CHANNEL_ID`. If that post fails, the pending row is deleted and the officer is asked to try again.
 5. The officer gets a private confirmation. Nobody else sees it.
 
 Who can see the cards is set in Discord's channel permissions, not in code. Anyone who can view `#events-approvals` sees every card, including the RSO, the event details, and the submitter's display name. The bot only checks who can click. Only members with the moderator role, the IUGA officer role, or Discord's Administrator permission can approve or deny. Anyone else who clicks gets a private "Only moderators or IUGA officers can approve events" reply.
 
-To keep the cards to moderators, limit the channel's View Channel permission to the moderator and IUGA officer roles in Discord's channel settings. The RSO officer role (`DISCORD_OFFICER_ROLE_ID`) must not have View Channel on this channel, because RSO officers submit with `/event` and should never see the cards. Check this before testing.
+To keep the cards to moderators, limit the channel's View Channel permission to the moderator and IUGA officer roles in Discord's channel settings. The RSO officer role (`DISCORD_OFFICER_ROLE_ID`) and the RSO roles must not have View Channel on this channel, because RSO officers submit with `/event` and should never see the cards. Check this before testing.
 
 ## How a review moves
 
@@ -29,7 +65,7 @@ To keep the cards to moderators, limit the channel's View Channel permission to 
 | Field | Value |
 |---|---|
 | `eName` | Event name |
-| `eOrganizers` | The RSO's name from the registry |
+| `eOrganizers` | The RSO's name, from the officer's RSO role |
 | `eStartDate`, `eEndDate` | Pacific wall-clock time, stored as UTC |
 | `eLocation`, `eDescription` | From the command |
 | `eLabels` | The category as a one-item list: Academic, Social, or Career |
@@ -47,25 +83,13 @@ Every `Events` row is public the moment it's inserted, which is why pending requ
 | `DISCORD_GUILD_ID` | The server ID for guild command registration. Only the registration script uses it. |
 | `DISCORD_PUBLIC_KEY` | Verifies that requests really come from Discord. The interactions route is not mounted when this is unset. |
 | `DISCORD_BOT_TOKEN` | Lets the bot post cards and send DMs. Never log it. |
-| `DISCORD_OFFICER_ROLE_ID` | Role that may run `/event`. Keep it out of the approval channel's permissions. |
+| `DISCORD_OFFICER_ROLE_ID` | General RSO officer role the bot gives with every RSO role, used for channel visibility. Keep it out of the approval channels' permissions. |
 | `DISCORD_MOD_ROLE_ID` | Role that may approve or deny. |
 | `DISCORD_IUGA_OFFICER_ROLE_ID` | IUGA board role that may also approve or deny. |
-| `DISCORD_APPROVAL_CHANNEL_ID` | Channel where approval cards are posted. |
-| `DISCORD_RSO_OFFICERS` | JSON object keyed by Discord user ID. See below. |
+| `DISCORD_APPROVAL_CHANNEL_ID` | Channel where event approval cards are posted. |
+| `DISCORD_RSO_APPROVAL_CHANNEL_ID` | Channel where RSO officer verification cards are posted (`#rso-approvals`). |
 
-Startup reads `DISCORD_RSO_OFFICERS` and stops if it's malformed. That's on purpose, so a bad value shows up at deploy time instead of as silent refusals. An unset value means no officers, which is safe but means nobody can submit.
-
-### The officer registry
-
-`DISCORD_RSO_OFFICERS` maps each officer's Discord user ID to their RSO:
-
-```json
-{"000000000000000001": {"rsoKey": "example-rso", "rsoName": "Example RSO"}}
-```
-
-Each entry needs a non-empty `rsoKey` and `rsoName`. The value stays out of git on purpose, because it holds personal Discord IDs. Store the real value as a Jenkins credential.
-
-The lookup sits behind one function, `resolveRso`, in `backend/rsoRegistry.js`. If the registry moves into the database later, only that function changes.
+These are set once. Day-to-day changes (new RSOs, new officers) happen in Discord and never need a redeploy. The old `DISCORD_RSO_OFFICERS` list was removed; officers on it need to run `/rso-verify` once.
 
 ## Secrets in Jenkins
 
@@ -76,7 +100,7 @@ Create each of these as a Secret text credential:
 - `DISCORD_MOD_ROLE_ID`
 - `DISCORD_IUGA_OFFICER_ROLE_ID`
 - `DISCORD_APPROVAL_CHANNEL_ID`
-- `DISCORD_RSO_OFFICERS`
+- `DISCORD_RSO_APPROVAL_CHANNEL_ID`
 
 `dev.jenkinsfile` binds all six as credentials in the Deploy stage, and `ci/deploy.groovy` passes them to the dev container with `docker run -e`. The image itself doesn't contain any of them. Only dev forwards these values for now. If a credential is missing in Jenkins, the Deploy stage fails before the container starts.
 
@@ -90,13 +114,13 @@ https://dev.iuga.info/api/v1/discord/interactions
 
 Save this only after the route is deployed and `DISCORD_PUBLIC_KEY` is set on that container. When you save, Discord sends a signed PING to the URL, and the route has to answer it or Discord rejects the save. Unsigned requests get a 401.
 
-To register `/event` in the test server, run this from `backend/` with the variables set:
+To register `/event` and `/rso-verify` in the server, run this from `backend/` with the variables set:
 
 ```
 DISCORD_APP_ID=... DISCORD_BOT_TOKEN=... DISCORD_GUILD_ID=... node scripts/registerDiscordCommands.mjs
 ```
 
-The script replaces every guild command for the application with `/event`. Guild commands show up right away. Global commands can take up to an hour.
+The script replaces every guild command for the application with `/event` and `/rso-verify`. Guild commands show up right away. Global commands can take up to an hour.
 
 ## Why the route mounts before the JSON parser
 
@@ -111,7 +135,7 @@ Officers and moderators only ever see a short, generic reply, such as "The appro
 On dev, read them on the VM:
 
 ```sh
-docker logs iuga-web-dev --tail 200 | grep -E "Approval card post failed|Event publish failed|Denial DM failed|Discord interaction failed"
+docker logs iuga-web-dev --tail 200 | grep -E "Approval card post failed|Event publish failed|Denial DM failed|RSO request card post failed|RSO request DM failed|Duplicate RSO role cleanup failed|Discord interaction failed"
 ```
 
 A failed Discord call logs the route, the HTTP status, Discord's error code and message, and a likely cause when the code is a common one. Example:
@@ -124,13 +148,18 @@ When Discord rejects a card's content, the log lists the invalid fields by path 
 
 ## Code map
 
-- `backend/discordApprovals.js`: submission, approve, deny, and publish
+- `backend/discordDispatcher.js`: sends each interaction to the flow that owns it
+- `backend/discordRsoVerification.js`: `/rso-verify` request, approve, and deny
+- `backend/rsoDirectory.js`: RSOs, their roles, and who represents each one
+- `backend/discordRsos.js`, `backend/discordRsoRequests.js`: RSO and verification request schemas
+- `backend/discordApprovals.js`: event submission, approve, deny, and publish
+- `backend/discordReviewers.js`: who may approve or deny
+- `backend/discordInteractions.js`: shared Discord protocol values and reply shapes
 - `backend/discordSubmissionRules.js`: input rules and time conversion
-- `backend/discordSubmissions.js`: the pending-request schema
-- `backend/rsoRegistry.js`: officer lookup
+- `backend/discordSubmissions.js`: the pending event schema
 - `backend/discordClient.js`: REST calls as the bot
-- `backend/discordCommandDefinition.js`: the `/event` command shape
+- `backend/discordCommandDefinition.js`: the `/event` and `/rso-verify` command shapes
 - `backend/routes/api/v1/controllers/discord.js`: signature check and routing
 - `backend/scripts/registerDiscordCommands.mjs`: command registration
 
-Run the tests from `backend/` with `npm test`. `test/discord-approvals.test.js` covers the flow with in-memory fakes.
+Run the tests from `backend/` with `npm test`. `test/discord-approvals.test.js`, `test/discord-rso-verification.test.js`, and `test/rso-directory.test.js` cover the flows with in-memory fakes.

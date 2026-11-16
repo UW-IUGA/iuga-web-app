@@ -82,11 +82,6 @@ Expected Response Information: A sidebar-plus-view grid, or a fluid grid of mont
         .events--with-sidebar .events__main {
             margin-inline: calc(-1 * var(--page-gutter));
         }
-
-        // The day's agenda is text, not the grid, so it comes back in to the page.
-        .day__agenda {
-            padding-inline: var(--page-gutter);
-        }
     }
 
     // The year view's card grid: one card per month that holds events, across

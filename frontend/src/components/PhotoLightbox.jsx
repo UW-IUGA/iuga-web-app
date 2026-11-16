@@ -2,7 +2,8 @@
 Purpose: Show one photo from a set at full size, with controls to move through the set.
 
 Expected Request Information:
-- photos: array of { src, alt }.
+- photos: array of { src, alt, thumbnail }. thumbnail is a smaller copy of the same photo,
+  required; it fills the frame behind the photo, so it should be the copy already shown on the page.
 - index: position of the photo to show, or null to keep the viewer closed.
 - title: name shown over the photo; also labels the dialog.
 - eyebrow: optional short line shown above the title.
@@ -10,10 +11,13 @@ Expected Request Information:
 - onClose: called when the visitor closes the viewer.
 
 Expected Response Information:
-- A modal dialog. The arrow buttons, the arrow keys, a click on the right
-  or left half of the photo, and a swipe left or right across it on a
-  touch screen move forward or back, wrapping around the set.
-  Escape, the close button, and a click outside the photo close it.
+- A modal dialog holding one fixed-size frame. The photo sits over a blurred copy of
+  itself, so any proportion fills the frame. The title, date, and place, the position
+  count, and the controls are drawn over the photo; the frame's size never depends on the
+  photo, so nothing moves while photos load or change.
+- The arrow buttons, the arrow keys, a click on the right or left half of the photo, and a
+  swipe left or right across the frame on a touch screen move forward or back, wrapping
+  around the set. Escape, the close button, and a click outside the frame close it.
 - The photos either side of the one shown are downloaded in the background,
   so moving to them shows them at once instead of waiting on the download.
 */
@@ -46,12 +50,12 @@ function PhotoLightbox({ photos = [], index = null, title, eyebrow, onIndexChang
 
     const step = (direction) => onIndexChange((index + direction + photos.length) % photos.length);
 
-    const stageRef = useRef(null);
-    useSwipeStep(stageRef, step, Boolean(photo));
+    // A swipe may start anywhere on the frame, including over the caption.
+    const frameRef = useRef(null);
+    useSwipeStep(frameRef, step, Boolean(photo));
 
     // Clicking the photo's right half goes forward and its left half goes back.
-    // The buttons are drawn over the photo but sit outside it, so they keep their own behavior.
-    const handleStageClick = (clickEvent) => {
+    const handlePhotoClick = (clickEvent) => {
         const { left, width } = clickEvent.currentTarget.getBoundingClientRect();
         step(clickEvent.clientX - left < width / 2 ? -1 : 1);
     };
@@ -70,17 +74,24 @@ function PhotoLightbox({ photos = [], index = null, title, eyebrow, onIndexChang
             {...dialogProps}
         >
             {photo && (
-                <figure>
-                    <div className="photoLightbox__stage" ref={stageRef} onClick={handleStageClick}>
-                        <img src={photo.src} alt={photo.alt} />
-                        <span className="photoLightbox__count" aria-live="polite">
-                            {index + 1} / {photos.length}
-                        </span>
-                        <figcaption>
-                            {eyebrow && <span>{eyebrow}</span>}
-                            {title && <strong>{title}</strong>}
-                        </figcaption>
+                <figure ref={frameRef} className="photoLightbox__frame">
+                    {/* A blurred copy of the photo fills the frame behind it. It is decoration, so assistive technology skips it. */}
+                    <img
+                        className="photoLightbox__backdrop"
+                        src={photo.thumbnail}
+                        alt=""
+                        aria-hidden="true"
+                    />
+                    <div className="photoLightbox__stage" onClick={handlePhotoClick}>
+                        <img className="photoLightbox__photo" src={photo.src} alt={photo.alt} />
                     </div>
+                    <span className="photoLightbox__count" aria-live="polite">
+                        {index + 1} / {photos.length}
+                    </span>
+                    <figcaption>
+                        {eyebrow && <span>{eyebrow}</span>}
+                        {title && <strong>{title}</strong>}
+                    </figcaption>
                     <button className="photoLightbox__close" type="button" aria-label="Close photos" onClick={close}>
                         <FontAwesomeIcon icon={faXmark} aria-hidden="true" />
                     </button>

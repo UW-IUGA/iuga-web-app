@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import PhotoLightbox from "./PhotoLightbox";
 
@@ -107,14 +107,42 @@ describe("PhotoLightbox photo clicks", () => {
         expect(onIndexChange).not.toHaveBeenCalled();
     });
 
-    test("the text over the photo counts as part of the photo", () => {
-        const { onIndexChange } = renderLightbox({ index: 1 });
+    test("reading or clicking the caption does not navigate or close the viewer", () => {
+        const { onIndexChange, onClose } = renderLightbox({ index: 1 });
         const stage = screen.getByAltText("Second photo").parentElement;
         vi.spyOn(stage, "getBoundingClientRect").mockReturnValue({ left: 100, width: 400 });
 
         fireEvent.click(screen.getByText("RSO Fair"), { clientX: 120 });
 
-        expect(onIndexChange).toHaveBeenCalledWith(0);
+        expect(onIndexChange).not.toHaveBeenCalled();
+        expect(onClose).not.toHaveBeenCalled();
+    });
+});
+
+describe("PhotoLightbox frame", () => {
+    test("the title, date, time, and arrows are drawn over the photo in the same frame", () => {
+        renderLightbox({ index: 1 });
+
+        const frame = screen.getByRole("dialog").querySelector("figure");
+
+        expect(within(frame).getByText("RSO Fair")).toBeInTheDocument();
+        expect(within(frame).getByText("Tuesday, October 6")).toBeInTheDocument();
+        expect(within(frame).getByRole("button", { name: "Previous photo" })).toBeInTheDocument();
+        expect(within(frame).getByRole("button", { name: "Next photo" })).toBeInTheDocument();
+    });
+
+    test("the blurred fill behind the photo uses the small copy the page has already downloaded", () => {
+        const withSmallCopies = [
+            { src: "one.jpg", thumbnail: "one-small.jpg", alt: "First photo" },
+            { src: "two.jpg", thumbnail: "two-small.jpg", alt: "Second photo" },
+        ];
+        render(
+            <PhotoLightbox photos={withSmallCopies} index={0} title="RSO Fair" onIndexChange={vi.fn()} onClose={vi.fn()} />,
+        );
+
+        const shownFiles = Array.from(document.querySelectorAll("dialog img"), (image) => image.getAttribute("src"));
+
+        expect(shownFiles).toContain("one-small.jpg");
     });
 });
 

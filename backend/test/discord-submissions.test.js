@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { validateSubmission, pacificToUtc } from "../discordSubmissionRules.js";
-import { createRsoRegistry, rsoRegistryFromEnv } from "../rsoRegistry.js";
 
 const NOW = new Date("2027-01-01T00:00:00Z");
 
@@ -90,51 +89,5 @@ describe("validateSubmission", () => {
     assert.equal(result.ok, true);
     assert.doesNotMatch(result.value.eDescription, /<@|<#|@everyone|@here/);
     assert.match(result.value.eDescription, /Come!/);
-  });
-});
-
-describe("createRsoRegistry", () => {
-  const registry = createRsoRegistry({
-    "111": { rsoKey: "winfo", rsoName: "WINFO" },
-  });
-
-  it("resolves a mapped Discord user to their RSO", () => {
-    assert.deepEqual(registry.resolveRso("111"), { rsoKey: "winfo", rsoName: "WINFO" });
-  });
-
-  it("returns null for an unmapped user", () => {
-    assert.equal(registry.resolveRso("999"), null);
-  });
-
-  it("does not treat inherited object keys as officers", () => {
-    assert.equal(registry.resolveRso("constructor"), null);
-    assert.equal(registry.resolveRso("__proto__"), null);
-  });
-});
-
-describe("rsoRegistryFromEnv", () => {
-  const value = JSON.stringify({ "111": { rsoKey: "winfo", rsoName: "WINFO" } });
-
-  it("reads officers from the JSON value", () => {
-    assert.deepEqual(rsoRegistryFromEnv(value).resolveRso("111"), { rsoKey: "winfo", rsoName: "WINFO" });
-  });
-
-  it("treats an unset or blank value as no officers", () => {
-    assert.equal(rsoRegistryFromEnv(undefined).resolveRso("111"), null);
-    assert.equal(rsoRegistryFromEnv("   ").resolveRso("111"), null);
-  });
-
-  it("stops on malformed JSON instead of silently allowing no one", () => {
-    assert.throws(() => rsoRegistryFromEnv("{not json"), /DISCORD_RSO_OFFICERS must be valid JSON/);
-  });
-
-  it("rejects a value that is not a JSON object", () => {
-    assert.throws(() => rsoRegistryFromEnv("[]"), /must be a JSON object/);
-    assert.throws(() => rsoRegistryFromEnv("null"), /must be a JSON object/);
-  });
-
-  it("rejects an entry missing its RSO key or name", () => {
-    assert.throws(() => rsoRegistryFromEnv(JSON.stringify({ "111": { rsoKey: "winfo" } })), /rsoName/);
-    assert.throws(() => rsoRegistryFromEnv(JSON.stringify({ "111": { rsoName: "WINFO" } })), /rsoKey/);
   });
 });

@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createDiscordApprovals } from "../discordApprovals.js";
 import { EVENT_COMMAND } from "../discordCommandDefinition.js";
-import { createRsoRegistry } from "../rsoRegistry.js";
 
 const NOW = new Date("2026-11-12T20:00:00Z");
 const APPROVAL_CHANNEL = "approvals-channel";
@@ -14,7 +13,7 @@ const OFFICER_ID = "1001";
 const MOD_ID = "2001";
 const ADMIN_ID = "3001";
 const OTHER_ID = "4001";
-const UNLINKED_OFFICER_ID = "9999";
+const MULTI_RSO_OFFICER_ID = "9999";
 
 const EPHEMERAL = 64;
 const CHANNEL_MESSAGE = 4;
@@ -89,6 +88,14 @@ function createClient() {
   return client;
 }
 
+function createDirectory(rsosByUser) {
+  return {
+    async rsosOf(who) {
+      return rsosByUser[who.user.id] ?? [];
+    },
+  };
+}
+
 function setup() {
   const models = {
     DiscordEventSubmissions: createCollection(),
@@ -97,12 +104,15 @@ function setup() {
   const client = createClient();
   const flow = createDiscordApprovals({
     models,
-    registry: createRsoRegistry({
-      [OFFICER_ID]: { rsoKey: "iuga", rsoName: "IUGA" },
+    directory: createDirectory({
+      [OFFICER_ID]: [{ rsoKey: "iuga", rsoName: "IUGA" }],
+      [MULTI_RSO_OFFICER_ID]: [
+        { rsoKey: "iuga", rsoName: "IUGA" },
+        { rsoKey: "winfo", rsoName: "WINFO" },
+      ],
     }),
     client,
     config: {
-      officerRoleId: OFFICER_ROLE,
       modRoleId: MOD_ROLE,
       iugaOfficerRoleId: IUGA_OFFICER_ROLE,
       approvalChannelId: APPROVAL_CHANNEL,
@@ -169,22 +179,23 @@ const officer = () => member(OFFICER_ID, [OFFICER_ROLE]);
 const mod = () => member(MOD_ID, [MOD_ROLE]);
 
 describe("/event submission", () => {
-  it("refuses a non-officer and writes nothing", async () => {
+  it("points a member with no verified RSO to /rso-verify and writes nothing", async () => {
     const { models, client, flow } = setup();
     const response = await flow.handle(commandInteraction(member(OTHER_ID, [])));
 
     assert.equal(response.type, CHANNEL_MESSAGE);
     assert.equal(response.data.flags, EPHEMERAL);
+    assert.match(response.data.content, /\/rso-verify/);
     assert.equal(models.DiscordEventSubmissions.docs.length, 0);
     assert.equal(client.calls.length, 0);
   });
 
-  it("refuses an officer with no RSO entry and writes nothing", async () => {
+  it("tells an officer of several RSOs that choosing one isn't available yet, and writes nothing", async () => {
     const { models, client, flow } = setup();
-    const response = await flow.handle(commandInteraction(member(UNLINKED_OFFICER_ID, [OFFICER_ROLE])));
+    const response = await flow.handle(commandInteraction(member(MULTI_RSO_OFFICER_ID, [OFFICER_ROLE])));
 
     assert.equal(response.data.flags, EPHEMERAL);
-    assert.match(response.data.content, /not linked to an RSO/);
+    assert.match(response.data.content, /more than one RSO/);
     assert.equal(models.DiscordEventSubmissions.docs.length, 0);
     assert.equal(client.calls.length, 0);
   });

@@ -17,7 +17,9 @@ import {
 import { createDiscordRouter } from "./routes/api/v1/controllers/discord.js";
 import { createDiscordApprovals } from "./discordApprovals.js";
 import { createDiscordClient } from "./discordClient.js";
-import { rsoRegistryFromEnv } from "./rsoRegistry.js";
+import { createRsoDirectory } from "./rsoDirectory.js";
+import { createRsoVerification } from "./discordRsoVerification.js";
+import { createDiscordDispatcher } from "./discordDispatcher.js";
 import { httpErrorHandler, sendSpaError } from "./http/errors.js";
 import {
   isAllowedOrigin,
@@ -91,21 +93,35 @@ Expected Response Information:
 - Unsigned requests receive 401; signed interactions receive a Discord interaction response.
 */
 if (process.env.DISCORD_PUBLIC_KEY) {
-  const discordApprovals = createDiscordApprovals({
+  const discordClient = createDiscordClient({ botToken: process.env.DISCORD_BOT_TOKEN });
+  const rsoDirectory = createRsoDirectory({
     models,
-    registry: rsoRegistryFromEnv(process.env.DISCORD_RSO_OFFICERS),
-    client: createDiscordClient({ botToken: process.env.DISCORD_BOT_TOKEN }),
-    config: {
-      officerRoleId: process.env.DISCORD_OFFICER_ROLE_ID,
-      modRoleId: process.env.DISCORD_MOD_ROLE_ID,
-      iugaOfficerRoleId: process.env.DISCORD_IUGA_OFFICER_ROLE_ID,
-      approvalChannelId: process.env.DISCORD_APPROVAL_CHANNEL_ID,
-    },
+    client: discordClient,
+    officerRoleId: process.env.DISCORD_OFFICER_ROLE_ID,
+    staffRoleIds: [process.env.DISCORD_MOD_ROLE_ID, process.env.DISCORD_IUGA_OFFICER_ROLE_ID],
+  });
+  const reviewerRoles = {
+    modRoleId: process.env.DISCORD_MOD_ROLE_ID,
+    iugaOfficerRoleId: process.env.DISCORD_IUGA_OFFICER_ROLE_ID,
+  };
+  const discordFlows = createDiscordDispatcher({
+    events: createDiscordApprovals({
+      models,
+      directory: rsoDirectory,
+      client: discordClient,
+      config: { ...reviewerRoles, approvalChannelId: process.env.DISCORD_APPROVAL_CHANNEL_ID },
+    }),
+    rsoVerification: createRsoVerification({
+      models,
+      directory: rsoDirectory,
+      client: discordClient,
+      config: { ...reviewerRoles, rsoApprovalChannelId: process.env.DISCORD_RSO_APPROVAL_CHANNEL_ID },
+    }),
   });
   app.use(
     "/api/v1/discord",
     createRateLimiter({ limit: 60, windowMs: 60_000 }),
-    createDiscordRouter({ publicKey: process.env.DISCORD_PUBLIC_KEY, flow: discordApprovals }),
+    createDiscordRouter({ publicKey: process.env.DISCORD_PUBLIC_KEY, flow: discordFlows }),
   );
 }
 

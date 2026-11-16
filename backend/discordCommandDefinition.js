@@ -25,3 +25,19 @@ export const EVENT_COMMAND = {
     { type: STRING, name: "rsvp_url", description: "RSVP link, https (optional)", max_length: 300 },
   ],
 };
+
+export const RSO_VERIFY_COMMAND = {
+  name: "rso-verify",
+  description: "Ask the IUGA board to verify you as an officer of your RSO",
+  options: [
+    {
+      type: STRING,
+      name: "rso",
+      description: "Your RSO. Pick it from the list, or type the full name if it's new",
+      required: true,
+      autocomplete: true,
+      max_length: 80,
+    },
+    { type: STRING, name: "position", description: "Your position, e.g. President", required: true, max_length: 60 },
+  ],
+};

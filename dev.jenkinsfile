@@ -98,7 +98,7 @@ pipeline {
                     string(credentialsId: 'DISCORD_MOD_ROLE_ID', variable: 'DISCORD_MOD_ROLE_ID'),
                     string(credentialsId: 'DISCORD_IUGA_OFFICER_ROLE_ID', variable: 'DISCORD_IUGA_OFFICER_ROLE_ID'),
                     string(credentialsId: 'DISCORD_APPROVAL_CHANNEL_ID', variable: 'DISCORD_APPROVAL_CHANNEL_ID'),
-                    string(credentialsId: 'DISCORD_RSO_OFFICERS', variable: 'DISCORD_RSO_OFFICERS'),
+                    string(credentialsId: 'DISCORD_RSO_APPROVAL_CHANNEL_ID', variable: 'DISCORD_RSO_APPROVAL_CHANNEL_ID'),
                 ]) {
                     script { deploy.healthGatedDeploy(cfg) }
                 }

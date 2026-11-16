@@ -89,3 +89,47 @@ describe("Discord client errors", () => {
     assert.doesNotMatch(message, new RegExp(BOT_TOKEN));
   });
 });
+
+function recordingClient(responses = []) {
+  const requests = [];
+  const fetchImpl = async (url, init) => {
+    requests.push({ url, method: init.method, body: init.body === undefined ? undefined : JSON.parse(init.body) });
+    const next = responses.shift() ?? { status: 204 };
+    return new Response(next.body === undefined ? null : JSON.stringify(next.body), { status: next.status });
+  };
+  return { requests, client: createDiscordClient({ botToken: BOT_TOKEN, fetchImpl }) };
+}
+
+describe("Discord client roles", () => {
+  it("creates a role with no permissions, not mentionable, not hoisted", async () => {
+    const { requests, client } = recordingClient([{ status: 200, body: { id: "r1", name: "HCI Club" } }]);
+
+    const role = await client.createRole("g1", { name: "HCI Club" });
+
+    assert.equal(role.id, "r1");
+    assert.equal(requests[0].method, "POST");
+    assert.match(requests[0].url, /\/guilds\/g1\/roles$/);
+    assert.deepEqual(requests[0].body, { name: "HCI Club", permissions: "0", mentionable: false, hoist: false });
+  });
+
+  it("lists, assigns, and deletes roles on the guild routes", async () => {
+    const { requests, client } = recordingClient([{ status: 200, body: [{ id: "r1", name: "Mods" }] }]);
+
+    assert.deepEqual(await client.listRoles("g1"), [{ id: "r1", name: "Mods" }]);
+    await client.addMemberRole("g1", "u1", "r1");
+    await client.deleteRole("g1", "r1");
+
+    assert.deepEqual(
+      requests.map(({ method, url }) => `${method} ${url.replace(/^.*\/api\/v10/, "")}`),
+      ["GET /guilds/g1/roles", "PUT /guilds/g1/members/u1/roles/r1", "DELETE /guilds/g1/roles/r1"],
+    );
+  });
+
+  it("exposes Discord's error code on a failed call", async () => {
+    const { client } = recordingClient([{ status: 404, body: { message: "Unknown Member", code: 10007 } }]);
+
+    const error = await client.addMemberRole("g1", "u1", "r1").catch((caught) => caught);
+
+    assert.equal(error.discordCode, 10007);
+  });
+});

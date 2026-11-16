@@ -18,63 +18,49 @@
 
 ## Directory Layout
 
+This lists folders and the files a newcomer looks for first, not every file.
+Most source files open with a header comment saying what they are for; read
+that header for any file not described here. [Routing](#routing) describes
+each page.
+
 ```
 frontend/src/
+├── App.jsx            ← Routes, and the data each page receives (see Routing below)
+├── adminSections.js   ← The one list of officer admin pages and their permissions
+├── runtime.js         ← Production check and the API base URL (VITE_API_URL)
 ├── assets/
-│   ├── data/          ← Static JS data files (teams, candidates, resources, etc.)
+│   ├── data/          ← Static data: teams, candidates, resources, FAQ, past events, shop products, enums
 │   ├── mock-data/     ← Mock API responses for development mode
 │   ├── gallery/       ← Event gallery images
-│   └── icons/         ← SVG icons (career, social, academic)
-├── components/        ← Reusable UI components
-│   ├── Button.jsx
-│   ├── CharacterCard.jsx
-│   ├── Dropdown.jsx
-│   ├── ElectionFAQCard.jsx
-│   ├── EmailContactDialog.jsx ← Mail-provider compose dialog for committee and shop contact
-│   ├── EventAgenda.jsx        ← Legacy weekly agenda; not used by the current routes (see EVENTS.md)
-│   ├── EventsOverview.jsx     ← Legacy weekly events page; not routed (see EVENTS.md)
-│   ├── eventsCalendar/        ← The events calendar's views and controls, event RSVP, and previous events (see EVENTS.md)
-│   ├── EventCategoryPills.jsx ← Category labels for the legacy weekly agenda
-│   ├── EventDialog.jsx        ← Details and RSVP dialog for the legacy weekly page
-│   ├── EventThumbnail.jsx     ← Event photo or category tile for the legacy weekly agenda
-│   ├── GradientLine.jsx
-│   ├── PastEventCard.jsx      ← Past event recap with a cover photo and thumbnails
-│   ├── PhotoCollage.jsx       ← Up to three overlapping photos for the legacy weekly page
-│   ├── PhotoLightbox.jsx      ← Full-size photo viewer for a set of photos
-│   ├── ResourceCard.jsx
-│   ├── RolePage.jsx
-│   ├── AdminBar.jsx           ← Officer admin bar: IUGA Admin brand, a link to each admin page, back to site, sign out
-│   ├── ShopMaintenanceBanner.jsx ← Site-wide maintenance countdown for students with items in their cart
-│   └── WeekNavigation.jsx     ← Previous/next week control
+│   └── icons/         ← SVG icons
+├── components/        ← Shared UI pieces
+│   ├── eventsCalendar/ ← The events calendar's views and controls, RSVP, and previous events (see EVENTS.md)
+│   ├── AdminBar.jsx   ← Officer admin bar shown on every /admin page
+│   ├── PageHeader.jsx ← The shared top of the About, Get Involved, Resources, and Student Voice pages and the sign-in preview
+│   ├── ShopCart.jsx, ShopMaintenanceBanner.jsx ← The site-wide cart drawer and maintenance notice
+│   ├── PastEventCard.jsx, PhotoLightbox.jsx ← Past event recaps and the full-size photo viewer, used by the calendar's previous events
+│   └── EventsOverview.jsx, EventAgenda.jsx, EventDialog.jsx, EventCategoryPills.jsx, EventThumbnail.jsx,
+│       PhotoCollage.jsx, WeekNavigation.jsx ← The legacy weekly events page; not routed (see EVENTS.md)
 ├── context/
-│   └── AuthContext.jsx   ← Authentication state (React Context)
-├── hooks/
-│   ├── useAuth.jsx       ← MSAL token acquisition + backend handshake
-│   ├── useCalendarView.js ← The events calendar's view and date, kept in the URL
-│   ├── useEventList.js   ← The events calendar's event list and loading state
-│   ├── useSwipeStep.js, useZoomOverlay.js, useMediaQuery.js, useNow.js ← Calendar swipe, year overlay, media query, clock
-│   ├── usePopover.js     ← Closes a popover on an outside press or Escape
-│   └── useModalDialog.js ← Opens and closes a native <dialog> from an isOpen flag
-├── layouts/
-│   ├── Navbar.jsx        ← Shared top navigation and temporary mobile menu
-│   └── Footer.jsx
-├── utils/calendar/       ← Events calendar date maths, grids, popover placement, swipe rules
-├── pages/
-│   ├── Home.jsx          ← Homepage hero, upcoming events, support destinations, and community links
-│   ├── Events.jsx        ← Events calendar: year, month, week, and day views
-│   ├── Resources.jsx     ← Resource links list
-│   ├── About.jsx         ← Team member cards by year
-│   ├── GetInvolved.jsx   ← Committee leaders, committees, and the Creative application status
-│   ├── Elections.jsx     ← Candidate profiles for current election
-│   └── ElectionsFAQ.jsx  ← FAQ accordion about elections
+│   ├── AuthContext.jsx     ← Sign-in state and the user's admin permissions
+│   └── ShopCartContext.jsx ← The site-wide cart, catalog, and checkout holds
+├── hooks/             ← Calendar view and swipe hooks, popover and <dialog> helpers, media query, clock, sign-in
+├── layouts/           ← Navbar and Footer, rendered once by App.jsx
+├── utils/
+│   ├── calendar/      ← Events calendar date maths, grids, popover placement, swipe rules
+│   ├── shopCart.js, shopFormat.js ← Cart rules and price/size formatting for the shop
+│   └── theme.js       ← The light or dark theme: the system setting until the visitor picks one
+├── pages/             ← One component per route: Home, Events, Resources, About, GetInvolved,
+│                        Shop, ShopCheckout, ShopOrders and ShopPickup (officers), StudentVoice,
+│                        and the archived Elections and ElectionsFAQ
 └── stylesheets/
-    ├── main.scss          ← Stylesheet entry point using Sass modules (7-1 architecture)
-    ├── abstracts/         ← Variables, mixins, functions, media queries
-    ├── vendors/           ← Vendored third-party styles (include-media, toastify)
-    ├── base/              ← Reset, typography, colors, shared element rules, misc
-    ├── layout/            ← Container, split responsive navigation, footer, form
-    ├── components/        ← Component-specific styles
-    └── pages/             ← Page-specific styles (e.g., _getInvolved.scss for page and member-card styles)
+    ├── main.scss      ← The one stylesheet entry point; loads every partial with @use
+    ├── abstracts/     ← Tokens, mixins, theme roles, breakpoints; emits no CSS
+    ├── vendors/       ← Vendored third-party styles (include-media, toastify)
+    ├── base/          ← Reset, typography, colors, rules for every element of a kind
+    ├── layout/        ← Container, responsive navigation, footer, form
+    ├── components/    ← One partial per component
+    └── pages/         ← One partial per page
 ```
 
 ### Stylesheet conventions

@@ -102,8 +102,9 @@ The **schemas** live in a separate GitHub repository (`UW-IUGA/iuga-web-schemas`
 8.  Response flows back: MongoDB → Mongoose → Controller → Browser JSON → React state → DOM
 ```
 
-**SPA routes** (handled by Express sending the same `index.html`):
-`/`, `/events`, `/resources`, `/get-involved`, `/electionfaq`, `/contact`
+**SPA routes** (handled by Express sending the same `index.html`): every
+browser path React Router renders, listed once in `SPA_ROUTES` in
+`backend/http/spaRoutes.js` — see [BACKEND.md](./BACKEND.md#spa-routes).
 
 **API routes** (JSON responses):
 All mounted under `/api/v1` — see [BACKEND.md](./BACKEND.md).

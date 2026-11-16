@@ -17,6 +17,11 @@ import useResourcePageSize from "../hooks/useResourcePageSize";
 
 const resultLabel = (count) => `${count} ${count === 1 ? "resource" : "resources"}`;
 
+// Keeps hyphenated words such as "Well-Being" on one line, so a Start Here name never breaks after the hyphen.
+const keepHyphenatedWordsWhole = (name) => name
+    .split(/(\S+-\S+)/)
+    .map((part, index) => (index % 2 === 1 ? <span key={index} className="resourcesNoBreak">{part}</span> : part));
+
 // Kept from the original Resources page.
 const INTRO = "IUGA is just one of many RSOs and groups affiliated with the iSchool that makes the iSchool everything it "
     + "is. Explore the resources below to take full advantage of everything the iSchool offers its students! From academic "
@@ -69,7 +74,7 @@ function ResourcesPage({ resources }) {
                     <li key={resource.rName}>
                         <a className="resourcesStartLink" href={resource.rLink} target="_blank" rel="noreferrer">
                             <span className="resourceCardIcon"><img src={resource.rImage} alt="" /></span>
-                            <span>{resource.rName}</span>
+                            <span>{keepHyphenatedWordsWhole(resource.rName)}</span>
                             <span className="sr-only"> (opens in a new tab)</span>
                         </a>
                     </li>
@@ -82,7 +87,6 @@ function ResourcesPage({ resources }) {
         <div className="baseContainer">
             <main className="resourcesPage">
                 <PageHeader
-                    label="iSchool Resources"
                     title="Make the most of the iSchool."
                     intro={INTRO}
                     visual={startHereSection}

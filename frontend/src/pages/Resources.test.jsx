@@ -75,7 +75,7 @@ describe("ResourcesPage", () => {
 
         const header = screen.getByRole("region", { name: "Make the most of the iSchool." });
         expect(within(header).getByRole("heading", { level: 1 })).toHaveTextContent("Make the most of the iSchool.");
-        expect(within(header).getByText("iSchool Resources")).toBeInTheDocument();
+        expect(within(header).queryByText("iSchool Resources")).not.toBeInTheDocument();
         expect(within(header).getByText(/^IUGA is just one of many RSOs/)).toBeInTheDocument();
         const startHere = screen.getByRole("region", { name: "Start Here" });
         expect(within(startHere).getByText("iSchool Career Services (Canvas)")).toBeInTheDocument();

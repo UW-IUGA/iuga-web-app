@@ -49,10 +49,13 @@ function createDirectory() {
     grants: [],
     grantResult: null,
     grantError: null,
-    async suggest(text) {
+    guilds: [],
+    async suggest(text, guildId) {
+      directory.guilds.push(guildId);
       return [...known.values()].filter((name) => name.toLowerCase().includes(String(text).toLowerCase()));
     },
-    async identify(typed) {
+    async identify(typed, guildId) {
+      directory.guilds.push(guildId);
       const name = String(typed).trim().replace(/\s+/g, " ");
       if (!name || name.length > 80) return null;
       const rsoKey = name.toLowerCase();
@@ -220,6 +223,7 @@ describe("/rso-verify autocomplete", () => {
     });
 
     assert.equal(response.type, AUTOCOMPLETE_RESULT);
+    assert.deepEqual(context.directory.guilds, [GUILD]);
     assert.deepEqual(response.data.choices, [{ name: "HCI Club", value: "HCI Club" }]);
   });
 });
@@ -306,7 +310,7 @@ describe("RSO verification review", () => {
     const response = await context.flow.handle(click(moderator(), `rso-approve:${row._id}`));
 
     assert.equal(response.type, CHANNEL_MESSAGE);
-    assert.match(response.data.content, /already has a role named/);
+    assert.match(response.data.content, /can't be approved as a new RSO/);
     assert.equal(context.models.DiscordRsoRequests.docs[0].status, "pending");
   });
 

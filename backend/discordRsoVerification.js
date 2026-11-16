@@ -33,7 +33,7 @@ const NOT_REVIEWER = "Only moderators, IUGA officers, or server admins can revie
 
 const REFUSAL_MESSAGES = {
   "name-taken": (row) =>
-    `The server already has a role named "${row.rsoName}" that isn't an RSO, so this can't be approved as a new RSO. Deny it and ask the requester to use the RSO's full name.`,
+    `"${row.rsoName}" can't be approved as a new RSO: it matches a staff role, or a "${row.rsoName} Officer" role already exists that the bot didn't create. Deny it and ask for the RSO's full name, or have an admin delete the hand-made officer role and approve again.`,
   "bot-cannot-manage-roles": () =>
     "The bot isn't allowed to give roles. A server admin needs to give the bot the Manage Roles permission and drag its role above the RSO roles in Server Settings > Roles. Then approve again.",
 };
@@ -72,7 +72,7 @@ export function createRsoVerification({ models, directory, client, config, now =
 
   async function handleAutocomplete(interaction) {
     const focused = (interaction.data?.options ?? []).find((option) => option.focused);
-    const names = await directory.suggest(String(focused?.value ?? ""));
+    const names = await directory.suggest(String(focused?.value ?? ""), interaction.guild_id);
     return { type: RESPONSE_AUTOCOMPLETE, data: { choices: names.map((name) => ({ name, value: name })) } };
   }
 
@@ -81,7 +81,7 @@ export function createRsoVerification({ models, directory, client, config, now =
     if (!who?.user) return reply("Use /rso-verify inside the IUGA server.");
 
     const options = commandOptions(interaction);
-    const identity = await directory.identify(options.rso);
+    const identity = await directory.identify(options.rso, interaction.guild_id);
     if (!identity) return reply("The RSO name must be 1 to 80 characters.");
     const position = neutralizeMentions(String(options.position ?? "").trim());
     if (!position || position.length > POSITION_LIMIT) {

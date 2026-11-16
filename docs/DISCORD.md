@@ -2,7 +2,7 @@
 
 The bot does two jobs, both run from inside Discord with no developer step:
 
-1. **RSO officer verification.** An RSO officer runs `/rso-verify`, and the IUGA board approves or denies it in a private `#rso-approvals` channel. Approval gives the officer their RSO's role.
+1. **RSO officer verification.** An RSO officer runs `/rso-verify`, and the IUGA board approves or denies it in a private `#rso-approvals` channel. Approval gives the officer their RSO's officer role, such as "BINFO Officer."
 2. **Event approval.** A verified officer submits an event with `/event`, and moderators approve it in `#events-approvals`.
 
 ## Setting up the server (one time, no code)
@@ -17,22 +17,22 @@ Do these once in Discord. After that, the board runs everything with buttons.
 
 ## How RSO officer verification moves
 
-1. An officer runs `/rso-verify`, picks their RSO from the list (or types the full name if it's new), and enters their position.
+1. An officer runs `/rso-verify`, picks their RSO from the list (or types the full name if it's new), and enters their position. Suggestions combine RSOs in the database with the server's RSO membership roles; staff, bot, and "… Officer" roles are left out, and server roles are read at most once a minute.
 2. A card appears in `#rso-approvals` with the requester, the RSO, and the position. An RSO the bot hasn't seen yet is marked **New RSO**. RSO names match ignoring capitals and extra spaces, so "HCI Club" and "hci club" are the same RSO.
 3. A moderator, IUGA officer, or server admin clicks **Approve** or **Deny**. Nobody can review their own request, and anyone else who clicks gets a private refusal.
-4. **Approve:** the bot gives the officer their RSO's role and the general RSO officer role. If the RSO is new, the bot creates its role first, named exactly like the RSO, with **no permissions**. The card shows who approved, and the officer gets a DM saying they can now use `/event`.
+4. **Approve:** the bot gives the officer "<RSO> Officer" and the general RSO officer role. It creates "<RSO> Officer" the first time, with **no permissions**. Membership roles such as "BINFO" are never changed or handed out, so a member of an RSO can't post as it. The card shows who approved, and the officer gets a DM saying they can now use `/event`.
 5. **Deny:** a reason is required. The officer gets it by DM, and the card shows who denied it.
 
 What the board might see:
 
-- **"The server already has a role named …"**: someone asked for an RSO named like an existing non-RSO role, such as "Moderator." Deny it and ask them to use the RSO's full name.
+- **"… can't be approved as a new RSO"**: the name matches a staff role such as "Moderator," or an "… Officer" role was made by hand. Deny it, or have an admin delete the hand-made role and approve again.
 - **"The bot isn't allowed to give roles…"**: redo setup steps 2 and 3, then click Approve again.
 - **"Closed: the requester left the server."**: the bot closed the request on its own. Nothing to do.
 - **"already been reviewed"**: someone else got there first.
 
 Each member can have one open request per RSO. To take someone's officer status away, remove their RSO role in Discord; the bot reads roles every time, so nothing else needs changing.
 
-The RSO list and each RSO's role live in the `DiscordRsos` collection, and requests live in `DiscordRsoRequests`. `backend/rsoDirectory.js` is the only code that reads or writes RSOs or gives RSO roles.
+The RSO list and each RSO's officer role live in the `DiscordRsos` collection, and requests live in `DiscordRsoRequests`. `backend/rsoDirectory.js` is the only code that reads or writes RSOs or gives RSO roles.
 
 ## Event approval
 
@@ -50,7 +50,7 @@ The website database is still the source of truth. A social post is not an event
 
 Who can see the cards is set in Discord's channel permissions, not in code. Anyone who can view `#events-approvals` sees every card, including the RSO, the event details, and the submitter's display name. The bot only checks who can click. Only members with the moderator role, the IUGA officer role, or Discord's Administrator permission can approve or deny. Anyone else who clicks gets a private "Only moderators or IUGA officers can approve events" reply.
 
-To keep the cards to moderators, limit the channel's View Channel permission to the moderator and IUGA officer roles in Discord's channel settings. The RSO officer role (`DISCORD_OFFICER_ROLE_ID`) and the RSO roles must not have View Channel on this channel, because RSO officers submit with `/event` and should never see the cards. Check this before testing.
+To keep the cards to moderators, limit the channel's View Channel permission to the moderator and IUGA officer roles in Discord's channel settings. The RSO officer role (`DISCORD_OFFICER_ROLE_ID`), the "… Officer" roles, and membership roles must not have View Channel on this channel, because RSO officers submit with `/event` and should never see the cards. Check this before testing.
 
 ## How a review moves
 

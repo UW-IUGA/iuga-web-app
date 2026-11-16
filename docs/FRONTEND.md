@@ -19,8 +19,9 @@
 ## Directory Layout
 
 This lists folders and the files a newcomer looks for first, not every file.
-Each source file opens with a header comment saying what it is for, so that
-header, not this list, is the place to read about one file.
+Most source files open with a header comment saying what they are for; read
+that header for any file not described here. [Routing](#routing) describes
+each page.
 
 ```
 frontend/src/
@@ -35,9 +36,11 @@ frontend/src/
 ├── components/        ← Shared UI pieces
 │   ├── eventsCalendar/ ← The events calendar's views and controls, RSVP, and previous events (see EVENTS.md)
 │   ├── AdminBar.jsx   ← Officer admin bar shown on every /admin page
-│   ├── PageHeader.jsx ← The shared top of every public page
+│   ├── PageHeader.jsx ← The shared top of the About, Get Involved, Resources, and Student Voice pages
 │   ├── ShopCart.jsx, ShopMaintenanceBanner.jsx ← The site-wide cart drawer and maintenance notice
-│   └── EventAgenda.jsx, EventsOverview.jsx, EventDialog.jsx, … ← The legacy weekly events page; not routed (see EVENTS.md)
+│   ├── PastEventCard.jsx, PhotoLightbox.jsx ← Past event recaps and the full-size photo viewer, used by the calendar's previous events
+│   └── EventsOverview.jsx, EventAgenda.jsx, EventDialog.jsx, EventCategoryPills.jsx, EventThumbnail.jsx,
+│       PhotoCollage.jsx, WeekNavigation.jsx ← The legacy weekly events page; not routed (see EVENTS.md)
 ├── context/
 │   ├── AuthContext.jsx     ← Sign-in state and the user's admin permissions
 │   └── ShopCartContext.jsx ← The site-wide cart, catalog, and checkout holds

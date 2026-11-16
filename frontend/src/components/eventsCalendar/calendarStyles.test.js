@@ -141,6 +141,20 @@ describe("calendar styles", () => {
         expect(inPalette("light", style(".mini__weekdays span").color)).toBe("#595959");
     });
 
+    // View Photos is a solid pill like the Contact button: white with dark text in dark, site purple with white text in
+    // light, and Contact's lavender hover. It was an outline whose border colour was patched per theme.
+    it("fill View Photos like the Contact button in both themes", () => {
+        const button = style(".pastEvents .pastEventCard__viewPhotos");
+        expect(inPalette("dark", button["background-color"])).toBe("#fff");
+        expect(inPalette("dark", button.color)).toBe("#000");
+        expect(inPalette("light", button["background-color"])).toBe("#32006e");
+        expect(inPalette("light", button.color)).toBe("#fff");
+        expect(button.border).toBe("none");
+        expect(button["font-weight"]).toBe("600");
+        const hover = style(".pastEvents .pastEventCard__viewPhotos:hover, .pastEvents .pastEventCard__viewPhotos:focus-visible");
+        expect(hover["background-color"]).toBe("var(--color-accent)");
+    });
+
     // Under the .eventsCalendar scope, a Sass "X &" selector would put X outside the
     // calendar, where it never matches. These two carry contrast, so they are pinned.
     it("give a year-view event day the text that reads on its label colour (1.4.3)", () => {

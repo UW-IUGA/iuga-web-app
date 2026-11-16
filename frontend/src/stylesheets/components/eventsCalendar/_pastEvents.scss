@@ -102,6 +102,8 @@ Expected Response Information: The same palette, type, radii and focus ring as t
         font-family: $calendar-font-family;
     }
 
+    // The solid pill the Contact button on Get Involved uses: the calendar's one strong fill (white on dark,
+    // site purple in light, as the RSVP button) and, on hover, the site's accent.
     .pastEvents .pastEventCard__viewPhotos {
         min-height: 40px;
         margin-top: auto;
@@ -109,26 +111,15 @@ Expected Response Information: The same palette, type, radii and focus ring as t
 
         font-size: 14px;
         font-weight: 600;
-        background-color: transparent;
-        color: $calendar-text;
-        border: 1px solid $calendar-control-border;
+        background-color: $calendar-copy-bg;
+        color: $calendar-copy-text;
+        border: none;
         border-radius: $calendar-radius-pill;
+        transition: background-color 180ms ease;
 
-        // White in the dark theme, so the outline stands out on the dark card.
-        &:where([data-theme="dark"] *) {
-            border-color: #fff;
-        }
-
-        &:hover {
-            background-color: $calendar-hover;
-            color: $calendar-text;
-        }
-
+        &:hover,
         &:focus-visible {
-            background-color: $calendar-hover;
-            color: $calendar-text;
-            outline: 2px solid $calendar-text;
-            outline-offset: 2px;
+            background-color: theme(accent);
         }
     }
 }

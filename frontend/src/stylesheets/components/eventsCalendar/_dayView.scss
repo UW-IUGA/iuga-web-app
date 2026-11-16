@@ -109,14 +109,4 @@ Expected Response Information: A single-day schedule; picking an event opens its
             text-decoration: underline;
         }
     }
-
-    .detail__questions {
-        margin-top: $calendar-space-2xs;
-        padding-left: $calendar-space-md;
-        color: $calendar-copy-muted;
-
-        li + li {
-            margin-top: 2px;
-        }
-    }
 }

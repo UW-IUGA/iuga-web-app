@@ -2096,4 +2096,12 @@ describe("details an officer relies on", () => {
         await waitFor(() => expect(within(table).queryByRole("button", { name: "Example Student" })).not.toBeInTheDocument());
         expect(table).toHaveTextContent("Added to log: Example Student");
     });
+
+    it("names a buyer with no name on file by their email", async () => {
+        const buyer = { id: "64b0000000000000000000bb", name: null, email: "example@uw.edu" };
+        mockApi({ [PENDING]: listed([order({ buyer })]) });
+        renderPage();
+
+        expect(await findRow("example@uw.edu")).toHaveTextContent("example@uw.edu");
+    });
 });

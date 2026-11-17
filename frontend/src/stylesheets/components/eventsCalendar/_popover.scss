@@ -7,17 +7,19 @@ Expected Response Information: A floating card with the event's details and a cl
 @use "../../abstracts/eventsCalendar" as *;
 
 .eventsCalendar {
-    // The event popover, shared by the month, week and day views. Fixed to the
-    // viewport and placed beside the event from script (EventPopover), outside
-    // the calendar so its clipping cannot cut it off.
+    // The event popover, shared by the month, week and day views. Placed on the
+    // page beside the event from script (EventPopover), outside the calendar so
+    // its clipping cannot cut it off. On the page rather than fixed to the window,
+    // so it scrolls with the page, and its event, without any script.
     .popover {
-        position: fixed;
+        position: absolute;
         top: 0;
         left: 0;
-        // Over the sticky site navigation (100), at the level the site gives its other
-        // popups (_dropdown, _alertDialog). At 20 the nav painted over the top of the
-        // popover on a phone, where it sits just below the nav.
-        z-index: 1000;
+        // Over the page (nothing on it is above 2; the grid keeps its own layers inside
+        // it), but under the sticky site navigation (100). EventPopover places it below
+        // the navigation, and once the page scrolls on with the calendar it slides up
+        // under the navigation like the rest of the page, rather than over it.
+        z-index: 90;
 
         // Wide enough that a typical event's description wraps to a few lines
         // rather than a tall column, so it rarely needs to scroll at all.

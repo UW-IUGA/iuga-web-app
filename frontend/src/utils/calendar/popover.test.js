@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { chooseSide, placePopover, placeStacked } from "./popover";
+import { chooseSide, followAnchor, placePopover, placeStacked } from "./popover";
 
 const viewport = { width: 1400, height: 900 };
 const popover = { width: 340, height: 400 };
@@ -62,6 +62,75 @@ describe("placePopover", () => {
     });
 });
 
+describe("placePopover inside the calendar", () => {
+    // The calendar runs from 100 to 800 down the window, with Previous events below.
+    const calendar = { left: 40, right: 1360, top: 100, bottom: 800 };
+
+    it("places as usual while the popover fits inside the calendar", () => {
+        expect(placePopover(anchor, popover, "right", viewport, 0, calendar)).toEqual({ left: 768, top: 300 });
+    });
+
+    it("lifts the popover so it ends at the line above Previous events", () => {
+        const low = { left: 600, right: 760, top: 600 };
+
+        expect(placePopover(low, popover, "right", viewport, 0, calendar).top).toBe(800 - 400);
+    });
+
+    it("leaves with the calendar as the page scrolls on, rather than staying on screen", () => {
+        // Scrolled so the calendar's bottom edge is 200px down the window, and its
+        // event gone off the top.
+        const scrolled = { left: 40, right: 1360, top: -500, bottom: 200 };
+        const gone = { left: 600, right: 760, top: -100 };
+
+        const { top } = placePopover(gone, popover, "right", viewport, 0, scrolled);
+        expect(top + popover.height).toBeLessThanOrEqual(200);
+    });
+
+    it("cuts a popover taller than the calendar to the calendar's height", () => {
+        const short = { left: 40, right: 1360, top: 100, bottom: 400 };
+
+        expect(placePopover(anchor, popover, "right", viewport, 0, short)).toEqual({
+            left: 768,
+            top: 100,
+            maxHeight: 300,
+        });
+    });
+
+    it("keeps the popover within the calendar's sides as well as the window's", () => {
+        const narrow = { left: 200, right: 1000, top: 100, bottom: 800 };
+        const nearRight = { left: 800, right: 960, top: 300 };
+
+        expect(placePopover(nearRight, popover, "right", viewport, 0, narrow).left).toBe(1000 - 340);
+    });
+});
+
+describe("placePopover under the site navigation", () => {
+    // The sticky navigation ends 64px down the window.
+    const navBottom = 64;
+
+    it("starts below the navigation, never over it", () => {
+        const underNav = { left: 600, right: 760, top: 40 };
+
+        expect(placePopover(underNav, popover, "right", viewport, navBottom).top).toBe(64 + 8);
+    });
+
+    it("cuts a popover taller than the room under the navigation to that room", () => {
+        expect(placePopover(anchor, { width: 340, height: 900 }, "right", viewport, navBottom)).toEqual({
+            left: 768,
+            top: 72,
+            maxHeight: 900 - 16 - 72,
+        });
+    });
+
+    it("goes up under the navigation with the calendar as the page scrolls on, rather than staying over it", () => {
+        // The calendar's bottom edge is 200px down, so the popover must end there,
+        // which takes its top above the navigation, where the navigation covers it.
+        const scrolled = { left: 40, right: 1360, top: -500, bottom: 200 };
+
+        expect(placePopover(anchor, popover, "right", viewport, navBottom, scrolled).top).toBe(200 - 400);
+    });
+});
+
 describe("chooseSide", () => {
     const sameSpot = { left: 600, right: 760, top: 300 };
 
@@ -105,6 +174,36 @@ describe("placeStacked", () => {
     const phonePopover = { width: 343, height: 400 };
     // A 48px event block whose top edge is at `top`.
     const eventAt = (top) => ({ left: 42, right: 374, top, bottom: top + 48 });
+
+    describe("inside the calendar", () => {
+        // The calendar ends 500px down the phone, with Previous events below.
+        const calendar = { left: 0, right: 375, top: 60, bottom: 500 };
+
+        it("counts only the calendar's room below the event, and cuts the popover to it", () => {
+            // Below there is 500 - 148 - 8 = 344px, under 400; above, 100 - 8 - 60 = 32px.
+            // Neither fits, so it takes the larger room below and is cut to it.
+            expect(placeStacked(eventAt(100), phonePopover, phone, 0, calendar)).toEqual({
+                left: 16,
+                top: 156,
+                maxHeight: 344,
+            });
+        });
+
+        it("never reaches past the line above Previous events", () => {
+            const placed = placeStacked(eventAt(150), { width: 343, height: 200 }, phone, 0, calendar);
+
+            expect(placed.top + (placed.maxHeight ?? 200)).toBeLessThanOrEqual(500);
+        });
+
+        it("leaves with the calendar as the page scrolls on, rather than staying on screen", () => {
+            // Scrolled until the calendar ends 120px down the phone, its event gone off the top.
+            const scrolled = { left: 0, right: 375, top: -600, bottom: 120 };
+            const small = { width: 343, height: 200 };
+
+            const placed = placeStacked(eventAt(-100), small, phone, 64, scrolled);
+            expect(placed.top + (placed.maxHeight ?? small.height)).toBeLessThanOrEqual(120);
+        });
+    });
 
     it("goes below the event when the whole popover fits there", () => {
         expect(placeStacked(eventAt(100), phonePopover, phone)).toEqual({
@@ -163,5 +262,28 @@ describe("placeStacked", () => {
             expect(placed.top).toBeGreaterThanOrEqual(16);
             expect(placed.top + height).toBeLessThanOrEqual(667 - 16);
         }
+    });
+});
+
+describe("followAnchor", () => {
+    // Opened 8px under an event at 300, 400px tall, with the event's left at 42.
+    const placement = { left: 16, top: 356, anchorLeft: 42, anchorTop: 300, height: 400 };
+    const calendar = { left: 0, right: 375, top: 100, bottom: 1200 };
+
+    it("moves with the event, keeping its place beside it", () => {
+        expect(followAnchor(placement, { left: 42, top: 220 }, calendar)).toEqual({ left: 16, top: 276 });
+    });
+
+    it("never flips to the other side of the event, however the room changes", () => {
+        // Near the bottom of the calendar there is no longer room below the event,
+        // but the popover only shifts: it does not jump above.
+        const nearBottom = followAnchor(placement, { left: 42, top: 760 }, calendar);
+        expect(nearBottom.top).toBe(1200 - 400);
+        expect(nearBottom.top).toBeGreaterThan(760 - 400);
+    });
+
+    it("stops at the calendar's edges rather than following the event out of it", () => {
+        expect(followAnchor(placement, { left: 42, top: -500 }, calendar).top).toBe(100);
+        expect(followAnchor(placement, { left: 42, top: 2000 }, calendar).top).toBe(1200 - 400);
     });
 });

@@ -81,8 +81,8 @@ Every `Events` row is public the moment it's inserted, which is why pending requ
 
 | Variable | What it does |
 |---|---|
-| `DISCORD_APP_ID` | The application ID. Only the command registration script uses it. |
-| `DISCORD_GUILD_ID` | The server ID for guild command registration. Only the registration script uses it. |
+| `DISCORD_APP_ID` | The application ID, used to register the slash commands. |
+| `DISCORD_GUILD_ID` | The IUGA server ID, where the slash commands are registered. |
 | `DISCORD_PUBLIC_KEY` | Verifies that requests really come from Discord. The interactions route is not mounted when this is unset. |
 | `DISCORD_BOT_TOKEN` | Lets the bot post cards and send DMs. Never log it. |
 | `DISCORD_OFFICER_ROLE_ID` | General RSO officer role the bot gives with every RSO role, used for channel visibility. Keep it out of the approval channels' permissions. |
@@ -98,13 +98,15 @@ These are set once. Day-to-day changes (new RSOs, new officers) happen in Discor
 Create each of these as a Secret text credential:
 
 - `DISCORD_BOT_TOKEN`
+- `DISCORD_APP_ID`
+- `DISCORD_GUILD_ID`
 - `DISCORD_OFFICER_ROLE_ID`
 - `DISCORD_MOD_ROLE_ID`
 - `DISCORD_IUGA_OFFICER_ROLE_ID`
 - `DISCORD_APPROVAL_CHANNEL_ID`
 - `DISCORD_RSO_APPROVAL_CHANNEL_ID`
 
-`dev.jenkinsfile` binds all six as credentials in the Deploy stage, and `ci/deploy.groovy` passes them to the dev container with `docker run -e`. The image itself doesn't contain any of them. Only dev forwards these values for now. If a credential is missing in Jenkins, the Deploy stage fails before the container starts.
+`dev.jenkinsfile` binds all eight as credentials in the Deploy stage, and `ci/deploy.groovy` passes them to the dev container with `docker run -e`. The image itself doesn't contain any of them. Only dev forwards these values for now. If a credential is missing in Jenkins, the Deploy stage fails before the container starts.
 
 ## Interactions Endpoint URL
 
@@ -116,13 +118,17 @@ https://dev.iuga.info/api/v1/discord/interactions
 
 Save this only after the route is deployed and `DISCORD_PUBLIC_KEY` is set on that container. When you save, Discord sends a signed PING to the URL, and the route has to answer it or Discord rejects the save. Unsigned requests get a 401.
 
-To register `/event` and `/rso-verify` in the server, run this from `backend/` with the variables set:
+## Slash command registration
+
+Discord keeps its own copy of each slash command's name, description, and options, and deploying the bot doesn't change that copy. So the server registers `/event` and `/rso-verify` itself every time it starts, replacing whatever the IUGA server showed before. Changes to `backend/discordCommandDefinition.js` show up right after the deploy, with no manual step.
+
+Registration runs in the background after the server starts listening, so a Discord problem never delays startup or fails the deploy. Only the container that goes live registers: the deploy's trial container doesn't get the IDs, so a build that fails its health check never changes Discord, and a rollback re-registers the last good build's commands. Check the container log for `Discord commands registered: /event, /rso-verify`. If `DISCORD_APP_ID` or `DISCORD_GUILD_ID` is missing, the log says so and the commands Discord already has stay as they were.
+
+To register by hand, for example from a local checkout, run this from `backend/`:
 
 ```
 DISCORD_APP_ID=... DISCORD_BOT_TOKEN=... DISCORD_GUILD_ID=... node scripts/registerDiscordCommands.mjs
 ```
-
-The script replaces every guild command for the application with `/event` and `/rso-verify`. Guild commands show up right away. Global commands can take up to an hour.
 
 ## Why the route mounts before the JSON parser
 

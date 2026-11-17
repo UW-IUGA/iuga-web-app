@@ -30,3 +30,5 @@ export const RSO_VERIFY_COMMAND = {
     { type: STRING, name: "position", description: "Your position, e.g. President", required: true, max_length: 60 },
   ],
 };
+
+export const DISCORD_COMMANDS = [EVENT_COMMAND, RSO_VERIFY_COMMAND];

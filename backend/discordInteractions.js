@@ -8,15 +8,18 @@ export const INTERACTION_MODAL_SUBMIT = 5;
 const RESPONSE_MESSAGE = 4;
 const RESPONSE_UPDATE_MESSAGE = 7;
 export const RESPONSE_AUTOCOMPLETE = 8;
-const RESPONSE_MODAL = 9;
+export const RESPONSE_MODAL = 9;
 
 const EPHEMERAL = 64;
 const COMPONENT_ACTION_ROW = 1;
 const COMPONENT_BUTTON = 2;
-const COMPONENT_TEXT_INPUT = 4;
+export const COMPONENT_STRING_SELECT = 3;
+export const COMPONENT_TEXT_INPUT = 4;
+export const COMPONENT_LABEL = 18;
 const BUTTON_SUCCESS = 3;
 const BUTTON_DANGER = 4;
-const TEXT_INPUT_PARAGRAPH = 2;
+export const TEXT_INPUT_SHORT = 1;
+export const TEXT_INPUT_PARAGRAPH = 2;
 
 export const NO_MENTIONS = { parse: [] };
 export const OBJECT_ID = /^[0-9a-f]{24}$/i;
@@ -35,8 +38,10 @@ export function neutralizeMentions(text) {
   return text.replace(/<[@#][!&]?\d+>/g, "").replace(/@/g, "@​");
 }
 
-export function reply(content) {
-  return { type: RESPONSE_MESSAGE, data: { content, flags: EPHEMERAL, allowed_mentions: NO_MENTIONS } };
+export function reply(content, { embeds } = {}) {
+  const data = { content, flags: EPHEMERAL, allowed_mentions: NO_MENTIONS };
+  if (embeds) data.embeds = embeds;
+  return { type: RESPONSE_MESSAGE, data };
 }
 
 export function updateCard(embed, components = []) {

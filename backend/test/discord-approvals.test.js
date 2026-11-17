@@ -88,15 +88,16 @@ function createClient() {
   return client;
 }
 
-function createDirectory(rsosByUser) {
+function createDirectory(rsosByUser, { fails = false } = {}) {
   return {
     async rsosOf(who) {
+      if (fails) throw new Error("directory down");
       return rsosByUser[who.user.id] ?? [];
     },
   };
 }
 
-function setup() {
+function setup({ directoryFails = false } = {}) {
   const models = {
     DiscordEventSubmissions: createCollection(),
     Events: createCollection(),
@@ -110,7 +111,7 @@ function setup() {
         { rsoKey: "iuga", rsoName: "IUGA" },
         { rsoKey: "winfo", rsoName: "WINFO" },
       ],
-    }),
+    }, { fails: directoryFails }),
     client,
     config: {
       modRoleId: MOD_ROLE,
@@ -126,23 +127,47 @@ function member(id, roles = [], extra = {}) {
   return { user: { id, username: `user${id}`, global_name: null }, nick: null, roles, ...extra };
 }
 
-function eventOptions(overrides = {}) {
-  const values = {
-    name: "IUGA Study Break",
-    date: "2026-12-01",
-    start_time: "18:00",
-    location: "Mary Gates Hall",
-    category: "Social",
-    description: "Snacks and a quiet room for Informatics undergrads.",
-    ...overrides,
-  };
-  return Object.entries(values)
-    .filter(([, value]) => value !== undefined)
-    .map(([name, value]) => ({ name, type: 3, value }));
+const FORM_FIELDS = {
+  name: "IUGA Study Break",
+  when: "12/1/2026 6:00 PM - 8:00 PM",
+  location: "Mary Gates Hall",
+  category: "Social",
+  description: "Snacks and a quiet room for Informatics undergrads.",
+};
+
+function commandInteraction(who, options = []) {
+  return { type: 2, member: who, channel_id: "some-channel", data: { name: "event", options } };
 }
 
-function commandInteraction(who, options = eventOptions()) {
-  return { type: 2, member: who, channel_id: "some-channel", data: { name: "event", options } };
+function rsoOption(value) {
+  return [{ name: "rso", type: 3, value }];
+}
+
+function autocompleteInteraction(who, typed) {
+  return {
+    type: 4,
+    member: who,
+    data: { name: "event", options: [{ name: "rso", type: 3, value: typed, focused: true }] },
+  };
+}
+
+function formSubmitInteraction(who, rsoKey, overrides = {}) {
+  const fields = { ...FORM_FIELDS, ...overrides };
+  return {
+    type: 5,
+    member: who,
+    data: {
+      custom_id: `event-form:${rsoKey}`,
+      components: Object.entries(fields).map(([fieldId, answer], index) => ({
+        type: 18,
+        id: index * 2 + 1,
+        component:
+          fieldId === "category"
+            ? { type: 3, id: index * 2 + 2, custom_id: fieldId, values: [answer] }
+            : { type: 4, id: index * 2 + 2, custom_id: fieldId, value: answer },
+      })),
+    },
+  };
 }
 
 function componentInteraction(who, customId) {
@@ -161,10 +186,11 @@ function modalSubmitInteraction(who, customId, reason = "") {
   };
 }
 
-async function submitEvent(flow, options) {
-  const response = await flow.handle(commandInteraction(member(OFFICER_ID, [OFFICER_ROLE]), options));
+async function submitEvent(flow, overrides) {
+  const response = await flow.handle(formSubmitInteraction(member(OFFICER_ID, [OFFICER_ROLE]), "iuga", overrides));
   assert.equal(response.type, CHANNEL_MESSAGE);
   assert.equal(response.data.flags, EPHEMERAL);
+  return response;
 }
 
 async function pendingSubmission(setupOptions = {}) {
@@ -178,46 +204,125 @@ async function pendingSubmission(setupOptions = {}) {
 const officer = () => member(OFFICER_ID, [OFFICER_ROLE]);
 const mod = () => member(MOD_ID, [MOD_ROLE]);
 
-describe("/event submission", () => {
-  it("points a member with no verified RSO to /rso-verify and writes nothing", async () => {
-    const { models, client, flow } = setup();
-    const response = await flow.handle(commandInteraction(member(OTHER_ID, [])));
+const multiOfficer = () => member(MULTI_RSO_OFFICER_ID, [OFFICER_ROLE]);
+
+function assertNothingSaved({ models, client }) {
+  assert.equal(models.DiscordEventSubmissions.docs.length, 0);
+  assert.equal(client.calls.length, 0);
+}
+
+describe("/event command", () => {
+  it("points a member with no verified RSO to /rso-verify without opening the form", async () => {
+    const context = setup();
+    const response = await context.flow.handle(commandInteraction(member(OTHER_ID, [])));
 
     assert.equal(response.type, CHANNEL_MESSAGE);
     assert.equal(response.data.flags, EPHEMERAL);
     assert.match(response.data.content, /\/rso-verify/);
-    assert.equal(models.DiscordEventSubmissions.docs.length, 0);
-    assert.equal(client.calls.length, 0);
+    assertNothingSaved(context);
   });
 
-  it("tells an officer of several RSOs that choosing one isn't available yet, and writes nothing", async () => {
-    const { models, client, flow } = setup();
-    const response = await flow.handle(commandInteraction(member(MULTI_RSO_OFFICER_ID, [OFFICER_ROLE])));
+  it("opens the form for an officer's only RSO", async () => {
+    const context = setup();
+    const response = await context.flow.handle(commandInteraction(officer()));
 
-    assert.equal(response.data.flags, EPHEMERAL);
-    assert.match(response.data.content, /more than one RSO/);
-    assert.equal(models.DiscordEventSubmissions.docs.length, 0);
-    assert.equal(client.calls.length, 0);
+    assert.equal(response.type, MODAL);
+    assert.equal(response.data.custom_id, "event-form:iuga");
+    assertNothingSaved(context);
   });
 
-  it("returns validation errors and writes nothing for an invalid event", async () => {
-    const { models, client, flow } = setup();
-    const response = await flow.handle(
-      commandInteraction(officer(), eventOptions({ date: "2020-01-01" })),
-    );
+  it("opens the form for the RSO an officer of several picked", async () => {
+    const { flow } = setup();
+    const response = await flow.handle(commandInteraction(multiOfficer(), rsoOption("winfo")));
 
-    assert.equal(response.data.flags, EPHEMERAL);
-    assert.match(response.data.content, /The event must start in the future\./);
-    assert.equal(models.DiscordEventSubmissions.docs.length, 0);
-    assert.equal(client.calls.length, 0);
+    assert.equal(response.type, MODAL);
+    assert.equal(response.data.custom_id, "event-form:winfo");
   });
 
-  it("creates one pending row and posts one approval card with Approve and Deny buttons", async () => {
-    const { models, client, flow } = setup();
-    const response = await flow.handle(commandInteraction(officer()));
+  it("asks an officer of several RSOs to pick one, listing only theirs, without opening the form", async () => {
+    const context = setup();
+    const response = await context.flow.handle(commandInteraction(multiOfficer()));
 
     assert.equal(response.type, CHANNEL_MESSAGE);
     assert.equal(response.data.flags, EPHEMERAL);
+    assert.match(response.data.content, /IUGA/);
+    assert.match(response.data.content, /WINFO/);
+    assert.match(response.data.content, /rso/);
+    assertNothingSaved(context);
+  });
+
+  it("refuses an RSO the officer isn't verified for", async () => {
+    const { flow } = setup();
+    for (const [who, picked] of [
+      [officer(), "winfo"],
+      [multiOfficer(), "binfo"],
+    ]) {
+      const response = await flow.handle(commandInteraction(who, rsoOption(picked)));
+      assert.equal(response.type, CHANNEL_MESSAGE, picked);
+      assert.match(response.data.content, /only submit events for an RSO you're verified for/, picked);
+    }
+  });
+
+  it("points a member with no RSO to /rso-verify even when they name one", async () => {
+    const { flow } = setup();
+    const response = await flow.handle(commandInteraction(member(OTHER_ID, []), rsoOption("iuga")));
+
+    assert.equal(response.type, CHANNEL_MESSAGE);
+    assert.match(response.data.content, /\/rso-verify/);
+  });
+
+  it("still opens the form when Discord sends the old command's field options", async () => {
+    const context = setup();
+    const oldOptions = [
+      { name: "name", type: 3, value: "Old style" },
+      { name: "date", type: 3, value: "2026-12-01" },
+      { name: "start_time", type: 3, value: "18:00" },
+    ];
+    const response = await context.flow.handle(commandInteraction(officer(), oldOptions));
+
+    assert.equal(response.type, MODAL);
+    assert.equal(response.data.custom_id, "event-form:iuga");
+    assertNothingSaved(context);
+  });
+});
+
+describe("/event rso autocomplete", () => {
+  const AUTOCOMPLETE_RESULT = 8;
+
+  it("suggests only the member's own RSOs that match what they typed", async () => {
+    const { flow } = setup();
+    const matching = await flow.handle(autocompleteInteraction(multiOfficer(), "wi"));
+    assert.equal(matching.type, AUTOCOMPLETE_RESULT);
+    assert.deepEqual(matching.data.choices, [{ name: "WINFO", value: "winfo" }]);
+
+    const all = await flow.handle(autocompleteInteraction(multiOfficer(), ""));
+    assert.deepEqual(
+      all.data.choices.map((choice) => choice.value),
+      ["iuga", "winfo"],
+    );
+  });
+
+  it("suggests nothing to a member with no RSO", async () => {
+    const { flow } = setup();
+    const response = await flow.handle(autocompleteInteraction(member(OTHER_ID, []), ""));
+    assert.deepEqual(response.data.choices, []);
+  });
+
+  it("suggests nothing and logs when the directory fails", async (t) => {
+    const logged = t.mock.method(console, "error", () => {});
+    const { flow } = setup({ directoryFails: true });
+    const response = await flow.handle(autocompleteInteraction(multiOfficer(), ""));
+
+    assert.equal(response.type, AUTOCOMPLETE_RESULT);
+    assert.deepEqual(response.data.choices, []);
+    assert.match(logged.mock.calls[0].arguments.join(" "), /directory down/);
+  });
+});
+
+describe("/event form submit", () => {
+  it("creates one pending row, posts one approval card, and shows the officer the same card", async () => {
+    const { models, client, flow } = setup();
+    const response = await submitEvent(flow);
 
     const rows = models.DiscordEventSubmissions.docs;
     assert.equal(rows.length, 1);
@@ -227,6 +332,8 @@ describe("/event submission", () => {
     assert.equal(row.rsoKey, "iuga");
     assert.equal(row.rsoName, "IUGA");
     assert.equal(row.eLabel, "Social");
+    assert.deepEqual(row.eStartDate, new Date("2026-12-02T02:00:00Z"));
+    assert.deepEqual(row.eEndDate, new Date("2026-12-02T04:00:00Z"));
     assert.equal(row.discordMessageId, "1001");
 
     assert.equal(client.calls.length, 1);
@@ -237,13 +344,61 @@ describe("/event submission", () => {
       post.body.components[0].components.map((button) => button.custom_id),
       [`approve:${row._id}`, `deny:${row._id}`],
     );
+
+    assert.match(response.data.content, /Submitted \*\*IUGA Study Break\*\*/);
+    const [card] = response.data.embeds;
+    assert.equal(card.title, post.body.embeds[0].title);
+    assert.deepEqual(card.fields, post.body.embeds[0].fields);
+  });
+
+  it("refuses a form tagged with an RSO the officer isn't verified for, and echoes their entries", async () => {
+    const context = setup();
+    const response = await context.flow.handle(formSubmitInteraction(officer(), "winfo"));
+
+    assert.equal(response.data.flags, EPHEMERAL);
+    assert.match(response.data.content, /only submit events for an RSO you're verified for/);
+    assert.match(response.data.content, /IUGA Study Break/);
+    assertNothingSaved(context);
+  });
+
+  it("refuses a form from a member with no verified RSO", async () => {
+    const context = setup();
+    const response = await context.flow.handle(formSubmitInteraction(member(OTHER_ID, []), "iuga"));
+
+    assert.match(response.data.content, /\/rso-verify/);
+    assertNothingSaved(context);
+  });
+
+  it("lists the problems and echoes the entries to paste back, writing nothing", async () => {
+    const context = setup();
+    const response = await context.flow.handle(
+      formSubmitInteraction(officer(), "iuga", { when: "2026-12-01 18:00", category: "Party" }),
+    );
+
+    assert.equal(response.data.flags, EPHEMERAL);
+    assert.deepEqual(response.data.allowed_mentions, { parse: [] });
+    assert.match(response.data.content, /not submitted/);
+    assert.match(response.data.content, /When must look like 12\/1\/2026 6:00 PM - 8:00 PM/);
+    assert.match(response.data.content, /Category must be Academic, Social, or Career/);
+    assert.match(response.data.content, /When: 2026-12-01 18:00/);
+    assert.match(response.data.content, /Event name: IUGA Study Break/);
+    assert.match(response.data.content, /Snacks and a quiet room/);
+    assertNothingSaved(context);
+  });
+
+  it("keeps the echo inside its code block when an entry contains backticks", async () => {
+    const { flow } = setup();
+    const response = await flow.handle(
+      formSubmitInteraction(officer(), "iuga", { when: "", description: "Bring ```snacks```" }),
+    );
+    assert.equal(response.data.content.split("```").length, 3);
   });
 
   it("deletes the row and reports an error when the approval card cannot be posted", async (t) => {
     t.mock.method(console, "error", () => {});
     const { models, client, flow } = setup();
     client.failPost = true;
-    const response = await flow.handle(commandInteraction(officer()));
+    const response = await flow.handle(formSubmitInteraction(officer(), "iuga"));
 
     assert.equal(response.data.flags, EPHEMERAL);
     assert.match(response.data.content, /not submitted/);
@@ -254,7 +409,7 @@ describe("/event submission", () => {
     const logged = t.mock.method(console, "error", () => {});
     const { client, flow } = setup();
     client.failPost = true;
-    const response = await flow.handle(commandInteraction(officer()));
+    const response = await flow.handle(formSubmitInteraction(officer(), "iuga"));
 
     assert.match(logged.mock.calls[0].arguments.join(" "), /50001 "Missing Access"/);
     assert.doesNotMatch(response.data.content, /Discord POST|status|50001|Missing Access/);
@@ -286,7 +441,7 @@ describe("approval", () => {
     assert.equal(event.eDescription, "Snacks and a quiet room for Informatics undergrads.");
     assert.deepEqual(event.eLabels, ["Social"]);
     assert.deepEqual(event.eStartDate, new Date("2026-12-02T02:00:00Z"));
-    assert.equal(event.eEndDate, undefined);
+    assert.deepEqual(event.eEndDate, new Date("2026-12-02T04:00:00Z"));
     assert.equal(event.eAltLink, undefined);
     assert.equal(event.eThumbnailPath, undefined);
     assert.equal(event.eHost, undefined);
@@ -297,12 +452,11 @@ describe("approval", () => {
     assert.equal(row.publishedEventId, event._id);
   });
 
-  it("maps the RSVP link into eAltLink when one was given", async () => {
-    const { models, flow } = setup();
-    await submitEvent(flow, eventOptions({ rsvp_url: "https://example.com/rsvp" }));
-    const [row] = models.DiscordEventSubmissions.docs;
+  it("still maps an RSVP link from a submission made before the form dropped it", async () => {
+    const { id, models, flow } = await pendingSubmission();
+    await models.DiscordEventSubmissions.updateOne({ _id: id }, { $set: { rsvpUrl: "https://example.com/rsvp" } });
 
-    await flow.handle(componentInteraction(mod(), `approve:${String(row._id)}`));
+    await flow.handle(componentInteraction(mod(), `approve:${id}`));
 
     assert.equal(models.Events.docs.length, 1);
     assert.deepEqual(models.Events.docs[0].eAltLink, { title: "RSVP", url: "https://example.com/rsvp" });
@@ -449,6 +603,13 @@ describe("interaction dispatch", () => {
 });
 
 describe("command definition", () => {
+  it("offers only the optional rso picker, since the form collects the event", () => {
+    assert.deepEqual(
+      EVENT_COMMAND.options.map((option) => [option.name, Boolean(option.required), Boolean(option.autocomplete)]),
+      [["rso", false, true]],
+    );
+  });
+
   it("puts every required option before every optional one", () => {
     const { options } = EVENT_COMMAND;
     for (const [index, option] of options.entries()) {

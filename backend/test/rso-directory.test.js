@@ -6,6 +6,7 @@ import { createFakeCollection } from "./fakeCollection.js";
 const GUILD = "guild-1";
 const OFFICER_ROLE = "officer-role";
 const MOD_ROLE = "mod-role";
+const IUGA_OFFICER_ROLE = "iuga-officer-role";
 const MANAGE_MESSAGES = String(1n << 13n);
 
 function discordError(code) {
@@ -50,7 +51,8 @@ function setup(guildOptions) {
     models,
     client: guild,
     officerRoleId: OFFICER_ROLE,
-    staffRoleIds: [MOD_ROLE],
+    staffRoleIds: [MOD_ROLE, IUGA_OFFICER_ROLE],
+    iugaOfficerRoleId: IUGA_OFFICER_ROLE,
     now: () => clock,
   });
   return { models, guild, directory, advance: (ms) => (clock += ms) };
@@ -272,5 +274,30 @@ describe("rsoDirectory.rsosOf", () => {
 
     assert.deepEqual(await directory.rsosOf({ roles: ["other"] }), []);
     assert.deepEqual(await directory.rsosOf({}), []);
+  });
+
+  it("counts an IUGA officer as representing IUGA without any RSO verification", async () => {
+    const { directory } = setup();
+
+    assert.deepEqual(await directory.rsosOf({ roles: [IUGA_OFFICER_ROLE] }), [{ rsoKey: "iuga", rsoName: "IUGA" }]);
+  });
+
+  it("lists IUGA alongside the RSOs an IUGA officer also leads", async () => {
+    const { directory, guild } = setup();
+    await grant(directory);
+    const roleId = officerRole(guild, "HCI Club").id;
+
+    assert.deepEqual(await directory.rsosOf({ roles: [roleId, IUGA_OFFICER_ROLE] }), [
+      { rsoKey: "iuga", rsoName: "IUGA" },
+      { rsoKey: "hci club", rsoName: "HCI Club" },
+    ]);
+  });
+
+  it("lists IUGA once when an IUGA RSO record also matches the member", async () => {
+    const { directory, guild } = setup();
+    await grant(directory, { rsoKey: "iuga", rsoName: "IUGA" });
+    const roleId = officerRole(guild, "IUGA").id;
+
+    assert.deepEqual(await directory.rsosOf({ roles: [roleId, IUGA_OFFICER_ROLE] }), [{ rsoKey: "iuga", rsoName: "IUGA" }]);
   });
 });

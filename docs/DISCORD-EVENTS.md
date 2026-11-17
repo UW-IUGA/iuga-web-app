@@ -36,9 +36,10 @@ Officers can't create an RSO on their own. A new RSO exists only after a reviewe
 
 ### 2. Submitting an event
 
-1. A verified officer runs `/event` and fills in the event details.
-2. The bot reads the RSO from the officer's RSO role, so the officer never types it.
-3. A card appears in `#events-approvals`. A reviewer approves it, which publishes it to the website's Events page, or denies it with an optional reason.
+1. A verified officer runs `/event`. Officers of more than one RSO pick which one in the `rso` option; it only lists their own.
+2. A form pops up with five required fields: event name, When (such as `12/1/2026 6:00 PM - 8:00 PM`), location, category, and description. The RSO comes from the officer's role, so they never type it.
+3. If something's wrong, the officer gets the problems and a copy of what they typed to paste into a new `/event`. If it's fine, they see the card reviewers will see.
+4. A card appears in `#events-approvals`. A reviewer approves it, which publishes it to the website's Events page, or denies it with an optional reason.
 
 ## What reviewers might see
 
@@ -49,7 +50,7 @@ Officers can't create an RSO on their own. A new RSO exists only after a reviewe
 | "Closed: the requester left the server." | The bot closed the request itself. | Nothing. |
 | "This request has already been reviewed." | Someone else got there first. | Nothing. |
 
-Members can have one open request per RSO. Members with no RSO role who run `/event` are told to use `/rso-verify`. Members verified for more than one RSO can't submit with `/event` yet; a moderator posts for them until choosing an RSO is added (#369).
+Members can have one open request per RSO. Members with no RSO role who run `/event` are told to use `/rso-verify`.
 
 ## Server setup
 
@@ -124,7 +125,6 @@ These Discord issues build on the flows above, in order. Update this guide when 
 
 | Issue | What changes for the board |
 |---|---|
-| #369 | `/event` gets AM/PM times, and officers of several RSOs can pick one. |
 | #366 | Approved events publish to the website exactly once, with clear failure handling. |
 | #367 | Recorded demos of the approve, deny, unauthorized, and failed-publish cases. |
 | #368 | Moderators can take a published event off the website. |

@@ -2,9 +2,10 @@ import { neutralizeMentions } from "./discordInteractions.js";
 
 export const CATEGORIES = ["Academic", "Social", "Career"];
 
-const LIMITS = { name: 120, location: 120, description: 1000, rsvpUrl: 300 };
-const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
+const LIMITS = { name: 120, location: 120, description: 1000 };
+const TIME = String.raw`(\d{1,2})(?::(\d{2}))?\s*([ap]m)`;
+const WHEN_PATTERN = new RegExp(String.raw`^(\d{1,2})/(\d{1,2})/(\d{4})\s+${TIME}\s*[-–]\s*${TIME}$`, "i");
+export const WHEN_EXAMPLE = "12/1/2026 6:00 PM - 8:00 PM";
 const PACIFIC = "America/Los_Angeles";
 
 /*
@@ -47,8 +48,7 @@ function pacificOffsetMs(instant) {
   return localAsUtc - (instant.getTime() - instant.getUTCMilliseconds());
 }
 
-function isRealCalendarDate(date) {
-  const [year, month, day] = date.split("-").map(Number);
+function isRealCalendarDate(year, month, day) {
   const candidate = new Date(Date.UTC(year, month - 1, day));
   return (
     candidate.getUTCFullYear() === year &&
@@ -57,9 +57,35 @@ function isRealCalendarDate(date) {
   );
 }
 
+function twentyFourHour(hourText, minuteText, meridiem) {
+  const hour = Number(hourText);
+  const minute = Number(minuteText ?? 0);
+  if (hour < 1 || hour > 12 || minute > 59) return null;
+  const pm = meridiem.toLowerCase() === "pm";
+  const hour24 = (hour % 12) + (pm ? 12 : 0);
+  return `${String(hour24).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+}
+
+/*
+ * @behavior Read "M/D/YYYY h:mm AM - h:mm PM" into an ISO date and 24-hour start and end times.
+ * @returns { date, startTime, endTime }, or null when the text doesn't match or names an impossible date or time
+ */
+function parseWhen(when) {
+  const match = WHEN_PATTERN.exec(when);
+  if (!match) return null;
+  const [, monthText, dayText, yearText, startHour, startMinute, startMeridiem, endHour, endMinute, endMeridiem] = match;
+  const [year, month, day] = [yearText, monthText, dayText].map(Number);
+  if (!isRealCalendarDate(year, month, day)) return null;
+  const startTime = twentyFourHour(startHour, startMinute, startMeridiem);
+  const endTime = twentyFourHour(endHour, endMinute, endMeridiem);
+  if (!startTime || !endTime) return null;
+  const date = `${yearText}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  return { date, startTime, endTime };
+}
+
 /*
  * @behavior Validate and normalize a /event submission. Times are stored in UTC.
- * @param input — raw fields from the command, as strings
+ * @param input — { name, when, location, category, description } as typed in the event form
  * @param now — the current Date, passed in so the future-date rule is deterministic
  * @returns { ok: true, value } with the normalized event fields, or { ok: false, errors }
  */
@@ -70,11 +96,8 @@ export function validateSubmission(input, now = new Date()) {
   const name = text("name");
   const location = text("location");
   const description = text("description");
-  const date = text("date");
-  const startTime = text("startTime");
-  const endTime = text("endTime");
+  const when = text("when");
   const category = text("category");
-  const rsvpRaw = text("rsvpUrl");
 
   if (!name) errors.push("Event name is required.");
   if (name.length > LIMITS.name) errors.push(`Event name must be ${LIMITS.name} characters or fewer.`);
@@ -84,37 +107,16 @@ export function validateSubmission(input, now = new Date()) {
   if (description.length > LIMITS.description) errors.push(`Description must be ${LIMITS.description} characters or fewer.`);
   if (!CATEGORIES.includes(category)) errors.push("Category must be Academic, Social, or Career.");
 
-  const dateValid = DATE_PATTERN.test(date) && isRealCalendarDate(date);
-  const startValid = TIME_PATTERN.test(startTime);
-  if (!dateValid) errors.push("Date must be a real date in YYYY-MM-DD format.");
-  if (!startValid) errors.push("Start time must be HH:MM in 24-hour time.");
-
   let eStartDate;
   let eEndDate;
-  if (dateValid && startValid) {
-    eStartDate = pacificToUtc(date, startTime);
+  const parsed = parseWhen(when);
+  if (!parsed) {
+    errors.push(`When must look like ${WHEN_EXAMPLE} (Pacific time).`);
+  } else {
+    eStartDate = pacificToUtc(parsed.date, parsed.startTime);
+    eEndDate = pacificToUtc(parsed.date, parsed.endTime);
     if (eStartDate <= now) errors.push("The event must start in the future.");
-  }
-  if (endTime && !TIME_PATTERN.test(endTime)) {
-    errors.push("End time must be HH:MM in 24-hour time.");
-  } else if (endTime && dateValid) {
-    eEndDate = pacificToUtc(date, endTime);
-    if (eStartDate && eEndDate <= eStartDate) errors.push("End time must be after the start time.");
-  }
-
-  let rsvpUrl;
-  if (rsvpRaw) {
-    if (rsvpRaw.length > LIMITS.rsvpUrl) {
-      errors.push(`RSVP link must be ${LIMITS.rsvpUrl} characters or fewer.`);
-    } else {
-      try {
-        const parsed = new URL(rsvpRaw);
-        if (parsed.protocol !== "https:") errors.push("RSVP link must start with https://.");
-        else rsvpUrl = parsed.href;
-      } catch {
-        errors.push("RSVP link must be a valid URL.");
-      }
-    }
+    if (eEndDate <= eStartDate) errors.push("End time must be after the start time.");
   }
 
   if (errors.length > 0) return { ok: false, errors };
@@ -127,7 +129,6 @@ export function validateSubmission(input, now = new Date()) {
       eLabel: category,
       eStartDate,
       eEndDate,
-      rsvpUrl,
     },
   };
 }

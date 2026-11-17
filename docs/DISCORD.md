@@ -42,9 +42,11 @@ The website database is still the source of truth. A social post is not an event
 
 ## How a submission moves
 
-1. An officer runs `/event` and fills in the name, date, start time, location, category, and description. End time and RSVP link are optional.
-2. The bot reads the officer's RSO from their RSO role. A member with no RSO role is told to use `/rso-verify`. A member verified for more than one RSO is told that choosing an RSO isn't available yet.
-3. The input goes through the same rules every time. Names and locations are capped at 120 characters, descriptions at 1000, and RSVP links at 300. The RSVP link must be `https://`. The date must be a real date in the future. Times are read as Pacific time and stored in UTC, and the end time must come after the start. Mentions in free text are stripped.
+1. An officer runs `/event`. The bot checks the RSO before anything opens: it reads the officer's RSOs from their "<RSO> Officer" roles. A member with no RSO role is told to use `/rso-verify`. An officer of one RSO goes straight to the form. An officer of several picks one in the optional `rso` option, which only suggests their own RSOs. Without a pick, they're asked to choose and nothing opens. A picked RSO they don't hold is refused.
+2. A pop-up form asks for five things, all required: event name, When, location, category (a dropdown of Academic, Social, Career), and description. When takes the date, start, and end in one line, such as `12/1/2026 6:00 PM - 8:00 PM`. Spacing and capitals are flexible (`6pm-8pm` works), but the order isn't. Events are same-day.
+3. On submit, the bot checks the RSO again, because the form can be faked. Then the input goes through the same rules every time. Names and locations are capped at 120 characters and descriptions at 1000. When must match the format, be a real date, and start in the future, and the end must come after the start. Times are read as Pacific time and stored in UTC. Mentions in free text are stripped. If anything fails, the officer gets the problems plus everything they typed, ready to paste into a new `/event`, since Discord can't reopen the form. On success, they see the same card reviewers get.
+
+Discord submissions no longer take an RSVP link: the form holds five fields at most, and RSVP was the one left out. Requests submitted before this change keep their link when approved.
 4. If the input passes, the request is saved as `pending` in `DiscordEventSubmissions`, and an approval card is posted to `DISCORD_APPROVAL_CHANNEL_ID`. If that post fails, the pending row is deleted and the officer is asked to try again.
 5. The officer gets a private confirmation. Nobody else sees it.
 
@@ -67,9 +69,9 @@ To keep the cards to moderators, limit the channel's View Channel permission to 
 | `eName` | Event name |
 | `eOrganizers` | The RSO's name, from the officer's RSO role |
 | `eStartDate`, `eEndDate` | Pacific wall-clock time, stored as UTC |
-| `eLocation`, `eDescription` | From the command |
+| `eLocation`, `eDescription` | From the form |
 | `eLabels` | The category as a one-item list: Academic, Social, or Career |
-| `eAltLink` | `{ title: "RSVP", url }`, only when an RSVP link was given |
+| `eAltLink` | `{ title: "RSVP", url }`, only for requests submitted with an RSVP link before the form dropped it |
 | `eThumbnailPath` | Not set. Discord attachment URLs expire, and v1 has no poster upload. |
 | `eHost` | Not set. It's a snapshot of a website user, and a Discord officer isn't one. |
 

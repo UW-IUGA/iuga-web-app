@@ -99,6 +99,7 @@ if (process.env.DISCORD_PUBLIC_KEY) {
     client: discordClient,
     officerRoleId: process.env.DISCORD_OFFICER_ROLE_ID,
     staffRoleIds: [process.env.DISCORD_MOD_ROLE_ID, process.env.DISCORD_IUGA_OFFICER_ROLE_ID],
+    iugaOfficerRoleId: process.env.DISCORD_IUGA_OFFICER_ROLE_ID,
   });
   const reviewerRoles = {
     modRoleId: process.env.DISCORD_MOD_ROLE_ID,

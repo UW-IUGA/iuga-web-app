@@ -22,6 +22,8 @@ function keyOf(name) {
   return name.toLowerCase();
 }
 
+const IUGA = { rsoKey: keyOf("IUGA"), rsoName: "IUGA" };
+
 function officerRoleName(rsoName) {
   return `${rsoName}${OFFICER_SUFFIX}`;
 }
@@ -36,9 +38,17 @@ function officerRoleName(rsoName) {
  * @param client — Discord REST adapter with listRoles, createRole, addMemberRole, deleteRole
  * @param officerRoleId — the general RSO officer role granted with every RSO officer role
  * @param staffRoleIds — reviewer roles that are never RSOs
+ * @param iugaOfficerRoleId — IUGA board members, who represent IUGA itself without RSO verification
  * @param now — returns the current time in milliseconds
  */
-export function createRsoDirectory({ models, client, officerRoleId, staffRoleIds = [], now = () => Date.now() }) {
+export function createRsoDirectory({
+  models,
+  client,
+  officerRoleId,
+  staffRoleIds = [],
+  iugaOfficerRoleId,
+  now = () => Date.now(),
+}) {
   const rsos = () => models.DiscordRsos;
   const notRsoRoleIds = new Set([officerRoleId, ...staffRoleIds].filter(Boolean));
   const roleCache = new Map();
@@ -97,13 +107,16 @@ export function createRsoDirectory({ models, client, officerRoleId, staffRoleIds
   }
 
   /*
-   * @behavior The RSOs a guild member represents, from their RSO officer roles. Empty when none.
+   * @behavior The RSOs a guild member represents, from their RSO officer roles, plus IUGA for
+   *           IUGA officers. Empty when none.
    */
   async function rsosOf(member) {
     const roleIds = Array.isArray(member?.roles) ? member.roles : [];
     if (roleIds.length === 0) return [];
     const found = await rsos().find({ discordRoleId: { $in: roleIds } }, null, LEAN);
-    return found.map((rso) => ({ rsoKey: rso.rsoKey, rsoName: rso.name }));
+    const represented = found.map((rso) => ({ rsoKey: rso.rsoKey, rsoName: rso.name }));
+    if (!iugaOfficerRoleId || !roleIds.includes(iugaOfficerRoleId)) return represented;
+    return [IUGA, ...represented.filter((rso) => rso.rsoKey !== IUGA.rsoKey)];
   }
 
   async function nameTaken(guildId, rsoKey, rsoName) {

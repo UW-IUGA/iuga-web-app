@@ -9,7 +9,7 @@ Everything day to day happens in Discord with buttons. Nobody needs to edit sett
 | Command | Who runs it | Where the card goes | Who reviews |
 |---|---|---|---|
 | `/rso-verify` | Anyone who leads an RSO | `#rso-approvals` | Moderators, IUGA officers, server admins |
-| `/event` | Verified RSO officers | `#events-approvals` | Moderators, IUGA officers, server admins |
+| `/event` | Verified RSO officers and IUGA officers | `#events-approvals` | Moderators, IUGA officers, server admins |
 
 An officer verifies once with `/rso-verify`, then submits events with `/event` as often as needed.
 
@@ -36,7 +36,7 @@ Officers can't create an RSO on their own. A new RSO exists only after a reviewe
 
 ### 2. Submitting an event
 
-1. A verified officer runs `/event`. Officers of more than one RSO pick which one in the `rso` option; it only lists their own.
+1. A verified RSO officer or an IUGA officer runs `/event`. IUGA officers post as IUGA without verifying first. Anyone who can post for more than one RSO, including IUGA, picks which one in the `rso` option; it only lists their own.
 2. A form pops up with five required fields: event name, When (such as `12/1/2026 6:00 PM - 8:00 PM`), location, category, and description. The RSO comes from the officer's role, so they never type it.
 3. If something's wrong, the officer gets the problems and a copy of what they typed to paste into a new `/event`. If it's fine, they see the card reviewers will see.
 4. A card appears in `#events-approvals`. A reviewer approves it, which publishes it to the website's Events page, or denies it with an optional reason.
@@ -50,7 +50,7 @@ Officers can't create an RSO on their own. A new RSO exists only after a reviewe
 | "Closed: the requester left the server." | The bot closed the request itself. | Nothing. |
 | "This request has already been reviewed." | Someone else got there first. | Nothing. |
 
-Members can have one open request per RSO. Members with no RSO role who run `/event` are told to use `/rso-verify`.
+Members can have one open request per RSO. Members with no RSO role and no IUGA officer role who run `/event` are told to use `/rso-verify`.
 
 ## Server setup
 

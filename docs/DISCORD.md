@@ -36,13 +36,13 @@ The RSO list and each RSO's officer role live in the `DiscordRsos` collection, a
 
 ## Event approval
 
-Verified RSO officers can submit an event from Discord with `/event`. The request lands in the `#events-approvals` channel with Approve and Deny buttons. When a moderator approves it, the event is published to the same `Events` collection the website already reads from.
+Verified RSO officers and IUGA officers can submit an event from Discord with `/event`. The request lands in the `#events-approvals` channel with Approve and Deny buttons. When a moderator approves it, the event is published to the same `Events` collection the website already reads from.
 
 The website database is still the source of truth. A social post is not an event listing, and nothing gets published from Discord text alone.
 
 ## How a submission moves
 
-1. An officer runs `/event`. The bot checks the RSO before anything opens: it reads the officer's RSOs from their "<RSO> Officer" roles. A member with no RSO role is told to use `/rso-verify`. An officer of one RSO goes straight to the form. An officer of several picks one in the optional `rso` option, which only suggests their own RSOs. Without a pick, they're asked to choose and nothing opens. A picked RSO they don't hold is refused.
+1. An officer runs `/event`. The bot checks the RSO before anything opens: it reads the officer's RSOs from their "<RSO> Officer" roles. Members with the IUGA officer role (`DISCORD_IUGA_OFFICER_ROLE_ID`) also represent IUGA, with no `/rso-verify` needed, and their events list IUGA as the organizer. A member with neither is told to use `/rso-verify`. An officer of one RSO goes straight to the form. An officer of several picks one in the optional `rso` option, which only suggests their own RSOs. Without a pick, they're asked to choose and nothing opens. A picked RSO they don't hold is refused.
 2. A pop-up form asks for five things, all required: event name, When, location, category (a dropdown of Academic, Social, Career), and description. When takes the date, start, and end in one line, such as `12/1/2026 6:00 PM - 8:00 PM`. Spacing and capitals are flexible (`6pm-8pm` works), but the order isn't. Events are same-day.
 3. On submit, the bot checks the RSO again, because the form can be faked. Then the input goes through the same rules every time. Names and locations are capped at 120 characters and descriptions at 1000. When must match the format, be a real date, and start in the future, and the end must come after the start. Times are read as Pacific time and stored in UTC. Mentions in free text are stripped. If anything fails, the officer gets the problems plus everything they typed, ready to paste into a new `/event`, since Discord can't reopen the form. On success, they see the same card reviewers get.
 

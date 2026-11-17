@@ -47,7 +47,9 @@ const startupStartedAt = Date.now();
     .then((actualPort) => {
       app.set('port', actualPort);
       onListening(actualPort, host);
-      registerDiscordCommands();
+      registerDiscordCommands().catch((error) => {
+        console.error(`Discord command registration failed: ${error.message}`);
+      });
     })
     .catch(onError);
 

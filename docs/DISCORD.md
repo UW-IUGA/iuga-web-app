@@ -122,7 +122,7 @@ Save this only after the route is deployed and `DISCORD_PUBLIC_KEY` is set on th
 
 Discord keeps its own copy of each slash command's name, description, and options, and deploying the bot doesn't change that copy. So the server registers `/event` and `/rso-verify` itself every time it starts, replacing whatever the IUGA server showed before. Changes to `backend/discordCommandDefinition.js` show up right after the deploy, with no manual step.
 
-Registration runs in the background after the server starts listening, so a Discord problem never delays startup or fails the deploy. Check the container log for `Discord commands registered: /event, /rso-verify`. If `DISCORD_APP_ID` or `DISCORD_GUILD_ID` is missing, the log says so and the commands Discord already has stay as they were.
+Registration runs in the background after the server starts listening, so a Discord problem never delays startup or fails the deploy. Only the container that goes live registers: the deploy's trial container doesn't get the IDs, so a build that fails its health check never changes Discord, and a rollback re-registers the last good build's commands. Check the container log for `Discord commands registered: /event, /rso-verify`. If `DISCORD_APP_ID` or `DISCORD_GUILD_ID` is missing, the log says so and the commands Discord already has stay as they were.
 
 To register by hand, for example from a local checkout, run this from `backend/`:
 

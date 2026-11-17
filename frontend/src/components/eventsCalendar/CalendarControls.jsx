@@ -16,8 +16,9 @@ const UNIT = {
 /**
  * Purpose: Navigate the calendar date and choose its view.
  * Expected Response Information: Renders date navigation, the current date range, view selection,
- *   and the event legend. On narrow screens, the range becomes a date picker and view selection
- *   becomes a dropdown; year view has no step controls.
+ *   and the event legend, which is also the tag filter (`tagFilter`, from useTagFilter: isTagShown,
+ *   onToggle, onShowAll, isFiltered). On narrow screens, the range becomes a date picker and view
+ *   selection becomes a dropdown; year view has no step controls.
  */
 function CalendarControls({
   mode,
@@ -27,6 +28,7 @@ function CalendarControls({
   onToday,
   onStep,
   onPickDate,
+  tagFilter,
 }) {
   const unit = UNIT[mode];
   const showDatePicker = useMediaQuery(MOBILE_QUERY) && Boolean(unit);
@@ -76,7 +78,10 @@ function CalendarControls({
             {formatRange(mode, selectedDate)}
           </p>
         )}
-        <Legend className={mode === "year" ? null : "legend--narrow-only"} />
+        <Legend
+          className={mode === "year" ? null : "legend--narrow-only"}
+          {...tagFilter}
+        />
       </div>
 
       {/* The radio group on a wide screen, the dropdown on a narrow one. */}

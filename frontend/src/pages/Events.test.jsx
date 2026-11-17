@@ -184,11 +184,11 @@ describe("Events page: the event list", () => {
     it("lists only the categories a visitor can see in the colour key", async () => {
         await visit("/events?view=month&date=2026-10-20");
 
-        const [legend] = screen.getAllByRole("list", { name: "Event colours" });
+        const [legend] = screen.getAllByRole("group", { name: "Show" });
         expect(
             within(legend)
-                .getAllByRole("listitem")
-                .map((item) => item.textContent),
+                .getAllByRole("checkbox")
+                .map((box) => box.closest("label").textContent),
         ).toEqual(["Academic", "Career", "Social"]);
     });
 
@@ -238,6 +238,69 @@ describe("Events page: event details and previous events", () => {
         await visit("/events?view=month&date=2026-10-20");
 
         expect(screen.getByRole("heading", { name: "Previous events" })).toBeInTheDocument();
+    });
+});
+
+describe("Events page: filtering by tag", () => {
+    // The sidebar's copy of the legend: the controls' copy is hidden by the
+    // stylesheet beside a sidebar, which jsdom does not apply, so take the first.
+    const showGroup = () => screen.getAllByRole("group", { name: "Show" })[0];
+    const tagBox = (tag) => within(showGroup()).getByRole("checkbox", { name: tag });
+    const yearTitles = (container) =>
+        [...container.querySelectorAll(".card-title__heading")].map((node) => node.firstChild.textContent);
+
+    it("shows every tag by default", async () => {
+        await visit("/events?view=month&date=2026-10-20");
+
+        expect(within(showGroup()).getAllByRole("checkbox").every((box) => box.checked)).toBe(true);
+        expect(screen.getByRole("button", { name: "Study Jam" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Resume Clinic" })).toBeInTheDocument();
+        expect(written().has("tags")).toBe(false);
+    });
+
+    it("hides a tag's events when it is turned off, and keeps it in the URL", async () => {
+        await visit("/events?view=month&date=2026-10-20");
+
+        fireEvent.click(tagBox("Career"));
+
+        expect(screen.queryByRole("button", { name: "Resume Clinic" })).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Study Jam" })).toBeInTheDocument();
+        expect(tagBox("Career").checked).toBe(false);
+        expect(written().get("tags")).toBe("academic,social");
+    });
+
+    it("keeps the filter through a change of view", async () => {
+        await visit("/events?view=month&date=2026-10-20&tags=academic");
+
+        fireEvent.click(screen.getByRole("radio", { name: "Week" }));
+
+        expect(written().get("view")).toBe("week");
+        expect(written().get("tags")).toBe("academic");
+        expect(screen.getByRole("button", { name: /Study Jam/ })).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: /Resume Clinic/ })).not.toBeInTheDocument();
+    });
+
+    it("drops the months that only held hidden events from the year view", async () => {
+        const { container } = await visit("/events?view=year&date=2026-10-20");
+        expect(yearTitles(container).some((title) => title.endsWith("2020"))).toBe(true);
+
+        fireEvent.click(tagBox("Social"));
+
+        // Both the 2024 and 2020 events are Social.
+        expect(yearTitles(container).some((title) => title.endsWith("2020"))).toBe(false);
+        expect(yearTitles(container).some((title) => title.endsWith("2024"))).toBe(false);
+        expect(yearTitles(container).some((title) => title.endsWith("2026"))).toBe(true);
+    });
+
+    it("brings every tag back with Show all, which shows only while something is off", async () => {
+        await visit("/events?view=month&date=2026-10-20&tags=social");
+        expect(screen.queryByRole("button", { name: "Resume Clinic" })).not.toBeInTheDocument();
+
+        fireEvent.click(within(showGroup()).getByRole("button", { name: "Show all" }));
+
+        expect(screen.getByRole("button", { name: "Resume Clinic" })).toBeInTheDocument();
+        expect(written().has("tags")).toBe(false);
+        expect(within(showGroup()).queryByRole("button", { name: "Show all" })).not.toBeInTheDocument();
     });
 });
 

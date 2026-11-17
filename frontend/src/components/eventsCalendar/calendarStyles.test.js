@@ -160,6 +160,61 @@ describe("calendar styles", () => {
         }
     });
 
+    it("make every tag in the legend's filter, and Show all, at least the 24px target (2.5.8)", () => {
+        expect(px(style(".legend__toggle")["min-height"])).toBeGreaterThanOrEqual(24);
+        expect(px(style(".legend__showAll")["min-height"])).toBeGreaterThanOrEqual(24);
+    });
+
+    it("ring the drawn box when its hidden checkbox has keyboard focus (2.4.7)", () => {
+        const input = style(".legend__input");
+        expect(input.opacity).toBe("0");
+
+        const ring = style(".legend__input:focus-visible + .legend__color");
+        expect(ring.outline).toBe("2px solid var(--calendar-text)");
+    });
+
+    it("keep the key's filled square for a shown tag, and hollow it out, with a muted name, once hidden", () => {
+        const square = style(".legend__color");
+        expect(square["background-color"]).toBe("var(--legend-color)");
+        expect(square.width).toBe("13px");
+
+        // Outlined inside the square, so a hidden tag's square is the same size.
+        const hidden = style(".legend__toggle--off .legend__color");
+        expect(hidden["background-color"]).toBe("transparent");
+        expect(hidden["box-shadow"]).toBe("inset 0 0 0 2px var(--legend-color)");
+        // No tick drawn in it: the fill alone says the tag is on.
+        expect(rules.some((rule) => rule.selector.includes(".legend__color::after"))).toBe(false);
+
+        // copy-muted clears 4.5:1 on every surface the legend sits on (contrast.test.js).
+        expect(style(".legend__toggle--off").color).toBe("var(--calendar-copy-muted)");
+    });
+
+    it("space the legend's Show label, tags and Show all evenly", () => {
+        const gap = style(".legend").gap;
+        expect(style(".legend__items").gap).toBe(gap);
+
+        // The elections pages' global .legend indents its ul and sets its li at the
+        // body size; inside the calendar both are set back.
+        const list = style(".legend__items");
+        expect(list.padding).toBe("0");
+        expect(list.margin).toBe("0");
+        expect(style(".legend__item, .legend__item:hover")["font-size"]).toBe("inherit");
+
+        // Show all takes the same gap: no padding or margin of its own widens it.
+        expect(style(".legend__showAll").padding).toBe("0");
+        expect(rules.some((rule) => rule.selector.includes(".legend__showAll") && "margin-left" in rule.declarations)).toBe(
+            false,
+        );
+    });
+
+    it("set the legend's Show label like the mini month's", () => {
+        const heading = style(".legend__heading");
+        const mini = style(".mini__label");
+        expect(heading["font-size"]).toBe(mini["font-size"]);
+        expect(heading["font-weight"]).toBe(mini["font-weight"]);
+        expect(heading["text-transform"]).toBeUndefined();
+    });
+
     it("stack the event popover over the page but under the sticky site navigation", () => {
         const navigation = sass.compile(
             resolve(dirname(new URL(import.meta.url).pathname), "../../stylesheets/layout/_navigation-base.scss"),

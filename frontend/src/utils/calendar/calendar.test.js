@@ -4,6 +4,7 @@ import {
     colorForLabels,
     EVENT_LABELS,
     formatEventDateTime,
+    filterByTags,
     groupByMonth,
     normalizeEvent,
     zonedParts,
@@ -146,7 +147,7 @@ describe("groupByMonth", () => {
             { eId: "c", eName: "C", eStartDate: "2024-05-22T05:30:00.000Z" },
         ];
 
-        const months = groupByMonth(raw);
+        const months = groupByMonth(raw.map(normalizeEvent));
 
         expect(months).toHaveLength(2);
         const april = months.find((m) => m.month === 3);
@@ -164,7 +165,7 @@ describe("groupByMonth", () => {
             eStartDate: new Date(Date.UTC(2024, month, 15, 12)).toISOString(),
         }));
 
-        expect(groupByMonth(raw)).toHaveLength(12);
+        expect(groupByMonth(raw.map(normalizeEvent))).toHaveLength(12);
     });
 
     it("returns months in descending order", () => {
@@ -176,13 +177,13 @@ describe("groupByMonth", () => {
             eStartDate: new Date(Date.UTC(2024, month, 15, 12)).toISOString(),
         }));
 
-        const order = groupByMonth(raw).map((m) => m.month);
+        const order = groupByMonth(raw.map(normalizeEvent)).map((m) => m.month);
 
         expect(order).toEqual([11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
     });
 
     it("keeps the human-readable month name", () => {
-        const months = groupByMonth([{ eId: "a", eName: "A", eStartDate: "2024-04-21T14:00:00.000Z" }]);
+        const months = groupByMonth([normalizeEvent({ eId: "a", eName: "A", eStartDate: "2024-04-21T14:00:00.000Z" })]);
 
         expect(months[0].name).toBe("April");
     });
@@ -320,5 +321,42 @@ describe("colorForLabels", () => {
         for (const labels of [[], undefined, ["Unknown"], ["Professional", "Social"], ["Career", "Academic"]]) {
             expect(legend.has(colorForLabels(labels))).toBe(true);
         }
+    });
+});
+
+describe("filterByTags", () => {
+    const tagged = (id, labels) => normalizeEvent({ eId: id, eName: id, eStartDate: "2026-10-22T17:00:00Z", eLabels: labels });
+    const social = tagged("social", ["Social"]);
+    const academic = tagged("academic", ["Academic"]);
+    const both = tagged("both", ["Social", "Career"]);
+    const untagged = tagged("untagged", []);
+    const events = [social, academic, both, untagged];
+    const ids = (list) => list.map((event) => event.id);
+
+    it("hands back the same list when every tag is shown, so memos keep their input", () => {
+        expect(filterByTags(events, [...EVENT_LABELS])).toBe(events);
+    });
+
+    it("keeps an event when any of its tags is shown", () => {
+        expect(ids(filterByTags(events, ["Career"]))).toEqual(["both"]);
+        expect(ids(filterByTags(events, ["Social"]))).toEqual(["social", "both"]);
+    });
+
+    it("files an untagged event under Academic, the colour it is drawn in", () => {
+        expect(ids(filterByTags(events, ["Academic"]))).toEqual(["academic", "untagged"]);
+        expect(ids(filterByTags(events, ["Social", "Career"]))).not.toContain("untagged");
+    });
+
+    it("draws an event in a tag that is still shown, keeping all its labels", () => {
+        const [kept] = filterByTags([both], ["Career"]);
+
+        expect(colorForLabels(kept.labels)).toBe(colorForLabels(["Career"]));
+        expect([...kept.labels].sort()).toEqual(["Career", "Social"]);
+        // Already led by a shown tag: left as it was.
+        expect(filterByTags([both], ["Social"])[0]).toBe(both);
+    });
+
+    it("shows nothing when every tag is off", () => {
+        expect(filterByTags(events, [])).toEqual([]);
     });
 });

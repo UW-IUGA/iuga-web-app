@@ -88,6 +88,32 @@ function colorForLabels(labels) {
     return LABEL_COLORS[labels?.[0]] ?? UNLABELLED_COLOR;
 }
 
+// The legend's tags an event is filed under for the tag filter: its labels the
+// legend knows, or Academic when it has none, the colour it is drawn in then.
+function tagsOf(event) {
+    const known = (event.labels ?? []).filter((label) => EVENT_LABELS.includes(label));
+    return known.length > 0 ? known : ["Academic"];
+}
+
+/**
+ * The events the tag filter leaves on the calendar: those with any of
+ * `shownTags`. Each one's shown labels move to the front, so it is drawn in a
+ * colour that is still on (colorForLabels takes the first); its detail still
+ * lists every label. With every tag shown it returns `events` itself, so the
+ * views' memos keep their input.
+ */
+export function filterByTags(events, shownTags) {
+    if (EVENT_LABELS.every((tag) => shownTags.includes(tag))) return events;
+    const shown = new Set(shownTags);
+
+    return events.flatMap((event) => {
+        if (!tagsOf(event).some((tag) => shown.has(tag))) return [];
+        const labels = event.labels ?? [];
+        const ordered = [...labels.filter((label) => shown.has(label)), ...labels.filter((label) => !shown.has(label))];
+        return [ordered[0] === labels[0] ? event : { ...event, labels: ordered }];
+    });
+}
+
 export function normalizeEvent(raw) {
     const start = new Date(raw.eStartDate);
     // Read the wall-clock position out of the Pacific zone rather than the
@@ -284,8 +310,9 @@ export function buildMonthGrid(year, month, events, { withOutside = false } = {}
     return rows;
 }
 
-export function groupByMonth(rawEvents) {
-    const events = rawEvents.map(normalizeEvent);
+// The months that hold `events` (normalized, so the tag filter has had its
+// say), newest first.
+export function groupByMonth(events) {
     const buckets = new Map();
 
     for (const event of events) {

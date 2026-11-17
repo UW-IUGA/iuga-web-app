@@ -11,18 +11,31 @@ import CalendarControls from "./CalendarControls";
 // Tue Oct 20 2026, 1pm Pacific.
 const anchor = () => new Date("2026-10-20T20:00:00.000Z");
 
-function renderCalendarControls({ mode = "month", ...rest } = {}) {
+// `hiddenTags` are the tags the filter has turned off; every tag shows by default.
+function renderCalendarControls({ mode = "month", hiddenTags = [], ...rest } = {}) {
   const handlers = {
     onModeChange: vi.fn(),
     onToday: vi.fn(),
     onStep: vi.fn(),
     ...rest,
   };
+  const tagFilter = {
+    isTagShown: (tag) => !hiddenTags.includes(tag),
+    onToggle: vi.fn(),
+    onShowAll: vi.fn(),
+    isFiltered: hiddenTags.length > 0,
+  };
 
   return {
     ...handlers,
+    tagFilter,
     ...render(
-      <CalendarControls mode={mode} selectedDate={anchor()} {...handlers} />,
+      <CalendarControls
+        mode={mode}
+        selectedDate={anchor()}
+        tagFilter={tagFilter}
+        {...handlers}
+      />,
     ),
   };
 }
@@ -91,22 +104,38 @@ describe("CalendarControls", () => {
     expect(screen.queryAllByRole("button")).toHaveLength(0);
   });
 
-  it("names each colour in the legend, as a list", () => {
+  it("makes the legend a group of tag checkboxes named Show, every tag on by default", () => {
     renderCalendarControls();
 
-    const legend = screen.getByRole("list", { name: "Event colours" });
-    const items = within(legend).getAllByRole("listitem");
-    expect(items.map((item) => item.textContent)).toEqual([
+    const group = screen.getByRole("group", { name: "Show" });
+    const boxes = within(group).getAllByRole("checkbox");
+    expect(boxes.map((box) => box.closest("label").textContent)).toEqual([
       "Academic",
       "Career",
       "Social",
     ]);
-    // Each color marker is decorative: the label beside it carries the meaning.
-    for (const item of items) {
-      const colorMarker = item.querySelector(".legend__color");
+    expect(boxes.every((box) => box.checked)).toBe(true);
+    // Each drawn box is decorative: the checkbox and its name carry the meaning.
+    for (const box of boxes) {
+      const colorMarker = box.closest("label").querySelector(".legend__color");
       expect(colorMarker.getAttribute("aria-hidden")).toBe("true");
-      expect(colorMarker.style.backgroundColor).not.toBe("");
+      expect(colorMarker.style.getPropertyValue("--legend-color")).not.toBe("");
     }
+    // Nothing is filtered, so there is nothing to show all of.
+    expect(screen.queryByRole("button", { name: "Show all" })).toBeNull();
+  });
+
+  it("reports a tag turned off, and offers Show all once any is off", () => {
+    const { tagFilter } = renderCalendarControls({ hiddenTags: ["Career"] });
+
+    const group = screen.getByRole("group", { name: "Show" });
+    expect(within(group).getByRole("checkbox", { name: "Career" }).checked).toBe(false);
+
+    fireEvent.click(within(group).getByRole("checkbox", { name: "Social" }));
+    expect(tagFilter.onToggle).toHaveBeenCalledWith("Social");
+
+    fireEvent.click(within(group).getByRole("button", { name: "Show all" }));
+    expect(tagFilter.onShowAll).toHaveBeenCalledTimes(1);
   });
 
   it("offers all four views", () => {

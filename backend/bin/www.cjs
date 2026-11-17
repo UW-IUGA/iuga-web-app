@@ -47,8 +47,27 @@ const startupStartedAt = Date.now();
     .then((actualPort) => {
       app.set('port', actualPort);
       onListening(actualPort, host);
+      registerDiscordCommands().catch((error) => {
+        console.error(`Discord command registration failed: ${error.message}`);
+      });
     })
     .catch(onError);
+
+  /**
+   * Keep the Discord server's slash commands in step with this build, in the background so a
+   * Discord problem never delays or blocks startup. Runs only where the Discord bot is enabled.
+   */
+
+  async function registerDiscordCommands() {
+    if (!process.env.DISCORD_PUBLIC_KEY || !process.env.DISCORD_BOT_TOKEN) return;
+    const { createDiscordClient } = await import('../discordClient.js');
+    const { syncDiscordCommands } = await import('../discordCommandSync.js');
+    await syncDiscordCommands({
+      client: createDiscordClient({ botToken: process.env.DISCORD_BOT_TOKEN }),
+      applicationId: process.env.DISCORD_APP_ID,
+      guildId: process.env.DISCORD_GUILD_ID,
+    });
+  }
 
   /**
    * Normalize a port into a number, string, or false.

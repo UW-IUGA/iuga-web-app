@@ -3,13 +3,23 @@
 const GAP = 8;
 const EDGE = 16;
 
+// Where the popover's left edge would go on each side of `anchor`, before it is
+// kept inside the window. "center" is over the middle of `anchor`: the day
+// view's events run the width of the grid, with no room beside them.
+const IDEAL_LEFT = {
+    right: (anchor) => anchor.right + GAP,
+    left: (anchor, popover) => anchor.left - GAP - popover.width,
+    center: (anchor, popover) => (anchor.left + anchor.right - popover.width) / 2,
+};
+
 /**
- * Where the popover goes, in viewport pixels, beside `anchor` on `side`.
+ * Where the popover goes, in viewport pixels, beside `anchor` on `side`
+ * ("right" or "left"), or centred over it ("center"), level with its top.
  * Kept inside the window: a popover that would run off the edge slides back
  * in, overlapping the grid rather than being cut off.
  */
 export function placePopover(anchor, popover, side, viewport) {
-    const ideal = side === "right" ? anchor.right + GAP : anchor.left - GAP - popover.width;
+    const ideal = IDEAL_LEFT[side](anchor, popover);
     const maxLeft = viewport.width - EDGE - popover.width;
     const maxTop = viewport.height - EDGE - popover.height;
 

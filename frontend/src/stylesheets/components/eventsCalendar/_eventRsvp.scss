@@ -17,6 +17,8 @@ Expected Response Information: The same palette, type, radii and focus ring as t
 
     // The one strong fill, as the Today button in CalendarControls and the selected day use it.
     .eventRsvp__button {
+        @include calendar-strong-button;
+
         min-height: 40px;
         padding: $calendar-space-sm $calendar-space-lg;
 
@@ -24,23 +26,11 @@ Expected Response Information: The same palette, type, radii and focus ring as t
         align-items: center;
         gap: $calendar-space-sm;
 
-        font-size: 14px;
-        font-weight: 600;
         text-decoration: none;
-        background-color: $calendar-copy-bg;
-        color: $calendar-copy-text;
-        border-radius: $calendar-radius-pill;
-        transition:
-            transform 120ms ease,
-            opacity 120ms ease;
 
         &:disabled {
             opacity: 0.6;
             cursor: progress;
-        }
-
-        &:active:not(:disabled) {
-            transform: translateY(1px);
         }
 
         svg {

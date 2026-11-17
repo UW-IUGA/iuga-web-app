@@ -5,11 +5,15 @@ import EventPopover from "./EventPopover";
 import TimeGrid from "./TimeGrid";
 
 // A day is the time grid fed one date. Clicking an event opens its details in the
-// same popover week view uses. The day is already on screen, so that popover has
-// no "View day" button.
+// same popover week view uses. The day's events run the width of the grid, so
+// there is no room beside them: the popover opens centred over the event
+// instead. The day is already on screen, so that popover has no "View day"
+// button.
 function DayView({ anchor, events, onSelectDay }) {
     const columns = useMemo(() => buildDayColumns([anchor], events), [anchor, events]);
-    const { popoverSelection, pickEvent, beginClosing, closePopover } = useEventPopover(columns[0].key);
+    const { popoverSelection, pickEvent, beginClosing, closePopover } = useEventPopover(columns[0].key, {
+        side: "center",
+    });
 
     return (
         <div className="day">
@@ -19,12 +23,7 @@ function DayView({ anchor, events, onSelectDay }) {
                 onPickEvent={pickEvent}
                 openEventKey={popoverSelection?.key}
             />
-            <EventPopover
-                selected={popoverSelection}
-                onClose={closePopover}
-                onClosing={beginClosing}
-                flipSide={false}
-            />
+            <EventPopover selected={popoverSelection} onClose={closePopover} onClosing={beginClosing} />
         </div>
     );
 }

@@ -143,6 +143,25 @@ $calendar-hover-faintest: var(--calendar-hover-faintest);
 $calendar-popover-border: var(--calendar-popover-border);
 $calendar-popover-shadow: var(--calendar-popover-shadow);
 
+// The calendar's strong button: a pill in the one strong fill, which presses
+// down a pixel. Shared by Today (CalendarControls), Sign in to RSVP
+// (EventRsvp) and View Photos (PastEvents), so they cannot drift apart. Each
+// sets its own height and padding.
+@mixin calendar-strong-button {
+    font-size: 14px;
+    font-weight: 600;
+    background-color: $calendar-copy-bg;
+    color: $calendar-copy-text;
+    border-radius: $calendar-radius-pill;
+    transition:
+        transform 120ms ease,
+        opacity 120ms ease;
+
+    &:active:not(:disabled) {
+        transform: translateY(1px);
+    }
+}
+
 // The height of the month, week and day views, so switching between them
 // keeps the calendar the same size: the week grid's 72vh scrolling area plus
 // a day header about 6vh tall on a laptop.

@@ -1,0 +1,275 @@
+/*
+ * Purpose: Global authentication state provider coordinating MSAL, backend sessions, and officer permissions.
+ * Authentication/Authorization Requirements: Handles sign-in, session synchronization, and local sign-out.
+ * Expected Request: React subtree consumers via useAuthContext() hook invoking signIn(), signOut(), can(permission), or reading state.
+ * Expected Response: AuthContext value exposing user, isAuthenticated, can, authLoading, authError, signIn, and signOut.
+ */
+import React, { createContext, useState, useEffect, useContext, useRef } from 'react';
+import { useMsal } from '@azure/msal-react';
+import { toast } from 'react-toastify';
+import { loginRequest } from '../authConfig';
+import useAuth from '../hooks/useAuth';
+import { isProduction, apiBaseUrl } from '../runtime';
+import AlertDialog from '../components/AlertDialog';
+
+const LOCAL_BACKEND_DOCS_PATH = 'docs/TROUBLESHOOTING.md#local-development-sign-in';
+const LOCAL_BACKEND_MESSAGE = `Local sign-in requires the Docker development environment. Start Docker and run npm run dev, then try again. Read ${LOCAL_BACKEND_DOCS_PATH} for help.`;
+const TROUBLESHOOTING_URL =
+    'https://github.com/UW-IUGA/iuga-web-app/blob/main/docs/TROUBLESHOOTING.md#local-development-sign-in';
+const AuthContext = createContext();
+const ensureDevelopmentBackend = async () => {
+  if (isProduction) return;
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/readyz`);
+    if (!response.ok) throw new Error('Backend readiness check failed');
+  } catch {
+    throw new Error(LOCAL_BACKEND_MESSAGE);
+  }
+};
+
+export const AuthProvider = ({ children }) => {
+  const { instance, accounts } = useMsal();
+  const { ensureBackendAuthentication } = useAuth();
+  const [authLoading, setAuthLoading] = useState(true);
+  const [authError, setAuthError] = useState(null);
+  const [isAuthenticated, setLoginState] = useState(false);
+  const [user, setUser] = useState({});
+  const authGeneration = useRef(0);
+  const syncMemo = useRef(new Map());
+  const signInInFlight = useRef(null);
+
+  /*
+   * @behavior: Synchronize an MSAL account with the IUGA backend session. Multiple calls for the
+   *            same account share a single in-flight sync unless force is specified; failures are evicted.
+   * @param {Object} [account] - MSAL account to sync; falls back to the first active account.
+   * @param {Object} [options] - Synchronization options.
+   * @param {boolean} [options.force=false] - When true, initiates a fresh sync unless one is already in flight.
+   * @returns {Promise<Object|null>} Authenticated backend user or null when signed out.
+   */
+  const signInToBackend = (account, { force = false } = {}) => {
+    const targetAccount = account || (accounts && accounts.length > 0 ? accounts[0] : null);
+    const currentGen = ++authGeneration.current;
+
+    if (!targetAccount) {
+      if (currentGen === authGeneration.current) {
+        setUser({});
+        setLoginState(false);
+        setAuthLoading(false);
+      }
+      return Promise.resolve(null);
+    }
+
+    const key = targetAccount.homeAccountId || targetAccount.localAccountId || targetAccount.username || 'default';
+    const entry = syncMemo.current.get(key);
+    let syncPromise;
+
+    if (entry && (!force || entry.inFlight)) {
+      syncPromise = entry.promise;
+    } else {
+      const syncEntry = { inFlight: true, promise: null };
+      syncPromise = (async () => {
+        try {
+          const result = await ensureBackendAuthentication(targetAccount);
+          syncEntry.inFlight = false;
+          return result;
+        } catch (error) {
+          syncMemo.current.delete(key);
+          throw error;
+        }
+      })();
+      syncEntry.promise = syncPromise;
+      syncMemo.current.set(key, syncEntry);
+    }
+
+    return (async () => {
+      try {
+        const backendUser = await syncPromise;
+        if (currentGen !== authGeneration.current) return backendUser;
+        setUser(backendUser);
+        setLoginState(true);
+        return backendUser;
+      } catch (error) {
+        if (currentGen !== authGeneration.current) throw error;
+        setAuthError(error);
+        setLoginState(false);
+        throw error;
+      } finally {
+        if (currentGen === authGeneration.current) {
+          setAuthLoading(false);
+        }
+      }
+    })();
+  };
+
+  useEffect(() => {
+    // A failed sync is already recorded in authError and shown in the dialog.
+    signInToBackend().catch(() => {});
+  }, [accounts]);
+
+  const isUserCancellation = (error) => {
+    const code = error?.errorCode || error?.code || error?.name || '';
+    if (code === 'user_cancelled' || code === 'popup_window_error') {
+      return true;
+    }
+    const message = error?.message || '';
+    return message.includes('user_cancelled') || message.includes('popup_window_error');
+  };
+
+  /*
+   * @behavior: Initiate MSAL interactive login and establish the backend session before resolving.
+   *            A second call while one is pending shares the in-flight attempt and
+   *            notes that sign-in is already underway instead of opening
+   *            another popup. Resolves the authenticated user on success, and null on
+   *            cancellation or error. Never rejects.
+   * @returns {Promise<Object|null>} Authenticated backend user, or null if sign-in did not complete.
+   */
+  const signIn = () => {
+    if (signInInFlight.current) {
+      toast.info('Sign-in is already in progress. Complete it in the Microsoft window to continue.');
+      return signInInFlight.current;
+    }
+    const attempt = (async () => {
+      try {
+        await ensureDevelopmentBackend();
+        let response;
+        try {
+          response = await instance.loginPopup(loginRequest);
+        } catch (popupError) {
+          if (
+            popupError?.errorCode === 'consent_required' ||
+            popupError?.code === 'consent_required'
+          ) {
+            toast.info(
+              'Student consent is required for the requested sign-in information. Approve it in the Microsoft window to continue.'
+            );
+            response = await instance.loginPopup({
+              ...loginRequest,
+              prompt: 'consent',
+            });
+          } else {
+            throw popupError;
+          }
+        }
+
+        const account = response?.account || (accounts && accounts.length > 0 ? accounts[0] : null);
+        const authenticatedUser = await signInToBackend(account, { force: true });
+        return authenticatedUser;
+      } catch (error) {
+        if (isUserCancellation(error)) {
+          return null;
+        }
+        setUser({});
+        setLoginState(false);
+        setAuthError(error);
+        return null;
+      } finally {
+        signInInFlight.current = null;
+      }
+    })();
+    signInInFlight.current = attempt;
+    return attempt;
+  };
+
+  /*
+   * Purpose: Terminate the application session locally and purge MSAL cached credentials
+   *          without redirecting the student away to Microsoft's global account picker.
+   * Authentication/Authorization Requirements: None; callable by authenticated or unauthenticated users.
+   */
+  const signOut = async () => {
+    // Invalidate any in-flight backend sign-in calls so they cannot resurrect signed-in state
+    syncMemo.current.clear();
+    signInInFlight.current = null;
+    authGeneration.current++;
+    try {
+      const response = await fetch('/api/v1/user/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        console.error(`Backend logout returned status ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Backend logout session destruction encountered an error:', error);
+    } finally {
+      setUser({});
+      setLoginState(false);
+      try {
+        const account = accounts && accounts.length > 0 ? accounts[0] : undefined;
+        await instance.logoutRedirect({
+          account,
+          onRedirectNavigate: () => false,
+        });
+      } catch (msalError) {
+        console.error('Local MSAL cache clearance failed:', msalError);
+        setAuthError(msalError);
+      }
+    }
+  };
+
+  const [permissions, setPermissions] = useState([]);
+
+  // The signed-in user's permissions from their roles, which decide the officer tools the site offers.
+  // A response for an earlier account or session is ignored, and a failure offers no officer tools.
+  useEffect(() => {
+    setPermissions([]);
+    if (!isAuthenticated) return undefined;
+    let current = true;
+    fetch('/api/v1/user/permissions')
+      .then((response) => (response.ok ? response.json() : null))
+      .then((body) => {
+        if (current && Array.isArray(body?.permissions)) setPermissions(body.permissions);
+      })
+      .catch(() => {});
+    return () => {
+      current = false;
+    };
+  }, [isAuthenticated, user]);
+
+  // Whether the signed-in user may use an officer tool. The tool's API checks again on every request.
+  const can = (permission) => permissions.includes(permission);
+
+  const isLocalBackendError = authError?.message === LOCAL_BACKEND_MESSAGE;
+
+  /*
+   * @behavior: Render the current auth error with the docs path as a hyperlink when it
+   *            is the known local-backend message; otherwise render the raw message.
+   * @returns {React.ReactNode} Message content for AlertDialog.
+   */
+  const renderAuthErrorMessage = () => {
+    if (!isLocalBackendError) {
+      return authError?.message;
+    }
+    const [lead, tail] = LOCAL_BACKEND_MESSAGE.split(LOCAL_BACKEND_DOCS_PATH);
+    return (
+      <>
+        {lead}
+        <a href={TROUBLESHOOTING_URL} target="_blank" rel="noreferrer">
+          {LOCAL_BACKEND_DOCS_PATH}
+        </a>
+        {tail}
+      </>
+    );
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, isAuthenticated, can, authLoading, authError, signIn, signOut }}>
+      {authError ? (
+        <AlertDialog
+          eyebrow={isLocalBackendError ? "Local environment" : "Sign-in"}
+          title={isLocalBackendError ? "Local sign-in unavailable" : "We couldn't sign you in"}
+          message={renderAuthErrorMessage()}
+          confirmLabel="I understand"
+          onConfirm={() => setAuthError(null)}
+        />
+      ) : null}
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuthContext = () => {
+  return useContext(AuthContext);
+};

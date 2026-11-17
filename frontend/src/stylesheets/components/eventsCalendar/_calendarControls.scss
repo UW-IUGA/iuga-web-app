@@ -11,8 +11,8 @@ Expected Response Information: Today and the arrows, the range title, and the vi
     // tall).
     $calendar-controls-row-height: 40px;
 
-    // The outlined pills on that line: Today, and the view dropdown on a narrow
-    // screen. One height, so the two read as a set. Over the 24px minimum target
+    // The pills on that line: Today, and the view dropdown on a narrow screen.
+    // One height, so the two read as a set. Over the 24px minimum target
     // (WCAG 2.5.8).
     $calendar-controls-pill-height: 32px;
 
@@ -38,21 +38,13 @@ Expected Response Information: Today and the arrows, the range title, and the vi
         gap: $calendar-space-2xs;
     }
 
+    // The same strong pill as Sign in to RSVP, at the pill height it shares with
+    // the view dropdown.
     .calendar-controls__today {
+        @include calendar-strong-button;
+
         height: $calendar-controls-pill-height;
         padding: 0 $calendar-space-lg;
-
-        background-color: transparent;
-        color: $calendar-text;
-        font-size: 15px;
-        font-weight: 500;
-        border: 1px solid $calendar-control-border;
-        border-radius: $calendar-radius-pill;
-        transition: background-color 0.15s;
-
-        &:hover {
-            background-color: $calendar-hover;
-        }
     }
 
     .calendar-controls__arrow {

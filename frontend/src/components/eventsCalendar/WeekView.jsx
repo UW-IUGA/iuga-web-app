@@ -20,7 +20,6 @@ function WeekView({ anchor, events, onSelectDay }) {
         <>
             <TimeGrid
                 columns={columns}
-                onSelectDay={onSelectDay}
                 onPickEvent={pickEvent}
                 openEventKey={popoverSelection?.key}
                 onPickColumn={tapDays ? onSelectDay : undefined}

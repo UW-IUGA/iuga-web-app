@@ -53,10 +53,13 @@ Expected Response Information: A floating card with the event's details and a cl
         gap: $calendar-space-sm;
     }
 
+    // View day, in the month and week views' popover. The same strong pill as
+    // Sign in to RSVP, at the 32px that fits the bar beside Close.
     .popover__button {
+        @include calendar-strong-button;
+
         min-height: 32px;
         padding: $calendar-space-xs $calendar-space-md;
-        font-size: 13px;
     }
 
     .popover__close {

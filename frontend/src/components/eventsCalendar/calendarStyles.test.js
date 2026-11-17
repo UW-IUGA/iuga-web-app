@@ -120,12 +120,13 @@ describe("calendar styles", () => {
         );
     });
 
-    it("draw Today and View Photos as the same strong pill as Sign in to RSVP", () => {
+    it("draw Today, View Photos and View day as the same strong pill as Sign in to RSVP", () => {
         const rsvp = style(".eventRsvp__button");
         const today = style(".calendar-controls__today");
         const viewPhotos = style(".pastEvents .pastEventCard__viewPhotos");
+        const viewDay = style(".popover__button");
 
-        for (const button of [today, viewPhotos]) {
+        for (const button of [today, viewPhotos, viewDay]) {
             for (const property of ["background-color", "color", "font-size", "font-weight", "border-radius"]) {
                 expect(button[property]).toBe(rsvp[property]);
             }

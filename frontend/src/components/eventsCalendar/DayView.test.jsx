@@ -54,11 +54,8 @@ const rich = () =>
         rsvpQuestions: [{ qId: "q1", qString: "Any dietary restrictions?" }],
     });
 
-function renderDay({ events = [], onSelectDay = vi.fn() } = {}) {
-    return {
-        onSelectDay,
-        ...render(<DayView anchor={anchor()} events={events} onSelectDay={onSelectDay} />),
-    };
+function renderDay({ events = [] } = {}) {
+    return render(<DayView anchor={anchor()} events={events} />);
 }
 
 const eventButton = (name) => screen.getByRole("button", { name: new RegExp(name) });
@@ -201,28 +198,28 @@ describe("DayView", () => {
         const events = [jam("late", 22, 15), jam("early", 22, 10), jam("next", 23, 18)];
 
         it("opens scrolled to the first event of the day, then the next day's", () => {
-            const { container, rerender } = render(<DayView anchor={anchor()} events={events} onSelectDay={vi.fn()} />);
+            const { container, rerender } = render(<DayView anchor={anchor()} events={events} />);
             const scroller = container.querySelector(".grid__scroll");
 
             // 10am at 48px an hour, less the 8px left above it.
             expect(scroller.scrollTop).toBe(10 * 48 - 8);
 
             rerender(
-                <DayView anchor={new Date("2026-10-23T20:00:00.000Z")} events={events} onSelectDay={vi.fn()} />,
+                <DayView anchor={new Date("2026-10-23T20:00:00.000Z")} events={events} />,
             );
             expect(scroller.scrollTop).toBe(18 * 48 - 8);
         });
 
         it("lands on the first event once the list arrives, and stays put for the same list again", () => {
-            const { container, rerender } = render(<DayView anchor={anchor()} events={[]} onSelectDay={vi.fn()} />);
+            const { container, rerender } = render(<DayView anchor={anchor()} events={[]} />);
             const scroller = container.querySelector(".grid__scroll");
 
-            rerender(<DayView anchor={anchor()} events={events} onSelectDay={vi.fn()} />);
+            rerender(<DayView anchor={anchor()} events={events} />);
             expect(scroller.scrollTop).toBe(10 * 48 - 8);
 
             // The viewer scrolls on, then the same events load again.
             scroller.scrollTop = 900;
-            rerender(<DayView anchor={anchor()} events={[...events]} onSelectDay={vi.fn()} />);
+            rerender(<DayView anchor={anchor()} events={[...events]} />);
             expect(scroller.scrollTop).toBe(900);
         });
     });
@@ -352,12 +349,12 @@ describe("DayView", () => {
             const { rerender } = renderDay({ events: [rich()] });
 
             fireEvent.click(eventButton("Industry Panel"));
-            rerender(<DayView anchor={new Date("2026-10-23T20:00:00.000Z")} events={[rich()]} onSelectDay={vi.fn()} />);
+            rerender(<DayView anchor={new Date("2026-10-23T20:00:00.000Z")} events={[rich()]} />);
 
             expect(screen.queryByRole("dialog")).toBeNull();
 
             // And it does not come back on stepping back to the day it opened on.
-            rerender(<DayView anchor={anchor()} events={[rich()]} onSelectDay={vi.fn()} />);
+            rerender(<DayView anchor={anchor()} events={[rich()]} />);
 
             expect(screen.queryByRole("dialog")).toBeNull();
         });
@@ -397,20 +394,19 @@ const usePhone = () => {
 };
 
 describe("DayView on a phone", () => {
-    // Week view sends a tap on a phone's column to the day. The day view has no
-    // such column, so a tap on an event opens its popover instead.
+    // Week view sends a tap on a phone's column to the day. The day view is
+    // already the day, so a tap on an event opens its popover.
     beforeEach(usePhone);
     afterEach(() => {
         delete window.matchMedia;
     });
 
-    it("opens the popover for a tap on an event, without going to the day", () => {
-        const { onSelectDay } = renderDay({ events: [rich()] });
+    it("opens the popover for a tap on an event", () => {
+        renderDay({ events: [rich()] });
 
         fireEvent.click(eventButton("Industry Panel"));
 
         expect(screen.getByRole("dialog", { name: "Industry Panel" })).toBeTruthy();
-        expect(onSelectDay).not.toHaveBeenCalled();
     });
 });
 

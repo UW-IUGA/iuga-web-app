@@ -145,8 +145,8 @@ $calendar-popover-shadow: var(--calendar-popover-shadow);
 
 // The calendar's strong button: a pill in the one strong fill, which presses
 // down a pixel. Shared by Today (CalendarControls), Sign in to RSVP
-// (EventRsvp) and View Photos (PastEvents), so they cannot drift apart. Each
-// sets its own height and padding.
+// (EventRsvp), View Photos (PastEvents) and View day (EventPopover), so they
+// cannot drift apart. Each sets its own height and padding.
 @mixin calendar-strong-button {
     font-size: 14px;
     font-weight: 600;

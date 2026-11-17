@@ -62,10 +62,11 @@ describe("WeekView", () => {
     });
 
     it("heads the columns with the days of the anchor week", () => {
-        renderWeek();
+        const { container } = renderWeek();
+        const heads = [...container.querySelectorAll(".grid__dayhead")].map((head) => head.textContent);
 
-        expect(screen.getByRole("button", { name: /Sun\s*18/ })).toBeTruthy();
-        expect(screen.getByRole("button", { name: /Sat\s*24/ })).toBeTruthy();
+        expect(heads[0]).toMatch(/Sun\s*18/);
+        expect(heads[6]).toMatch(/Sat\s*24/);
     });
 
     it("draws an hour gutter", () => {
@@ -149,13 +150,24 @@ describe("WeekView", () => {
         expect(event.style.height).toBe(`${(90 / 1440) * 100}%`);
     });
 
-    it("asks to open a day when its header is clicked", () => {
-        const { onSelectDay } = renderWeek();
+    it("stays in the week when a weekday header is clicked", () => {
+        const { container, onSelectDay } = renderWeek();
+        const thursday = container.querySelectorAll(".grid__dayhead")[4];
+        expect(thursday.textContent).toMatch(/Thu\s*22/);
 
-        fireEvent.click(screen.getByRole("button", { name: /Thu\s*22/ }));
+        fireEvent.click(thursday);
 
-        expect(onSelectDay).toHaveBeenCalledTimes(1);
-        expect(onSelectDay.mock.calls[0][0].toISOString().slice(0, 10)).toBe("2026-10-22");
+        expect(onSelectDay).not.toHaveBeenCalled();
+    });
+
+    it("draws the weekday headers as labels, with no buttons or tab stops", () => {
+        const { container } = renderWeek();
+
+        expect(screen.queryByRole("button", { name: /Thu\s*22/ })).toBeNull();
+        for (const head of container.querySelectorAll(".grid__dayhead")) {
+            expect(head.tagName).toBe("DIV");
+            expect(head.hasAttribute("tabindex")).toBe(false);
+        }
     });
 
     describe("event popover", () => {
@@ -336,7 +348,7 @@ describe("WeekView on a phone", () => {
         expect(onSelectDay).not.toHaveBeenCalled();
     });
 
-    it("adds no tab stop for the columns: the day header is the keyboard way to the day", () => {
+    it("adds no tab stop for the columns, which are a pointer shortcut only", () => {
         phone();
         const { container } = renderWeek({ events: overlapping });
 

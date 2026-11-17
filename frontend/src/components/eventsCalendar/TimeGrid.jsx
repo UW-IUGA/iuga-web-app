@@ -26,7 +26,7 @@ function hourLabel(hour) {
  * views share one component with a different column count. Event and column
  * presses are reported to the caller; the selected event stays the caller's.
  */
-function TimeGrid({ columns, onSelectDay, onPickEvent, openEventKey = null, onPickColumn }) {
+function TimeGrid({ columns, onPickEvent, openEventKey = null, onPickColumn }) {
     const scrollRef = useRef(null);
     const now = useNow();
     const nowParts = zonedParts(now);
@@ -55,9 +55,9 @@ function TimeGrid({ columns, onSelectDay, onPickEvent, openEventKey = null, onPi
 
     return (
         <div className={`grid${onPickColumn ? " grid--tap-days" : ""}`} style={{ "--grid-cols": columns.length }}>
-            {/* Scrolls on its own, and the day headers inside it stay stuck at the
-          top, so focusing them never moves it: without a tab stop of its own a
-          keyboard could not scroll the day view (WCAG 2.1.1). Focused, the
+            {/* Scrolls on its own, with the day headers stuck to its top. It has a tab
+          stop of its own: in a day with no events there is nothing else to focus,
+          and without one a keyboard could not scroll it (WCAG 2.1.1). Focused, the
           arrow keys and Page Up / Down move through the day. */}
             <div className="grid__scroll" ref={scrollRef} tabIndex={0} role="region" aria-label="Schedule">
                 {/* Inside the scroller, stuck to its top, rather than above it. Above
@@ -66,17 +66,18 @@ function TimeGrid({ columns, onSelectDay, onPickEvent, openEventKey = null, onPi
             weekdays. In here both share one width, scrollbar or none. */}
                 <div className="grid__head">
                     <div className="grid__gutter-head" aria-hidden="true" />
+                    {/* Labels, not controls: a click on a weekday leaves the view where
+              it is. The event popover's View day, the view switch and the date
+              picker are the ways to a day. */}
                     {columns.map((column) => (
-                        <button
-                            type="button"
+                        <div
                             key={column.key}
                             className={`grid__dayhead${column.isToday ? " grid__dayhead--today" : ""}`}
                             aria-current={column.isToday ? "date" : undefined}
-                            onClick={() => onSelectDay(column.date)}
                         >
                             <span className="grid__dayhead-name">{formatWeekday(column.date)}</span>
                             <span className="grid__dayhead-number">{column.parts.day}</span>
-                        </button>
+                        </div>
                     ))}
                 </div>
 
@@ -90,11 +91,10 @@ function TimeGrid({ columns, onSelectDay, onPickEvent, openEventKey = null, onPi
                     </div>
 
                     {columns.map((column, columnIndex) => (
-                        // A pointer shortcut only: the day header above is the same
-                        // action for a keyboard, so the column is not a second tab stop.
-                        // On a phone the day header is a small target, so a press on a
-                        // day's empty space goes to the day; a press on an event still
-                        // opens it.
+                        // On a phone, a press on a day's empty space goes to the day; a
+                        // press on an event still opens it. A pointer shortcut only, so
+                        // not a tab stop: a keyboard reaches the day from an event's View
+                        // day, the view switch or the date picker.
                         <div
                             className="grid__col"
                             key={column.key}

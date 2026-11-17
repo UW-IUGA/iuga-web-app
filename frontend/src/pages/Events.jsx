@@ -111,7 +111,7 @@ function EventsPage() {
     );
   } else if (mode === "day") {
     view = (
-      <DayView anchor={selectedDate} events={events} onSelectDay={goToDay} />
+      <DayView anchor={selectedDate} events={events} />
     );
   } else {
     view = (

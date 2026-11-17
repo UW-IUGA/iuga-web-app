@@ -20,6 +20,7 @@ import {
 } from "./schemas/schemas.js";
 import { committeeRecruitmentSchema } from "./committeeRecruitment.js";
 import { discordSubmissionsSchema } from "./discordSubmissions.js";
+import { discordEventDraftsSchema } from "./discordEventDrafts.js";
 import { discordRsosSchema } from "./discordRsos.js";
 import { discordRsoRequestsSchema } from "./discordRsoRequests.js";
 
@@ -55,6 +56,7 @@ async function connectToDatabase(){
   models.Committees = mongoose.model("Committees", committeesSchema);
   models.CommitteeRecruitment = mongoose.model("CommitteeRecruitment", committeeRecruitmentSchema);
   models.DiscordEventSubmissions = mongoose.model("DiscordEventSubmissions", discordSubmissionsSchema);
+  models.DiscordEventDrafts = mongoose.model("DiscordEventDrafts", discordEventDraftsSchema);
   models.DiscordRsos = mongoose.model("DiscordRsos", discordRsosSchema);
   models.DiscordRsoRequests = mongoose.model("DiscordRsoRequests", discordRsoRequestsSchema);
 

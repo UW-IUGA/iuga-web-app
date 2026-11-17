@@ -10,7 +10,7 @@ function validInput(overrides = {}) {
     name: "Game Night",
     when: "3/10/2027 6:00 PM - 8:00 PM",
     location: "Mary Gates Hall 142",
-    category: "Social",
+    categories: ["Social"],
     description: "Board games and snacks.",
     ...overrides,
   };
@@ -39,7 +39,7 @@ describe("validateSubmission", () => {
     assert.equal(result.ok, true);
     assert.equal(result.value.eStartDate.toISOString(), "2027-03-11T02:00:00.000Z");
     assert.equal(result.value.eEndDate.toISOString(), "2027-03-11T04:00:00.000Z");
-    assert.equal(result.value.eLabel, "Social");
+    assert.deepEqual(result.value.eLabels, ["Social"]);
     assert.equal(result.value.rsvpUrl, undefined);
   });
 
@@ -103,9 +103,18 @@ describe("validateSubmission", () => {
     }
   });
 
-  it("rejects a category outside Academic, Social, and Career", () => {
-    assert.equal(validateSubmission(validInput({ category: "Party" }), NOW).ok, false);
-    assert.equal(validateSubmission(validInput({ category: "" }), NOW).ok, false);
+  it("accepts several categories, in the standard order, without repeats", () => {
+    const result = validateSubmission(validInput({ categories: ["Career", "Academic", "Career"] }), NOW);
+    assert.equal(result.ok, true);
+    assert.deepEqual(result.value.eLabels, ["Academic", "Career"]);
+  });
+
+  it("rejects no category, or any category outside Academic, Social, and Career", () => {
+    for (const categories of [[], ["Party"], ["Social", "Party"], undefined]) {
+      const result = validateSubmission(validInput({ categories }), NOW);
+      assert.equal(result.ok, false, String(categories));
+      assert.match(result.errors.join(" "), /Pick at least one category: Academic, Social, or Career/);
+    }
   });
 
   it("rejects text over its length cap", () => {

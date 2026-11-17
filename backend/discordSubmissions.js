@@ -12,7 +12,11 @@ export const discordSubmissionsSchema = new mongoose.Schema(
     eEndDate: { type: Date },
     eLocation: { type: String, required: true, maxlength: 120 },
     eDescription: { type: String, required: true, maxlength: 1000 },
-    eLabel: { type: String, enum: CATEGORIES, required: true },
+    eLabels: {
+      type: [{ type: String, enum: CATEGORIES }],
+      validate: { validator: (labels) => labels.length > 0, message: "Pick at least one category." },
+    },
+    eLabel: { type: String, enum: CATEGORIES },
     rsvpUrl: { type: String, maxlength: 300 },
     status: {
       type: String,

@@ -11,7 +11,7 @@ import {
 
 export const EVENT_FORM_ACTION = "event-form";
 
-const FIELD_IDS = ["name", "when", "location", "category", "description"];
+const TEXT_FIELD_IDS = ["name", "when", "location", "description"];
 
 function textField({ id, label, description, placeholder, maxLength, style = TEXT_INPUT_SHORT }) {
   return {
@@ -46,11 +46,13 @@ export function eventForm(rsoKey) {
         textField({ id: "location", label: "Location", placeholder: "Mary Gates Hall 142", maxLength: 120 }),
         {
           type: COMPONENT_LABEL,
-          label: "Category",
+          label: "Categories",
           component: {
             type: COMPONENT_STRING_SELECT,
-            custom_id: "category",
-            placeholder: "Pick one",
+            custom_id: "categories",
+            placeholder: "Pick one or more",
+            min_values: 1,
+            max_values: CATEGORIES.length,
             required: true,
             options: CATEGORIES.map((category) => ({ label: category, value: category })),
           },
@@ -69,15 +71,16 @@ export function eventForm(rsoKey) {
 
 /*
  * @behavior Read a submitted /event form into plain strings. Values are untrusted and still need validateSubmission.
- * @returns { rsoKey, name, when, location, category, description }; missing fields are ""
+ * @returns { rsoKey, name, when, location, categories, description }; missing text is "", missing categories []
  */
 export function readEventForm(interaction) {
   const answers = {};
   for (const label of interaction.data?.components ?? []) {
     const field = label.component;
-    if (!field?.custom_id) continue;
-    answers[field.custom_id] = String((field.values ? field.values[0] : field.value) ?? "");
+    if (field?.custom_id) answers[field.custom_id] = field.values ?? field.value;
   }
   const [, rsoKey] = parseCustomId(interaction.data?.custom_id);
-  return { rsoKey, ...Object.fromEntries(FIELD_IDS.map((id) => [id, answers[id] ?? ""])) };
+  const text = Object.fromEntries(TEXT_FIELD_IDS.map((id) => [id, String(answers[id] ?? "")]));
+  const categories = Array.isArray(answers.categories) ? answers.categories.map(String) : [];
+  return { rsoKey, ...text, categories };
 }

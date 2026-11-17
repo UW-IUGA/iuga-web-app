@@ -246,12 +246,6 @@ Expected Response Information: Today and the arrows, the range title, and the vi
         // Year view has no picker, so its lead keeps its range and the first line,
         // at the left beside the switch.
 
-        // The lead is a size container, so the legend chooses its columns from the
-        // width it is actually given (see _legend.scss).
-        .calendar-controls__lead {
-            container: calendar-controls-legend / inline-size;
-        }
-
         .calendar-controls__nav ~ .calendar-controls__lead {
             order: 1;
             flex-basis: 100%;

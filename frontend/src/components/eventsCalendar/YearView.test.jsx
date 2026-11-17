@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { colorForLabels, zonedParts } from "../../utils/calendar/calendar";
+import { colorForLabels, normalizeEvent, zonedParts } from "../../utils/calendar/calendar";
 import YearView from "./YearView";
 
 // Tweens finish the moment they start, so the open and close sequences run to
@@ -28,8 +28,8 @@ vi.mock("gsap", () => {
     };
 });
 
-// Raw wire events, the shape groupByMonth expects. Spread across years on
-// purpose: the year view is the whole archive, not one year of it.
+// Raw wire events, normalized as the page does before handing them over. Spread
+// across years on purpose: the year view is the whole archive, not one year of it.
 const rawEvents = [
     {
         eId: "oct-a",
@@ -59,9 +59,9 @@ const rawEvents = [
     },
 ];
 
-function renderYear(props = {}) {
+function renderYear({ rawEvents: raw = rawEvents, ...props } = {}) {
     const onPickDay = vi.fn();
-    const view = render(<YearView rawEvents={rawEvents} onPickDay={onPickDay} {...props} />);
+    const view = render(<YearView events={raw.map(normalizeEvent)} onPickDay={onPickDay} {...props} />);
 
     return { ...view, onPickDay };
 }

@@ -76,6 +76,8 @@ const VIEWS = [
     ["week view", "/events?view=week&date=2026-10-20"],
     ["day view", "/events?view=day&date=2026-10-22"],
     ["year view", "/events?view=year&date=2026-10-20"],
+    ["month view with a tag filtered out", "/events?view=month&date=2026-10-20&tags=academic,social"],
+    ["year view with a tag filtered out", "/events?view=year&date=2026-10-20&tags=career"],
 ];
 
 beforeEach(() => {

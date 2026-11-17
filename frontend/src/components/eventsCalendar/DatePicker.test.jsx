@@ -39,6 +39,9 @@ function stubMedia({ phone = true, reduce = true } = {}) {
   });
 }
 
+// Every tag shown: the picker does not care what the legend filters.
+const tagFilter = { isTagShown: () => true, onToggle: () => {}, onShowAll: () => {}, isFiltered: false };
+
 function renderCalendarControls(mode = "week") {
   const onPickDate = vi.fn();
   render(
@@ -48,6 +51,7 @@ function renderCalendarControls(mode = "week") {
       events={events}
       onModeChange={vi.fn()}
       onToday={vi.fn()}
+      tagFilter={tagFilter}
       onStep={vi.fn()}
       onPickDate={onPickDate}
     />,
@@ -249,6 +253,7 @@ describe("date picker", () => {
         events={events}
         onModeChange={vi.fn()}
         onToday={vi.fn()}
+        tagFilter={tagFilter}
         onStep={onStep}
         onPickDate={vi.fn()}
       />,
@@ -279,6 +284,7 @@ describe("date picker", () => {
       onToday: vi.fn(),
       onStep: vi.fn(),
       onPickDate: vi.fn(),
+      tagFilter,
     };
     const { rerender } = render(
       <CalendarControls {...props} selectedDate={anchor()} />,

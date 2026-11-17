@@ -24,8 +24,10 @@ import { useAuthContext } from "../context/AuthContext";
 import useCalendarView from "../hooks/useCalendarView";
 import useEventList from "../hooks/useEventList";
 import useSwipeStep from "../hooks/useSwipeStep";
+import useTagFilter from "../hooks/useTagFilter";
 import {
   buildMonthGrid,
+  filterByTags,
   MONTH_NAMES,
   normalizeEvent,
   zonedParts,
@@ -88,7 +90,23 @@ function EventsPage() {
   useSwipeStep(mainRef, onStep, hasSidebar);
 
   // Normalized once per list, so the grids' own memos keep their inputs.
-  const events = useMemo(() => records.map(normalizeEvent), [records]);
+  const allEvents = useMemo(() => records.map(normalizeEvent), [records]);
+
+  // The legend is also the tag filter. What it leaves is all the calendar shows,
+  // in every view and in the mini month's and date picker's dots. With every tag
+  // on, this is allEvents itself.
+  const { shownTags, isTagShown, toggleTag, showAllTags, isFiltered } =
+    useTagFilter();
+  const events = useMemo(
+    () => filterByTags(allEvents, shownTags),
+    [allEvents, shownTags],
+  );
+  const tagFilter = {
+    isTagShown,
+    onToggle: toggleTag,
+    onShowAll: showAllTags,
+    isFiltered,
+  };
 
   const selectedDateParts = zonedParts(selectedDate);
 
@@ -104,7 +122,7 @@ function EventsPage() {
 
   let view;
   if (mode === "year") {
-    view = <YearView rawEvents={records} onPickDay={goToDay} />;
+    view = <YearView events={events} onPickDay={goToDay} />;
   } else if (mode === "week") {
     view = (
       <WeekView anchor={selectedDate} events={events} onSelectDay={goToDay} />
@@ -137,6 +155,7 @@ function EventsPage() {
             onToday={onToday}
             onStep={onStep}
             onPickDate={goToDate}
+            tagFilter={tagFilter}
           />
 
           <div className={`events${hasSidebar ? " events--with-sidebar" : ""}`}>
@@ -148,9 +167,10 @@ function EventsPage() {
                   onPickDay={goToDate}
                   syncKey={navCount}
                 />
-                {/* The colour key, under the mini month and stacked to fit its width. */}
+                {/* The colour key and tag filter, under the mini month and stacked
+                    to fit its width. */}
                 <div className="events__legend">
-                  <Legend layout="column" />
+                  <Legend layout="column" {...tagFilter} />
                 </div>
               </div>
             )}

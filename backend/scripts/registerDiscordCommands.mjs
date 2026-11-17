@@ -1,8 +1,9 @@
 // Replaces every guild command for this application with /event and /rso-verify.
+// The server does this itself on startup; run this by hand only when testing locally.
 // Usage: DISCORD_APP_ID=... DISCORD_BOT_TOKEN=... DISCORD_GUILD_ID=... node scripts/registerDiscordCommands.mjs
 
 import { createDiscordClient } from "../discordClient.js";
-import { EVENT_COMMAND, RSO_VERIFY_COMMAND } from "../discordCommandDefinition.js";
+import { DISCORD_COMMANDS } from "../discordCommandDefinition.js";
 
 const required = ["DISCORD_APP_ID", "DISCORD_BOT_TOKEN", "DISCORD_GUILD_ID"];
 const missing = required.filter((name) => !process.env[name]);
@@ -17,7 +18,7 @@ try {
   const registered = await client.registerGuildCommands(
     process.env.DISCORD_APP_ID,
     process.env.DISCORD_GUILD_ID,
-    [EVENT_COMMAND, RSO_VERIFY_COMMAND],
+    DISCORD_COMMANDS,
   );
   console.log(`Registered ${registered.length} guild command(s) in guild ${process.env.DISCORD_GUILD_ID}:`);
   for (const command of registered) {

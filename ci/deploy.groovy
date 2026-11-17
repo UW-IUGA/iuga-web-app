@@ -42,6 +42,8 @@ void healthGatedDeploy(Map cfg) {
     def discordEnv = cfg.discordPublicKey ? (
       '-e DISCORD_PUBLIC_KEY="$DISCORD_PUBLIC_KEY" \\\n' +
       '        -e DISCORD_BOT_TOKEN="$DISCORD_BOT_TOKEN" \\\n' +
+      '        -e DISCORD_APP_ID="$DISCORD_APP_ID" \\\n' +
+      '        -e DISCORD_GUILD_ID="$DISCORD_GUILD_ID" \\\n' +
       '        -e DISCORD_OFFICER_ROLE_ID="$DISCORD_OFFICER_ROLE_ID" \\\n' +
       '        -e DISCORD_MOD_ROLE_ID="$DISCORD_MOD_ROLE_ID" \\\n' +
       '        -e DISCORD_IUGA_OFFICER_ROLE_ID="$DISCORD_IUGA_OFFICER_ROLE_ID" \\\n' +

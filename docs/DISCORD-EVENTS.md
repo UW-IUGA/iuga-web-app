@@ -117,7 +117,7 @@ Use one plain member account and one moderator account.
 These need someone with Jenkins or developer access. Details are in [DISCORD.md](DISCORD.md).
 
 1. Copy the `#rso-approvals` channel ID (User Settings → Advanced → Developer Mode, then right-click the channel → Copy Channel ID) and save it in Jenkins as the `DISCORD_RSO_APPROVAL_CHANNEL_ID` Secret text credential.
-2. After a deploy, register the commands so `/rso-verify` and `/event` appear.
+2. Save the application ID and server ID in Jenkins as the `DISCORD_APP_ID` and `DISCORD_GUILD_ID` Secret text credentials. After that, every deploy updates `/rso-verify` and `/event` in Discord by itself.
 
 ## Where this is heading
 

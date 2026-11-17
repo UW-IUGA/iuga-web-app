@@ -434,6 +434,104 @@ describe("event popover placement", () => {
         expect(parseFloat(dialog.style.top)).toBe(300);
     });
 
+    it("keeps the popover inside the calendar, so it leaves with it rather than covering Previous events", () => {
+        setViewport(1280, 800);
+        sizePopover(400, 420);
+        // The page's calendar box, scrolled until its bottom edge (the line above
+        // Previous events) is 120px down the window and its event is off the top.
+        const { container } = render(
+            <div className="events">
+                <DayView anchor={anchor()} events={[rich()]} />
+            </div>,
+        );
+        container.querySelector(".events").getBoundingClientRect = () => ({
+            top: -600,
+            bottom: 120,
+            left: 0,
+            right: 1280,
+            width: 1280,
+            height: 720,
+        });
+        const block = eventButton("Industry Panel");
+        placeBlock(block, { top: -100, left: 200, right: 900 });
+
+        fireEvent.click(block);
+
+        // Without the calendar it would stay on screen at 16px, over Previous events.
+        const dialog = screen.getByRole("dialog", { name: "Industry Panel" });
+        expect(parseFloat(dialog.style.top) + 400).toBe(120);
+    });
+
+    describe("while it is open and the page or grid scrolls", () => {
+        const openAt = (top) => {
+            setViewport(375, 667);
+            sizePopover(300, 343);
+            const view = renderDay({ events: [rich()] });
+            const block = eventButton("Industry Panel");
+            placeBlock(block, { top, left: 42, right: 374 });
+            fireEvent.click(block);
+            return { ...view, block, dialog: screen.getByRole("dialog", { name: "Industry Panel" }) };
+        };
+        const placedAt = (dialog) => [dialog.style.left, dialog.style.top];
+        // Long enough for anything put off to the next frame to have run.
+        const nextFrame = () => act(() => new Promise((resolve) => setTimeout(resolve, 50)));
+
+        beforeEach(usePhone);
+        afterEach(() => {
+            delete window.matchMedia;
+        });
+
+        it("leaves a page scroll to the browser, which carries it along with its event", async () => {
+            const { block, dialog } = openAt(100);
+            const before = placedAt(dialog);
+
+            // The page scrolled: the event is now off the top of the window. Placed
+            // afresh, the popover would snap back onto the screen.
+            placeBlock(block, { top: -400, left: 42, right: 374 });
+            fireEvent.scroll(document);
+            await nextFrame();
+
+            expect(placedAt(dialog)).toEqual(before);
+        });
+
+        it("ignores the window growing or shrinking in height, as a phone's address bar does", async () => {
+            const { block, dialog } = openAt(100);
+            const before = placedAt(dialog);
+
+            placeBlock(block, { top: 40, left: 42, right: 374 });
+            setViewport(375, 760);
+            fireEvent(window, new Event("resize"));
+            await nextFrame();
+
+            expect(placedAt(dialog)).toEqual(before);
+        });
+
+        it("follows its event when the grid scrolls inside itself, keeping its side", () => {
+            const { container, block, dialog } = openAt(100);
+            const [, top] = placedAt(dialog);
+
+            // The grid scrolled 60px: the event moved up by that, and so does the popover.
+            placeBlock(block, { top: 40, left: 42, right: 374 });
+            fireEvent.scroll(container.querySelector(".grid__scroll"));
+
+            expect(parseFloat(dialog.style.top)).toBe(parseFloat(top) - 60);
+        });
+
+        it("is placed afresh when the window changes width", async () => {
+            const { block, dialog } = openAt(100);
+
+            expect(dialog.style.left).toBe("16px");
+
+            // Turned to landscape: wide enough now for the popover to start at the event.
+            placeBlock(block, { top: 100, left: 60, right: 600 });
+            setViewport(667, 375);
+            fireEvent(window, new Event("resize"));
+            await nextFrame();
+
+            expect(dialog.style.left).toBe("60px");
+        });
+    });
+
     it("places the popover above or below its event on a phone, so the event is never covered", () => {
         usePhone();
         setViewport(375, 667);

@@ -160,6 +160,18 @@ describe("calendar styles", () => {
         }
     });
 
+    it("stack the event popover over the page but under the sticky site navigation", () => {
+        const navigation = sass.compile(
+            resolve(dirname(new URL(import.meta.url).pathname), "../../stylesheets/layout/_navigation-base.scss"),
+        ).css;
+        const navZ = Number(navigation.match(/\.site-navigation \{[^}]*z-index:\s*(\d+)/)[1]);
+        const popoverZ = Number(style(".popover")["z-index"]);
+
+        expect(popoverZ).toBeLessThan(navZ);
+        // Over every layer the page sets outside the grid, which keeps its own inside it.
+        expect(popoverZ).toBeGreaterThan(2);
+    });
+
     it("keep a focused event clear of the sticky day header (2.4.11)", () => {
         expect(style(".grid__scroll")["scroll-padding-top"]).toBe(style(".grid__head")["min-height"]);
         // The grid's layers stay inside it, under the popover.

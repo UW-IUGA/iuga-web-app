@@ -39,14 +39,16 @@ describe("eventForm", () => {
     }
   });
 
-  it("asks for name, when, location, category, and description, with the When example shown", () => {
+  it("asks for name, when, location, categories, and description, with the When example shown", () => {
     const fields = eventForm("binfo").data.components.map((label) => label.component);
     assert.deepEqual(
       fields.map((field) => field.custom_id),
-      ["name", "when", "location", "category", "description"],
+      ["name", "when", "location", "categories", "description"],
     );
     assert.equal(fields[1].placeholder, "12/1/2026 6:00 PM - 8:00 PM");
     assert.equal(fields[3].type, STRING_SELECT);
+    assert.equal(fields[3].min_values, 1);
+    assert.equal(fields[3].max_values, 3);
     assert.deepEqual(
       fields[3].options.map((option) => option.value),
       ["Academic", "Social", "Career"],
@@ -55,12 +57,12 @@ describe("eventForm", () => {
 });
 
 describe("readEventForm", () => {
-  it("reads typed text and the picked category into plain fields", () => {
+  it("reads typed text and every picked category into plain fields", () => {
     const interaction = submitted(`${EVENT_FORM_ACTION}:binfo`, [
       ["name", "Game Night"],
       ["when", "12/1/2026 6:00 PM - 8:00 PM"],
       ["location", "MGH 142"],
-      ["category", ["Social"]],
+      ["categories", ["Social", "Career"]],
       ["description", "Board games."],
     ]);
     assert.deepEqual(readEventForm(interaction), {
@@ -68,19 +70,19 @@ describe("readEventForm", () => {
       name: "Game Night",
       when: "12/1/2026 6:00 PM - 8:00 PM",
       location: "MGH 142",
-      category: "Social",
+      categories: ["Social", "Career"],
       description: "Board games.",
     });
   });
 
   it("returns empty strings for missing fields and keeps colons in the RSO key", () => {
-    const interaction = submitted(`${EVENT_FORM_ACTION}:a:b`, [["category", []]]);
+    const interaction = submitted(`${EVENT_FORM_ACTION}:a:b`, [["categories", []]]);
     assert.deepEqual(readEventForm(interaction), {
       rsoKey: "a:b",
       name: "",
       when: "",
       location: "",
-      category: "",
+      categories: [],
       description: "",
     });
   });

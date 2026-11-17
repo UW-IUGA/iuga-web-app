@@ -85,7 +85,7 @@ function parseWhen(when) {
 
 /*
  * @behavior Validate and normalize a /event submission. Times are stored in UTC.
- * @param input — { name, when, location, category, description } as typed in the event form
+ * @param input — { name, when, location, categories, description } from the event form; categories is a list
  * @param now — the current Date, passed in so the future-date rule is deterministic
  * @returns { ok: true, value } with the normalized event fields, or { ok: false, errors }
  */
@@ -97,7 +97,7 @@ export function validateSubmission(input, now = new Date()) {
   const location = text("location");
   const description = text("description");
   const when = text("when");
-  const category = text("category");
+  const categories = Array.isArray(input.categories) ? input.categories.map((value) => String(value).trim()) : [];
 
   if (!name) errors.push("Event name is required.");
   if (name.length > LIMITS.name) errors.push(`Event name must be ${LIMITS.name} characters or fewer.`);
@@ -105,7 +105,9 @@ export function validateSubmission(input, now = new Date()) {
   if (location.length > LIMITS.location) errors.push(`Location must be ${LIMITS.location} characters or fewer.`);
   if (!description) errors.push("Description is required.");
   if (description.length > LIMITS.description) errors.push(`Description must be ${LIMITS.description} characters or fewer.`);
-  if (!CATEGORIES.includes(category)) errors.push("Category must be Academic, Social, or Career.");
+  if (categories.length === 0 || !categories.every((value) => CATEGORIES.includes(value))) {
+    errors.push("Pick at least one category: Academic, Social, or Career.");
+  }
 
   let eStartDate;
   let eEndDate;
@@ -126,7 +128,7 @@ export function validateSubmission(input, now = new Date()) {
       eName: neutralizeMentions(name),
       eLocation: neutralizeMentions(location),
       eDescription: neutralizeMentions(description),
-      eLabel: category,
+      eLabels: CATEGORIES.filter((value) => categories.includes(value)),
       eStartDate,
       eEndDate,
     },

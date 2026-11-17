@@ -37,7 +37,7 @@ Officers can't create an RSO on their own. A new RSO exists only after a reviewe
 ### 2. Submitting an event
 
 1. A verified RSO officer or an IUGA officer runs `/event`. IUGA officers post as IUGA without verifying first. Anyone who can post for more than one RSO, including IUGA, picks which one in the `rso` option; it only lists their own.
-2. A form pops up with five required fields: event name, When (such as `12/1/2026 6:00 PM - 8:00 PM`), location, category, and description. The RSO comes from the officer's role, so they never type it.
+2. A form pops up with five required fields: event name, When (such as `12/1/2026 6:00 PM - 8:00 PM`), location, categories (one or more), and description. The RSO comes from the officer's role, so they never type it.
 3. If something's wrong, the officer gets the problems and a copy of what they typed to paste into a new `/event`. If it's fine, they see the card reviewers will see.
 4. A card appears in `#events-approvals`. A reviewer approves it, which publishes it to the website's Events page, or denies it with an optional reason.
 

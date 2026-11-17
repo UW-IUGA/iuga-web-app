@@ -131,7 +131,7 @@ const FORM_FIELDS = {
   name: "IUGA Study Break",
   when: "12/1/2026 6:00 PM - 8:00 PM",
   location: "Mary Gates Hall",
-  category: "Social",
+  categories: ["Social", "Career"],
   description: "Snacks and a quiet room for Informatics undergrads.",
 };
 
@@ -162,8 +162,8 @@ function formSubmitInteraction(who, rsoKey, overrides = {}) {
         type: 18,
         id: index * 2 + 1,
         component:
-          fieldId === "category"
-            ? { type: 3, id: index * 2 + 2, custom_id: fieldId, values: [answer] }
+          fieldId === "categories"
+            ? { type: 3, id: index * 2 + 2, custom_id: fieldId, values: answer }
             : { type: 4, id: index * 2 + 2, custom_id: fieldId, value: answer },
       })),
     },
@@ -331,7 +331,7 @@ describe("/event form submit", () => {
     assert.equal(row.submitterDiscordId, OFFICER_ID);
     assert.equal(row.rsoKey, "iuga");
     assert.equal(row.rsoName, "IUGA");
-    assert.equal(row.eLabel, "Social");
+    assert.deepEqual(row.eLabels, ["Social", "Career"]);
     assert.deepEqual(row.eStartDate, new Date("2026-12-02T02:00:00Z"));
     assert.deepEqual(row.eEndDate, new Date("2026-12-02T04:00:00Z"));
     assert.equal(row.discordMessageId, "1001");
@@ -349,6 +349,18 @@ describe("/event form submit", () => {
     const [card] = response.data.embeds;
     assert.equal(card.title, post.body.embeds[0].title);
     assert.deepEqual(card.fields, post.body.embeds[0].fields);
+  });
+
+  it("lists every picked category on the approval card", async () => {
+    const { client, flow } = setup();
+    await submitEvent(flow);
+
+    const fields = client.calls[0].body.embeds[0].fields;
+    assert.deepEqual(fields.find((field) => field.name === "Categories"), {
+      name: "Categories",
+      value: "Social, Career",
+      inline: true,
+    });
   });
 
   it("refuses a form tagged with an RSO the officer isn't verified for, and echoes their entries", async () => {
@@ -372,15 +384,16 @@ describe("/event form submit", () => {
   it("lists the problems and echoes the entries to paste back, writing nothing", async () => {
     const context = setup();
     const response = await context.flow.handle(
-      formSubmitInteraction(officer(), "iuga", { when: "2026-12-01 18:00", category: "Party" }),
+      formSubmitInteraction(officer(), "iuga", { when: "2026-12-01 18:00", categories: ["Party"] }),
     );
 
     assert.equal(response.data.flags, EPHEMERAL);
     assert.deepEqual(response.data.allowed_mentions, { parse: [] });
     assert.match(response.data.content, /not submitted/);
     assert.match(response.data.content, /When must look like 12\/1\/2026 6:00 PM - 8:00 PM/);
-    assert.match(response.data.content, /Category must be Academic, Social, or Career/);
+    assert.match(response.data.content, /Pick at least one category: Academic, Social, or Career/);
     assert.match(response.data.content, /When: 2026-12-01 18:00/);
+    assert.match(response.data.content, /Categories: Party/);
     assert.match(response.data.content, /Event name: IUGA Study Break/);
     assert.match(response.data.content, /Snacks and a quiet room/);
     assertNothingSaved(context);
@@ -439,7 +452,7 @@ describe("approval", () => {
     assert.equal(event.eOrganizers, "IUGA");
     assert.equal(event.eLocation, "Mary Gates Hall");
     assert.equal(event.eDescription, "Snacks and a quiet room for Informatics undergrads.");
-    assert.deepEqual(event.eLabels, ["Social"]);
+    assert.deepEqual(event.eLabels, ["Social", "Career"]);
     assert.deepEqual(event.eStartDate, new Date("2026-12-02T02:00:00Z"));
     assert.deepEqual(event.eEndDate, new Date("2026-12-02T04:00:00Z"));
     assert.equal(event.eAltLink, undefined);
@@ -460,6 +473,17 @@ describe("approval", () => {
 
     assert.equal(models.Events.docs.length, 1);
     assert.deepEqual(models.Events.docs[0].eAltLink, { title: "RSVP", url: "https://example.com/rsvp" });
+  });
+
+  it("publishes the single category of a submission made before categories became a list", async () => {
+    const { id, models, flow } = await pendingSubmission();
+    const [row] = models.DiscordEventSubmissions.docs;
+    delete row.eLabels;
+    row.eLabel = "Academic";
+
+    await flow.handle(componentInteraction(mod(), `approve:${id}`));
+
+    assert.deepEqual(models.Events.docs[0].eLabels, ["Academic"]);
   });
 
   it("does not publish a second time when approval is clicked again", async () => {

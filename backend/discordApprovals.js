@@ -35,7 +35,7 @@ const ENTRY_LABELS = [
   ["name", "Event name"],
   ["when", "When"],
   ["location", "Location"],
-  ["category", "Category"],
+  ["categories", "Categories"],
   ["description", "Description"],
 ];
 
@@ -268,7 +268,7 @@ function formatWhen(start, end) {
 function cardEmbed(row, { color, statusText }) {
   const fields = [
     { name: "RSO", value: row.rsoName, inline: true },
-    { name: "Category", value: row.eLabel, inline: true },
+    { name: "Categories", value: categoriesOf(row).join(", "), inline: true },
     { name: "When", value: formatWhen(row.eStartDate, row.eEndDate) },
     { name: "Location", value: row.eLocation },
   ];
@@ -283,6 +283,11 @@ function cardEmbed(row, { color, statusText }) {
   };
 }
 
+// Submissions made before categories became a list store a single eLabel.
+function categoriesOf(row) {
+  return row.eLabels?.length ? row.eLabels : [row.eLabel];
+}
+
 function eventFields(row) {
   const fields = {
     eName: row.eName,
@@ -290,7 +295,7 @@ function eventFields(row) {
     eStartDate: row.eStartDate,
     eLocation: row.eLocation,
     eDescription: row.eDescription,
-    eLabels: [row.eLabel],
+    eLabels: categoriesOf(row),
   };
   if (row.eEndDate) fields.eEndDate = row.eEndDate;
   if (row.rsvpUrl) fields.eAltLink = { title: "RSVP", url: row.rsvpUrl };
@@ -299,7 +304,7 @@ function eventFields(row) {
 
 // Discord can't reopen a form after submit, so failed submits hand the officer's entries back to copy.
 function withEntries(message, entries) {
-  const lines = ENTRY_LABELS.map(([key, label]) => `${label}: ${entries[key]}`).join("\n");
+  const lines = ENTRY_LABELS.map(([key, label]) => `${label}: ${[entries[key]].flat().join(", ")}`).join("\n");
   const safeLines = lines.replaceAll("```", "'''");
   return `${message}\n\nWhat you entered, to paste into /event again:\n` + "```\n" + safeLines + "\n```";
 }

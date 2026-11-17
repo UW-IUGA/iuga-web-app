@@ -1,7 +1,11 @@
 import { EVENT_COMMAND } from "./discordCommandDefinition.js";
+import { DRAFT_LIFETIME_MS } from "./discordEventDrafts.js";
 import { EVENT_FORM_ACTION, eventForm, readEventForm } from "./discordEventForm.js";
 import { canReview } from "./discordReviewers.js";
 import {
+  BUTTON_PRIMARY,
+  BUTTON_SECONDARY,
+  BUTTON_SUCCESS,
   COLOR_APPROVED,
   COLOR_DENIED,
   COLOR_PENDING,
@@ -14,6 +18,7 @@ import {
   RESPONSE_AUTOCOMPLETE,
   REVIEWED_MESSAGE,
   STALE_MESSAGE,
+  buttonRow,
   commandOptions,
   displayName,
   modalText,
@@ -23,6 +28,7 @@ import {
   reply,
   reviewButtons,
   updateCard,
+  updateMessage,
 } from "./discordInteractions.js";
 import { validateSubmission } from "./discordSubmissionRules.js";
 
@@ -31,6 +37,12 @@ const REASON_LIMIT = 500;
 const AUTOCOMPLETE_LIMIT = 25;
 const NOT_VERIFIED = "Only verified RSO officers can submit events. Use /rso-verify to ask the IUGA board to verify you.";
 const NOT_YOUR_RSO = "You can only submit events for an RSO you're verified for. Pick one from the rso list.";
+const DRAFT_EXPIRED = "This draft expired. Run /event again.";
+const PREVIEW_STATUS = "Preview: not sent yet. Reviewers see this card once you send it.";
+const SEND_ACTION = "event-send";
+const EDIT_ACTION = "event-edit";
+const ENTRY_LIMITS = { name: 200, when: 200, location: 200, description: 2000 };
+const CATEGORY_PICK_LIMIT = 10;
 const ENTRY_LABELS = [
   ["name", "Event name"],
   ["when", "When"],
@@ -48,9 +60,10 @@ const timeFormat = new Intl.DateTimeFormat("en-US", { timeZone: PACIFIC, timeSty
 
 /*
  * @behavior Run the /event submission and moderator approval flow for Discord interactions.
- *           Officers submit; moderators (or administrators) approve or deny; approval publishes
- *           exactly one Events row. Every reply disables mention parsing.
- * @param models — provides DiscordEventSubmissions and Events
+ *           Officers fill in a draft through the form, preview it, and send it for review; moderators
+ *           (or administrators) approve or deny; approval publishes exactly one Events row. Every reply
+ *           disables mention parsing.
+ * @param models — provides DiscordEventDrafts, DiscordEventSubmissions, and Events
  * @param directory — the RSO directory; rsosOf(member) gives the RSOs a member represents
  * @param client — Discord REST client with postMessage and sendDirectMessage
  * @param config — { modRoleId, iugaOfficerRoleId, approvalChannelId }
@@ -58,6 +71,7 @@ const timeFormat = new Intl.DateTimeFormat("en-US", { timeZone: PACIFIC, timeSty
  */
 export function createDiscordApprovals({ models, directory, client, config, now = () => new Date() }) {
   const submissions = () => models.DiscordEventSubmissions;
+  const drafts = () => models.DiscordEventDrafts;
 
   function isReviewer(member) {
     return canReview(member, config);
@@ -70,6 +84,8 @@ export function createDiscordApprovals({ models, directory, client, config, now 
     }
     if (interaction.type === INTERACTION_COMPONENT) {
       const [action, id] = parseCustomId(interaction.data?.custom_id);
+      if (action === SEND_ACTION) return handleSend(interaction, id);
+      if (action === EDIT_ACTION) return handleEdit(interaction, id);
       if (action === "approve") return handleApprove(interaction, id);
       if (action === "deny") return handleDenyStart(interaction, id);
     }
@@ -104,7 +120,13 @@ export function createDiscordApprovals({ models, directory, client, config, now 
     if (!who?.user) return reply("Use /event inside the IUGA server.");
     const { rso, refusal } = await chooseRso(who, commandOptions(interaction).rso);
     if (refusal) return reply(refusal);
-    return eventForm(rso.rsoKey);
+    const draft = await drafts().create({
+      submitterDiscordId: who.user.id,
+      rsoKey: rso.rsoKey,
+      rsoName: rso.rsoName,
+      expiresAt: draftExpiry(),
+    });
+    return eventForm(String(draft._id));
   }
 
   async function handleAutocomplete(interaction) {
@@ -123,18 +145,65 @@ export function createDiscordApprovals({ models, directory, client, config, now 
     return { type: RESPONSE_AUTOCOMPLETE, data: { choices } };
   }
 
-  async function handleFormSubmit(interaction) {
-    const who = interaction.member;
-    if (!who?.user) return reply("Use /event inside the IUGA server.");
-    const { rsoKey, ...entries } = readEventForm(interaction);
-    const { rso, refusal } = await chooseRso(who, rsoKey);
-    if (refusal) return reply(withEntries(refusal, entries));
+  function draftExpiry() {
+    return new Date(now().getTime() + DRAFT_LIFETIME_MS);
+  }
 
-    const checked = validateSubmission(entries, now());
-    if (!checked.ok) {
-      const problems = checked.errors.map((error) => `- ${error}`).join("\n");
-      return reply(withEntries(`Your event was not submitted:\n${problems}`, entries));
+  /*
+   * Load a draft for the member acting on it, re-checking that it's theirs, still current, and for an
+   * RSO they still represent. Draft ids arrive in client-controlled custom_ids, so nothing else is trusted.
+   * Returns { draft, rso } or { refusal } with the private reply to send instead.
+   */
+  async function ownDraft(who, draftId) {
+    if (!who?.user) return { refusal: reply("Use /event inside the IUGA server.") };
+    const draft = OBJECT_ID.test(draftId) ? await drafts().findById(draftId) : null;
+    if (!draft || draft.submitterDiscordId !== who.user.id || new Date(draft.expiresAt) <= now()) {
+      return { refusal: reply(DRAFT_EXPIRED) };
     }
+    const { rso, refusal } = await chooseRso(who, draft.rsoKey);
+    if (refusal) return { refusal: reply(refusal) };
+    return { draft, rso };
+  }
+
+  async function handleFormSubmit(interaction) {
+    const { draftId, entries } = readEventForm(interaction);
+    const { draft, rso, refusal } = await ownDraft(interaction.member, draftId);
+    if (refusal) return refusal;
+
+    const saved = clippedEntries(entries);
+    await drafts().updateOne({ _id: draft._id }, { $set: { entries: saved, expiresAt: draftExpiry() } });
+
+    const checked = validateSubmission(saved, now());
+    if (!checked.ok) return reply(problemNote(checked.errors), { components: fixButton(draftId) });
+    const card = cardEmbed({ rsoName: rso.rsoName, ...checked.value }, { color: COLOR_PENDING, statusText: PREVIEW_STATUS });
+    return reply("Here's your event. Check the date and time, then send it for review.", {
+      embeds: [card],
+      components: buttonRow([
+        { label: "Send for review", customId: `${SEND_ACTION}:${draftId}`, style: BUTTON_SUCCESS },
+        { label: "Edit", customId: `${EDIT_ACTION}:${draftId}`, style: BUTTON_SECONDARY },
+      ]),
+    });
+  }
+
+  async function handleEdit(interaction, draftId) {
+    const { draft, refusal } = await ownDraft(interaction.member, draftId);
+    if (refusal) return refusal;
+    const entries = entriesOf(draft);
+    const checked = validateSubmission(entries, now());
+    return eventForm(draftId, { entries, problems: checked.ok ? {} : checked.errors });
+  }
+
+  async function handleSend(interaction, draftId) {
+    const who = interaction.member;
+    const { draft, rso, refusal } = await ownDraft(who, draftId);
+    if (refusal) return refusal;
+
+    const checked = validateSubmission(entriesOf(draft), now());
+    if (!checked.ok) return updateMessage(problemNote(checked.errors), { components: fixButton(draftId) });
+
+    // Claim the draft before submitting, so a double-click can't send it twice.
+    const claimed = await drafts().findOneAndDelete({ _id: draft._id });
+    if (!claimed) return reply(DRAFT_EXPIRED);
 
     const row = await submissions().create({
       submitterDiscordId: who.user.id,
@@ -159,11 +228,12 @@ export function createDiscordApprovals({ models, directory, client, config, now 
     } catch (error) {
       console.error(`Approval card post failed: ${error.message}`);
       await submissions().deleteOne({ _id: row._id });
-      return reply("The approval post failed, so your event was not submitted. Try again in a few minutes.");
+      await drafts().create(restorableDraft(claimed));
+      return reply("The approval post failed, so your event wasn't sent. Click Send for review again in a few minutes.");
     }
 
     await submissions().updateOne({ _id: row._id }, { $set: { discordMessageId: message.id } });
-    return reply(`Submitted **${row.eName}** for moderator approval. This is what reviewers see:`, { embeds: [card] });
+    return updateMessage(`Sent **${row.eName}** for review. A reviewer will approve or deny it.`, { embeds: [card] });
   }
 
   async function handleApprove(interaction, id) {
@@ -302,9 +372,27 @@ function eventFields(row) {
   return fields;
 }
 
-// Discord can't reopen a form after submit, so failed submits hand the officer's entries back to copy.
-function withEntries(message, entries) {
-  const lines = ENTRY_LABELS.map(([key, label]) => `${label}: ${[entries[key]].flat().join(", ")}`).join("\n");
-  const safeLines = lines.replaceAll("```", "'''");
-  return `${message}\n\nWhat you entered, to paste into /event again:\n` + "```\n" + safeLines + "\n```";
+function clippedEntries(entries) {
+  const text = (key) => String(entries[key] ?? "").slice(0, ENTRY_LIMITS[key]);
+  const categories = (entries.categories ?? []).map(String).slice(0, CATEGORY_PICK_LIMIT);
+  return { name: text("name"), when: text("when"), location: text("location"), categories, description: text("description") };
+}
+
+function entriesOf(draft) {
+  const entries = draft.entries ?? {};
+  return clippedEntries({ ...entries, categories: [...(entries.categories ?? [])] });
+}
+
+function restorableDraft(draft) {
+  const { _id, submitterDiscordId, rsoKey, rsoName, expiresAt } = draft;
+  return { _id, submitterDiscordId, rsoKey, rsoName, entries: entriesOf(draft), expiresAt };
+}
+
+function problemNote(errors) {
+  const lines = ENTRY_LABELS.filter(([key]) => errors[key]).map(([key, label]) => `- ${label}: ${errors[key]}`);
+  return `Almost there. Fix these, then submit again:\n${lines.join("\n")}`;
+}
+
+function fixButton(draftId) {
+  return buttonRow([{ label: "Fix it", customId: `${EDIT_ACTION}:${draftId}`, style: BUTTON_PRIMARY }]);
 }

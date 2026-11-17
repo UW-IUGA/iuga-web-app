@@ -55,6 +55,10 @@ function createCollection() {
       if (doc) apply(doc, update);
       return { matchedCount: doc ? 1 : 0 };
     },
+    async findOneAndDelete(filter) {
+      const index = docs.findIndex((candidate) => matches(candidate, filter));
+      return index >= 0 ? copy(docs.splice(index, 1)[0]) : null;
+    },
     async deleteOne(filter) {
       const index = docs.findIndex((candidate) => matches(candidate, filter));
       if (index >= 0) docs.splice(index, 1);
@@ -100,27 +104,33 @@ function createDirectory(rsosByUser, { fails = false } = {}) {
 function setup({ directoryFails = false } = {}) {
   const models = {
     DiscordEventSubmissions: createCollection(),
+    DiscordEventDrafts: createCollection(),
     Events: createCollection(),
   };
   const client = createClient();
+  const rsosByUser = {
+    [OFFICER_ID]: [{ rsoKey: "iuga", rsoName: "IUGA" }],
+    [MULTI_RSO_OFFICER_ID]: [
+      { rsoKey: "iuga", rsoName: "IUGA" },
+      { rsoKey: "winfo", rsoName: "WINFO" },
+    ],
+  };
+  const clock = { now: NOW };
   const flow = createDiscordApprovals({
     models,
-    directory: createDirectory({
-      [OFFICER_ID]: [{ rsoKey: "iuga", rsoName: "IUGA" }],
-      [MULTI_RSO_OFFICER_ID]: [
-        { rsoKey: "iuga", rsoName: "IUGA" },
-        { rsoKey: "winfo", rsoName: "WINFO" },
-      ],
-    }, { fails: directoryFails }),
+    directory: createDirectory(rsosByUser, { fails: directoryFails }),
     client,
     config: {
       modRoleId: MOD_ROLE,
       iugaOfficerRoleId: IUGA_OFFICER_ROLE,
       approvalChannelId: APPROVAL_CHANNEL,
     },
-    now: () => NOW,
+    now: () => clock.now,
   });
-  return { models, client, flow };
+  const advance = (ms) => {
+    clock.now = new Date(clock.now.getTime() + ms);
+  };
+  return { models, client, flow, rsosByUser, advance };
 }
 
 function member(id, roles = [], extra = {}) {
@@ -129,7 +139,7 @@ function member(id, roles = [], extra = {}) {
 
 const FORM_FIELDS = {
   name: "IUGA Study Break",
-  when: "12/1/2026 6:00 PM - 8:00 PM",
+  when: "Dec 1 6-8pm",
   location: "Mary Gates Hall",
   categories: ["Social", "Career"],
   description: "Snacks and a quiet room for Informatics undergrads.",
@@ -151,13 +161,13 @@ function autocompleteInteraction(who, typed) {
   };
 }
 
-function formSubmitInteraction(who, rsoKey, overrides = {}) {
+function formSubmitInteraction(who, draftId, overrides = {}) {
   const fields = { ...FORM_FIELDS, ...overrides };
   return {
     type: 5,
     member: who,
     data: {
-      custom_id: `event-form:${rsoKey}`,
+      custom_id: `event-form:${draftId}`,
       components: Object.entries(fields).map(([fieldId, answer], index) => ({
         type: 18,
         id: index * 2 + 1,
@@ -186,11 +196,29 @@ function modalSubmitInteraction(who, customId, reason = "") {
   };
 }
 
+const officer = () => member(OFFICER_ID, [OFFICER_ROLE]);
+const mod = () => member(MOD_ID, [MOD_ROLE]);
+const multiOfficer = () => member(MULTI_RSO_OFFICER_ID, [OFFICER_ROLE]);
+
+const buttonIds = (response) => (response.data.components ?? []).flatMap((row) => row.components.map((button) => button.custom_id));
+const draftIdOf = (formResponse) => formResponse.data.custom_id.split(":")[1];
+
+async function openDraft(flow, who = officer(), options = []) {
+  const response = await flow.handle(commandInteraction(who, options));
+  assert.equal(response.type, MODAL);
+  return draftIdOf(response);
+}
+
+async function previewEvent(flow, overrides) {
+  const draftId = await openDraft(flow);
+  const preview = await flow.handle(formSubmitInteraction(officer(), draftId, overrides));
+  return { draftId, preview };
+}
+
 async function submitEvent(flow, overrides) {
-  const response = await flow.handle(formSubmitInteraction(member(OFFICER_ID, [OFFICER_ROLE]), "iuga", overrides));
-  assert.equal(response.type, CHANNEL_MESSAGE);
-  assert.equal(response.data.flags, EPHEMERAL);
-  return response;
+  const { draftId, preview } = await previewEvent(flow, overrides);
+  const sent = await flow.handle(componentInteraction(officer(), `event-send:${draftId}`));
+  return { draftId, preview, sent };
 }
 
 async function pendingSubmission(setupOptions = {}) {
@@ -201,12 +229,7 @@ async function pendingSubmission(setupOptions = {}) {
   return { ...context, id: String(row._id) };
 }
 
-const officer = () => member(OFFICER_ID, [OFFICER_ROLE]);
-const mod = () => member(MOD_ID, [MOD_ROLE]);
-
-const multiOfficer = () => member(MULTI_RSO_OFFICER_ID, [OFFICER_ROLE]);
-
-function assertNothingSaved({ models, client }) {
+function assertNothingSubmitted({ models, client }) {
   assert.equal(models.DiscordEventSubmissions.docs.length, 0);
   assert.equal(client.calls.length, 0);
 }
@@ -219,24 +242,28 @@ describe("/event command", () => {
     assert.equal(response.type, CHANNEL_MESSAGE);
     assert.equal(response.data.flags, EPHEMERAL);
     assert.match(response.data.content, /\/rso-verify/);
-    assertNothingSaved(context);
+    assert.equal(context.models.DiscordEventDrafts.docs.length, 0);
+    assertNothingSubmitted(context);
   });
 
-  it("opens the form for an officer's only RSO", async () => {
+  it("starts a draft for an officer's only RSO and opens its form", async () => {
     const context = setup();
     const response = await context.flow.handle(commandInteraction(officer()));
 
     assert.equal(response.type, MODAL);
-    assert.equal(response.data.custom_id, "event-form:iuga");
-    assertNothingSaved(context);
+    const [draft] = context.models.DiscordEventDrafts.docs;
+    assert.equal(response.data.custom_id, `event-form:${draft._id}`);
+    assert.equal(draft.submitterDiscordId, OFFICER_ID);
+    assert.equal(draft.rsoKey, "iuga");
+    assert.equal(draft.rsoName, "IUGA");
+    assert.deepEqual(draft.expiresAt, new Date(NOW.getTime() + 60 * 60 * 1000));
+    assertNothingSubmitted(context);
   });
 
-  it("opens the form for the RSO an officer of several picked", async () => {
-    const { flow } = setup();
-    const response = await flow.handle(commandInteraction(multiOfficer(), rsoOption("winfo")));
-
-    assert.equal(response.type, MODAL);
-    assert.equal(response.data.custom_id, "event-form:winfo");
+  it("starts the draft for the RSO an officer of several picked", async () => {
+    const { flow, models } = setup();
+    await openDraft(flow, multiOfficer(), rsoOption("winfo"));
+    assert.equal(models.DiscordEventDrafts.docs[0].rsoKey, "winfo");
   });
 
   it("asks an officer of several RSOs to pick one, listing only theirs, without opening the form", async () => {
@@ -244,15 +271,14 @@ describe("/event command", () => {
     const response = await context.flow.handle(commandInteraction(multiOfficer()));
 
     assert.equal(response.type, CHANNEL_MESSAGE);
-    assert.equal(response.data.flags, EPHEMERAL);
     assert.match(response.data.content, /IUGA/);
     assert.match(response.data.content, /WINFO/);
     assert.match(response.data.content, /rso/);
-    assertNothingSaved(context);
+    assert.equal(context.models.DiscordEventDrafts.docs.length, 0);
   });
 
   it("refuses an RSO the officer isn't verified for", async () => {
-    const { flow } = setup();
+    const { flow, models } = setup();
     for (const [who, picked] of [
       [officer(), "winfo"],
       [multiOfficer(), "binfo"],
@@ -261,28 +287,23 @@ describe("/event command", () => {
       assert.equal(response.type, CHANNEL_MESSAGE, picked);
       assert.match(response.data.content, /only submit events for an RSO you're verified for/, picked);
     }
+    assert.equal(models.DiscordEventDrafts.docs.length, 0);
   });
 
   it("points a member with no RSO to /rso-verify even when they name one", async () => {
     const { flow } = setup();
     const response = await flow.handle(commandInteraction(member(OTHER_ID, []), rsoOption("iuga")));
-
-    assert.equal(response.type, CHANNEL_MESSAGE);
     assert.match(response.data.content, /\/rso-verify/);
   });
 
   it("still opens the form when Discord sends the old command's field options", async () => {
-    const context = setup();
+    const { flow } = setup();
     const oldOptions = [
       { name: "name", type: 3, value: "Old style" },
       { name: "date", type: 3, value: "2026-12-01" },
-      { name: "start_time", type: 3, value: "18:00" },
     ];
-    const response = await context.flow.handle(commandInteraction(officer(), oldOptions));
-
+    const response = await flow.handle(commandInteraction(officer(), oldOptions));
     assert.equal(response.type, MODAL);
-    assert.equal(response.data.custom_id, "event-form:iuga");
-    assertNothingSaved(context);
   });
 });
 
@@ -320,112 +341,188 @@ describe("/event rso autocomplete", () => {
 });
 
 describe("/event form submit", () => {
-  it("creates one pending row, posts one approval card, and shows the officer the same card", async () => {
-    const { models, client, flow } = setup();
-    const response = await submitEvent(flow);
+  it("saves the answers and shows a private preview with Send and Edit, submitting nothing yet", async () => {
+    const context = setup();
+    const { draftId, preview } = await previewEvent(context.flow);
 
-    const rows = models.DiscordEventSubmissions.docs;
+    assert.equal(preview.type, CHANNEL_MESSAGE);
+    assert.equal(preview.data.flags, EPHEMERAL);
+    const [card] = preview.data.embeds;
+    assert.equal(card.title, "IUGA Study Break");
+    assert.match(card.fields.find((field) => field.name === "When").value, /Dec 1, 2026, 6:00\s?PM Pacific to 8:00\s?PM/);
+    assert.equal(card.fields.find((field) => field.name === "Categories").value, "Social, Career");
+    assert.deepEqual(buttonIds(preview), [`event-send:${draftId}`, `event-edit:${draftId}`]);
+
+    assert.deepEqual(context.models.DiscordEventDrafts.docs[0].entries, FORM_FIELDS);
+    assertNothingSubmitted(context);
+  });
+
+  it("lists the problems with a Fix it button, submitting nothing", async () => {
+    const context = setup();
+    const { draftId, preview } = await previewEvent(context.flow, { when: "sometime", location: "" });
+
+    assert.equal(preview.data.flags, EPHEMERAL);
+    assert.deepEqual(preview.data.allowed_mentions, { parse: [] });
+    assert.match(preview.data.content, /When: Couldn't read When/);
+    assert.match(preview.data.content, /Location: Location is required/);
+    assert.deepEqual(buttonIds(preview), [`event-edit:${draftId}`]);
+    assert.equal(context.models.DiscordEventDrafts.docs[0].entries.when, "sometime");
+    assertNothingSubmitted(context);
+  });
+
+  it("refuses a form for someone else's draft, or one that doesn't exist", async () => {
+    const context = setup();
+    const draftId = await openDraft(context.flow);
+    for (const [who, id] of [
+      [multiOfficer(), draftId],
+      [officer(), "ffffffffffffffffffffffff"],
+      [officer(), "not-an-id"],
+    ]) {
+      const response = await context.flow.handle(formSubmitInteraction(who, id));
+      assert.match(response.data.content, /This draft expired\. Run \/event again\./, id);
+    }
+    assert.deepEqual(context.models.DiscordEventDrafts.docs[0].entries, undefined);
+    assertNothingSubmitted(context);
+  });
+
+  it("refuses a form once its draft has expired", async () => {
+    const { flow, advance } = setup();
+    const draftId = await openDraft(flow);
+    advance(61 * 60 * 1000);
+    const response = await flow.handle(formSubmitInteraction(officer(), draftId));
+    assert.match(response.data.content, /This draft expired/);
+  });
+
+  it("refuses a form from an officer who lost their RSO role after opening it", async () => {
+    const context = setup();
+    const draftId = await openDraft(context.flow);
+    delete context.rsosByUser[OFFICER_ID];
+    const response = await context.flow.handle(formSubmitInteraction(officer(), draftId));
+    assert.match(response.data.content, /\/rso-verify/);
+    assertNothingSubmitted(context);
+  });
+});
+
+describe("/event preview buttons", () => {
+  it("Send for review posts one approval card, deletes the draft, and closes the preview", async () => {
+    const context = setup();
+    const { sent } = await submitEvent(context.flow);
+
+    const rows = context.models.DiscordEventSubmissions.docs;
     assert.equal(rows.length, 1);
     const [row] = rows;
     assert.equal(row.status, "pending");
     assert.equal(row.submitterDiscordId, OFFICER_ID);
     assert.equal(row.rsoKey, "iuga");
-    assert.equal(row.rsoName, "IUGA");
     assert.deepEqual(row.eLabels, ["Social", "Career"]);
     assert.deepEqual(row.eStartDate, new Date("2026-12-02T02:00:00Z"));
     assert.deepEqual(row.eEndDate, new Date("2026-12-02T04:00:00Z"));
     assert.equal(row.discordMessageId, "1001");
 
-    assert.equal(client.calls.length, 1);
-    const [post] = client.calls;
+    const [post] = context.client.calls;
     assert.equal(post.channelId, APPROVAL_CHANNEL);
     assert.deepEqual(post.body.allowed_mentions, { parse: [] });
-    assert.deepEqual(
-      post.body.components[0].components.map((button) => button.custom_id),
-      [`approve:${row._id}`, `deny:${row._id}`],
-    );
-
-    assert.match(response.data.content, /Submitted \*\*IUGA Study Break\*\*/);
-    const [card] = response.data.embeds;
-    assert.equal(card.title, post.body.embeds[0].title);
-    assert.deepEqual(card.fields, post.body.embeds[0].fields);
-  });
-
-  it("lists every picked category on the approval card", async () => {
-    const { client, flow } = setup();
-    await submitEvent(flow);
-
-    const fields = client.calls[0].body.embeds[0].fields;
-    assert.deepEqual(fields.find((field) => field.name === "Categories"), {
+    assert.deepEqual(buttonIds({ data: post.body }), [`approve:${row._id}`, `deny:${row._id}`]);
+    assert.deepEqual(post.body.embeds[0].fields.find((field) => field.name === "Categories"), {
       name: "Categories",
       value: "Social, Career",
       inline: true,
     });
+
+    assert.equal(sent.type, UPDATE_MESSAGE);
+    assert.match(sent.data.content, /Sent \*\*IUGA Study Break\*\* for review/);
+    assert.deepEqual(sent.data.components, []);
+    assert.equal(context.models.DiscordEventDrafts.docs.length, 0);
   });
 
-  it("refuses a form tagged with an RSO the officer isn't verified for, and echoes their entries", async () => {
+  it("posts one approval card when Send is double-clicked", async () => {
     const context = setup();
-    const response = await context.flow.handle(formSubmitInteraction(officer(), "winfo"));
+    const { draftId } = await previewEvent(context.flow);
+    const click = () => context.flow.handle(componentInteraction(officer(), `event-send:${draftId}`));
+    await Promise.all([click(), click()]);
 
-    assert.equal(response.data.flags, EPHEMERAL);
-    assert.match(response.data.content, /only submit events for an RSO you're verified for/);
-    assert.match(response.data.content, /IUGA Study Break/);
-    assertNothingSaved(context);
+    assert.equal(context.models.DiscordEventSubmissions.docs.length, 1);
+    assert.equal(context.client.calls.length, 1);
   });
 
-  it("refuses a form from a member with no verified RSO", async () => {
+  it("Send a second time finds no draft and posts nothing more", async () => {
     const context = setup();
-    const response = await context.flow.handle(formSubmitInteraction(member(OTHER_ID, []), "iuga"));
+    const { draftId } = await submitEvent(context.flow);
+    const again = await context.flow.handle(componentInteraction(officer(), `event-send:${draftId}`));
+
+    assert.match(again.data.content, /This draft expired/);
+    assert.equal(context.models.DiscordEventSubmissions.docs.length, 1);
+  });
+
+  it("Edit reopens the form with the officer's answers filled in", async () => {
+    const { flow } = setup();
+    const { draftId } = await previewEvent(flow);
+    const response = await flow.handle(componentInteraction(officer(), `event-edit:${draftId}`));
+
+    assert.equal(response.type, MODAL);
+    assert.equal(response.data.custom_id, `event-form:${draftId}`);
+    const fields = Object.fromEntries(response.data.components.map((label) => [label.component.custom_id, label]));
+    assert.equal(fields.name.component.value, "IUGA Study Break");
+    assert.equal(fields.when.component.value, "Dec 1 6-8pm");
+  });
+
+  it("Fix it reopens the form with the problem shown under When", async () => {
+    const { flow } = setup();
+    const { draftId } = await previewEvent(flow, { when: "sometime" });
+    const response = await flow.handle(componentInteraction(officer(), `event-edit:${draftId}`));
+
+    const fields = Object.fromEntries(response.data.components.map((label) => [label.component.custom_id, label]));
+    assert.match(fields.when.description, /^⚠ Couldn't read When/);
+    assert.equal(fields.when.component.value, "sometime");
+    assert.equal(fields.location.component.value, "Mary Gates Hall");
+  });
+
+  it("refuses Send or Edit on someone else's draft", async () => {
+    const context = setup();
+    const { draftId } = await previewEvent(context.flow);
+    for (const action of ["event-send", "event-edit"]) {
+      const response = await context.flow.handle(componentInteraction(multiOfficer(), `${action}:${draftId}`));
+      assert.equal(response.type, CHANNEL_MESSAGE, action);
+      assert.match(response.data.content, /This draft expired/, action);
+    }
+    assertNothingSubmitted(context);
+  });
+
+  it("refuses Send when the officer lost their RSO role after the preview", async () => {
+    const context = setup();
+    const { draftId } = await previewEvent(context.flow);
+    delete context.rsosByUser[OFFICER_ID];
+    const response = await context.flow.handle(componentInteraction(officer(), `event-send:${draftId}`));
 
     assert.match(response.data.content, /\/rso-verify/);
-    assertNothingSaved(context);
+    assertNothingSubmitted(context);
   });
 
-  it("lists the problems and echoes the entries to paste back, writing nothing", async () => {
+  it("turns the preview into a Fix it note when the start time passed before Send", async () => {
     const context = setup();
-    const response = await context.flow.handle(
-      formSubmitInteraction(officer(), "iuga", { when: "2026-12-01 18:00", categories: ["Party"] }),
-    );
+    // NOW is Nov 12, noon Pacific; the draft is still current 45 minutes later, but the event has started.
+    const { draftId } = await previewEvent(context.flow, { when: "Nov 12 12:30-2pm" });
+    context.advance(45 * 60 * 1000);
+    const response = await context.flow.handle(componentInteraction(officer(), `event-send:${draftId}`));
 
-    assert.equal(response.data.flags, EPHEMERAL);
-    assert.deepEqual(response.data.allowed_mentions, { parse: [] });
-    assert.match(response.data.content, /not submitted/);
-    assert.match(response.data.content, /When must look like 12\/1\/2026 6:00 PM - 8:00 PM/);
-    assert.match(response.data.content, /Pick at least one category: Academic, Social, or Career/);
-    assert.match(response.data.content, /When: 2026-12-01 18:00/);
-    assert.match(response.data.content, /Categories: Party/);
-    assert.match(response.data.content, /Event name: IUGA Study Break/);
-    assert.match(response.data.content, /Snacks and a quiet room/);
-    assertNothingSaved(context);
+    assert.equal(response.type, UPDATE_MESSAGE);
+    assert.match(response.data.content, /When: The event must start in the future/);
+    assert.deepEqual(buttonIds(response), [`event-edit:${draftId}`]);
+    assertNothingSubmitted(context);
   });
 
-  it("keeps the echo inside its code block when an entry contains backticks", async () => {
-    const { flow } = setup();
-    const response = await flow.handle(
-      formSubmitInteraction(officer(), "iuga", { when: "", description: "Bring ```snacks```" }),
-    );
-    assert.equal(response.data.content.split("```").length, 3);
-  });
-
-  it("deletes the row and reports an error when the approval card cannot be posted", async (t) => {
-    t.mock.method(console, "error", () => {});
-    const { models, client, flow } = setup();
-    client.failPost = true;
-    const response = await flow.handle(formSubmitInteraction(officer(), "iuga"));
-
-    assert.equal(response.data.flags, EPHEMERAL);
-    assert.match(response.data.content, /not submitted/);
-    assert.equal(models.DiscordEventSubmissions.docs.length, 0);
-  });
-
-  it("logs the Discord failure detail but keeps it out of the officer's reply", async (t) => {
+  it("keeps the draft and says so when the approval card can't be posted", async (t) => {
     const logged = t.mock.method(console, "error", () => {});
-    const { client, flow } = setup();
-    client.failPost = true;
-    const response = await flow.handle(formSubmitInteraction(officer(), "iuga"));
+    const context = setup();
+    context.client.failPost = true;
+    const { sent } = await submitEvent(context.flow);
 
+    assert.equal(sent.type, CHANNEL_MESSAGE);
+    assert.match(sent.data.content, /Click Send for review again/);
+    assert.doesNotMatch(sent.data.content, /50001|Missing Access/);
     assert.match(logged.mock.calls[0].arguments.join(" "), /50001 "Missing Access"/);
-    assert.doesNotMatch(response.data.content, /Discord POST|status|50001|Missing Access/);
+    assert.equal(context.models.DiscordEventSubmissions.docs.length, 0);
+    assert.equal(context.models.DiscordEventDrafts.docs.length, 1);
   });
 });
 

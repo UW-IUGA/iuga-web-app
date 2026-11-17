@@ -21,6 +21,26 @@ describe("placePopover", () => {
         });
     });
 
+    it("centres over the event, level with its top, for the day view", () => {
+        // The event's middle is at 680, so the 340px popover starts 170px before it.
+        expect(placePopover(anchor, popover, "center", viewport)).toEqual({
+            left: 510,
+            top: 300,
+        });
+    });
+
+    it("lands a day-wide event's popover mid-grid, not against the window's right edge", () => {
+        const dayWide = { left: 300, right: 1300, top: 300 };
+
+        expect(placePopover(dayWide, popover, "center", viewport).left).toBe(800 - 170);
+    });
+
+    it("keeps a centred popover inside the window", () => {
+        const nearLeft = { left: 20, right: 100, top: 300 };
+
+        expect(placePopover(nearLeft, popover, "center", viewport).left).toBe(16);
+    });
+
     it("slides back inside the window rather than running off an edge", () => {
         const nearLeft = { left: 120, right: 280, top: 300 };
         const nearRight = { left: 1200, right: 1360, top: 300 };

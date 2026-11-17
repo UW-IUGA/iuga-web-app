@@ -34,7 +34,7 @@ The page shows a loading message before the first list arrives. If loading fails
 | Year | `/events` | The months that contain events, newest first. Selecting a day opens its events in an overlay. |
 | Month | `/events?view=month&date=2026-10-20` | A month grid with event chips. The days leading in from the month before and trailing into the month after show their real date, muted, with their events. Selecting a date opens that day; selecting an event opens its details. |
 | Week | `/events?view=week&date=2026-10-20` | Seven days on an hourly time grid, scrolled so the week's earliest event, by time of day, starts at the top. Selecting an event opens its details. |
-| Day | `/events?view=day&date=2026-10-20` | One day's time grid, scrolled to its first event. Selecting an event opens its details in a popover, with the date beside Close in place of View day. |
+| Day | `/events?view=day&date=2026-10-20` | One day's time grid, scrolled to its first event. Selecting an event opens its details in a popover centred over the event, since a day's events leave no room beside them, with the date beside Close in place of View day. |
 
 `useCalendarView.js` keeps the selected view and date in the URL. Year is the default, so its `view` parameter is omitted. Dates use the Pacific calendar day (`YYYY-MM-DD`), which keeps the selected day stable across reloads and time zones. Changing views keeps the date; selecting a day from a calendar view switches to the day view. Each navigation step adds a browser history entry, so Back retraces it. Other query parameters are preserved.
 

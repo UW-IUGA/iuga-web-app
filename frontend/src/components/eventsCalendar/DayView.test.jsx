@@ -271,15 +271,29 @@ describe("DayView", () => {
             expect(within(dialog).getByText("Career")).toBeTruthy();
         });
 
-        it("opens to the right of the grid", () => {
-            renderDay({ events: [rich()] });
+        it("opens centred over the event, since the day's events leave no room beside them", () => {
+            setViewport(1400, 900);
+            sizePopover(400, 340);
+            stubPopoverLayout();
+            try {
+                renderDay({ events: [rich()] });
+                const block = eventButton("Industry Panel");
+                // A day-wide event, from just past the hour gutter to the grid's right edge.
+                placeBlock(block, { top: 300, left: 400, right: 1240 });
 
-            fireEvent.click(eventButton("Industry Panel"));
+                fireEvent.click(block);
 
-            expect(screen.getByRole("dialog").classList).toContain("popover--right");
+                const dialog = screen.getByRole("dialog");
+                expect(dialog.classList).toContain("popover--center");
+                // The event's middle is at 820, so the 340px popover starts 170px before it.
+                expect(dialog.style.left).toBe("650px");
+                expect(dialog.style.top).toBe("300px");
+            } finally {
+                restorePopoverLayout();
+            }
         });
 
-        it("keeps the card on the right even when the window leaves no room there", () => {
+        it("stays centred rather than flipping to a side when the window is narrow", () => {
             setViewport(1000, 800);
             renderDay({ events: [rich()] });
             const block = eventButton("Industry Panel");
@@ -287,7 +301,10 @@ describe("DayView", () => {
 
             fireEvent.click(block);
 
-            expect(screen.getByRole("dialog").classList).toContain("popover--right");
+            const classes = screen.getByRole("dialog").classList;
+            expect(classes).toContain("popover--center");
+            expect(classes).not.toContain("popover--right");
+            expect(classes).not.toContain("popover--left");
         });
 
         it("leaves out View day, since the day is already on screen", () => {
@@ -406,7 +423,7 @@ describe("event popover placement", () => {
         delete window.ResizeObserver;
     });
 
-    it("opens beside the event on a wide screen, where it has room", () => {
+    it("opens centred over the event on a wide screen, level with its top", () => {
         setViewport(1280, 800);
         sizePopover(400, 420);
         renderDay({ events: [rich()] });
@@ -416,8 +433,8 @@ describe("event popover placement", () => {
         fireEvent.click(block);
 
         const dialog = screen.getByRole("dialog", { name: "Industry Panel" });
-        // Right of the event, held to the window's edge: 1280 - 16 - 420.
-        expect(parseFloat(dialog.style.left)).toBe(844);
+        // The event's middle is at 550, so the 420px popover starts 210px before it.
+        expect(parseFloat(dialog.style.left)).toBe(340);
         expect(parseFloat(dialog.style.top)).toBe(300);
     });
 

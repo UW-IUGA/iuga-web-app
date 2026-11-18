@@ -26,6 +26,10 @@ Every environment (dev, staging, production) follows the same five-stage pipelin
 
 > **Note:** Dev and production have their own branches; staging follows whatever branch triggered its multibranch job. There is no single shared branch for all three.
 
+### Pull request previews
+
+Pull requests also get a frontend-only preview on Netlify, built by GitHub Actions. That pipeline is separate from Jenkins: it does not deploy the backend and uses mock data. See [Pull Request Previews](NETLIFY_PREVIEWS.md).
+
 ---
 
 ## Jenkinsfile Comparison
@@ -66,7 +70,7 @@ Every environment (dev, staging, production) follows the same five-stage pipelin
 - **Volume:** `/var/lib/iuga-web-app/uploads/prod:/app/backend/public/uploads`
 - **DB credentials:** `DB_URI` (Jenkins Secret text credential, injected as `DB_URI` env var), `SESSION_SECRET_PROD` (injected as runtime `SESSION_SECRET_PROD`)
 - **Database:** MongoDB container at `mongo:27017` (via `iuga-server-config_default` network)
-- **Shop checkout:** `shopManualCheckout: false`, so the Venmo checkout routes return 503. Shop holds use transactions, and the `mongo` container in `iuga-server-config` is a standalone server. Set it to `true` only after that container runs as a replica set and `DB_URI` names it (`replicaSet=...`).
+- **Shop checkout:** `shopManualCheckout: true`, passed to the app as `SHOP_MANUAL_CHECKOUT_EXPOSED=true`. The production MongoDB is a one-member replica set, which shop holds need.
 - **Deploy pattern:** health-gated candidate swap; temp port `8890` → live port `8888`; tags images `:${BUILD_NUMBER}` and `:last-good`
 - **Commit status context:** `iuga/jenkins/cicd/prod`
 
@@ -242,6 +246,19 @@ Expected: The last lines should show:
 ### 6. Check image was pushed to Docker Hub
 
 Visit `https://hub.docker.com/r/iuga/iuga-web-app-<env>/tags` and confirm a tag for the latest `BUILD_NUMBER` exists. After a successful deploy, the matching `last-good` tag is also updated — that tag always points at the last build that passed the health check.
+
+---
+
+## Release Notes
+
+### Shop order review (`/admin/shop/orders`)
+
+Before deploying this release:
+
+- **Replica set:** officer payment changes (Mark paid, Change status, drop, refund, and amount received) run in transactions, so they need a replica set. Order review itself is available whether or not `SHOP_MANUAL_CHECKOUT_EXPOSED` is set.
+- **Indexes:** the release adds `{ status: 1, confirmedAt: 1, _id: 1 }` and `{ confirmedAt: 1, _id: 1 }` on `shoppurchases`. Mongoose builds them when the backend starts; no manual step is needed.
+- **Schema submodule:** the review fields and indexes live in `backend/schemas`. Commit that change in the submodule, push it, and bump the parent repo's submodule pin before deploying.
+- **Officer roles:** permissions come only from role assignments, not from `uType`. Give officers the `shop.purchases.review` permission before or right at deploy, or they lose order tools. See [Maintainers Guide §2.7](MAINTAINERS.md#27-give-an-officer-access).
 
 ---
 

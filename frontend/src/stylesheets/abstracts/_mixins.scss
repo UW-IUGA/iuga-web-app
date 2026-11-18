@@ -1,6 +1,5 @@
-@mixin debug-border {
-    border: 1px solid purple;
-}
+@use "variables" as *;
+@use "theme" as *;
 
 @mixin top-gradient-border {
     &::before {
@@ -39,25 +38,45 @@
 }
 
 @mixin gradient-border {
-    background: radial-gradient(circle at 100% 100%, #ffffff 0, #ffffff 6px, transparent 6px) 0% 0%/8px 8px no-repeat,
-            radial-gradient(circle at 0 100%, #ffffff 0, #ffffff 6px, transparent 6px) 100% 0%/8px 8px no-repeat,
-            radial-gradient(circle at 100% 0, #ffffff 0, #ffffff 6px, transparent 6px) 0% 100%/8px 8px no-repeat,
-            radial-gradient(circle at 0 0, #ffffff 0, #ffffff 6px, transparent 6px) 100% 100%/8px 8px no-repeat,
-            linear-gradient(#ffffff, #ffffff) 50% 50%/calc(100% - 4px) calc(100% - 16px) no-repeat,
-            linear-gradient(#ffffff, #ffffff) 50% 50%/calc(100% - 16px) calc(100% - 4px) no-repeat,
-            linear-gradient(90deg, rgba(248,166,255,0.59) 0%, rgba(255,201,63,1) 50%, rgba(207,223,245,1) 100%);
+    background:
+        radial-gradient(circle at 100% 100%, theme(surface) 0, theme(surface) 6px, transparent 6px) 0% 0%/8px 8px
+            no-repeat,
+        radial-gradient(circle at 0 100%, theme(surface) 0, theme(surface) 6px, transparent 6px) 100% 0%/8px 8px
+            no-repeat,
+        radial-gradient(circle at 100% 0, theme(surface) 0, theme(surface) 6px, transparent 6px) 0% 100%/8px 8px
+            no-repeat,
+        radial-gradient(circle at 0 0, theme(surface) 0, theme(surface) 6px, transparent 6px) 100% 100%/8px 8px
+            no-repeat,
+        linear-gradient(theme(surface), theme(surface)) 50% 50% / calc(100% - 4px) calc(100% - 16px) no-repeat,
+        linear-gradient(theme(surface), theme(surface)) 50% 50% / calc(100% - 16px) calc(100% - 4px) no-repeat,
+        linear-gradient(
+            90deg,
+            rgba($color-gradient-pink, 0.59) 0%,
+            $color-gradient-gold 50%,
+            $color-gradient-blue 100%
+        );
     border-radius: $radius;
     box-sizing: border-box;
 }
 
 @mixin gradient-border-thin {
-    background: radial-gradient(circle at 100% 100%, #ffffff 0, #ffffff 7px, transparent 7px) 0% 0%/8px 8px no-repeat,
-            radial-gradient(circle at 0 100%, #ffffff 0, #ffffff 7px, transparent 7px) 100% 0%/8px 8px no-repeat,
-            radial-gradient(circle at 100% 0, #ffffff 0, #ffffff 7px, transparent 7px) 0% 100%/8px 8px no-repeat,
-            radial-gradient(circle at 0 0, #ffffff 0, #ffffff 7px, transparent 7px) 100% 100%/8px 8px no-repeat,
-            linear-gradient(#ffffff, #ffffff) 50% 50%/calc(100% - 2px) calc(100% - 16px) no-repeat,
-            linear-gradient(#ffffff, #ffffff) 50% 50%/calc(100% - 16px) calc(100% - 2px) no-repeat,
-            linear-gradient(143deg, rgba(248,166,255,0.59) 0%, rgba(255,201,63,1) 50%, rgba(207,223,245,1) 100%);
+    background:
+        radial-gradient(circle at 100% 100%, theme(surface) 0, theme(surface) 7px, transparent 7px) 0% 0%/8px 8px
+            no-repeat,
+        radial-gradient(circle at 0 100%, theme(surface) 0, theme(surface) 7px, transparent 7px) 100% 0%/8px 8px
+            no-repeat,
+        radial-gradient(circle at 100% 0, theme(surface) 0, theme(surface) 7px, transparent 7px) 0% 100%/8px 8px
+            no-repeat,
+        radial-gradient(circle at 0 0, theme(surface) 0, theme(surface) 7px, transparent 7px) 100% 100%/8px 8px
+            no-repeat,
+        linear-gradient(theme(surface), theme(surface)) 50% 50% / calc(100% - 2px) calc(100% - 16px) no-repeat,
+        linear-gradient(theme(surface), theme(surface)) 50% 50% / calc(100% - 16px) calc(100% - 2px) no-repeat,
+        linear-gradient(
+            143deg,
+            rgba($color-gradient-pink, 0.59) 0%,
+            $color-gradient-gold 50%,
+            $color-gradient-blue 100%
+        );
     border-radius: $radius;
     padding: 5px;
     box-sizing: border-box;
@@ -65,13 +84,22 @@
 
 @mixin focus-ring {
     &:focus-visible {
-        outline: 2px solid $color-primary;
+        outline: 2px solid theme(accent);
         outline-offset: 2px;
     }
 }
 
+// The site's frame (see $site-max-width): centred, with the shared gutter inside.
+@mixin site-frame {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: $site-max-width;
+    margin-inline: auto;
+    padding-inline: var(--site-gutter);
+}
+
 @mixin photo-frame($radius: $radius-card-media, $border-width: 5px) {
-    border: $border-width solid white;
+    border: $border-width solid theme(surface);
     border-radius: $radius;
 }
 

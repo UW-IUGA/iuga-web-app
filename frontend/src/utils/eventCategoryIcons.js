@@ -15,7 +15,7 @@ import { categoriesFor } from "./eventStreams";
 const CATEGORY_ICONS = {
     Academic: faGraduationCap,
     Social: faUsers,
-    Professional: faBriefcase,
+    Career: faBriefcase,
 };
 
 const FALLBACK_CATEGORY = "Academic";

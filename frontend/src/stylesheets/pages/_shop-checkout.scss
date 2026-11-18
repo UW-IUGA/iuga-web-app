@@ -1,26 +1,28 @@
+@use "../abstracts" as *;
+@use "../base/misc";
+
 // Venmo checkout page for one held cart (ShopCheckout.jsx).
 .shopCheckout {
     @extend %pageFrame;
-    padding: 48px 0 88px;
+    padding: $space-12 0 $space-22;
     max-width: 640px;
-    color: $color-uw-purple;
+    color: theme(heading);
 
-    // The base container's side margin only applies from tablet up, so phones need the gutter here.
+    // Its own padding drops the base container's gutter, so phones put it back.
     @include media("<tablet") {
-        padding-right: $page-margin;
-        padding-left: $page-margin;
+        padding-inline: var(--site-gutter);
     }
 
     h1 {
-        margin: 0 0 20px;
-        font-family: $sans-serif;
-        font-size: clamp(2rem, 4vw, 3rem);
-        font-weight: 900;
-        letter-spacing: -0.035em;
+        margin: 0 0 $space-5;
+        font-family: $font-family-base;
+        font-size: $font-size-title;
+        font-weight: $font-weight-bold;
+        letter-spacing: $letter-spacing-heading;
     }
 
     p {
-        margin: 0 0 16px;
+        margin: 0 0 $space-4;
         line-height: 1.5;
     }
 
@@ -32,18 +34,18 @@
 
     &__lines {
         list-style: none;
-        margin: 0 0 20px;
+        margin: 0 0 $space-5;
         padding: 0;
-        border-top: 1px solid rgba($color-uw-purple, 0.2);
+        border-top: 1px solid theme-alpha(brand, 0.2);
     }
 
     &__line {
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        gap: 8px 16px;
+        gap: $space-2 $space-4;
         padding: 14px 0;
-        border-bottom: 1px solid rgba($color-uw-purple, 0.2);
+        border-bottom: 1px solid theme-alpha(brand, 0.2);
 
         > span:first-child {
             flex: 1 1 200px;
@@ -51,7 +53,7 @@
     }
 
     &__total {
-        font-size: 1.1rem;
+        font-size: $font-size-body;
     }
 
     // Title row: the page heading with the hold countdown beside it.
@@ -60,8 +62,8 @@
         flex-wrap: wrap;
         align-items: flex-end;
         justify-content: space-between;
-        gap: 8px 24px;
-        margin: 0 0 20px;
+        gap: $space-2 $space-6;
+        margin: 0 0 $space-5;
 
         h1 {
             margin: 0;
@@ -82,14 +84,13 @@
 
         strong {
             font-size: clamp(2rem, 4vw, 3rem);
-            font-weight: 900;
+            font-weight: $font-weight-bold;
             font-variant-numeric: tabular-nums;
-            letter-spacing: -0.035em;
             line-height: 1;
         }
 
         &--urgent strong {
-            color: $color-error;
+            color: theme(error);
         }
     }
 
@@ -97,15 +98,15 @@
     .emailContactDialog__trigger {
         min-height: 48px;
         min-width: 190px;
-        padding: 0 24px;
-        background: white;
-        color: $color-uw-purple;
-        font-size: 1rem;
+        padding: 0 $space-6;
+        background: theme(surface);
+        color: theme(heading);
+        font-size: $font-size-body;
 
         &:hover {
-            border-color: $color-uw-purple;
-            background: $color-uw-purple;
-            color: white;
+            border-color: theme(brand);
+            background: theme(brand);
+            color: theme(on-fill);
             transform: none;
         }
     }
@@ -114,18 +115,17 @@
     // Submitted purchase: the thank-you, what happens next, and a way back to the shop.
     &__expired,
     &__submitted {
-        margin: 0 0 28px;
-        padding: 28px;
-        border: 1px solid $color-border-lavender;
+        margin: 0 0 $space-7;
+        padding: $space-7;
+        border: 1px solid theme(border-subtle);
         border-radius: $radius-card;
-        background: $color-lavender;
+        background: theme(tint);
 
         h2 {
-            margin: 0 0 12px;
-            font-family: $sans-serif;
-            font-size: 1.35rem;
-            font-weight: 800;
-            letter-spacing: -0.02em;
+            margin: 0 0 $space-3;
+            font-family: $font-family-base;
+            font-size: $font-size-subheading;
+            font-weight: $font-weight-bold;
         }
 
         // The shop's filled pill (.shopCard__addToCart). Two classes: the page link rule (.shopCheckout a)
@@ -134,13 +134,13 @@
             display: inline-flex;
             width: auto;
             min-width: 190px;
-            padding: 0 24px;
-            color: white;
+            padding: 0 $space-6;
+            color: theme(on-fill);
             text-decoration: none;
         }
 
         @include media("<tablet") {
-            padding: 20px;
+            padding: $space-5;
 
             .shopCheckout__pillLink,
             .emailContactDialog__trigger {
@@ -152,41 +152,40 @@
 
     // Payment reminder under the thank-you, set apart by the bag's subtotal hairline.
     &__submitted .shopCheckout__submittedNote {
-        margin: 20px 0;
-        padding-top: 20px;
-        border-top: 1px solid rgba($color-uw-purple, 0.14);
+        margin: $space-5 0;
+        padding-top: $space-5;
+        border-top: 1px solid theme-alpha(brand, 0.14);
     }
 
     // Already-paid path, set apart by the same hairline.
     &__expiredPaid {
-        margin-top: 24px;
-        padding-top: 20px;
-        border-top: 1px solid rgba($color-uw-purple, 0.14);
+        margin-top: $space-6;
+        padding-top: $space-5;
+        border-top: 1px solid theme-alpha(brand, 0.14);
 
         p {
-            margin-bottom: 12px;
+            margin-bottom: $space-3;
         }
 
         .shopCheckout__expiredQuestion {
-            margin-bottom: 4px;
-            font-weight: 700;
+            margin-bottom: $space-1;
+            font-weight: $font-weight-medium;
         }
     }
 
     // Venmo payment panel: the QR card beside the amount due and the three steps.
     &__pay {
-        margin: 28px 0 8px;
-        padding: 28px;
-        border: 1px solid $color-border-lavender;
+        margin: $space-7 0 $space-2;
+        padding: $space-7;
+        border: 1px solid theme(border-subtle);
         border-radius: $radius-card;
-        background: $color-lavender;
+        background: theme(tint);
 
         h2 {
-            margin: 0 0 20px;
-            font-family: $sans-serif;
-            font-size: 1.35rem;
-            font-weight: 800;
-            letter-spacing: -0.02em;
+            margin: 0 0 $space-5;
+            font-family: $font-family-base;
+            font-size: $font-size-subheading;
+            font-weight: $font-weight-bold;
         }
 
         // Two classes: the shared paragraph rule (.shopCheckout p) outranks a single class.
@@ -195,14 +194,14 @@
         }
 
         @include media("<tablet") {
-            padding: 20px;
+            padding: $space-5;
         }
     }
 
     &__payBody {
         display: grid;
         grid-template-columns: minmax(0, 240px) minmax(0, 1fr);
-        gap: 28px;
+        gap: $space-7;
         align-items: center;
 
         @include media("<tablet") {
@@ -216,8 +215,8 @@
         margin: 0 auto;
         overflow: hidden;
         border-radius: $radius-card-media;
-        background: #fff;
-        box-shadow: 0 14px 30px rgba($color-shadow, 0.13);
+        background: $color-white;
+        box-shadow: 0 14px 30px theme-alpha(shadow, 0.13);
 
         img {
             display: block;
@@ -227,13 +226,13 @@
     }
 
     &__payTo {
-        font-size: 1.05rem;
+        font-size: $font-size-body;
     }
 
     &__steps {
         display: grid;
-        gap: 12px;
-        margin: 20px 0 0;
+        gap: $space-3;
+        margin: $space-5 0 0;
         padding: 0;
         list-style: none;
         counter-reset: shop-checkout-step;
@@ -241,7 +240,7 @@
         li {
             position: relative;
             min-height: 26px;
-            padding-left: 40px;
+            padding-left: $space-10;
             line-height: 1.45;
             counter-increment: shop-checkout-step;
 
@@ -255,10 +254,10 @@
                 width: 26px;
                 height: 26px;
                 border-radius: $radius-pill;
-                background: $color-primary;
-                color: #fff;
+                background: theme(accent);
+                color: theme(on-fill);
                 font-size: 0.85rem;
-                font-weight: 700;
+                font-weight: $font-weight-bold;
             }
         }
     }
@@ -266,29 +265,29 @@
     form {
         display: flex;
         flex-direction: column;
-        gap: 8px;
-        margin-top: 24px;
+        gap: $space-2;
+        margin-top: $space-6;
     }
 
     label {
-        font-weight: 700;
+        font-weight: $font-weight-medium;
     }
 
     input {
-        padding: 12px 14px;
-        border: 1px solid rgba($color-uw-purple, 0.4);
+        padding: $space-3 14px;
+        border: 1px solid theme-alpha(brand, 0.4);
         border-radius: $radius-card;
         font: inherit;
         color: inherit;
 
         &[aria-invalid="true"] {
-            border-color: $color-error;
+            border-color: theme(error);
         }
     }
 
     &__error {
-        color: $color-error-dark;
-        font-weight: 600;
+        color: theme(error-dark);
+        font-weight: $font-weight-medium;
     }
 
     // Field message under an input: a red marker beside the reason.
@@ -296,11 +295,11 @@
     .shopCheckout__fieldError {
         display: flex;
         align-items: flex-start;
-        gap: 8px;
+        gap: $space-2;
         margin: -4px 0 0;
-        color: $color-error-dark;
-        font-size: 0.95rem;
-        font-weight: 600;
+        color: theme(error-dark);
+        font-size: $font-size-body;
+        font-weight: $font-weight-medium;
         line-height: 1.4;
     }
 
@@ -312,19 +311,19 @@
         height: 18px;
         margin-top: 1px;
         border-radius: $radius-pill;
-        background: $color-error;
-        color: #fff;
+        background: theme(error);
+        color: theme(on-fill);
         font-size: 0.75rem;
-        font-weight: 800;
+        font-weight: $font-weight-bold;
         line-height: 1;
     }
 
     // Required fields: a red asterisk after the label, explained once on the first label's row.
     .shopCheckout__required::after {
         content: " *";
-        color: $color-error;
+        color: theme(error);
         font-size: 1.2em;
-        font-weight: 800;
+        font-weight: $font-weight-bold;
         line-height: 1;
     }
 
@@ -332,18 +331,18 @@
         display: flex;
         align-items: baseline;
         justify-content: space-between;
-        gap: 12px;
+        gap: $space-3;
     }
 
     .shopCheckout__requiredNote {
         margin: 0;
-        color: $color-dark-gray;
+        color: theme(text-muted);
         font-size: 0.9rem;
 
         span {
-            color: $color-error;
+            color: theme(error);
             font-size: 1.2em;
-            font-weight: 800;
+            font-weight: $font-weight-bold;
             line-height: 1;
         }
     }
@@ -351,20 +350,20 @@
     &__actions {
         display: flex;
         flex-wrap: wrap;
-        gap: 12px;
-        margin-top: 8px;
+        gap: $space-3;
+        margin-top: $space-2;
     }
 
     &__button {
         display: inline-block;
-        padding: 12px 20px;
+        padding: $space-3 $space-5;
         border: 0;
         text-decoration: none;
         border-radius: $radius-card;
-        background: $color-primary;
-        color: #fff;
+        background: theme(accent);
+        color: theme(on-fill);
         font: inherit;
-        font-weight: 700;
+        font-weight: $font-weight-medium;
         cursor: pointer;
 
         &:disabled {
@@ -374,8 +373,8 @@
 
         &--quiet {
             background: transparent;
-            color: $color-uw-purple;
-            border: 1px solid rgba($color-uw-purple, 0.4);
+            color: theme(heading);
+            border: 1px solid theme-alpha(brand, 0.4);
         }
     }
 }

@@ -1,33 +1,56 @@
+@use "../abstracts" as *;
+
 $home-hero-purple: #3b0068;
 $home-accent-purple: #4b2d83;
 $home-ink: #111;
 
 #rootContainer:has(.homePage),
 .homePage {
-    color-scheme: light;
-    background: #fff;
+    background: theme(page);
 }
 
 .homePage {
     box-sizing: border-box;
     flex: none;
-    padding: 32px 0 $section-divider-gap;
-    color: #241a32;
-    font: 400 16px/1.65 $sans-serif;
+    padding-block: $space-14 $section-divider-gap;
+    color: theme(ink);
+    font: $font-weight-regular #{$font-size-body}/#{$line-height-body} $font-family-base;
 
     *,
     *::before,
-    *::after { box-sizing: border-box; }
+    *::after {
+        box-sizing: border-box;
+    }
 
-    :where(h1, h2, h3, p) { margin: 0; }
-    h1, h2, h3 { font-family: inherit; font-weight: 700; }
-    :where(p) { color: $color-dark-gray; }
-    :where(a) { color: inherit; text-decoration: none; }
-    img { display: block; width: 100%; height: auto; object-fit: cover; }
-    svg { flex: none; width: 16px; height: 16px; }
+    :where(h1, h2, h3, p) {
+        margin: 0;
+    }
+    h1,
+    h2,
+    h3 {
+        font-weight: $font-weight-bold;
+    }
+    :where(p) {
+        color: theme(text-muted);
+    }
+    :where(a) {
+        color: inherit;
+        text-decoration: none;
+    }
+    img {
+        display: block;
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+    }
+    svg {
+        flex: none;
+        width: 16px;
+        height: 16px;
+    }
 
     a:focus-visible {
-        outline: 3px solid $color-uw-purple;
+        outline: 3px solid theme(brand);
         outline-offset: 5px;
     }
 }
@@ -39,24 +62,24 @@ $home-ink: #111;
 }
 
 .homeAffiliation {
-    margin-bottom: 18px;
-    color: $color-uw-purple;
-    font-size: 12px;
-    font-weight: 700;
+    margin-bottom: $space-3;
+    color: theme(heading);
+    font-size: $font-size-small;
+    font-weight: $font-weight-medium;
 }
 
 .homeSummary {
     max-width: 52ch;
-    margin-top: 18px !important;
-    font-size: 16px;
+    margin-top: $space-4;
+    font-size: $font-size-body;
 }
 
 .homeActions {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 12px;
-    margin-top: 22px;
+    gap: $space-3;
+    margin-top: $space-6;
 }
 
 .homePrimaryLink,
@@ -66,29 +89,31 @@ $home-ink: #111;
     align-items: center;
     justify-content: center;
     gap: 14px;
-    padding: 12px 22px;
-    border: 1px solid $color-uw-purple;
+    padding: $space-3 22px;
+    border: 1px solid theme(brand);
     border-radius: $radius-pill;
-    font-size: 14px;
-    font-weight: 700;
+    font-size: $font-size-small;
+    font-weight: $font-weight-medium;
     white-space: nowrap;
 }
 
 .homePrimaryLink {
-    background: $color-uw-purple;
-    color: white !important;
+    background: theme(brand);
+    color: theme(on-fill);
 
     &:hover {
-        border-color: $color-primary;
-        background: $color-primary;
+        border-color: theme(accent);
+        background: theme(accent);
     }
 }
 
 .homeSecondaryLink {
-    background: white;
-    color: $color-uw-purple !important;
+    background: theme(surface);
+    color: theme(heading);
 
-    &:hover { background: $color-lavender; }
+    &:hover {
+        background: theme(tint);
+    }
 }
 
 /* ==========================================================
@@ -269,19 +294,33 @@ $home-ink: #111;
     width: 56px;
     min-height: 60px;
     border-radius: $radius;
-    background: $color-lavender;
-    color: $color-uw-purple;
+    background: theme(tint);
+    color: theme(heading);
     line-height: 1;
 
-    span { font-size: 11px; font-weight: 700; text-transform: uppercase; }
-    strong { margin-top: 6px; font-size: 26px; font-variant-numeric: tabular-nums; }
+    span {
+        font-size: $font-size-label;
+        font-weight: $font-weight-medium;
+        letter-spacing: $letter-spacing-label;
+        text-transform: uppercase;
+    }
+    strong {
+        margin-top: 6px;
+        font-size: 26px;
+        font-variant-numeric: tabular-nums;
+    }
 }
 
 .homeEventDetails {
     min-width: 0;
 
-    h3 { font-size: 16px; }
-    p { margin-top: 5px; font-size: 12px; }
+    h3 {
+        font-size: $font-size-subheading;
+    }
+    p {
+        margin-top: 5px;
+        font-size: $font-size-small;
+    }
 }
 
 .homeEmptyEventCard {
@@ -290,13 +329,20 @@ $home-ink: #111;
     gap: 16px;
     padding: 18px 20px;
     border-radius: $radius-card-media;
-    background: white;
-    box-shadow: 0 6px 18px rgba($color-shadow, 0.12);
+    background: theme(surface);
+    box-shadow: 0 6px 18px theme-alpha(shadow, 0.12);
 
-    h3 { font-size: 17px; }
-    p { margin-top: 4px; font-size: 14px; }
+    h3 {
+        font-size: $font-size-subheading;
+    }
+    p {
+        margin-top: $space-1;
+        font-size: $font-size-small;
+    }
 
-    &:hover h3 { color: $color-primary; }
+    &:hover h3 {
+        color: theme(accent);
+    }
 }
 
 .homeEventIcon {
@@ -305,9 +351,12 @@ $home-ink: #111;
     width: 44px;
     height: 44px;
     place-items: center;
-    color: $color-uw-purple;
+    color: theme(heading);
 
-    svg { width: 28px; height: 28px; }
+    svg {
+        width: 28px;
+        height: 28px;
+    }
 }
 
 /* ==========================================================
@@ -531,17 +580,19 @@ $home-ink: #111;
 
 .homeCommunity {
     margin-top: 42px;
-    padding-top: 28px;
-    border-top: 1px solid $color-border-lavender;
+    padding-top: $space-7;
+    border-top: 1px solid theme(border-subtle);
 }
 
 .homeCommunityLinks {
     display: grid;
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-    gap: 36px;
+    gap: $space-9;
 }
 
-.homeCommunityLink { min-width: 0; }
+.homeCommunityLink {
+    min-width: 0;
+}
 
 .homeCommunityPhoto {
     position: relative;
@@ -549,11 +600,18 @@ $home-ink: #111;
     overflow: hidden;
     border-radius: $radius-card-media;
 
-    img { height: 100%; object-position: 50% 55%; }
+    img {
+        height: 100%;
+        object-position: 50% 55%;
+    }
 }
 
-.homeInvolvedLink img { object-position: 50% 22%; }
-.homeShopLink img { object-position: 50% 0%; }
+.homeInvolvedLink img {
+    object-position: 50% 22%;
+}
+.homeShopLink img {
+    object-position: 50% 0%;
+}
 
 .homeCommunityPhoto::after {
     position: absolute;
@@ -567,11 +625,11 @@ $home-ink: #111;
     position: absolute;
     z-index: 1;
     inset: auto 0 0;
-    padding: 18px 20px;
+    padding: 18px $space-5;
 
     h3 {
-        color: white;
-        font-size: 24px;
+        color: $color-white;
+        font-size: $font-size-subheading;
         line-height: 1.15;
         text-decoration-line: underline;
         text-decoration-thickness: 1px;
@@ -579,54 +637,79 @@ $home-ink: #111;
     }
 }
 
-.homeCommunityLink:hover .homePhotoLabel h3 { color: white; text-underline-offset: 4px; }
+.homeCommunityLink:hover .homePhotoLabel h3 {
+    color: $color-white;
+    text-underline-offset: 4px;
+}
 
 #rootContainer:has(.homePage) {
     .site-navigation {
-        background: white;
-        color: $color-uw-purple;
-        border-color: $color-border-lavender;
+        background: theme(page);
+        color: theme(heading);
+        border-color: theme(border-subtle);
     }
 
     .nav-primary-links > a:hover,
     .nav-primary-links > a.active,
-    .nav-account-toggle:hover { color: $color-primary; }
+    .nav-toggle:hover {
+        color: theme(accent);
+    }
 
     .site-navigation a:focus-visible,
-    .site-navigation button:focus-visible { outline-color: $color-uw-purple; }
-
-    .nav-account-actions {
-        background: white;
-        color: #241a32;
-        border-color: $color-border-lavender;
-
-        span { color: $color-dark-gray; }
-        button:hover { background: $color-lavender; }
+    .site-navigation button:focus-visible {
+        outline-color: theme(brand);
     }
 
-    .nav-mobile-menu { color: $color-uw-purple; }
+    .nav-dropdown-menu {
+        background: theme(page);
+        color: theme(ink);
+        border-color: theme(border-subtle);
 
-    footer a:focus-visible { outline-color: $color-uw-purple; }
+        span {
+            color: theme(text-muted);
+        }
+        button:hover {
+            background: theme(tint);
+        }
+    }
+
+    .nav-mobile-menu {
+        color: theme(heading);
+    }
+
+    footer a:focus-visible {
+        outline-color: theme(brand);
+    }
 
     footer {
-        border-top: 1px solid $color-border-lavender;
-        background: white;
+        border-top: 1px solid theme(border-subtle);
+        background: theme(page);
         box-shadow: none;
 
-        &::before { background: none; }
+        &::before {
+            background: none;
+        }
     }
 
-    .footerBottomRow { padding-top: 0; }
-    .footerCopyright { color: $color-dark-gray; }
-    .footerSocials a:hover { background: $color-lavender; }
+    .footerBottomRow {
+        padding-top: 0;
+    }
+    .footerCopyright {
+        color: theme(text-muted);
+    }
+    .footerSocials a:hover {
+        background: theme(tint);
+    }
 
-    @include media("screen", "<sm-desktop") {
+    @include media("<sm-desktop") {
         .nav-items-wrapper {
-            background: white;
-            border-color: $color-border-lavender;
+            background: theme(page);
+            border-color: theme(border-subtle);
         }
 
-        .nav-primary-links > a { border-color: $color-border-lavender; }
+        .nav-primary-links > a {
+            border-color: theme(border-subtle);
+        }
     }
 }
 
@@ -638,8 +721,17 @@ $home-ink: #111;
 @media (min-width: 1500px) {
     .homePage { padding-top: 44px; padding-bottom: $section-divider-gap; }
 
+    .homeOpening {
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+        gap: 32px 88px;
+    }
+
+    .homeIntro { padding-top: 20px; }
+    .homeIntro h1 { font-size: clamp(52px, 3vw, 64px); }
     .homeSummary { font-size: 18px; }
 
+    .homeDestinations { gap: 20px; }
+    .homeDestination { padding: 24px; }
     .homeCommunityLinks { gap: 44px; }
     .homeCommunityPhoto { height: 420px; }
 }
@@ -647,12 +739,16 @@ $home-ink: #111;
 @include media("screen", "<tablet") {
     .homePage { padding: 28px 0 $grid-gap; }
 
-    .homeAffiliation { margin-bottom: 18px; font-size: 11px; }
-    .homeSummary { margin-top: 18px !important; font-size: 15px; line-height: 1.7; }
-    .homeActions { flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+    .homeActions {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
 
     .homePrimaryLink,
-    .homeSecondaryLink { min-height: 46px; padding: 11px 18px; font-size: 13px; }
+    .homeSecondaryLink {
+        min-height: 46px;
+        padding: 11px 18px;
+    }
 
     .homeOpening h1 { font-size: clamp(34px, 9vw, 48px); }
 
@@ -672,16 +768,13 @@ $home-ink: #111;
     .homeEventDetails p { font-size: 12px; }
 
     .homeEmptyEventCard {
-        gap: 16px;
+        gap: $space-4;
         padding: 18px;
-
-        h3 { font-size: 16px; }
-        p { font-size: 13px; }
     }
 
     .homeCommunity {
-        margin-top: 40px;
-        padding-top: 24px;
+        margin-top: $space-10;
+        padding-top: $space-6;
     }
 
     .homeCommunityLinks {
@@ -689,15 +782,25 @@ $home-ink: #111;
         gap: 30px;
     }
 
-    .homeCommunityPhoto { height: clamp(300px, 86vw, 360px); }
-    .homePhotoLabel { padding: 16px 18px; }
-
+    .homeCommunityPhoto {
+        height: clamp(300px, 86vw, 360px);
+    }
+    .homePhotoLabel {
+        padding: $space-4 18px;
+    }
 }
 
 @media (prefers-reduced-motion: no-preference) {
     .homePage a {
-        transition: color 160ms ease, background-color 160ms ease, transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+        transition:
+            color 160ms ease,
+            background-color 160ms ease,
+            transform 160ms ease,
+            border-color 160ms ease,
+            box-shadow 160ms ease;
 
-        &:active { transform: scale(0.985); }
+        &:active {
+            transform: scale(0.985);
+        }
     }
 }

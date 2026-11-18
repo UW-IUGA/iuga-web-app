@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { makeTestApi } from "./testApi.js";
+import { makeTestApi, roleAssignmentsGranting } from "./testApi.js";
 import usersRouter from "../routes/api/v1/controllers/user.js";
 
 const GRAPH_URL = "https://graph.microsoft.com/v1.0/me";
@@ -339,5 +339,49 @@ describe("POST /user/logout", () => {
     } finally {
       await api.close();
     }
+  });
+});
+
+describe("GET /user/permissions", () => {
+  async function requestPermissions(session, RoleAssignments) {
+    const api = await makeTestApi({
+      router: usersRouter,
+      mountPath: "/api/v1/user",
+      models: { RoleAssignments },
+      session,
+    });
+    try {
+      return await api.request("GET", "/api/v1/user/permissions");
+    } finally {
+      await api.close();
+    }
+  }
+
+  test("lists the signed-in user's permissions, privately and in name order", async () => {
+    const result = await requestPermissions(
+      { isAuthenticated: true, userId: "user-1" },
+      roleAssignmentsGranting(["shop.purchases.review", "events.finance.manage"]),
+    );
+
+    assert.equal(result.status, 200);
+    assert.deepEqual(result.body, {
+      status: "success",
+      permissions: ["events.finance.manage", "shop.purchases.review"],
+    });
+    assert.match(result.headers["cache-control"], /private/);
+    assert.match(result.headers["cache-control"], /no-store/);
+  });
+
+  test("is empty for a signed-in student with no role", async () => {
+    const result = await requestPermissions(
+      { isAuthenticated: true, userId: "user-1" },
+      roleAssignmentsGranting([]),
+    );
+    assert.deepEqual(result.body, { status: "success", permissions: [] });
+  });
+
+  test("requires sign-in", async () => {
+    const result = await requestPermissions({}, roleAssignmentsGranting(["shop.purchases.review"]));
+    assert.equal(result.status, 401);
   });
 });

@@ -38,7 +38,7 @@ describe("ResourcesPage", () => {
     test("keeps categories compact until their accordion is opened", () => {
         renderResourcesPage();
 
-        expect(screen.getByRole("heading", { name: "Resources" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { level: 1, name: "Find support at the iSchool and UW." })).toBeInTheDocument();
         const academicCategory = screen.getByRole("button", { name: `Show ${resourceTags.ACADEMIC}` });
         expect(academicCategory).toHaveAttribute("aria-expanded", "false");
         expect(screen.queryByRole("link", { name: /Visit resource/ })).not.toBeInTheDocument();

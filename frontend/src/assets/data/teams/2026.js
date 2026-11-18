@@ -1,18 +1,18 @@
 import { groupType } from "../Enum";
 import { officerPositions } from "../Enum";
 
-// Lower the resolution of the image if the picture looks grainy
-// https://adobe.com/express/feature/image/resize
+// Officer photos are pre-cropped to the card's 3:4 shape (max 900x1200) with
+// scripts/officer-photo.sh so Chromium does not hard-downscale them into grain:
 // https://stackoverflow.com/questions/74502978/object-fit-cover-gives-pixelated-images-on-chrome
 
 /* 2026 officers images */
 import _2026_abraham from "../officerPhotos/2025/abe.jpg";
 import _2026_george from "../officerPhotos/2025/george.jpg";
-import _2026_akshat from "../officerPhotos/2025/akshat.png";
-import _2026_preeti from "../officerPhotos/2025/preeti.png";
-import _2026_yonie from "../officerPhotos/2026/yonie.png";
-import _2026_samantha from "../officerPhotos/2026/samantha.png";
-import _2026_nitya from "../officerPhotos/2026/nitya.png";
+import _2026_akshat from "../officerPhotos/2025/akshat.jpg";
+import _2026_preeti from "../officerPhotos/2025/preeti.jpg";
+import _2026_yonie from "../officerPhotos/2026/yonie.jpg";
+import _2026_samantha from "../officerPhotos/2026/samantha.jpg";
+import _2026_nitya from "../officerPhotos/2026/nitya.jpg";
 import _2026_dia from "../officerPhotos/2026/dia.jpg";
 import _2026_ellie from "../officerPhotos/2026/ellie.jpg";
 

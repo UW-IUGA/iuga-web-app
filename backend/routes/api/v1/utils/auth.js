@@ -1,16 +1,48 @@
 /*
 Refer to the "IUGA Website Backend Doc" for more information.
 
-Middlewares addressed in auth.js:
+Middlewares and helpers addressed in auth.js:
 - requireAuth
-- requireAdmin
+- requirePermission
+- permissionsOf
+- isOwnerOrPermitted
+- isKnownPermission
 
-Purpose: Gate routes by session state so protected endpoints are only
-         reachable by the right kind of user. Used in the route chain,
-         e.g. router.post("/", requireAuth, handler).
+Purpose: Decide who may use protected endpoints. Signing in proves who a user
+         is. Everything beyond that is a named permission, granted only by an
+         active, unexpired assignment to an active role; the account type
+         (uType) grants nothing. Permissions are read from the database on
+         every check, so granting or removing a role takes effect on the
+         user's next request without signing in again.
 */
 
 import { sendError } from "../helpers/sendError.js";
+
+// Every permission a role can grant. A role holding any other name grants nothing for it.
+const knownPermissions = new Set([
+  "users.roles.manage",
+  "events.requests.manage",
+  "events.leadership.approve",
+  "events.finance.manage",
+  "events.purchases.complete",
+  "events.participants.manage",
+  "feedback.manage",
+  "shop.purchases.review",
+]);
+
+/*
+    @helper: isKnownPermission
+    @description: Whether `name` is a permission the site defines.
+*/
+export function isKnownPermission(name) {
+  return knownPermissions.has(name);
+}
+
+function assertKnownPermission(name) {
+  if (!isKnownPermission(name)) {
+    throw new Error(`Unknown permission "${name}"`);
+  }
+}
 
 /*
     @middleware: requireAuth
@@ -34,82 +66,59 @@ export function requireAuth(req, res, next) {
 }
 
 /*
-    @helper: isOwnerOrAdmin
-    @description: Checks if the current session user is an administrator
-                  or owns the specified target record.
+    @helper: permissionsOf
+    @description: The permissions the session user holds right now.
 
     Expected Request Information:
-    - req.session.isAdmin (Boolean, set at login)
-    - req.session.userId (ObjectId or String of current user)
-    - targetUserId (ObjectId or String of the record owner)
+    - req.session.isAuthenticated, req.session.userId
+    - req.models.RoleAssignments
 
     Expected Return Information:
-    - true when the session user is an admin or matches targetUserId; false otherwise
+    - Promise<Set<string>> of known permission names; empty when signed out
+      (without a database read). Database errors reject rather than grant access.
 */
-export function isOwnerOrAdmin(req, targetUserId) {
-  return Boolean(
-    req.session.isAdmin ||
-    targetUserId?.toString() === req.session.userId?.toString(),
+export async function permissionsOf(req) {
+  if (!req.session.isAuthenticated || !req.session.userId) {
+    return new Set();
+  }
+  const assignments = await req.models.RoleAssignments.find({
+    userId: req.session.userId,
+    isActive: true,
+    $or: [{ expiresAt: null }, { expiresAt: { $gt: new Date() } }],
+  }).populate("roleId");
+
+  return new Set(
+    assignments
+      .filter((assignment) => assignment.roleId?.isActive)
+      .flatMap((assignment) => assignment.roleId.permissions)
+      .filter(isKnownPermission),
   );
 }
 
 /*
-    @middleware: requireAdmin
-    @method: N/A (Express middleware)
-    @description: Checks that the request comes from a logged-in officer.
-                  Identity first (401), then permission (403).
-
-
-    Expected Request Information:
-    - req.session.isAuthenticated (set true at /user/login)
-    - req.session.isAdmin (set at /user/login from uType === "Admin")
+    @middleware: requirePermission
+    @method: N/A (Express middleware factory)
+    @description: Checks that the session user holds `permission`. Building the
+                  check for a name the site does not define throws, so a typo
+                  fails when routes load instead of silently refusing everyone.
 
     Expected Response Information:
-    - next() when admin (passes to the route handler)
+    - next() when the user holds the permission
     - 401 { status: "error", message: "Not authenticated" } when not logged in
-    - 403 { status: "error", message: "Not authorized" } when logged in but not admin
-*/
-export function requireAdmin(req, res, next) {
-  if (!req.session.isAuthenticated) {
-    return sendError(res, 401, "Not authenticated");
-  }
-  if (!req.session.isAdmin) {
-    return sendError(res, 403, "Not authorized");
-  }
-  next();
-}
+    - 403 { status: "error", message: "Not authorized" } without the permission
+    - 500 when role assignments cannot be read
 
-/*
-    @middleware: requireOfficerRolePermission
-    @method: N/A (Express middleware factory)
-    @description: Checks that an authenticated admin has a specific
-                  permission through an active role assignment.
-
-    Example: router.post("/roles", requireOfficerRolePermission("users.roles.manage"), handler)
+    Example: router.post("/roles", requirePermission("users.roles.manage"), handler)
 */
-export function requireOfficerRolePermission(permission) {
+export function requirePermission(permission) {
+  assertKnownPermission(permission);
   return async function (req, res, next) {
     if (!req.session.isAuthenticated) {
       return sendError(res, 401, "Not authenticated");
     }
-    if (!req.session.isAdmin) {
-      return sendError(res, 403, "Not authorized");
-    }
 
     try {
-      const assignments = await req.models.RoleAssignments.find({
-        userId: req.session.userId,
-        isActive: true,
-        $or: [{ expiresAt: null }, { expiresAt: { $gt: new Date() } }],
-      }).populate("roleId");
-
-      const hasPermission = assignments.some(
-        (assignment) =>
-          assignment.roleId?.isActive &&
-          assignment.roleId.permissions.includes(permission),
-      );
-
-      if (!hasPermission) {
+      if (!(await permissionsOf(req)).has(permission)) {
         return sendError(res, 403, "Not authorized");
       }
       next();
@@ -118,4 +127,22 @@ export function requireOfficerRolePermission(permission) {
       return sendError(res, 500);
     }
   };
+}
+
+/*
+    @helper: isOwnerOrPermitted
+    @description: Whether the session user owns a record or holds `permission`
+                  over records like it. The owner is allowed without a
+                  database read; a record with no owner belongs to no one.
+
+    Expected Return Information:
+    - Promise<boolean>; database errors reject rather than grant access
+*/
+export async function isOwnerOrPermitted(req, ownerId, permission) {
+  assertKnownPermission(permission);
+  const sessionUserId = req.session.userId?.toString();
+  if (ownerId != null && sessionUserId && ownerId.toString() === sessionUserId) {
+    return true;
+  }
+  return (await permissionsOf(req)).has(permission);
 }

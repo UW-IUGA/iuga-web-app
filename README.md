@@ -21,9 +21,13 @@ See [Quickstart Guide](docs/QUICKSTART.md) for full setup instructions.
 | [Quickstart](docs/QUICKSTART.md) | Prerequisites, installation, env config, run, verify |
 | [Architecture](docs/ARCHITECTURE.md) | Project structure, stack decisions, data flow |
 | [Development](docs/DEVELOPMENT.md) | Setup, scripts, workflow, conventions |
+| [Scripts](docs/SCRIPTS.md) | Writing project scripts: where they go, safety rules, testing |
 | [Frontend](docs/FRONTEND.md) | Frontend structure, pages, components, styling, auth |
 | [Backend](docs/BACKEND.md) | Backend structure, API routes, controllers, models, database |
 | [Deployment](docs/DEPLOYMENT.md) | Environments, CI/CD, Docker |
+| [Discord Board Guide](docs/DISCORD-EVENTS.md) | How the board runs `/rso-verify` and `/event`: flows, roles, private channels, and checks |
+| [Discord Bot Setup](docs/DISCORD.md) | `/rso-verify` and `/event` internals, env vars, Jenkins, logs, and the Interactions URL |
+| [Pull Request Previews](docs/NETLIFY_PREVIEWS.md) | Netlify preview deploys from GitHub Actions |
 | [Maintainers](docs/MAINTAINERS.md) | Monitoring, maintenance, incident response |
 | [Troubleshooting](docs/TROUBLESHOOTING.md) | Diagnosis guide for pipeline and runtime failures |
 
@@ -34,7 +38,6 @@ See [Quickstart Guide](docs/QUICKSTART.md) for full setup instructions.
 ├── backend/           # Express.js API (MongoDB, express-session)
 │   ├── env/           # Environment files (gitignored except .env.example)
 │   └── schemas/       # Git submodule — shared Mongoose schemas
-├── context/           # Git submodule (private) — internal architecture plans
 ├── docs/              # Project documentation (start here)
 ├── Dockerfile         # Multi-stage production build
 ├── dev.jenkinsfile    # CI/CD pipeline — development

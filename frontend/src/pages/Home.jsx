@@ -1,3 +1,17 @@
+
+/*
+ * Purpose: Public IUGA homepage. Introduces the Informatics Undergraduate
+ *          Association, displays upcoming events through EventAgenda, and
+ *          provides navigation to student organizations, resources, merchandise,
+ *          and information about IUGA. Includes an interactive Explore section
+ *          with destination previews.
+ * Expected Request Information: Event data from the /api/v1/events/ endpoint
+ *          in production; mock event data in development. Explore destinations
+ *          and preview content are defined locally.
+ * Expected Response Information: Homepage hero, upcoming events calendar,
+ *          and interactive Explore Informatics section with navigation links.
+ */
+
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { mockCalendarData } from "../assets/mock-data/MockCalendarData";
@@ -8,6 +22,7 @@ import gates from "../assets/gallery/mary_gates.jpg";
 import gameNight from "../assets/gallery/gamenight.jpg";
 import merch from "../assets/gallery/merch.jpeg";
 import EventAgenda from "../components/EventAgenda";
+import { format } from "date-fns";
 
 const DEV_EVENTS = [...mockCalendarData, ...mockUpcomingEvents];
 
@@ -201,7 +216,17 @@ function HomePage() {
                     status={eventsStatus}
                     onRetry={() => setEventsRequest((request) => request + 1)}
                     featuredCount={2}
-                    onSelectEvent={() => navigate("/events")}
+                    onSelectEvent={(event) => {
+                        const eventDate = new Date(event.eStartDate);
+
+                        if (Number.isNaN(eventDate.getTime())) {
+                            navigate("/events");
+                            return;
+                        }
+
+                        const date = format(eventDate, "yyyy-MM-dd");
+                        navigate(`/events?view=week&date=${date}`);
+                    }}
                 />
             </section>
 

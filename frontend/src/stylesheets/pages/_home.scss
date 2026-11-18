@@ -476,7 +476,7 @@ $home-ink: #111;
         }
     }
 
-    .homePreviewPhoto img[src*="merch"] {
+    .homePreviewPhoto img[src*="merch"], .homePreviewPhoto img[src*="heart"] {
         object-position: center 15%;
     }
 

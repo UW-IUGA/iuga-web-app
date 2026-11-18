@@ -116,10 +116,6 @@ $home-ink: #111;
     }
 }
 
-/* ==========================================================
-   Header: photo hero with overlapping photos
-   ========================================================== */
-
 .homeOpening {
     position: relative;
     display: grid;
@@ -133,7 +129,6 @@ $home-ink: #111;
     overflow: hidden;
     isolation: isolate;
 
-    /* White wash so the text stays readable */
     &::after {
         content: "";
         position: absolute;
@@ -189,7 +184,6 @@ $home-ink: #111;
         color: $home-hero-purple !important;
     }
 
-    /* Right-side overlapping photos */
     .homeHeroPhotos {
         height: 340px;
 
@@ -232,10 +226,6 @@ $home-ink: #111;
         .homeHeroPhotos { height: 220px; }
     }
 }
-
-/* ==========================================================
-   Calendar: upcoming events (now a full-width section under the header)
-   ========================================================== */
 
 .homeEvents {
     min-width: 0;
@@ -359,10 +349,6 @@ $home-ink: #111;
     }
 }
 
-/* ==========================================================
-   Explore Informatics: destination list with preview card
-   ========================================================== */
-
 .homeExplore {
     padding: 64px 0;
 
@@ -395,7 +381,6 @@ $home-ink: #111;
         align-items: start;
     }
 
-    /* Left: destination list */
     .homeDestinationList {
         display: flex;
         flex-direction: column;
@@ -470,7 +455,6 @@ $home-ink: #111;
         transition: color 0.2s ease;
     }
 
-    /* Right: preview card */
     .homePreview {
         overflow: hidden;
         border: 1px solid #e3e3e3;

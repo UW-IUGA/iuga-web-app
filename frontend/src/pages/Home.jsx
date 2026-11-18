@@ -23,9 +23,9 @@ const INFORMATICS_DESTINATIONS = [
         to: "/resources",
     },
     {
-        label: "Student Voice",
-        description: "Share feedback that informs IUGA advocacy.",
-        to: "/student-voice",
+        label: "Merch",
+        description: "Shop here to get the newest Informatics merch!",
+        to: "/shop",
     },
     {
         label: "About IUGA",
@@ -46,8 +46,8 @@ const DESTINATION_PREVIEWS = [
         cta: "View resources",
     },
     {
-        detail: "Tell IUGA what matters to you. Your feedback shapes our advocacy.",
-        cta: "Share feedback",
+        detail: "Stay updated with the newest Informatics merch drops here.",
+        cta: "Shop",
     },
     {
         detail: "Meet the students and teams behind IUGA and see how we work.",

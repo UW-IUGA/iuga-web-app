@@ -19,14 +19,11 @@ const countLabel = (count) => `${count} ${count === 1 ? "event" : "events"}`;
 
 const byStartDate = (first, second) => new Date(first.eStartDate) - new Date(second.eStartDate);
 
-// The soonest event that is still upcoming and starts after the given day.
 const nextEventAfter = (events, day) =>
     events
         .filter((event) => new Date(event.eStartDate) > day && new Date(event.eStartDate) >= new Date())
         .sort(byStartDate)[0];
 
-// Every event this week. If there are none, the soonest `count` upcoming events.
-// If nothing is upcoming either, the `count` most recent past events.
 const getFeaturedEvents = (events, count) => {
     const now = new Date();
     const valid = events.filter((event) => isValid(new Date(event.eStartDate)));

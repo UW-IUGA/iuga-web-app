@@ -48,6 +48,7 @@ function Navbar({ signIn, signOut }) {
                 </div>
                 <div id="nav-items" className={`nav-items-wrapper ${showMenu ? "nav-show-items" : ""}`}>
                     <div className="nav-primary-links">
+                        <NavLink to="/home" onClick={handleNavigation}>Home</NavLink>
                         <NavLink to="/events" onClick={handleNavigation}>Events</NavLink>
                         <NavLink to="/resources" onClick={handleNavigation}>Resources</NavLink>
                         <NavLink to="/student-voice" onClick={handleNavigation}>Student Voice</NavLink>

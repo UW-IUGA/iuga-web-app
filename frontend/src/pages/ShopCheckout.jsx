@@ -21,7 +21,6 @@ const IUGA_CONTACT_EMAIL = "iuga@uw.edu";
 const USERNAME_PATTERN = /^[A-Za-z0-9._-]{1,30}$/;
 const PHONE_NUMBER_PATTERN = /^\+?\d{7,15}$/;
 const GENERIC_FAILURE = "Something went wrong. Please try again.";
-const RETURN_TO_SHOP_SECONDS = 5;
 
 function formatCountdown(ms) {
     const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
@@ -173,18 +172,7 @@ export default function ShopCheckoutPage() {
         return () => clearInterval(timer);
     }, [hold]);
 
-    // A cancelled checkout has nothing left to do, so the student goes back to the shop after a short countdown.
     const isCancelled = hold !== null && hold.status === "cancelled";
-    const [returnInSeconds, setReturnInSeconds] = useState(RETURN_TO_SHOP_SECONDS);
-    useEffect(() => {
-        if (!isCancelled) return undefined;
-        if (returnInSeconds <= 0) {
-            navigate("/shop");
-            return undefined;
-        }
-        const timer = setTimeout(() => setReturnInSeconds((seconds) => seconds - 1), 1000);
-        return () => clearTimeout(timer);
-    }, [isCancelled, returnInSeconds, navigate]);
 
     const remainingMs = hold ? new Date(hold.expiresAt).getTime() - nowMs : 0;
     const isExpired = hold !== null && (hold.status === "expired" || (hold.status === "active" && remainingMs <= 0));
@@ -378,7 +366,6 @@ export default function ShopCheckoutPage() {
                 <>
                     <p>This checkout was cancelled. Your items were released.</p>
                     <p>
-                        Returning you to the shop in {returnInSeconds} {returnInSeconds === 1 ? "second" : "seconds"}.{" "}
                         <Link to="/shop">Go to the shop now</Link>
                     </p>
                 </>

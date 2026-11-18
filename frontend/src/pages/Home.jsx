@@ -1,10 +1,15 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { mockCalendarData } from "../assets/mock-data/MockCalendarData";
+import { mockUpcomingEvents } from "../assets/mock-data/MockUpcomingEvents";
+import { isProduction } from "../runtime";
 import heart from "../assets/gallery/heart.jpeg";
 import gates from "../assets/gallery/mary_gates.jpg";
 import gameNight from "../assets/gallery/gamenight.jpg";
 import merch from "../assets/gallery/merch.jpeg";
 import EventAgenda from "../components/EventAgenda";
+
+const DEV_EVENTS = [...mockCalendarData, ...mockUpcomingEvents];
 
 const INFORMATICS_DESTINATIONS = [
     {
@@ -121,13 +126,49 @@ function ExploreSelector() {
     );
 }
 
-function HomePage({ upcomingEvents = [] }) {
+function HomePage() {
     const { pathname } = useLocation();
     const navigate = useNavigate();
 
     useEffect(() => {
         window.scrollTo(0, 0);
     }, [pathname]);
+
+    const [calendarEvents, setCalendarEvents] = useState([]);
+
+    const [eventsStatus, setEventsStatus] = useState("loading");
+
+    const [eventsRequest, setEventsRequest] = useState(0);
+
+    useEffect(() => {
+        let isCurrent = true;
+
+        if (!isProduction) {
+            setCalendarEvents(DEV_EVENTS);
+            setEventsStatus("ready");
+        } else {
+            setEventsStatus("loading");
+
+            fetch("/api/v1/events/", { method: "GET" })
+                .then((res) => {
+                    if (!res.ok) throw new Error("Unable to fetch events");
+                    return res.json();
+                })
+                .then((events) => {
+                    if (!isCurrent) return;
+                    setCalendarEvents(events);
+                    setEventsStatus("ready");
+                })
+                .catch((error) => {
+                    console.error("Unable to load home events", error);
+                    if (isCurrent) setEventsStatus("failed");
+                });
+        }
+
+        return () => {
+            isCurrent = false;
+        };
+    }, [eventsRequest]);
 
     return (
         <main className="baseContainer homePage">
@@ -154,10 +195,15 @@ function HomePage({ upcomingEvents = [] }) {
                 </div>
             </header>
 
-            <EventAgenda
-                events={upcomingEvents}
-                onSelectEvent={() => navigate("/events")}
-            />
+            <section className="homeCalendarSection">
+                <EventAgenda
+                    events={calendarEvents}
+                    status={eventsStatus}
+                    onRetry={() => setEventsRequest((request) => request + 1)}
+                    featuredCount={2}
+                    onSelectEvent={() => navigate("/events")}
+                />
+            </section>
 
             <ExploreSelector />
         </main>

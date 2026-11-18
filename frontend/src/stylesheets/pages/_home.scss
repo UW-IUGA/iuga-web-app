@@ -25,9 +25,7 @@ $home-ink: #111;
     :where(h1, h2, h3, p) {
         margin: 0;
     }
-    h1,
-    h2,
-    h3 {
+    h1, h2, h3 {
         font-weight: $font-weight-bold;
     }
     :where(p) {
@@ -788,3 +786,180 @@ $home-ink: #111;
         }
     }
 }
+
+$dm-bg: #1a1a1a;
+$dm-surface: #232323;
+$dm-surface-hover: #2c2c2c;
+$dm-border: #343434;
+$dm-text: #f2f2f2;
+$dm-muted: #b5b5b5;
+$dm-accent: #cfb0f5;
+$dm-accent-soft: #e6d5fa;
+$dm-on-accent: #1a0033;
+$dm-selected: #2d2146;
+
+@mixin home-dark {
+    #rootContainer:has(.homePage),
+    .homePage {
+        color-scheme: dark;
+        background: $dm-bg;
+    }
+
+    .homePage {
+        color: $dm-text;
+
+        :where(p) { color: $dm-muted; }
+
+        a:focus-visible { outline-color: $dm-accent; }
+    }
+
+    .homeOpening {
+        &::after {
+            background: linear-gradient(
+                90deg,
+                rgba(26, 26, 26, 0.94) 0%,
+                rgba(26, 26, 26, 0.86) 55%,
+                rgba(26, 26, 26, 0.4) 100%
+            );
+        }
+
+        h1 { color: $dm-accent-soft; }
+
+        .homeAffiliation { color: $dm-muted; }
+        .homeSummary { color: $dm-text; }
+
+        .homePrimaryLink {
+            border-color: $dm-accent;
+            background: $dm-accent;
+            color: $dm-on-accent !important;
+
+            &:hover {
+                border-color: $dm-accent-soft;
+                background: $dm-accent-soft;
+            }
+        }
+
+        .homeSecondaryLink {
+            border-color: $dm-accent;
+            background: transparent;
+            color: $dm-accent-soft !important;
+
+            &:hover { background: rgba(207, 176, 245, 0.14); }
+        }
+
+        .homeHeroPhotos img { box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6); }
+    }
+
+    .eventAgenda {
+        .eventAgenda__header {
+            h2 { color: $dm-text; }
+            span { color: $dm-muted; }
+            strong,
+            time { color: $dm-accent-soft; }
+        }
+
+        .eventAgenda__day {
+            background: $dm-surface;
+            box-shadow: inset 0 0 0 1px $dm-border;
+
+            span { color: $dm-muted; }
+            strong { color: $dm-accent; }
+
+            &.isToday { box-shadow: inset 0 0 0 2px $dm-accent; }
+
+            &.isSelected {
+                background: $dm-selected;
+                box-shadow: inset 0 0 0 2px $dm-accent;
+            }
+
+            &:disabled {
+                background: $dm-bg;
+
+                strong { color: #6f6580; }
+            }
+        }
+
+        .eventAgenda__event {
+            background: $dm-surface;
+            box-shadow: inset 0 0 0 1px $dm-border;
+
+            &:hover { background: $dm-surface-hover; }
+        }
+
+        .eventAgenda__date {
+            span { color: $dm-accent; }
+            strong { color: $dm-text; }
+        }
+
+        .eventAgenda__meta { color: $dm-accent; }
+        .eventAgenda__body strong { color: $dm-text; }
+        .eventAgenda__host { color: $dm-muted; }
+
+        .eventAgenda__details,
+        .eventAgenda__going { color: $dm-accent; }
+
+        .eventAgenda__empty {
+            p { color: $dm-muted; }
+            button { color: $dm-accent; }
+        }
+
+        .eventAgenda__reset { color: $dm-accent; }
+    }
+
+    .homeExplore {
+        .homeSectionHeading {
+            .homeEyebrow { color: $dm-accent; }
+
+            h2 {
+                color: $dm-text;
+
+                span { color: $dm-accent; }
+            }
+
+            .homeSummary { color: $dm-muted; }
+        }
+
+        .homeDestination {
+            border-color: $dm-border;
+            background: $dm-surface;
+            color: $dm-text;
+
+            .homeDestinationText span { color: $dm-muted; }
+            .homeDestinationArrow { color: #777; }
+
+            &.active,
+            &:hover {
+                border-color: $dm-accent;
+                background: $dm-selected;
+                color: #fff;
+
+                .homeDestinationText span { color: $dm-text; }
+                .homeDestinationArrow { color: $dm-accent; }
+            }
+
+            &:focus-visible { outline-color: $dm-accent; }
+        }
+
+        .homePreview {
+            border-color: $dm-border;
+            background: $dm-surface;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .homePreviewBody {
+            h3 { color: $dm-text; }
+            p { color: $dm-muted; }
+
+            a {
+                background: $dm-accent;
+                color: $dm-on-accent;
+
+                span { color: $dm-on-accent; }
+
+                &:hover { background: $dm-accent-soft; }
+            }
+        }
+    }
+}
+
+[data-theme="dark"] { @include home-dark; }

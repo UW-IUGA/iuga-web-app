@@ -34,7 +34,7 @@ const INFORMATICS_DESTINATIONS = [
     },
 ];
 
-const DESTINATION_PHOTOS = [gameNight, merch, gates, heart];
+const DESTINATION_PHOTOS = [gameNight, gates, merch, heart];
 
 const DESTINATION_PREVIEWS = [
     {

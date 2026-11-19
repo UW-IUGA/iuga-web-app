@@ -184,7 +184,7 @@ describe("Events page: the event list", () => {
     it("lists only the categories a visitor can see in the colour key", async () => {
         await visit("/events?view=month&date=2026-10-20");
 
-        const [legend] = screen.getAllByRole("group", { name: "Show" });
+        const [legend] = screen.getAllByRole("group", { name: "Filter" });
         expect(
             within(legend)
                 .getAllByRole("checkbox")
@@ -244,7 +244,7 @@ describe("Events page: event details and previous events", () => {
 describe("Events page: filtering by tag", () => {
     // The sidebar's copy of the legend: the controls' copy is hidden by the
     // stylesheet beside a sidebar, which jsdom does not apply, so take the first.
-    const showGroup = () => screen.getAllByRole("group", { name: "Show" })[0];
+    const showGroup = () => screen.getAllByRole("group", { name: "Filter" })[0];
     const tagBox = (tag) => within(showGroup()).getByRole("checkbox", { name: tag });
     const yearTitles = (container) =>
         [...container.querySelectorAll(".card-title__heading")].map((node) => node.firstChild.textContent);

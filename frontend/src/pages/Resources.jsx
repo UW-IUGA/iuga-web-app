@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import ResourceCard from "../components/ResourceCard";
-import { resourceTags } from "../assets/data/Enum";
+import { resourceTagTones, resourceTags } from "../assets/data/Enum";
 import PageHeader from "../components/PageHeader";
 
 const ALL_RESOURCES = "All resources";
@@ -17,8 +17,7 @@ function ResourcesPage({ resources }) {
     const initialCategory = categories.includes(requestedCategory) ? requestedCategory : ALL_RESOURCES;
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedCategory, setSelectedCategory] = useState(initialCategory);
-    const [expandedCategories, setExpandedCategories] = useState(new Set());
-    const [collapsedFilteredCategories, setCollapsedFilteredCategories] = useState(new Set());
+    const [collapsedCategories, setCollapsedCategories] = useState(new Set());
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -64,32 +63,22 @@ function ResourcesPage({ resources }) {
     const resultCount = visibleCategories.reduce((count, category) => count + category.items.length, 0);
     const isFiltering = searchTerm.trim().length > 0 || selectedCategory !== ALL_RESOURCES;
 
+    // Every section starts open; a new filter or search reopens any closed ones.
     useEffect(() => {
-        setCollapsedFilteredCategories(new Set());
-    }, [isFiltering]);
+        setCollapsedCategories(new Set());
+    }, [isFiltering, selectedCategory]);
+
+    const isOpen = (category) => !collapsedCategories.has(category);
 
     const toggleCategory = (category) => {
-        if (isFiltering) {
-            setCollapsedFilteredCategories((collapsed) => {
-                const nextCollapsed = new Set(collapsed);
-                if (nextCollapsed.has(category)) {
-                    nextCollapsed.delete(category);
-                } else {
-                    nextCollapsed.add(category);
-                }
-                return nextCollapsed;
-            });
-            return;
-        }
-
-        setExpandedCategories((expanded) => {
-            const nextExpanded = new Set(expanded);
-            if (nextExpanded.has(category)) {
-                nextExpanded.delete(category);
+        setCollapsedCategories((collapsed) => {
+            const nextCollapsed = new Set(collapsed);
+            if (nextCollapsed.has(category)) {
+                nextCollapsed.delete(category);
             } else {
-                nextExpanded.add(category);
+                nextCollapsed.add(category);
             }
-            return nextExpanded;
+            return nextCollapsed;
         });
     };
 
@@ -113,12 +102,14 @@ function ResourcesPage({ resources }) {
                                 onChange={(event) => setSearchTerm(event.target.value)}
                             />
                         </label>
-                        <div className="resourceFilters" aria-label="Filter resources by category">
+                        <div className="resourceFilters" role="group" aria-labelledby="resource-filter-label">
+                            <span className="resourceFilters__label" id="resource-filter-label">Filter by category</span>
                             {[ALL_RESOURCES, ...categories].map((category) => (
                                 <button
                                     key={category}
                                     className="pill-button"
                                     type="button"
+                                    data-tone={resourceTagTones[category]}
                                     aria-pressed={selectedCategory === category}
                                     onClick={() => selectCategory(category)}
                                 >
@@ -141,9 +132,9 @@ function ResourcesPage({ resources }) {
                                             <button
                                                 type="button"
                                                 className="resourceCategoryToggle"
-                                                aria-expanded={isFiltering ? !collapsedFilteredCategories.has(category) : expandedCategories.has(category)}
+                                                aria-expanded={isOpen(category)}
                                                 aria-controls={`${categoryId(category)}-panel`}
-                                                aria-label={`${(isFiltering ? !collapsedFilteredCategories.has(category) : expandedCategories.has(category)) ? "Hide" : "Show"} ${category}`}
+                                                aria-label={`${isOpen(category) ? "Hide" : "Show"} ${category}`}
                                                 onClick={() => toggleCategory(category)}
                                             >
                                                 <span>{category}</span>
@@ -158,7 +149,7 @@ function ResourcesPage({ resources }) {
                                             </button>
                                         </h2>
                                     </div>
-                                    {(isFiltering ? !collapsedFilteredCategories.has(category) : expandedCategories.has(category)) && (
+                                    {isOpen(category) && (
                                         <div className="resourceGrid" id={`${categoryId(category)}-panel`}>
                                             {items.map((resource) => (
                                                 <ResourceCard key={resource.rName} resource={resource} category={category} />
@@ -172,7 +163,7 @@ function ResourcesPage({ resources }) {
                         <div className="resourcesEmptyState editorial-card">
                             <h2>No resources match that search.</h2>
                             <p>Try a broader term or return to all resources.</p>
-                            <button className="pill-button" type="button" onClick={() => {
+                            <button className="pill-button pill-button--fill" type="button" onClick={() => {
                                 setSearchTerm("");
                                 setSelectedCategory(ALL_RESOURCES);
                             }}>

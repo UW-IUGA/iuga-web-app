@@ -6,6 +6,13 @@ export const resourceTags = {
     DEI: "Diversity, Equity, and Inclusion (DEI)",
 };
 
+// The category colour each resource tag borrows; tags without one use the brand.
+export const resourceTagTones = {
+    [resourceTags.ACADEMIC]: "academic",
+    [resourceTags.CAREER]: "career",
+    [resourceTags.COMMUNITY]: "social",
+};
+
 export const electionfaqTags = {
     ELECTION_ELIGIBILITY: "Election Eligibility",
     CAMPAIGNING_RULES: "Campaigning Rules",

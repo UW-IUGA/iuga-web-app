@@ -1,0 +1,592 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { MOBILE_QUERY } from "../../utils/calendar/breakpoints";
+import { normalizeEvent } from "../../utils/calendar/calendar";
+import DayView from "./DayView";
+
+// Tweens finish the moment they start, so the popover's open and close run to
+// completion synchronously. A test can hold them back with `tweens.defer`, then
+// let the held ones finish with finishTweens().
+const tweens = vi.hoisted(() => ({ defer: false, pending: [] }));
+
+vi.mock("gsap", () => {
+    const run = (vars = {}) => {
+        vars.onStart?.();
+        vars.onComplete?.();
+    };
+    const start = (target, vars = {}) => {
+        if (tweens.defer) tweens.pending.push({ target, vars });
+        else run(vars);
+    };
+    return {
+        gsap: {
+            to: (target, vars) => start(target, vars),
+            fromTo: (target, _from, vars) => start(target, vars),
+            set: () => {},
+            // A killed tween never completes, as in gsap, so its onComplete is dropped.
+            killTweensOf: (targets) => {
+                const killed = [].concat(targets);
+                tweens.pending = tweens.pending.filter(({ target }) => !killed.includes(target));
+            },
+            utils: { random: () => 0 },
+        },
+    };
+});
+
+// Thu Oct 22 2026, 1pm Pacific.
+const anchor = () => new Date("2026-10-22T20:00:00.000Z");
+
+const rich = () =>
+    normalizeEvent({
+        eId: "panel",
+        eName: "Industry Panel",
+        eStartDate: "2026-10-22T17:00:00Z",
+        eEndDate: "2026-10-22T19:00:00Z",
+        eDescription: "Designers from TikTok and Expedia share their journeys.",
+        eLocation: "HUB332",
+        eOrganizers: "IUGA x HCDEsa",
+        eLabels: ["Career"],
+        eAltLink: { title: "Event page", url: "https://example.com/panel" },
+        participants: 42,
+        showParticipants: true,
+        rsvpEnabled: true,
+        rsvpQuestions: [{ qId: "q1", qString: "Any dietary restrictions?" }],
+    });
+
+function renderDay({ events = [] } = {}) {
+    return render(<DayView anchor={anchor()} events={events} />);
+}
+
+const eventButton = (name) => screen.getByRole("button", { name: new RegExp(name) });
+
+// Lets every held tween finish, as gsap would once its time is up.
+function finishTweens() {
+    const held = tweens.pending;
+    tweens.pending = [];
+    for (const { vars } of held) vars.onComplete?.();
+}
+
+// jsdom lays nothing out, so a test gives the popover its size and the event its place.
+const popoverSize = { width: 343, height: 0 };
+const sizePopover = (height, width = 343) => {
+    popoverSize.height = height;
+    popoverSize.width = width;
+};
+const LAYOUT_READS = {
+    offsetWidth: () => popoverSize.width,
+    offsetHeight: () => popoverSize.height,
+    clientHeight: () => popoverSize.height,
+    scrollHeight: () => popoverSize.height,
+};
+let savedLayout = [];
+
+// Only .popover elements answer with the size above; everything else stays as jsdom has it.
+function stubPopoverLayout() {
+    savedLayout = Object.keys(LAYOUT_READS).map((name) => [
+        name,
+        Object.getOwnPropertyDescriptor(HTMLElement.prototype, name),
+    ]);
+    for (const [name, read] of Object.entries(LAYOUT_READS)) {
+        Object.defineProperty(HTMLElement.prototype, name, {
+            configurable: true,
+            get() {
+                return this.classList.contains("popover") ? read() : 0;
+            },
+        });
+    }
+}
+
+function restorePopoverLayout() {
+    for (const [name, descriptor] of savedLayout) {
+        if (descriptor) Object.defineProperty(HTMLElement.prototype, name, descriptor);
+        else delete HTMLElement.prototype[name];
+    }
+}
+
+// Where an event's block sits on screen. Its bottom follows from its height.
+function placeBlock(block, { top, height = 48, left, right }) {
+    block.getBoundingClientRect = () => ({
+        top,
+        bottom: top + height,
+        left,
+        right,
+        width: right - left,
+        height,
+        x: left,
+        y: top,
+        toJSON() {},
+    });
+}
+
+const setViewport = (width, height) => {
+    window.innerWidth = width;
+    window.innerHeight = height;
+};
+
+afterEach(() => {
+    cleanup();
+    tweens.defer = false;
+    tweens.pending = [];
+});
+
+describe("DayView", () => {
+    it("renders the grid as a single column", () => {
+        const { container } = renderDay();
+
+        expect(container.querySelectorAll(".grid__col")).toHaveLength(1);
+        expect(container.querySelectorAll(".grid__dayhead")).toHaveLength(1);
+    });
+
+    it("draws each event of the day as a button in its block", () => {
+        renderDay({
+            events: [
+                rich(),
+                normalizeEvent({
+                    eId: "jam",
+                    eName: "Study Jam",
+                    eStartDate: "2026-10-22T21:00:00Z",
+                    eEndDate: "2026-10-22T22:30:00Z",
+                }),
+            ],
+        });
+
+        expect(eventButton("Industry Panel")).toBeTruthy();
+        expect(eventButton("Study Jam")).toBeTruthy();
+    });
+
+    it("prints nothing under the grid until one of its events is clicked", () => {
+        renderDay({ events: [rich()] });
+
+        expect(screen.queryByRole("heading")).toBeNull();
+        expect(screen.queryByText("Thursday, October 22, 2026")).toBeNull();
+        expect(screen.queryByText(/TikTok and Expedia/)).toBeNull();
+    });
+
+    it("prints no message when the day is empty", () => {
+        renderDay();
+
+        expect(screen.queryByText("Nothing scheduled.")).toBeNull();
+        expect(screen.queryByRole("heading")).toBeNull();
+    });
+
+    it("ignores an event from another day", () => {
+        renderDay({
+            events: [
+                normalizeEvent({
+                    eId: "other",
+                    eName: "Some other day",
+                    eStartDate: "2026-10-25T17:00:00Z",
+                    eEndDate: "2026-10-25T18:00:00Z",
+                }),
+            ],
+        });
+
+        expect(screen.queryByRole("button", { name: /Some other day/ })).toBeNull();
+    });
+
+    describe("scroll position", () => {
+        const jam = (id, day, hour) =>
+            normalizeEvent({
+                eId: id,
+                eName: id,
+                // Pacific is UTC-7 in late October; Date.UTC rolls an hour past 23
+                // over into the next day.
+                eStartDate: new Date(Date.UTC(2026, 9, day, hour + 7)).toISOString(),
+                eEndDate: new Date(Date.UTC(2026, 9, day, hour + 8)).toISOString(),
+            });
+        const events = [jam("late", 22, 15), jam("early", 22, 10), jam("next", 23, 18)];
+
+        it("opens scrolled to the first event of the day, then the next day's", () => {
+            const { container, rerender } = render(<DayView anchor={anchor()} events={events} />);
+            const scroller = container.querySelector(".grid__scroll");
+
+            // 10am at 48px an hour, less the 8px left above it.
+            expect(scroller.scrollTop).toBe(10 * 48 - 8);
+
+            rerender(
+                <DayView anchor={new Date("2026-10-23T20:00:00.000Z")} events={events} />,
+            );
+            expect(scroller.scrollTop).toBe(18 * 48 - 8);
+        });
+
+        it("lands on the first event once the list arrives, and stays put for the same list again", () => {
+            const { container, rerender } = render(<DayView anchor={anchor()} events={[]} />);
+            const scroller = container.querySelector(".grid__scroll");
+
+            rerender(<DayView anchor={anchor()} events={events} />);
+            expect(scroller.scrollTop).toBe(10 * 48 - 8);
+
+            // The viewer scrolls on, then the same events load again.
+            scroller.scrollTop = 900;
+            rerender(<DayView anchor={anchor()} events={[...events]} />);
+            expect(scroller.scrollTop).toBe(900);
+        });
+    });
+
+    describe("event popover", () => {
+        it("opens the clicked event in a popover with its details", () => {
+            renderDay({ events: [rich()] });
+
+            fireEvent.click(eventButton("Industry Panel"));
+
+            const dialog = screen.getByRole("dialog", { name: "Industry Panel" });
+            expect(within(dialog).getByRole("heading", { name: "Industry Panel" })).toBeTruthy();
+            expect(within(dialog).getByText("Thursday, October 22, 2026")).toBeTruthy();
+            expect(within(dialog).getByText(/TikTok and Expedia/)).toBeTruthy();
+            expect(within(dialog).getByText("HUB332")).toBeTruthy();
+            expect(within(dialog).getByText("IUGA x HCDEsa")).toBeTruthy();
+            expect(within(dialog).getByText("42")).toBeTruthy();
+        });
+
+        it("leaves out the meta rows the source did not fill in", () => {
+            renderDay({
+                events: [
+                    normalizeEvent({
+                        eId: "plain",
+                        eName: "Bare event",
+                        eStartDate: "2026-10-22T17:00:00Z",
+                        eEndDate: "2026-10-22T18:00:00Z",
+                    }),
+                ],
+            });
+
+            fireEvent.click(eventButton("Bare event"));
+
+            const dialog = screen.getByRole("dialog", { name: "Bare event" });
+            expect(within(dialog).queryByText("Location")).toBeNull();
+            expect(within(dialog).queryByText("Organizers")).toBeNull();
+            expect(within(dialog).queryByText("RSVP")).toBeNull();
+        });
+
+        it("shows the label chips, with Career as Career", () => {
+            renderDay({ events: [rich()] });
+
+            fireEvent.click(eventButton("Industry Panel"));
+
+            const dialog = screen.getByRole("dialog", { name: "Industry Panel" });
+            expect(within(dialog).getByText("Career")).toBeTruthy();
+        });
+
+        it("opens centred over the event, since the day's events leave no room beside them", () => {
+            setViewport(1400, 900);
+            sizePopover(400, 340);
+            stubPopoverLayout();
+            try {
+                renderDay({ events: [rich()] });
+                const block = eventButton("Industry Panel");
+                // A day-wide event, from just past the hour gutter to the grid's right edge.
+                placeBlock(block, { top: 300, left: 400, right: 1240 });
+
+                fireEvent.click(block);
+
+                const dialog = screen.getByRole("dialog");
+                expect(dialog.classList).toContain("popover--center");
+                // The event's middle is at 820, so the 340px popover starts 170px before it.
+                expect(dialog.style.left).toBe("650px");
+                expect(dialog.style.top).toBe("300px");
+            } finally {
+                restorePopoverLayout();
+            }
+        });
+
+        it("stays centred rather than flipping to a side when the window is narrow", () => {
+            setViewport(1000, 800);
+            renderDay({ events: [rich()] });
+            const block = eventButton("Industry Panel");
+            placeBlock(block, { top: 300, left: 500, right: 900 });
+
+            fireEvent.click(block);
+
+            const classes = screen.getByRole("dialog").classList;
+            expect(classes).toContain("popover--center");
+            expect(classes).not.toContain("popover--right");
+            expect(classes).not.toContain("popover--left");
+        });
+
+        it("leaves out View day, since the day is already on screen", () => {
+            renderDay({ events: [rich()] });
+
+            fireEvent.click(eventButton("Industry Panel"));
+
+            expect(screen.getByRole("button", { name: "Close" })).toBeTruthy();
+            expect(screen.queryByRole("button", { name: "View day" })).toBeNull();
+        });
+
+        it("puts the date in View day's place, beside Close, and only there", () => {
+            renderDay({ events: [rich()] });
+
+            fireEvent.click(eventButton("Industry Panel"));
+
+            const close = screen.getByRole("button", { name: "Close" });
+            const dates = within(screen.getByRole("dialog")).getAllByText("Thursday, October 22, 2026");
+            expect(dates).toHaveLength(1);
+            expect(dates[0].parentElement).toBe(close.parentElement);
+        });
+
+        it("closes from its close button, and hands focus back to the event", () => {
+            renderDay({ events: [rich()] });
+            const event = eventButton("Industry Panel");
+
+            fireEvent.click(event);
+            fireEvent.click(screen.getByRole("button", { name: "Close" }));
+
+            expect(screen.queryByRole("dialog")).toBeNull();
+            expect(document.activeElement).toBe(event);
+        });
+
+        it("opens from the keyboard, as it does in week view", () => {
+            renderDay({ events: [rich()] });
+            eventButton("Industry Panel").focus();
+
+            act(() => userEvent.keyboard("{Enter}"));
+
+            expect(screen.getByRole("dialog", { name: "Industry Panel" })).toBeTruthy();
+            expect(document.activeElement).toBe(screen.getByRole("button", { name: "Close" }));
+        });
+
+        it("closes when the day changes under it", () => {
+            const { rerender } = renderDay({ events: [rich()] });
+
+            fireEvent.click(eventButton("Industry Panel"));
+            rerender(<DayView anchor={new Date("2026-10-23T20:00:00.000Z")} events={[rich()]} />);
+
+            expect(screen.queryByRole("dialog")).toBeNull();
+
+            // And it does not come back on stepping back to the day it opened on.
+            rerender(<DayView anchor={anchor()} events={[rich()]} />);
+
+            expect(screen.queryByRole("dialog")).toBeNull();
+        });
+
+        it("opens again on a tap once it has closed", () => {
+            renderDay({ events: [rich()] });
+
+            fireEvent.click(eventButton("Industry Panel"));
+            fireEvent.pointerDown(document.body);
+            fireEvent.click(eventButton("Industry Panel"));
+
+            expect(screen.getByRole("dialog", { name: "Industry Panel" })).toBeTruthy();
+        });
+
+        it("opens again when its block is tapped while the popover is still fading out", () => {
+            tweens.defer = true;
+            renderDay({ events: [rich()] });
+
+            fireEvent.click(eventButton("Industry Panel"));
+            fireEvent.pointerDown(document.body);
+            // The fade-out has not finished, and the block is still under it. This tap should reopen the popover.
+            fireEvent.click(eventButton("Industry Panel"));
+            act(() => finishTweens());
+
+            expect(screen.getByRole("dialog", { name: "Industry Panel" })).toBeTruthy();
+        });
+    });
+});
+
+const usePhone = () => {
+    window.matchMedia = (query) => ({
+        matches: query === MOBILE_QUERY,
+        media: query,
+        addEventListener() {},
+        removeEventListener() {},
+    });
+};
+
+describe("DayView on a phone", () => {
+    // Week view sends a tap on a phone's column to the day. The day view is
+    // already the day, so a tap on an event opens its popover.
+    beforeEach(usePhone);
+    afterEach(() => {
+        delete window.matchMedia;
+    });
+
+    it("opens the popover for a tap on an event", () => {
+        renderDay({ events: [rich()] });
+
+        fireEvent.click(eventButton("Industry Panel"));
+
+        expect(screen.getByRole("dialog", { name: "Industry Panel" })).toBeTruthy();
+    });
+});
+
+describe("event popover placement", () => {
+    beforeEach(() => stubPopoverLayout());
+    afterEach(() => {
+        restorePopoverLayout();
+        setViewport(1024, 768);
+        delete window.matchMedia;
+        delete window.ResizeObserver;
+    });
+
+    it("opens centred over the event on a wide screen, level with its top", () => {
+        setViewport(1280, 800);
+        sizePopover(400, 420);
+        renderDay({ events: [rich()] });
+        const block = eventButton("Industry Panel");
+        placeBlock(block, { top: 300, left: 200, right: 900 });
+
+        fireEvent.click(block);
+
+        const dialog = screen.getByRole("dialog", { name: "Industry Panel" });
+        // The event's middle is at 550, so the 420px popover starts 210px before it.
+        expect(parseFloat(dialog.style.left)).toBe(340);
+        expect(parseFloat(dialog.style.top)).toBe(300);
+    });
+
+    it("keeps the popover inside the calendar, so it leaves with it rather than covering Previous events", () => {
+        setViewport(1280, 800);
+        sizePopover(400, 420);
+        // The page's calendar box, scrolled until its bottom edge (the line above
+        // Previous events) is 120px down the window and its event is off the top.
+        const { container } = render(
+            <div className="events">
+                <DayView anchor={anchor()} events={[rich()]} />
+            </div>,
+        );
+        container.querySelector(".events").getBoundingClientRect = () => ({
+            top: -600,
+            bottom: 120,
+            left: 0,
+            right: 1280,
+            width: 1280,
+            height: 720,
+        });
+        const block = eventButton("Industry Panel");
+        placeBlock(block, { top: -100, left: 200, right: 900 });
+
+        fireEvent.click(block);
+
+        // Without the calendar it would stay on screen at 16px, over Previous events.
+        const dialog = screen.getByRole("dialog", { name: "Industry Panel" });
+        expect(parseFloat(dialog.style.top) + 400).toBe(120);
+    });
+
+    describe("while it is open and the page or grid scrolls", () => {
+        const openAt = (top) => {
+            setViewport(375, 667);
+            sizePopover(300, 343);
+            const view = renderDay({ events: [rich()] });
+            const block = eventButton("Industry Panel");
+            placeBlock(block, { top, left: 42, right: 374 });
+            fireEvent.click(block);
+            return { ...view, block, dialog: screen.getByRole("dialog", { name: "Industry Panel" }) };
+        };
+        const placedAt = (dialog) => [dialog.style.left, dialog.style.top];
+        // Long enough for anything put off to the next frame to have run.
+        const nextFrame = () => act(() => new Promise((resolve) => setTimeout(resolve, 50)));
+
+        beforeEach(usePhone);
+        afterEach(() => {
+            delete window.matchMedia;
+        });
+
+        it("leaves a page scroll to the browser, which carries it along with its event", async () => {
+            const { block, dialog } = openAt(100);
+            const before = placedAt(dialog);
+
+            // The page scrolled: the event is now off the top of the window. Placed
+            // afresh, the popover would snap back onto the screen.
+            placeBlock(block, { top: -400, left: 42, right: 374 });
+            fireEvent.scroll(document);
+            await nextFrame();
+
+            expect(placedAt(dialog)).toEqual(before);
+        });
+
+        it("ignores the window growing or shrinking in height, as a phone's address bar does", async () => {
+            const { block, dialog } = openAt(100);
+            const before = placedAt(dialog);
+
+            placeBlock(block, { top: 40, left: 42, right: 374 });
+            setViewport(375, 760);
+            fireEvent(window, new Event("resize"));
+            await nextFrame();
+
+            expect(placedAt(dialog)).toEqual(before);
+        });
+
+        it("follows its event when the grid scrolls inside itself, keeping its side", () => {
+            const { container, block, dialog } = openAt(100);
+            const [, top] = placedAt(dialog);
+
+            // The grid scrolled 60px: the event moved up by that, and so does the popover.
+            placeBlock(block, { top: 40, left: 42, right: 374 });
+            fireEvent.scroll(container.querySelector(".grid__scroll"));
+
+            expect(parseFloat(dialog.style.top)).toBe(parseFloat(top) - 60);
+        });
+
+        it("is placed afresh when the window changes width", async () => {
+            const { block, dialog } = openAt(100);
+
+            expect(dialog.style.left).toBe("16px");
+
+            // Turned to landscape: wide enough now for the popover to start at the event.
+            placeBlock(block, { top: 100, left: 60, right: 600 });
+            setViewport(667, 375);
+            fireEvent(window, new Event("resize"));
+            await nextFrame();
+
+            expect(dialog.style.left).toBe("60px");
+        });
+    });
+
+    it("places the popover above or below its event on a phone, so the event is never covered", () => {
+        usePhone();
+        setViewport(375, 667);
+        sizePopover(563);
+        renderDay({ events: [rich()] });
+        const block = eventButton("Industry Panel");
+        placeBlock(block, { top: 612, left: 42, right: 374 });
+
+        fireEvent.click(block);
+
+        const dialog = screen.getByRole("dialog", { name: "Industry Panel" });
+        const top = parseFloat(dialog.style.top);
+        // The event runs from 612 to 660, so the popover has to end above it.
+        expect(top + 563).toBeLessThanOrEqual(612);
+        expect(top).toBeGreaterThanOrEqual(16);
+    });
+
+    it("scrolls inside the room below an event that is high on a phone's screen", () => {
+        usePhone();
+        setViewport(375, 667);
+        sizePopover(563);
+        renderDay({ events: [rich()] });
+        const block = eventButton("Industry Panel");
+        placeBlock(block, { top: 150, left: 42, right: 374 });
+
+        fireEvent.click(block);
+
+        const dialog = screen.getByRole("dialog", { name: "Industry Panel" });
+        // Just below the event, and as tall as the room below it: 667 - 198 - 8 - 16.
+        expect(parseFloat(dialog.style.top)).toBe(206);
+        expect(parseFloat(dialog.style.maxHeight)).toBe(445);
+    });
+
+    it("moves with its content when the content fills in after it opens", () => {
+        usePhone();
+        setViewport(375, 667);
+        sizePopover(515);
+        const resizeCallbacks = [];
+        window.ResizeObserver = class {
+            constructor(callback) {
+                resizeCallbacks.push(callback);
+            }
+            observe() {}
+            disconnect() {}
+        };
+        renderDay({ events: [rich()] });
+        const block = eventButton("Industry Panel");
+        placeBlock(block, { top: 612, left: 42, right: 374 });
+
+        fireEvent.click(block);
+        // The RSVP block fills in after the popover is placed, making it taller.
+        sizePopover(563);
+        act(() => resizeCallbacks.forEach((callback) => callback([])));
+
+        const dialog = screen.getByRole("dialog", { name: "Industry Panel" });
+        expect(parseFloat(dialog.style.top) + 563).toBeLessThanOrEqual(612);
+    });
+});

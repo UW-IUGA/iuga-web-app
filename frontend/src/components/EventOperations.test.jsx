@@ -43,7 +43,14 @@ describe("EventOperations", () => {
             throw new Error(`Unexpected API request: ${url} ${options.method || "GET"}`);
         });
 
-        render(<EventOperations isAdmin />);
+        render(
+            <EventOperations
+                canManageRequests
+                canApproveLeadership
+                canManageFinance
+                canCompletePurchases
+            />,
+        );
 
         const search = await screen.findByRole("textbox", { name: "Search" });
         await screen.findByRole("button", { name: /autumn workshop/i });
@@ -54,6 +61,10 @@ describe("EventOperations", () => {
         fireEvent.change(search, { target: { value: "autumn" } });
         fireEvent.click(await screen.findByRole("button", { name: /autumn workshop/i }));
         expect(await screen.findByRole("button", { name: "Approve & publish" })).toBeInTheDocument();
+        expect(screen.getByRole("combobox", { name: "Proposal" })).toBeInTheDocument();
+        expect(screen.getByRole("combobox", { name: "Finance" })).toBeInTheDocument();
+        expect(screen.getByRole("combobox", { name: "Purchases" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Save finance" })).toBeInTheDocument();
 
         fireEvent.change(screen.getByRole("combobox", { name: "Meeting" }), { target: { value: "completed" } });
 
@@ -67,6 +78,108 @@ describe("EventOperations", () => {
         );
     });
 
+    test("request managers cannot edit leadership, finance, or purchases work", async () => {
+        const managerRequest = {
+            ...request,
+            finance: { allocatedCents: 10000, actualSpendCents: 2500, notes: "Grant funding" },
+        };
+        const fetchSpy = vi.spyOn(global, "fetch").mockImplementation((url) => {
+            if (url.endsWith("/event-requests") || url.endsWith("/event-requests/")) return Promise.resolve(apiResponse(managerRequest));
+            if (url.endsWith("/event-requests/request-1")) return Promise.resolve(apiResponse(managerRequest));
+            if (["/checklist/meeting", "/booking", "/review-tracking"].some((path) => url.endsWith(`/event-requests/request-1${path}`))) {
+                return Promise.resolve(apiResponse(managerRequest));
+            }
+            throw new Error(`Unexpected API request: ${url}`);
+        });
+
+        render(<EventOperations canManageRequests />);
+        fireEvent.click(await screen.findByRole("button", { name: /autumn workshop/i }));
+
+        expect(await screen.findByRole("heading", { name: "Autumn Workshop" })).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "Approve & publish" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "Request changes" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "Deny" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "Save finance" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("combobox", { name: "Proposal" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("combobox", { name: "Finance" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("combobox", { name: "Purchases" })).not.toBeInTheDocument();
+        expect(screen.getByRole("combobox", { name: "Meeting" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Save booking" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Save review tracking" })).toBeInTheDocument();
+        expect(screen.getByText("Allocated: $100.00")).toBeInTheDocument();
+        expect(screen.getByText("Actual spend: $25.00")).toBeInTheDocument();
+        expect(screen.getByText("Finance notes: Grant funding")).toBeInTheDocument();
+
+        fireEvent.change(screen.getByRole("combobox", { name: "Meeting" }), { target: { value: "completed" } });
+        fireEvent.click(screen.getByRole("button", { name: "Save booking" }));
+        fireEvent.click(screen.getByRole("button", { name: "Save review tracking" }));
+
+        await waitFor(() => {
+            expect(fetchSpy).toHaveBeenCalledWith(
+                "/api/v1/event-requests/request-1/checklist/meeting",
+                expect.objectContaining({ method: "PATCH" }),
+            );
+            expect(fetchSpy).toHaveBeenCalledWith(
+                "/api/v1/event-requests/request-1/booking",
+                expect.objectContaining({ method: "PATCH" }),
+            );
+            expect(fetchSpy).toHaveBeenCalledWith(
+                "/api/v1/event-requests/request-1/review-tracking",
+                expect.objectContaining({ method: "PATCH" }),
+            );
+        });
+    });
+
+    test.each([
+        {
+            permission: "leadership",
+            props: { canApproveLeadership: true },
+            editableCheckpoint: "Proposal",
+            readOnlyCheckpoints: ["Finance", "Purchases"],
+            canApprove: true,
+            canSaveFinance: false,
+        },
+        {
+            permission: "finance",
+            props: { canManageFinance: true },
+            editableCheckpoint: "Finance",
+            readOnlyCheckpoints: ["Proposal", "Purchases"],
+            canApprove: false,
+            canSaveFinance: true,
+        },
+        {
+            permission: "purchases",
+            props: { canCompletePurchases: true },
+            editableCheckpoint: "Purchases",
+            readOnlyCheckpoints: ["Proposal", "Finance"],
+            canApprove: false,
+            canSaveFinance: false,
+        },
+    ])("request managers with only $permission permission can edit its protected work", async ({
+        props,
+        editableCheckpoint,
+        readOnlyCheckpoints,
+        canApprove,
+        canSaveFinance,
+    }) => {
+        vi.spyOn(global, "fetch").mockImplementation((url) => {
+            if (url.endsWith("/event-requests") || url.endsWith("/event-requests/")) return Promise.resolve(apiResponse());
+            if (url.endsWith("/event-requests/request-1")) return Promise.resolve(apiResponse());
+            throw new Error(`Unexpected API request: ${url}`);
+        });
+
+        render(<EventOperations canManageRequests {...props} />);
+        fireEvent.click(await screen.findByRole("button", { name: /autumn workshop/i }));
+        await screen.findByRole("heading", { name: "Autumn Workshop" });
+
+        expect(screen.getByRole("combobox", { name: editableCheckpoint })).toBeInTheDocument();
+        for (const checkpoint of readOnlyCheckpoints) {
+            expect(screen.queryByRole("combobox", { name: checkpoint })).not.toBeInTheDocument();
+        }
+        expect(Boolean(screen.queryByRole("button", { name: "Approve & publish" }))).toBe(canApprove);
+        expect(Boolean(screen.queryByRole("button", { name: "Save finance" }))).toBe(canSaveFinance);
+    });
+
     test("submits a request without sending blank optional fields", async () => {
         const fetchSpy = vi.spyOn(global, "fetch").mockImplementation((url, options = {}) => {
             if (url.endsWith("/event-requests") || url.endsWith("/event-requests/")) {
@@ -75,7 +188,7 @@ describe("EventOperations", () => {
             throw new Error(`Unexpected API request: ${url} ${options.method || "GET"}`);
         });
 
-        render(<EventOperations isAdmin />);
+        render(<EventOperations canManageRequests />);
         fireEvent.click(await screen.findByRole("button", { name: /new event request/i }));
         fireEvent.change(screen.getByRole("textbox", { name: "Event name" }), { target: { value: "Winter Social" } });
         fireEvent.change(screen.getByRole("textbox", { name: "Requesting group" }), { target: { value: "Tech Committee" } });
@@ -100,7 +213,7 @@ describe("EventOperations", () => {
     test("students are not offered officer controls and do not load request data", () => {
         const fetchSpy = vi.spyOn(global, "fetch");
 
-        render(<EventOperations isAdmin={false} />);
+        render(<EventOperations canManageRequests={false} />);
 
         expect(screen.queryByRole("button", { name: /new event request/i })).not.toBeInTheDocument();
         expect(fetchSpy).not.toHaveBeenCalled();

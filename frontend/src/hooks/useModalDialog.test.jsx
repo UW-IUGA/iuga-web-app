@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useModalDialog } from "./useModalDialog";
 
 // A parent that keeps the open flag in its own state, as the pages do.
-function DialogParent({ onClose }) {
+function DialogParent({ onClose, children = null }) {
     const [isOpen, setIsOpen] = useState(false);
     const { dialogProps, close } = useModalDialog(isOpen, () => {
         onClose();
@@ -18,6 +18,7 @@ function DialogParent({ onClose }) {
             </button>
             <dialog aria-label="Sample" {...dialogProps}>
                 <p>Sample text</p>
+                {children}
                 <button type="button" onClick={close}>
                     Close sample
                 </button>
@@ -57,6 +58,21 @@ describe("useModalDialog", () => {
 
         openSample();
 
+        expect(screen.getByRole("dialog", { name: "Sample" })).toBeInTheDocument();
+    });
+
+    test("closing a dialog nested inside it does not close it", () => {
+        const onClose = vi.fn();
+        render(
+            <DialogParent onClose={onClose}>
+                <dialog aria-label="Inner" open />
+            </DialogParent>
+        );
+        openSample();
+
+        act(() => screen.getByRole("dialog", { name: "Inner" }).close());
+
+        expect(onClose).not.toHaveBeenCalled();
         expect(screen.getByRole("dialog", { name: "Sample" })).toBeInTheDocument();
     });
 });

@@ -3,6 +3,8 @@
  * Authentication/Authorization Requirements: None; callers decide when it is shown.
  * Expected Response: A responsive dialog with a neutral page scrim.
  */
+@use "../abstracts" as *;
+
 .alert-dialog-overlay {
     position: fixed;
     inset: 0;
@@ -15,13 +17,13 @@
 
 .alert-dialog {
     width: min(100%, 380px);
-    padding: 28px 24px 24px;
-    border: 1px solid #e4e4e4;
+    padding: $space-7 $space-6 $space-6;
+    border: 1px solid theme(line, #e4e4e4);
     border-radius: 16px;
-    background: #fff;
+    background: theme(surface);
     box-shadow: 0 16px 40px rgba(17, 18, 22, 0.18);
-    color: #1a1a1a;
-    font-family: $sans-serif;
+    color: theme(text-strong, #1a1a1a);
+    font-family: $font-family-base;
     text-align: center;
 
     .alert-dialog-icon {
@@ -30,65 +32,65 @@
         justify-content: center;
         width: 36px;
         height: 36px;
-        margin-bottom: 12px;
+        margin-bottom: $space-3;
         border-radius: 50%;
-        background: $color-lavender;
-        color: $color-uw-purple;
+        background: theme(tint);
+        color: theme(heading);
         font-size: 1.1rem;
-        font-weight: 700;
+        font-weight: $font-weight-bold;
     }
 
     .alert-dialog-eyebrow {
         display: inline-block;
-        margin-bottom: 8px;
-        margin-left: 8px;
+        margin-bottom: $space-2;
+        margin-left: $space-2;
         padding: 3px 10px;
         border-radius: $radius-pill;
-        background: #f2f2f2;
-        color: $color-dark-gray;
-        font-size: 0.7rem;
-        font-weight: 700;
-        letter-spacing: 0.08em;
+        background: theme(fill-subtle, #f2f2f2);
+        color: theme(text-muted);
+        font-size: $font-size-label;
+        font-weight: $font-weight-medium;
+        letter-spacing: $letter-spacing-label;
         line-height: 1.4;
         text-transform: uppercase;
         vertical-align: super;
     }
 
     h2 {
-        margin: 0 0 8px;
-        font-family: $sans-serif;
-        font-size: 1.2rem;
-        font-weight: 700;
+        margin: 0 0 $space-2;
+        font-family: $font-family-base;
+        font-size: $font-size-subheading;
+        font-weight: $font-weight-bold;
         line-height: 1.3;
     }
 
     p {
-        margin: 0 0 20px;
-        color: $color-dark-gray;
-        font-size: 0.9rem;
+        margin: 0 0 $space-5;
+        color: theme(text-muted);
+        font-size: $font-size-small;
         line-height: 1.55;
         overflow-wrap: anywhere;
     }
 
     a {
-        color: $color-primary;
-        font-weight: 600;
+        color: theme(accent);
+        font-weight: $font-weight-medium;
         text-underline-offset: 2px;
 
         &:hover {
-            color: $color-uw-purple;
+            color: theme(heading);
         }
     }
 
     .alert-dialog-confirm {
         width: 100%;
-        padding: 11px 24px;
-        border: 2px solid $color-primary;
+        padding: 11px $space-6;
+        border: 2px solid theme(accent);
         border-radius: $radius-pill;
-        background: #fff;
-        color: $color-primary;
-        font-size: 0.9rem;
-        font-weight: 700;
+        background: theme(surface);
+        color: theme(accent);
+        font-size: $font-size-small;
+        font-weight: $font-weight-medium;
         @include focus-ring;
 
         &::before {
@@ -96,7 +98,7 @@
         }
 
         &:hover {
-            background: $color-lavender;
+            background: theme(tint);
         }
 
         &:active {
@@ -107,7 +109,7 @@
 
 @include media("<tablet") {
     .alert-dialog {
-        padding: 24px 20px 20px;
+        padding: $space-6 $space-5 $space-5;
     }
 }
 

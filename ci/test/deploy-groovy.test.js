@@ -130,3 +130,15 @@ test('failed promotion verification rolls back to last-good', () => {
     const lastRun = runCalls(calls, 'docker run -d').at(-1)
     assert.ok(lastRun.includes('--name iuga-test') && lastRun.includes('iuga/test-app:last-good'))
 })
+
+test('only containers that go live get the Discord IDs that register slash commands', () => {
+    const promoted = runCalls(runDeploy(STUB_OK).calls, 'docker run -d')
+    assert.ok(!promoted[0].includes('DISCORD_APP_ID'), 'the candidate must not register commands')
+    assert.ok(promoted[1].includes('-e DISCORD_APP_ID -e DISCORD_GUILD_ID'))
+
+    const dead = runCalls(runDeploy(STUB_DEAD).calls, 'docker run -d')
+    assert.ok(dead.every((c) => !c.includes('DISCORD_APP_ID')), 'a failed candidate never changes Discord')
+
+    const rolledBack = runCalls(runDeploy(STUB_ROLLBACK).calls, 'docker run -d').at(-1)
+    assert.ok(rolledBack.includes('-e DISCORD_APP_ID -e DISCORD_GUILD_ID'), 'a rollback re-registers last-good commands')
+})

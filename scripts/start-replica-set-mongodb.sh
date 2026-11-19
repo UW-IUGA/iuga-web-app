@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Start a single-node MongoDB replica set. Shop holds use transactions, which need one.
-# scripts/start-backend.sh uses it when SHOP_MANUAL_CHECKOUT_EXPOSED=true, and the replica-set tests use it too.
+# scripts/start-backend.sh always uses it, and the replica-set tests use it too.
 # Each checkout has its own container and Docker-selected loopback port. Standalone
 # containers and the legacy shared replica-set container are left untouched.
 #

@@ -3,14 +3,16 @@ Purpose: Style the past event card.
 Expected Request Information: Classes emitted by PastEventCard.
 Expected Response Information: A cover photo beside the event story, with a row of photo thumbnails.
 */
+@use "../abstracts" as *;
+
 .pastEventCard {
     display: grid;
     grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
     overflow: hidden;
     border: 1px solid rgba($color-uw-purple, 0.14);
     border-radius: $radius-card;
-    background: white;
-    box-shadow: 0 6px 18px rgba(black, 0.1);
+    background: $color-white;
+    box-shadow: 0 6px 18px rgba($color-black, 0.1);
 
     &--reversed .pastEventCard__cover {
         order: 2;
@@ -19,10 +21,9 @@ Expected Response Information: A cover photo beside the event story, with a row 
     h3 {
         margin: 0 0 10px;
         color: $color-uw-purple;
-        font-family: $sans-serif;
-        font-size: clamp(1.6rem, 2.6vw, 2.1rem);
-        font-weight: 800;
-        letter-spacing: -0.035em;
+        font-family: $font-family-base;
+        font-size: $font-size-subheading;
+        font-weight: $font-weight-bold;
         line-height: 1.1;
     }
 
@@ -44,7 +45,7 @@ Expected Response Information: A cover photo beside the event story, with a row 
     flex-direction: column;
     align-items: flex-start;
     justify-content: center;
-    padding: 36px;
+    padding: $space-9;
 }
 
 .pastEventCard__thumbs {
@@ -66,10 +67,10 @@ Expected Response Information: A cover photo beside the event story, with a row 
     display: grid;
     place-items: center;
     background: rgba(15, 15, 15, 0.6);
-    color: white;
-    font-family: $sans-serif;
+    color: $color-white;
+    font-family: $font-family-base;
     font-size: 1.3rem;
-    font-weight: 700;
+    font-weight: $font-weight-bold;
 }
 
 .pastEventCard__viewPhotos {
@@ -81,13 +82,13 @@ Expected Response Information: A cover photo beside the event story, with a row 
     padding: $pill-padding-y $pill-padding-x;
     border: $pill-border-width solid $color-primary;
     border-radius: $radius-pill;
-    background: white;
+    background: $color-white;
     color: $color-primary;
 
     &:hover,
     &:focus-visible {
         background: $color-primary;
-        color: white;
+        color: $color-white;
         outline: none;
     }
 }
@@ -131,7 +132,7 @@ Expected Response Information: A cover photo beside the event story, with a row 
     }
 }
 
-@include media("screen", "<sm-desktop") {
+@include media("<sm-desktop") {
     .pastEventCard {
         grid-template-columns: 1fr;
 
@@ -146,6 +147,6 @@ Expected Response Information: A cover photo beside the event story, with a row 
     }
 
     .pastEventCard__body {
-        padding: 24px;
+        padding: $space-6;
     }
 }

@@ -1,10 +1,10 @@
 /*
- * Purpose: Sign-in failure dialog regressions.
+ * Purpose: Sign-in failure dialog and officer permission regressions.
  * Authentication/Authorization Requirements: MSAL and the backend API are mocked; no live sign-in.
  * Expected Request Information: A cached Microsoft account and a backend login or readiness response.
  * Expected Response Information: The dialog heading and message a student sees when sign-in fails.
  */
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { AuthProvider, useAuthContext } from "./AuthContext";
 
 const msal = vi.hoisted(() => ({
@@ -78,5 +78,67 @@ describe("sign-in failure dialog", () => {
         const dialog = await screen.findByRole("dialog");
         expect(dialog).toHaveTextContent("Local environment");
         expect(dialog).toHaveTextContent("Local sign-in unavailable");
+    });
+});
+
+describe("officer permissions", () => {
+    function OrderReviewAccess() {
+        const { can, signOut } = useAuthContext();
+        return (
+            <>
+                <p>{can("shop.purchases.review") ? "Can review orders" : "Cannot review orders"}</p>
+                <button onClick={signOut}>Sign out</button>
+            </>
+        );
+    }
+
+    const granted = (permissions) => () => ({ ok: true, status: 200, json: async () => ({ status: "success", permissions }) });
+    const requestedUrls = (fetchSpy) => fetchSpy.mock.calls.map(([url]) => url);
+
+    function mockSignedIn(user, permissionsResponse) {
+        return vi.spyOn(globalThis, "fetch").mockImplementation(async (url) => {
+            if (url === "/api/v1/user/login") return { ok: true, status: 200, json: async () => user };
+            if (url === "/api/v1/user/permissions") return permissionsResponse();
+            if (url === "/api/v1/user/logout") return { ok: true, status: 200, json: async () => ({}) };
+            throw new Error(`Unexpected API request: ${url}`);
+        });
+    }
+
+    beforeEach(() => {
+        msal.instance.logoutRedirect = vi.fn().mockResolvedValue(undefined);
+    });
+
+    it("allows what the user's roles grant, whatever their account type", async () => {
+        mockSignedIn({ uType: "Member", uFirstName: "Olive" }, granted(["shop.purchases.review"]));
+        render(<AuthProvider><OrderReviewAccess /></AuthProvider>);
+
+        expect(await screen.findByText("Can review orders")).toBeInTheDocument();
+    });
+
+    it("allows nothing an Admin account's roles leave out", async () => {
+        const fetchSpy = mockSignedIn({ uType: "Admin" }, granted(["events.finance.manage"]));
+        render(<AuthProvider><OrderReviewAccess /></AuthProvider>);
+
+        await waitFor(() => expect(requestedUrls(fetchSpy)).toContain("/api/v1/user/permissions"));
+        expect(screen.getByText("Cannot review orders")).toBeInTheDocument();
+    });
+
+    it("offers no officer tools, without a sign-in error, when the check fails", async () => {
+        const fetchSpy = mockSignedIn({ uType: "Member" }, () => ({ ok: false, status: 500, json: async () => ({}) }));
+        render(<AuthProvider><OrderReviewAccess /></AuthProvider>);
+
+        await waitFor(() => expect(requestedUrls(fetchSpy)).toContain("/api/v1/user/permissions"));
+        expect(screen.getByText("Cannot review orders")).toBeInTheDocument();
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+
+    it("forgets permissions on sign-out", async () => {
+        mockSignedIn({ uType: "Member" }, granted(["shop.purchases.review"]));
+        render(<AuthProvider><OrderReviewAccess /></AuthProvider>);
+        await screen.findByText("Can review orders");
+
+        fireEvent.click(screen.getByText("Sign out"));
+
+        expect(await screen.findByText("Cannot review orders")).toBeInTheDocument();
     });
 });

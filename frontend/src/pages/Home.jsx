@@ -18,11 +18,6 @@ const INFORMATICS_DESTINATIONS = [
         to: "/resources",
     },
     {
-        label: "Student Voice",
-        description: "Share feedback that informs IUGA advocacy.",
-        to: "/student-voice",
-    },
-    {
         label: "About IUGA",
         description: "Meet the students and teams behind IUGA.",
         to: "/about",

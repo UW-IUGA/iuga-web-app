@@ -8,7 +8,7 @@ Schema addressed in feedback.js:
 import express from "express";
 import { sendError } from "../helpers/sendError.js";
 import { sendSuccess } from "../helpers/sendSuccess.js";
-import { requireAuth, requireAdmin } from "../utils/auth.js";
+import { requireAuth, requirePermission } from "../utils/auth.js";
 import mongoose from "mongoose";
 
 var router = express.Router();
@@ -126,7 +126,7 @@ Needed info:
 Assumed req variables (Will need to check back with frontend for what is sent in):
 - fID
 */
-router.delete("/", requireAdmin, async (req, res) => {
+router.delete("/", requirePermission("feedback.manage"), async (req, res) => {
   const fID = req.query.fID;
   if (
     typeof fID !== "string" ||

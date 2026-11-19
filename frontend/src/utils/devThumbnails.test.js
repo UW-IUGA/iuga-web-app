@@ -105,7 +105,7 @@ describe("enrichWithDevThumbnails", () => {
 
     test("every display stream has at least one enriched event", () => {
         const enriched = enrichWithDevThumbnails(mockCalendarData);
-        ["Academic", "Social", "Professional"].forEach((category) => {
+        ["Academic", "Career", "Social"].forEach((category) => {
             const withThumbnail = enriched.some(
                 (event) => categoriesFor(event).includes(category) && event.eThumbnailPath
             );

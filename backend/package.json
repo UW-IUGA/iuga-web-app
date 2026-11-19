@@ -8,9 +8,11 @@
     "debug": "bash ../scripts/start-backend.sh ./env/.env.debug",
     "deploy": "IUGA_LOCAL_DEV=0 dotenv -e ./env/.env.prod node ./bin/www.cjs",
     "docker": "bash ../scripts/start-mongodb.sh",
+    "seed:shop": "node scripts/seed-shop-orders.mjs",
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
+    "chrono-node": "2.10.3",
     "cookie-parser": "~1.4.4",
     "cors": "^2.8.5",
     "debug": "~2.6.9",

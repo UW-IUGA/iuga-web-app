@@ -12,7 +12,14 @@ import apiv1Router from "./routes/api/v1/apiv1.js";
 import {
   configureTrustedProxy,
   createApiRateLimiter,
+  createRateLimiter,
 } from "./routes/api/v1/utils/rateLimit.js";
+import { createDiscordRouter } from "./routes/api/v1/controllers/discord.js";
+import { createDiscordApprovals } from "./discordApprovals.js";
+import { createDiscordClient } from "./discordClient.js";
+import { createRsoDirectory } from "./rsoDirectory.js";
+import { createRsoVerification } from "./discordRsoVerification.js";
+import { createDiscordDispatcher } from "./discordDispatcher.js";
 import { httpErrorHandler, sendSpaError } from "./http/errors.js";
 import {
   isAllowedOrigin,
@@ -78,6 +85,47 @@ Expected Request Information:
 - Any HTTP request handled by the application.
 */
 app.use(logger("dev"));
+/*
+Purpose: Receive Discord interaction requests ahead of the JSON parser, so each signature is checked against the raw body.
+Authentication/Authorization Requirements: Discord request signature, verified by the router. Mounted only when DISCORD_PUBLIC_KEY is set.
+
+Expected Response Information:
+- Unsigned requests receive 401; signed interactions receive a Discord interaction response.
+*/
+if (process.env.DISCORD_PUBLIC_KEY) {
+  const discordClient = createDiscordClient({ botToken: process.env.DISCORD_BOT_TOKEN });
+  const rsoDirectory = createRsoDirectory({
+    models,
+    client: discordClient,
+    officerRoleId: process.env.DISCORD_OFFICER_ROLE_ID,
+    staffRoleIds: [process.env.DISCORD_MOD_ROLE_ID, process.env.DISCORD_IUGA_OFFICER_ROLE_ID],
+    iugaOfficerRoleId: process.env.DISCORD_IUGA_OFFICER_ROLE_ID,
+  });
+  const reviewerRoles = {
+    modRoleId: process.env.DISCORD_MOD_ROLE_ID,
+    iugaOfficerRoleId: process.env.DISCORD_IUGA_OFFICER_ROLE_ID,
+  };
+  const discordFlows = createDiscordDispatcher({
+    events: createDiscordApprovals({
+      models,
+      directory: rsoDirectory,
+      client: discordClient,
+      config: { ...reviewerRoles, approvalChannelId: process.env.DISCORD_APPROVAL_CHANNEL_ID },
+    }),
+    rsoVerification: createRsoVerification({
+      models,
+      directory: rsoDirectory,
+      client: discordClient,
+      config: { ...reviewerRoles, rsoApprovalChannelId: process.env.DISCORD_RSO_APPROVAL_CHANNEL_ID },
+    }),
+  });
+  app.use(
+    "/api/v1/discord",
+    createRateLimiter({ limit: 60, windowMs: 60_000 }),
+    createDiscordRouter({ publicKey: process.env.DISCORD_PUBLIC_KEY, flow: discordFlows }),
+  );
+}
+
 /*
 Purpose: Parse JSON and URL-encoded bodies while rejecting payloads above 32 KB.
 Authentication/Authorization Requirements: None

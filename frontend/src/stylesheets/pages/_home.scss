@@ -1,9 +1,5 @@
 @use "../abstracts" as *;
 
-$home-hero-purple: #3b0068;
-$home-accent-purple: #4b2d83;
-$home-ink: #111;
-
 #rootContainer:has(.homePage),
 .homePage {
     background: theme(page);
@@ -12,7 +8,7 @@ $home-ink: #111;
 .homePage {
     box-sizing: border-box;
     flex: none;
-    padding-block: $space-14 $section-divider-gap;
+    padding-block: 0 $section-divider-gap;
     color: theme(ink);
     font: $font-weight-regular #{$font-size-body}/#{$line-height-body} $font-family-base;
 
@@ -22,10 +18,19 @@ $home-ink: #111;
         box-sizing: border-box;
     }
 
+    button,
+    input,
+    select,
+    textarea {
+        font-family: inherit;
+    }
+
     :where(h1, h2, h3, p) {
         margin: 0;
     }
-    h1, h2, h3 {
+    h1,
+    h2,
+    h3 {
         font-weight: $font-weight-bold;
     }
     :where(p) {
@@ -53,40 +58,18 @@ $home-ink: #111;
     }
 }
 
-@include media(">=tablet") {
-    .baseContainer.homePage {
-        width: min(1440px, calc(100% - $page-margin * 2));
-    }
-}
-
-.homeAffiliation {
-    margin-bottom: $space-3;
-    color: theme(heading);
-    font-size: $font-size-small;
-    font-weight: $font-weight-medium;
-}
-
 .homeSummary {
     max-width: 52ch;
     margin-top: $space-4;
     font-size: $font-size-body;
 }
 
-.homeActions {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: $space-3;
-    margin-top: $space-6;
-}
-
-.homePrimaryLink,
-.homeSecondaryLink {
+.homePrimaryLink {
     display: inline-flex;
     min-height: $pill-height + 4px;
     align-items: center;
     justify-content: center;
-    gap: 14px;
+    gap: $space-3;
     padding: $space-3 22px;
     border: 1px solid theme(brand);
     border-radius: $radius-pill;
@@ -98,291 +81,184 @@ $home-ink: #111;
 .homePrimaryLink {
     background: theme(brand);
     color: theme(on-fill);
+}
 
-    &:hover {
+@media (hover: hover) and (pointer: fine) {
+    .homePrimaryLink:hover {
         border-color: theme(accent);
         background: theme(accent);
     }
 }
 
-.homeSecondaryLink {
-    background: theme(surface);
-    color: theme(heading);
-
-    &:hover {
-        background: theme(tint);
-    }
-}
-
+// Hero: the copy on the left and three recent event photos on the right.
 .homeOpening {
-    position: relative;
     display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-    align-items: center;
-    gap: 30px;
-    min-height: 480px;
-    margin-top: 24px;
-    padding: 56px 40px;
-    border-radius: 28px;
-    overflow: hidden;
-    isolation: isolate;
-
-    &::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        z-index: 0;
-        pointer-events: none;
-        background: linear-gradient(
-            90deg,
-            rgba(255, 255, 255, 0.96) 0%,
-            rgba(255, 255, 255, 0.88) 55%,
-            rgba(255, 255, 255, 0.4) 100%
-        );
-    }
-
-    .homeHeartPhoto {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        object-position: center 15%;
-    }
-
-    .homeIntro,
-    .homeHeroPhotos {
-        position: relative;
-        z-index: 1;
-    }
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    align-items: start;
+    gap: $space-12;
+    // Same top offset as the shared page header, so every page title sits in one spot.
+    padding-top: $space-14;
 
     h1 {
-        margin: 10px 0 18px;
-        color: $home-hero-purple;
+        margin: 0 0 18px;
+        color: theme(heading);
         font-size: clamp(40px, 4.6vw, 60px);
         letter-spacing: -0.04em;
-        line-height: 0.9;
+        line-height: 0.95;
         text-transform: uppercase;
+        text-wrap: balance;
     }
 
-    .homeAffiliation,
-    .homeSummary { color: #333; }
-
-    .homePrimaryLink {
-        background: $home-hero-purple;
-        border-color: $home-hero-purple;
-
-        &:hover {
-            background: $color-primary;
-            border-color: $color-primary;
-        }
-    }
-
-    .homeSecondaryLink {
-        border-color: $home-hero-purple;
-        color: $home-hero-purple !important;
-    }
-
-    .homeHeroPhotos {
-        height: 340px;
-
-        img {
-            position: absolute;
-            border: 6px solid #fff;
-            border-radius: 20px;
-            box-shadow: 0 12px 30px rgba(59, 0, 104, 0.33);
-        }
-
-        img:first-child {
-            width: 62%;
-            height: 70%;
-            right: 26%;
-            top: 0;
-            transform: rotate(-5deg);
-        }
-
-        img:last-child {
-            width: 50%;
-            height: 58%;
-            right: 0;
-            bottom: 0;
-            transform: rotate(5deg);
-            object-position: center 15%;
-        }
-    }
-
-    @media (max-width: 900px) {
+    @include media("<sm-desktop") {
         grid-template-columns: 1fr;
-        padding: 40px 30px;
-
-        .homeHeroPhotos { height: 280px; }
+        gap: $space-9;
     }
 
-    @media (max-width: 600px) {
-        padding: 36px 22px;
-        min-height: 0;
+    @include media("<tablet") {
+        padding-top: $space-8;
 
-        .homeHeroPhotos { height: 220px; }
+        h1 {
+            font-size: clamp(34px, 9vw, 48px);
+        }
     }
 }
 
-.homeEvents {
-    min-width: 0;
-    margin-top: 40px;
-}
-
-.homeEventsHeader {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-    margin-bottom: 16px;
-
-    h2 { font-size: 24px; }
-}
-
-.homeEventList {
+.homeHeroPhotos {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 16px;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: $space-3;
+    height: 460px;
     margin: 0;
     padding: 0;
     list-style: none;
 
-    li { min-width: 0; }
-}
+    li {
+        min-width: 0;
+        min-height: 0;
+    }
 
-.homeEventLink {
-    display: flex;
-    min-height: 84px;
-    align-items: center;
-    gap: 18px;
-    height: 100%;
-    padding: 12px 16px;
-    border: 1px solid $color-border-lavender;
-    border-radius: $radius-card-media;
-    background: white;
+    li:first-child {
+        grid-row: 1 / -1;
+    }
 
-    &:hover {
-        border-color: $color-uw-purple;
+    figure {
+        position: relative;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        border-radius: $radius-card;
+        background: theme(tint);
+    }
 
-        h3 {
-            color: $color-uw-purple;
-            text-decoration: underline;
-            text-underline-offset: 4px;
+    img {
+        height: 100%;
+    }
+
+    // White text on a dark fade, the same treatment as the Get Involved photo cards.
+    figcaption {
+        position: absolute;
+        inset: auto 0 0;
+        padding: $space-14 $space-5 $space-5;
+        background: linear-gradient(to top, rgba(15, 15, 15, 0.82), rgba(15, 15, 15, 0.4) 64%, transparent);
+        color: $color-white;
+        font-size: $font-size-subheading;
+        font-weight: $font-weight-bold;
+        line-height: 1.12;
+        text-wrap: balance;
+    }
+
+    @include media("<tablet") {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: 220px 150px;
+        height: auto;
+
+        li:first-child {
+            grid-row: auto;
+            grid-column: 1 / -1;
         }
     }
 }
 
-.homeEventDate {
-    display: flex;
-    flex: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 56px;
-    min-height: 60px;
-    border-radius: $radius;
-    background: theme(tint);
-    color: theme(heading);
-    line-height: 1;
+// The hero is seen once per visit, so its photos enter as one wave: the lead
+// photo rises furthest, the other two follow with shorter moves and shrinking gaps.
+// The copy is not animated, so it is readable and clickable from the first frame.
+@media (prefers-reduced-motion: no-preference) {
+    .homeHeroPhotos li {
+        animation: homeHeroRise 640ms $ease-out both;
 
-    span {
-        font-size: $font-size-label;
-        font-weight: $font-weight-medium;
-        letter-spacing: $letter-spacing-label;
-        text-transform: uppercase;
-    }
-    strong {
-        margin-top: 6px;
-        font-size: 26px;
-        font-variant-numeric: tabular-nums;
+        &:nth-child(1) {
+            --rise: 20px;
+        }
+
+        &:nth-child(2) {
+            --rise: 14px;
+            animation-delay: 110ms;
+        }
+
+        &:nth-child(3) {
+            --rise: 10px;
+            animation-delay: 180ms;
+        }
     }
 }
 
-.homeEventDetails {
-    min-width: 0;
-
-    h3 {
-        font-size: $font-size-subheading;
-    }
-    p {
-        margin-top: 5px;
-        font-size: $font-size-small;
+@keyframes homeHeroRise {
+    from {
+        opacity: 0;
+        transform: translateY(var(--rise)) scale(0.98);
     }
 }
 
-.homeEmptyEventCard {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 18px 20px;
-    border-radius: $radius-card-media;
-    background: theme(surface);
-    box-shadow: 0 6px 18px theme-alpha(shadow, 0.12);
-
-    h3 {
-        font-size: $font-size-subheading;
-    }
-    p {
-        margin-top: $space-1;
-        font-size: $font-size-small;
-    }
-
-    &:hover h3 {
-        color: theme(accent);
-    }
-}
-
-.homeEventIcon {
-    display: grid;
-    flex: 0 0 44px;
-    width: 44px;
-    height: 44px;
-    place-items: center;
-    color: theme(heading);
-
-    svg {
-        width: 28px;
-        height: 28px;
-    }
-}
-
+// Explore: a list of destinations beside a preview of the one hovered or focused.
+// The preview is a desktop affordance; every row is itself a link, so narrow
+// screens drop the preview and keep one tap to the destination.
 .homeExplore {
-    padding: 64px 0;
+    [data-tone="social"] {
+        --tone: #{theme(social-primary)};
+    }
+
+    [data-tone="academic"] {
+        --tone: #{theme(academic-primary)};
+    }
+
+    [data-tone="career"] {
+        --tone: #{theme(career-primary)};
+    }
+
+    [data-tone="brand"] {
+        --tone: #{theme(brand)};
+    }
+
+    padding: $space-16 0;
 
     .homeSectionHeading {
-        margin-bottom: 28px;
-
-        .homeEyebrow {
-            margin-bottom: 8px;
-            color: $home-accent-purple;
-            font-size: 12px;
-            font-weight: 800;
-            letter-spacing: 0.12em;
-        }
+        margin-bottom: $space-7;
 
         h2 {
-            color: $home-ink;
-            font-size: clamp(32px, 4vw, 48px);
-            line-height: 1.1;
+            color: theme(heading);
+            font-size: $font-size-section;
+            letter-spacing: $letter-spacing-heading;
+            line-height: 1.05;
 
-            span { color: $home-accent-purple; }
+            span {
+                color: theme(heading);
+            }
         }
-
-        .homeSummary { color: #333; }
     }
 
     .homeDestinations {
         display: grid;
         grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-        gap: 28px;
-        align-items: start;
+        gap: $space-7;
     }
 
+    // Rows share the column's height equally, so the list lines up with the
+    // preview and every gap stays the same.
     .homeDestinationList {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
+        display: grid;
+        grid-auto-rows: 1fr;
+        gap: $space-3;
         margin: 0;
         padding: 0;
         list-style: none;
@@ -390,40 +266,48 @@ $home-ink: #111;
 
     .homeDestination {
         display: flex;
+        height: 100%;
         align-items: center;
-        gap: 16px;
-        width: 100%;
+        gap: $space-4;
         padding: 14px 18px;
-        border: 1px solid #e3e3e3;
-        border-radius: 20px;
-        background: #fff;
-        color: $home-ink;
-        font: inherit;
-        text-align: left;
-        cursor: pointer;
-        transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+        border: 1px solid theme(border-subtle);
+        border-radius: $radius-card-media;
+        background: theme(surface);
+        color: theme(heading);
 
         img {
             flex: none;
             width: 64px;
             height: 64px;
-            border-radius: 14px;
+            border-radius: $radius;
         }
 
-        &.active,
-        &:hover {
-            border-color: $home-ink;
-            background: $home-ink;
-            color: #fff;
-
-            .homeDestinationText span { color: #d6d6d6; }
-            .homeDestinationArrow { color: #b78be6; }
+        &.isActive {
+            border-color: var(--tone);
+            box-shadow: inset 0 0 0 1px var(--tone);
+            color: var(--tone);
         }
 
         &:focus-visible {
-            outline: 3px solid $home-accent-purple;
             outline-offset: 3px;
         }
+    }
+
+    // The one action worth a nudge: once the section is in view, a calm lap of
+    // its colour every 12 seconds, resting most of the time.
+    .homeDestination[data-invite] {
+        @include border-sweep(var(--tone), $mode: pulse, $duration: 12s);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+        .homeDestination:not(.isActive):hover {
+            border-color: var(--tone);
+        }
+    }
+
+    .homePrimaryLink {
+        border-color: var(--tone);
+        background: var(--tone);
     }
 
     .homeDestinationText {
@@ -433,195 +317,320 @@ $home-ink: #111;
         min-width: 0;
 
         strong {
-            font-size: 18px;
-            font-weight: 800;
+            font-size: $font-size-subheading;
             line-height: 1.2;
         }
 
         span {
-            color: #666;
-            font-size: 14px;
+            color: theme(text-muted);
+            font-size: $font-size-small;
             line-height: 1.4;
         }
     }
 
     .homeDestinationArrow {
         margin-left: auto;
-        color: #bbb;
-        font-size: 28px;
-        line-height: 1;
-        transition: color 0.2s ease;
+        opacity: 0.6;
     }
 
     .homePreview {
+        display: flex;
+        flex-direction: column;
         overflow: hidden;
-        border: 1px solid #e3e3e3;
-        border-radius: 24px;
-        background: #fff;
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+        border: 1px solid theme(border-subtle);
+        border-radius: $radius-card;
+        background: theme(surface);
+        box-shadow: 0 12px 30px theme-alpha(shadow, 0.12);
     }
 
+    // Every destination's image stays mounted and the active one fades in over the
+    // others, so quick hovers retarget mid-fade instead of restarting.
     .homePreviewPhoto {
         position: relative;
-        height: 300px;
-        background: $home-ink;
-        clip-path: polygon(0 0, 100% 0, 100% 90%, 0 100%);
+        flex: 1 0 300px;
+        background: theme(surface);
+    }
 
-        img {
+    .homePreviewLayer {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        opacity: 0;
+        transition: opacity $duration-fade $ease-out;
+
+        &.isActive {
+            opacity: 1;
+        }
+
+        > img {
             position: absolute;
             inset: 0;
             width: 100%;
             height: 100%;
-            animation: homePreviewFade 0.35s ease;
+            object-fit: cover;
+        }
+
+        // Shows the whole photo; a blurred copy fills the frame around it.
+        > img.isWhole {
+            object-fit: contain;
+        }
+
+        > .homePreviewBackdrop {
+            filter: blur(24px);
+            transform: scale(1.15);
         }
     }
 
-    .homePreviewPhoto img[src*="merch"], .homePreviewPhoto img[src*="heart"] {
-        object-position: center 15%;
-    }
-
+    // Every destination's copy sits in the same grid cell and only the active one
+    // is visible, so the card is always as tall as the longest copy and never
+    // resizes on hover.
     .homePreviewBody {
-        padding: 8px 28px 28px;
+        display: grid;
+        padding: $space-6 $space-7 $space-7;
+
+        > div {
+            grid-area: 1 / 1;
+            display: flex;
+            flex-direction: column;
+            visibility: hidden;
+
+            &.isActive {
+                visibility: visible;
+            }
+        }
 
         h3 {
             margin-bottom: 10px;
-            color: $home-ink;
+            color: theme(heading);
             font-size: clamp(24px, 2.6vw, 32px);
             line-height: 1.1;
         }
 
         p {
             margin-bottom: 22px;
-            color: #555;
-            font-size: 16px;
             line-height: 1.6;
         }
 
-        a {
+        // The preview's call to action reuses the hero's primary pill.
+        .homePrimaryLink {
             display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 24px;
-            border-radius: 999px;
-            background: $home-ink;
-            color: #fff;
-            font-size: 14px;
-            font-weight: 700;
-            transition: background 0.2s ease, transform 0.2s ease;
-
-            span { color: #b78be6; }
-
-            &:hover {
-                background: $home-accent-purple;
-                transform: translateY(-2px);
-
-                span { color: #fff; }
-            }
+            align-self: flex-start;
+            margin-top: auto;
         }
     }
 
-    @media (prefers-reduced-motion: reduce) {
-        .homePreviewPhoto img { animation: none; }
-
-        .homeDestination,
-        .homeDestinationArrow,
-        .homePreviewBody a { transition: none; }
-    }
-
-    @media (max-width: 900px) {
+    @include media("<sm-desktop") {
         .homeDestinations {
             grid-template-columns: 1fr;
-            gap: 20px;
         }
-
-        .homePreviewPhoto { height: 240px; }
+        .homePreview {
+            display: none;
+        }
     }
 
-    @media (max-width: 600px) {
-        padding: 40px 0;
+    @include media("<tablet") {
+        padding: $space-10 0;
 
         .homeDestination {
-            gap: 12px;
-            padding: 12px;
+            gap: $space-3;
+            padding: $space-3;
 
             img {
                 width: 52px;
                 height: 52px;
             }
         }
-
-        .homeDestinationText strong { font-size: 16px; }
-        .homePreviewBody { padding: 8px 20px 22px; }
     }
 }
 
-@keyframes homePreviewFade {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-}
+// RSOs: two rows of club logos drifting in opposite directions, without end.
+.homeRsoMarquee {
+    --rso-tile: 84px;
+    --rso-gap: #{$space-4};
 
-.homeCommunity {
-    margin-top: 42px;
-    padding-top: $space-7;
-    border-top: 1px solid theme(border-subtle);
-}
-
-.homeCommunityLinks {
-    display: grid;
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-    gap: $space-9;
-}
-
-.homeCommunityLink {
-    min-width: 0;
-}
-
-.homeCommunityPhoto {
-    position: relative;
-    height: 360px;
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--rso-gap);
     overflow: hidden;
-    border-radius: $radius-card-media;
+    background: theme(surface);
+    // Logos fade in and out at the edges instead of being cut off.
+    mask-image: linear-gradient(90deg, transparent, $color-black 12%, $color-black 88%, transparent);
+}
+
+.homeRsoRow {
+    display: flex;
+    width: max-content;
+}
+
+// Padding after the last logo equals the gap, so both copies tile seamlessly.
+.homeRsoTrack {
+    display: flex;
+    flex: none;
+    gap: var(--rso-gap);
+    margin: 0;
+    padding: 0 var(--rso-gap) 0 0;
+    list-style: none;
+    animation: homeRsoDrift 38s linear infinite;
+    animation-play-state: var(--marquee-state, running);
+
+    li {
+        display: grid;
+        width: var(--rso-tile);
+        height: var(--rso-tile);
+        place-items: center;
+        overflow: hidden;
+        border: 1px solid theme(border-subtle);
+        border-radius: 50%;
+        background: theme(surface);
+        position: relative;
+        // The inner shadow sits over the logo, since an inset shadow on the tile
+        // itself would be hidden behind the image.
+        &::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            box-shadow:
+                inset 0 0 0 1px theme-alpha(shadow, 0.12),
+                inset 0 -6px 12px theme-alpha(shadow, 0.12);
+            pointer-events: none;
+        }
+    }
 
     img {
+        width: 100%;
         height: 100%;
-        object-position: 50% 55%;
+        object-fit: contain;
+    }
+
+    img.isInset {
+        padding: 14%;
     }
 }
 
-.homeInvolvedLink img {
-    object-position: 50% 22%;
-}
-.homeShopLink img {
-    object-position: 50% 0%;
+.homeRsoRow:nth-child(2) .homeRsoTrack {
+    animation-direction: reverse;
+    animation-duration: 46s;
 }
 
-.homeCommunityPhoto::after {
-    position: absolute;
-    inset: 38% 0 0;
-    background: linear-gradient(to top, rgba(15, 15, 15, 0.82), rgba(15, 15, 15, 0.4) 64%, transparent);
-    content: "";
-    pointer-events: none;
-}
-
-.homePhotoLabel {
-    position: absolute;
-    z-index: 1;
-    inset: auto 0 0;
-    padding: 18px $space-5;
-
-    h3 {
-        color: $color-white;
-        font-size: $font-size-subheading;
-        line-height: 1.15;
-        text-decoration-line: underline;
-        text-decoration-thickness: 1px;
-        text-underline-offset: 0.22em;
+@media (hover: hover) and (pointer: fine) {
+    .homeRsoMarquee:hover .homeRsoTrack {
+        animation-play-state: paused;
     }
 }
 
-.homeCommunityLink:hover .homePhotoLabel h3 {
-    color: $color-white;
-    text-underline-offset: 4px;
+// Constant motion, so linear; one copy's width is exactly one loop.
+@keyframes homeRsoDrift {
+    to {
+        transform: translateX(-100%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .homeRsoTrack {
+        animation: none;
+    }
+}
+
+// Merch: the shop's product mockups on rotation, with a progress bar per slide.
+.homeMerchCarousel {
+    position: absolute;
+    inset: 0;
+    background: theme(surface);
+    color: theme(heading);
+
+    > img {
+        position: absolute;
+        inset: $space-6 $space-6 $space-14;
+        width: calc(100% - #{$space-12});
+        height: calc(100% - #{$space-6} - #{$space-14});
+        object-fit: contain;
+        opacity: 0;
+        filter: blur(4px);
+        transform: scale(0.97);
+        transition:
+            opacity 600ms $ease-out,
+            filter 600ms $ease-out,
+            transform 600ms $ease-out;
+
+        &.isActive {
+            opacity: 1;
+            filter: none;
+            transform: none;
+        }
+    }
+}
+
+// A quiet footer row: the product name on the left, its progress on the right.
+// The name is a caption, so it stays smaller and lighter than the card's heading.
+.homeMerchFooter {
+    position: absolute;
+    right: $space-6;
+    bottom: $space-5;
+    left: $space-6;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-6;
+}
+
+// Every name sits in one grid cell and the active one fades in, matching the image.
+.homeMerchNames {
+    display: grid;
+    min-width: 0;
+
+    > span {
+        grid-area: 1 / 1;
+        overflow: hidden;
+        color: theme(text-muted);
+        font-size: $font-size-small;
+        font-weight: $font-weight-regular;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 600ms ease;
+
+        &.isActive {
+            opacity: 1;
+        }
+    }
+}
+
+.homeMerchSteps {
+    display: flex;
+    flex: 0 0 120px;
+    gap: 6px;
+
+    > span {
+        flex: 1;
+        height: 3px;
+        overflow: hidden;
+        border-radius: $radius-pill;
+        background: theme-alpha(brand, 0.14);
+
+        &.isDone {
+            background: theme(brand);
+        }
+    }
+}
+
+// Constant motion, so linear; transform keeps it on the compositor.
+.homeMerchProgress {
+    display: block;
+    height: 100%;
+    background: theme(brand);
+    transform-origin: left;
+    animation-name: homeMerchProgress;
+    animation-timing-function: linear;
+}
+
+@keyframes homeMerchProgress {
+    from {
+        transform: scaleX(0);
+    }
 }
 
 #rootContainer:has(.homePage) {
@@ -695,271 +704,58 @@ $home-ink: #111;
     }
 }
 
-@media (min-width: 768px) and (max-width: 1100px) {
-    .homeCommunityLinks { gap: 24px; }
-    .homeCommunityPhoto { height: 320px; }
-}
-
-@media (min-width: 1500px) {
-    .homePage { padding-top: 44px; padding-bottom: $section-divider-gap; }
-
-    .homeOpening {
-        grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
-        gap: 32px 88px;
+@include media(">=1500px") {
+    .homeHeroPhotos {
+        height: 520px;
     }
 
-    .homeIntro { padding-top: 20px; }
-    .homeIntro h1 { font-size: clamp(52px, 3vw, 64px); }
-    .homeSummary { font-size: 18px; }
-
-    .homeDestinations { gap: 20px; }
-    .homeDestination { padding: 24px; }
-    .homeCommunityLinks { gap: 44px; }
-    .homeCommunityPhoto { height: 420px; }
-}
-
-@include media("screen", "<tablet") {
-    .homePage { padding: 28px 0 $grid-gap; }
-
-    .homeActions {
-        flex-wrap: wrap;
-        gap: 10px;
+    .homeOpening h1 {
+        font-size: clamp(52px, 3vw, 64px);
+    }
+    .homeSummary {
+        font-size: 18px;
     }
 
-    .homePrimaryLink,
-    .homeSecondaryLink {
+    .homeExplore .homeDestination {
+        padding: $space-6;
+    }
+}
+
+@include media("<tablet") {
+    .homePage {
+        padding: 0 0 $grid-gap;
+    }
+
+    .homePrimaryLink {
         min-height: 46px;
         padding: 11px 18px;
     }
-
-    .homeOpening h1 { font-size: clamp(34px, 9vw, 48px); }
-
-    .homeEvents { margin-top: 32px; }
-
-    .homeEventsHeader {
-        flex-direction: row;
-        align-items: center;
-        gap: 12px;
-
-        h2 { font-size: 22px; }
-    }
-
-    .homeEventList { grid-template-columns: 1fr; gap: 12px; }
-    .homeEventLink { min-height: 86px; }
-    .homeEventDetails h3 { font-size: 15px; }
-    .homeEventDetails p { font-size: 12px; }
-
-    .homeEmptyEventCard {
-        gap: $space-4;
-        padding: 18px;
-    }
-
-    .homeCommunity {
-        margin-top: $space-10;
-        padding-top: $space-6;
-    }
-
-    .homeCommunityLinks {
-        grid-template-columns: 1fr;
-        gap: 30px;
-    }
-
-    .homeCommunityPhoto {
-        height: clamp(300px, 86vw, 360px);
-    }
-    .homePhotoLabel {
-        padding: $space-4 18px;
-    }
 }
 
+// Press feedback for every link on the page; colour changes ride the same curve.
 @media (prefers-reduced-motion: no-preference) {
     .homePage a {
         transition:
-            color 160ms ease,
-            background-color 160ms ease,
-            transform 160ms ease,
-            border-color 160ms ease,
-            box-shadow 160ms ease;
+            color $duration-press $ease-out,
+            background-color $duration-press $ease-out,
+            border-color $duration-press $ease-out,
+            transform $duration-press $ease-out;
 
         &:active {
-            transform: scale(0.985);
+            transform: scale(0.97);
         }
     }
 }
 
-$dm-bg: #1a1a1a;
-$dm-surface: #232323;
-$dm-surface-hover: #2c2c2c;
-$dm-border: #343434;
-$dm-text: #f2f2f2;
-$dm-muted: #b5b5b5;
-$dm-accent: #cfb0f5;
-$dm-accent-soft: #e6d5fa;
-$dm-on-accent: #1a0033;
-$dm-selected: #2d2146;
-
-@mixin home-dark {
-    #rootContainer:has(.homePage),
-    .homePage {
-        color-scheme: dark;
-        background: $dm-bg;
+@media (prefers-reduced-motion: reduce) {
+    .homePreviewLayer,
+    .homeMerchCarousel > img,
+    .homeMerchNames > span {
+        transition: opacity $duration-fade ease;
     }
 
-    .homePage {
-        color: $dm-text;
-
-        :where(p) { color: $dm-muted; }
-
-        a:focus-visible { outline-color: $dm-accent; }
-    }
-
-    .homeOpening {
-        &::after {
-            background: linear-gradient(
-                90deg,
-                rgba(26, 26, 26, 0.94) 0%,
-                rgba(26, 26, 26, 0.86) 55%,
-                rgba(26, 26, 26, 0.4) 100%
-            );
-        }
-
-        h1 { color: $dm-accent-soft; }
-
-        .homeAffiliation { color: $dm-muted; }
-        .homeSummary { color: $dm-text; }
-
-        .homePrimaryLink {
-            border-color: $dm-accent;
-            background: $dm-accent;
-            color: $dm-on-accent !important;
-
-            &:hover {
-                border-color: $dm-accent-soft;
-                background: $dm-accent-soft;
-            }
-        }
-
-        .homeSecondaryLink {
-            border-color: $dm-accent;
-            background: transparent;
-            color: $dm-accent-soft !important;
-
-            &:hover { background: rgba(207, 176, 245, 0.14); }
-        }
-
-        .homeHeroPhotos img { box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6); }
-    }
-
-    .eventAgenda {
-        .eventAgenda__header {
-            h2 { color: $dm-text; }
-            span { color: $dm-muted; }
-            strong,
-            time { color: $dm-accent-soft; }
-        }
-
-        .eventAgenda__day {
-            background: $dm-surface;
-            box-shadow: inset 0 0 0 1px $dm-border;
-
-            span { color: $dm-muted; }
-            strong { color: $dm-accent; }
-
-            &.isToday { box-shadow: inset 0 0 0 2px $dm-accent; }
-
-            &.isSelected {
-                background: $dm-selected;
-                box-shadow: inset 0 0 0 2px $dm-accent;
-            }
-
-            &:disabled {
-                background: $dm-bg;
-
-                strong { color: #6f6580; }
-            }
-        }
-
-        .eventAgenda__event {
-            background: $dm-surface;
-            box-shadow: inset 0 0 0 1px $dm-border;
-
-            &:hover { background: $dm-surface-hover; }
-        }
-
-        .eventAgenda__date {
-            span { color: $dm-accent; }
-            strong { color: $dm-text; }
-        }
-
-        .eventAgenda__meta { color: $dm-accent; }
-        .eventAgenda__body strong { color: $dm-text; }
-        .eventAgenda__host { color: $dm-muted; }
-
-        .eventAgenda__details,
-        .eventAgenda__going { color: $dm-accent; }
-
-        .eventAgenda__empty {
-            p { color: $dm-muted; }
-            button { color: $dm-accent; }
-        }
-
-        .eventAgenda__reset { color: $dm-accent; }
-    }
-
-    .homeExplore {
-        .homeSectionHeading {
-            .homeEyebrow { color: $dm-accent; }
-
-            h2 {
-                color: $dm-text;
-
-                span { color: $dm-accent; }
-            }
-
-            .homeSummary { color: $dm-muted; }
-        }
-
-        .homeDestination {
-            border-color: $dm-border;
-            background: $dm-surface;
-            color: $dm-text;
-
-            .homeDestinationText span { color: $dm-muted; }
-            .homeDestinationArrow { color: #777; }
-
-            &.active,
-            &:hover {
-                border-color: $dm-accent;
-                background: $dm-selected;
-                color: #fff;
-
-                .homeDestinationText span { color: $dm-text; }
-                .homeDestinationArrow { color: $dm-accent; }
-            }
-
-            &:focus-visible { outline-color: $dm-accent; }
-        }
-
-        .homePreview {
-            border-color: $dm-border;
-            background: $dm-surface;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
-        }
-
-        .homePreviewBody {
-            h3 { color: $dm-text; }
-            p { color: $dm-muted; }
-
-            a {
-                background: $dm-accent;
-                color: $dm-on-accent;
-
-                span { color: $dm-on-accent; }
-
-                &:hover { background: $dm-accent-soft; }
-            }
-        }
+    .homeMerchCarousel > img {
+        filter: none;
+        transform: none;
     }
 }
-
-[data-theme="dark"] { @include home-dark; }

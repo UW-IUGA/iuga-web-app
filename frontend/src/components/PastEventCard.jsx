@@ -57,7 +57,7 @@ function PastEventCard({ event, reversed = false, onOpenPhoto }) {
                         </PhotoButton>
                     ))}
                 </div>
-                <button className="pastEventCard__viewPhotos" type="button" onClick={() => onOpenPhoto(0)}>
+                <button className="pill-button pill-button--fill pastEventCard__viewPhotos" type="button" onClick={() => onOpenPhoto(0)}>
                     <FontAwesomeIcon icon={faImages} aria-hidden="true" />
                     View Photos
                 </button>

@@ -40,9 +40,37 @@
         transform: translateY(1px);
     }
 
+    // A fill means "this is the action" (--fill) or "this is selected"
+    // (aria-pressed). Its colour is the button's tone: brand by default, or a
+    // category through data-tone.
+    --pill-tone: #{theme(brand)};
+
+    &[data-tone="academic"] {
+        --pill-tone: #{theme(academic-primary)};
+    }
+
+    &[data-tone="career"] {
+        --pill-tone: #{theme(career-primary)};
+    }
+
+    &[data-tone="social"] {
+        --pill-tone: #{theme(social-primary)};
+    }
+
+    &[data-tone] {
+        border-color: var(--pill-tone);
+    }
+
+    &.pill-button--fill,
     &[aria-pressed="true"] {
-        background-color: theme(accent);
+        border-color: var(--pill-tone);
+        background-color: var(--pill-tone);
         color: theme(on-fill);
+
+        &:hover {
+            background-color: var(--pill-tone);
+            box-shadow: inset 0 0 0 100vmax theme-alpha(shadow, 0.12);
+        }
     }
 
     &:disabled,

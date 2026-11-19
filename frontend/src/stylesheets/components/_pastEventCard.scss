@@ -73,24 +73,10 @@ Expected Response Information: A cover photo beside the event story, with a row 
     font-weight: $font-weight-bold;
 }
 
+// The shared filled pill (pill-button--fill) supplies the look; this keeps the icon spacing.
 .pastEventCard__viewPhotos {
-    display: inline-flex;
-    font-family: inherit;
-    align-items: center;
     gap: 10px;
-    min-height: $pill-height;
-    padding: $pill-padding-y $pill-padding-x;
-    border: $pill-border-width solid $color-primary;
-    border-radius: $radius-pill;
-    background: $color-white;
-    color: $color-primary;
-
-    &:hover,
-    &:focus-visible {
-        background: $color-primary;
-        color: $color-white;
-        outline: none;
-    }
+    font-family: inherit;
 }
 
 .pastEventCard__photo {

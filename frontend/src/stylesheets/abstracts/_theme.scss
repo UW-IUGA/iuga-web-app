@@ -70,14 +70,14 @@ $theme-dark: (
     border-subtle: #3a3a3a,
     shadow: $color-black,
     // Category colours lifted to read as text on a raised surface (6:1 or more).
-    social-primary: #e48af5,
-    social-secondary: #3d2445,
-    social-light: #2f2234,
-    career-primary: #97a2f7,
-    career-secondary: #243049,
-    academic-primary: #e2b06a,
-    academic-secondary: #3d321d,
-    academic-light: #2e291f,
+    social-primary: #a78bfa,
+    social-secondary: #2c2445,
+    social-light: #251f34,
+    career-primary: #2cd4bf,
+    career-secondary: #173a36,
+    academic-primary: #5fa5f9,
+    academic-secondary: #1d2b45,
+    academic-light: #1c2433,
     error: #f87171,
     error-dark: #fca5a5,
 );
@@ -131,6 +131,7 @@ $theme-alphas: (
         0.1,
         0.13,
         0.2,
+        0.4,
         0.45,
     ),
     brand: (
@@ -153,10 +154,14 @@ $theme-alphas: (
         0.3,
         0.35,
         0.4,
+        0.45,
         0.55,
     ),
     page: (
+        0.4,
         0.78,
+        0.88,
+        0.96,
     ),
     shadow: (
         0.12,
@@ -169,7 +174,14 @@ $theme-alphas: (
         0.25,
     ),
     academic-primary: (
+        0.35,
         0.4,
+    ),
+    career-primary: (
+        0.35,
+    ),
+    social-primary: (
+        0.35,
     ),
     social-light: (
         0.16,

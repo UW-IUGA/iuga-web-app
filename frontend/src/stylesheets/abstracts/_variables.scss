@@ -26,23 +26,24 @@ $color-uw-purple: #32006e;
 $color-lavender: #f1e8ff;
 
 // Category palettes: primary action, secondary surface, and light background.
-$color-social-primary: #c133e1;
-$color-social-secondary: #fae5ff;
-$color-social-light: #fdf3ff;
-$color-career-primary: #4e5feb;
-$color-career-secondary: #cfdff5;
-$color-academic-primary: #ca8f3d;
-$color-academic-secondary: #feefcd;
-$color-academic-light: #fbf5e7;
+$color-social-primary: #6d28d9;
+$color-social-secondary: #ede5fb;
+$color-social-light: #f6f2fe;
+$color-career-primary: #1b8376;
+$color-career-secondary: #cdeee9;
+$color-academic-primary: #2563eb;
+$color-academic-secondary: #dbe7fd;
+$color-academic-light: #eff5ff;
 
 // Lighter end of each category's gradient, paired with its primary colour.
-$color-academic-gradient-end: #e9b45c;
-$color-social-gradient-end: #e05ef0;
-$color-career-gradient-end: #7d8af2;
+$color-academic-gradient-end: #5fa5f9;
+$color-social-gradient-end: #a78bfa;
+$color-career-gradient-end: #2cd4bf;
 
 // Darker variants so white capsule labels clear WCAG AA.
-$color-academic-capsule: #8a5a1f;
-$color-social-capsule: #8d1fa8;
+$color-academic-capsule: #1d4ed8;
+$color-social-capsule: #5b21b6;
+$color-career-capsule: #145f56;
 
 // Pure white and black for surfaces, text on photos, and translucent overlays.
 $color-white: #fff;
@@ -131,3 +132,10 @@ $breakpoints: (
     sm-desktop: 1024px,
     desktop: 1300px,
 ) !default;
+
+// Motion. A strong ease-out answers a hover or press at once; presses stay under 200ms.
+$ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+// On-screen movement that starts and settles, such as a one-time attention cue.
+$ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+$duration-press: 160ms;
+$duration-fade: 200ms;

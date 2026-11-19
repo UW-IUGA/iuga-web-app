@@ -106,15 +106,17 @@ Create each of these as a Secret text credential:
 - `DISCORD_APPROVAL_CHANNEL_ID`
 - `DISCORD_RSO_APPROVAL_CHANNEL_ID`
 
-`dev.jenkinsfile` binds all eight as credentials in the Deploy stage, and `ci/deploy.groovy` passes them to the dev container with `docker run -e`. The image itself doesn't contain any of them. Only dev forwards these values for now. If a credential is missing in Jenkins, the Deploy stage fails before the container starts.
+`DISCORD_PUBLIC_KEY` is a Secret text credential too. `dev.jenkinsfile` and `prod.jenkinsfile` bind all of them in the Deploy stage, and `ci/deploy.groovy` passes them to the container with `docker run -e`. The image itself doesn't contain any of them. If a credential is missing in Jenkins, the Deploy stage fails before the container starts.
 
 ## Interactions Endpoint URL
 
 Discord needs to know where to send interactions. In the Developer Portal, open the application, go to General Information, and set the Interactions Endpoint URL to:
 
 ```
-https://dev.iuga.info/api/v1/discord/interactions
+https://iuga.info/api/v1/discord/interactions
 ```
+
+Discord sends every interaction to this one URL, so only the site it names handles `/event` and `/rso-verify`. To test bot changes on dev, point it at `https://dev.iuga.info/api/v1/discord/interactions` and switch it back afterwards.
 
 Save this only after the route is deployed and `DISCORD_PUBLIC_KEY` is set on that container. When you save, Discord sends a signed PING to the URL, and the route has to answer it or Discord rejects the save. Unsigned requests get a 401.
 
@@ -140,10 +142,10 @@ The mount also sits outside the session and CSRF stack, because Discord doesn't 
 
 Officers and moderators only ever see a short, generic reply, such as "The approval post failed, so your event was not submitted." The details go to the server log, not to Discord.
 
-On dev, read them on the VM:
+Read them on the VM, from `iuga-web-prod` for production or `iuga-web-dev` for dev:
 
 ```sh
-docker logs iuga-web-dev --tail 200 | grep -E "Approval card post failed|Event publish failed|Denial DM failed|RSO request card post failed|RSO request DM failed|Duplicate RSO role cleanup failed|Discord interaction failed"
+docker logs iuga-web-prod --tail 200 | grep -E "Approval card post failed|Event publish failed|Denial DM failed|RSO request card post failed|RSO request DM failed|Duplicate RSO role cleanup failed|Discord interaction failed"
 ```
 
 A failed Discord call logs the route, the HTTP status, Discord's error code and message, and a likely cause when the code is a common one. Example:

@@ -69,6 +69,7 @@ Pull requests also get a frontend-only preview on Netlify, built by GitHub Actio
 - **Network:** `iuga-server-config_default`
 - **Volume:** `/var/lib/iuga-web-app/uploads/prod:/app/backend/public/uploads`
 - **DB credentials:** `DB_URI` (Jenkins Secret text credential, injected as `DB_URI` env var), `SESSION_SECRET_PROD` (injected as runtime `SESSION_SECRET_PROD`)
+- **Discord:** `discordPublicKey: true`, so the Discord credentials listed in [DISCORD.md](DISCORD.md#secrets-in-jenkins) are bound and forwarded to the container
 - **Database:** MongoDB container at `mongo:27017` (via `iuga-server-config_default` network)
 - **Shop checkout:** `shopManualCheckout: true`, passed to the app as `SHOP_MANUAL_CHECKOUT_EXPOSED=true`. The production MongoDB is a one-member replica set, which shop holds need.
 - **Deploy pattern:** health-gated candidate swap; temp port `8890` → live port `8888`; tags images `:${BUILD_NUMBER}` and `:last-good`

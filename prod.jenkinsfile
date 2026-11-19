@@ -9,7 +9,8 @@ Authentication/Authorization Requirements: N/A (Jenkins job, triggered by GitHub
 Expected Request Information:
 - SCM: checks out the `main` branch and initializes the `backend/schemas` submodule
 - Credentials used (Configure Jenkins > Credentials): dockerhub (image push),
-  DB_URI, SESSION_SECRET_PROD (runtime env var)
+  DB_URI, SESSION_SECRET_PROD (runtime env var), and the Discord credentials listed in
+  docs/DISCORD.md
 - cfg (Map): per-environment values passed to the shared deploy helpers
 
 Expected Response Information:
@@ -32,6 +33,7 @@ def cfg = [
     uploadsDir: '/var/lib/iuga-web-app/uploads/prod',
     network:   true,   // prod joins the shared docker network
     shopManualCheckout: true,    // production MongoDB is a one-member replica set, which shop holds need
+    discordPublicKey: true,      // prod forwards the Discord public key so the interactions endpoint mounts
 ]
 
 void setBuildStatus(String credential_id, String context, String state, String message) {
@@ -92,6 +94,15 @@ pipeline {
                 withCredentials([
                     string(credentialsId: 'DB_URI', variable: 'DB_URI'),
                     string(credentialsId: 'SESSION_SECRET_PROD', variable: 'SESSION_SECRET_PROD'),
+                    string(credentialsId: 'DISCORD_PUBLIC_KEY', variable: 'DISCORD_PUBLIC_KEY'),
+                    string(credentialsId: 'DISCORD_BOT_TOKEN', variable: 'DISCORD_BOT_TOKEN'),
+                    string(credentialsId: 'DISCORD_APP_ID', variable: 'DISCORD_APP_ID'),
+                    string(credentialsId: 'DISCORD_GUILD_ID', variable: 'DISCORD_GUILD_ID'),
+                    string(credentialsId: 'DISCORD_OFFICER_ROLE_ID', variable: 'DISCORD_OFFICER_ROLE_ID'),
+                    string(credentialsId: 'DISCORD_MOD_ROLE_ID', variable: 'DISCORD_MOD_ROLE_ID'),
+                    string(credentialsId: 'DISCORD_IUGA_OFFICER_ROLE_ID', variable: 'DISCORD_IUGA_OFFICER_ROLE_ID'),
+                    string(credentialsId: 'DISCORD_APPROVAL_CHANNEL_ID', variable: 'DISCORD_APPROVAL_CHANNEL_ID'),
+                    string(credentialsId: 'DISCORD_RSO_APPROVAL_CHANNEL_ID', variable: 'DISCORD_RSO_APPROVAL_CHANNEL_ID'),
                 ]) {
                     script { deploy.healthGatedDeploy(cfg) }
                 }

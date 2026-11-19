@@ -100,7 +100,7 @@ describe("ResourcesPage", () => {
         renderResourcesPage();
 
         const club = screen.getByRole("heading", { name: "Example Student Club" }).closest("article");
-        expect(within(club).getByText("RSO · Community")).toBeInTheDocument();
+        expect(within(club).getByText("RSO · Social")).toBeInTheDocument();
         expect(within(club).getByText("A club still writing its description.")).toBeInTheDocument();
         expect(within(club).getByText("Details coming soon")).toBeInTheDocument();
         expect(within(club).queryByRole("link")).not.toBeInTheDocument();
@@ -147,6 +147,17 @@ describe("ResourcesPage", () => {
 
         expect(screen.getByRole("checkbox", { name: /^Academic/ })).toBeChecked();
         expect(resultCards()).toHaveLength(1);
+    });
+
+    test.each([
+        ["the Home page's student organizations link", `/resources?category=${resourceTags.COMMUNITY}`],
+        ["an older link to the Community tag", "/resources?tags=Community"],
+    ])("opens %s filtered to Social", (_, path) => {
+        renderResourcesPage(resources, path);
+
+        expect(screen.getByRole("checkbox", { name: /^Social/ })).toBeChecked();
+        expect(resultCards()).toHaveLength(1);
+        expect(screen.getByRole("heading", { name: "Example Student Club" })).toBeInTheDocument();
     });
 
     test("explains when a filter has no resources yet", () => {

@@ -7,7 +7,7 @@
  */
 import { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { allTags, searchSynonyms, tagForCategory, tagGroups } from "../assets/data/ResourceTagData";
+import { allTags, renamedTags, searchSynonyms, tagForCategory, tagGroups } from "../assets/data/ResourceTagData";
 import { buildHighlightPattern, scoreResource, textMatchesTokens, tokenize } from "../utils/resourceSearch";
 
 const MAX_TAG_SUGGESTIONS = 4;
@@ -15,7 +15,9 @@ const MAX_RESOURCE_SUGGESTIONS = 5;
 
 const readTags = (searchParams) => {
     const tags = searchParams.get("tags");
-    if (tags !== null) return tags.split(",").filter((tag) => allTags.includes(tag));
+    if (tags !== null) {
+        return tags.split(",").map((tag) => renamedTags[tag] ?? tag).filter((tag) => allTags.includes(tag));
+    }
     const legacyTag = tagForCategory[searchParams.get("category")];
     return legacyTag ? [legacyTag] : [];
 };

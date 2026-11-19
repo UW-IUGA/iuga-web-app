@@ -2,13 +2,13 @@
  * Purpose: Tag data for the Resources page: the tag groups, search synonyms, and how today's categorized
  *   resources become tagged ones.
  * Expected Request: Imported by the Resources page and useResourceFilters.
- * Expected Response: The full tag list, tag groups, tagResources() for the resources grouped by category, and
- *   pickStartHere() for the Start Here picks.
+ * Expected Response: The full tag list, tag groups, tagResources() for the resources grouped by category,
+ *   pickStartHere() for the Start Here picks, and extraTags, where interest tags are added by hand.
  */
 import { resourceTags } from "./Enum";
 
-// Type says who runs a resource; support tags replace the old fixed categories; interest tags are new
-// and not yet assigned to any resource.
+// Type says who runs a resource; support tags replace the old fixed categories; interest tags are added by
+// hand in extraTags below.
 export const tagGroups = [
     {
         label: "Type",
@@ -16,15 +16,23 @@ export const tagGroups = [
     },
     {
         label: "Support",
-        tags: ["Academic", "Career", "Community", "Mental Health", "DEI"],
+        tags: ["Academic", "Career", "Social", "Mental Health", "DEI"],
     },
     {
         label: "Interests",
-        tags: ["SWE", "Cybersecurity", "Product Management", "AI/ML", "Data", "Design", "Consulting", "Projects", "Leadership"],
+        tags: [
+            "SWE", "Cybersecurity", "Product Management", "AI/ML", "Data", "Design", "Consulting", "Entrepreneurship",
+            "Projects", "Leadership",
+        ],
     },
 ];
 
 export const allTags = tagGroups.flatMap((group) => group.tags);
+
+// Tags that were renamed, so an older link such as ?tags=Community still opens the same filter.
+export const renamedTags = {
+    Community: "Social",
+};
 
 // Search-only alternate words: typing a key also finds resources matching its values (plurals are handled
 // automatically). These are never shown on the page.
@@ -52,6 +60,9 @@ export const searchSynonyms = {
     infosec: ["cybersecurity", "information security"],
     pm: ["product management"],
     consulting: ["consult"],
+    startup: ["entrepreneurship"],
+    founder: ["entrepreneurship"],
+    community: ["social"],
     diversity: ["dei"],
     club: ["rso"],
     org: ["rso"],
@@ -63,7 +74,7 @@ export const searchSynonyms = {
 export const tagForCategory = {
     [resourceTags.ACADEMIC]: "Academic",
     [resourceTags.CAREER]: "Career",
-    [resourceTags.COMMUNITY]: "Community",
+    [resourceTags.COMMUNITY]: "Social",
     [resourceTags.MENTAL_HEALTH]: "Mental Health",
     [resourceTags.DEI]: "DEI",
 };
@@ -198,6 +209,14 @@ const highlights = {
     ],
 };
 
+// Interest tags (or any other extra tags) added by hand, keyed by the resource's name exactly as it appears on
+// its card. Each tag must be spelled exactly as it is in tagGroups above; the tests catch typos in names and tags.
+// For example:
+//     "ISACA": ["Cybersecurity"],
+//     "Product Space @ UW": ["Product Management", "Leadership"],
+export const extraTags = {
+};
+
 const iSchoolServices = [
     "iSchool Student Services",
     "iSchool Peer Advisors",
@@ -212,24 +231,29 @@ const typeFor = (category, name) => {
     return iSchoolServices.includes(name) ? "iSchool" : "UW";
 };
 
-// Until real tags exist, each resource carries its type plus the tag of the category it is listed under today.
-export const tagResources = (resourcesByCategory) => Object.entries(resourcesByCategory).flatMap(([category, items]) =>
-    items.map((resource) => ({
+// Each resource carries its type, the tag of the category it is listed under, and any tags added by hand.
+// Names are matched without surrounding spaces, since some names in the data end with one.
+export const tagResources = (resourcesByCategory, addedTags = extraTags) => Object.entries(resourcesByCategory)
+    .flatMap(([category, items]) => items.map((resource) => ({
         ...resource,
-        tags: [typeFor(category, resource.rName), tagForCategory[category]],
+        tags: [...new Set([
+            typeFor(category, resource.rName),
+            tagForCategory[category],
+            ...(addedTags[resource.rName.trim()] ?? []),
+        ])],
         highlights: highlights[resource.rName] ?? [],
-    }))
-);
+    })));
 
-const START_HERE = [
+// Shown two by two in this order: advising on top, then career and health.
+export const START_HERE = [
     "iSchool Student Services",
+    "iSchool Peer Advisors",
     "iSchool Career Services (Canvas)",
     "Husky Health & Well-Being",
-    "iSchool Office of IDEAS ",
 ];
 
 // The Start Here picks found in the tagged resources; picks that are missing are skipped.
 export const pickStartHere = (taggedResources) => START_HERE.flatMap((name) => {
-    const resource = taggedResources.find((candidate) => candidate.rName === name);
+    const resource = taggedResources.find((candidate) => candidate.rName.trim() === name);
     return resource ? [resource] : [];
 });

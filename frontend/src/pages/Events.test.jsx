@@ -171,6 +171,22 @@ describe("Events page: the event list", () => {
         expect(screen.queryByRole("button", { name: /Resume Clinic/ })).not.toBeInTheDocument();
     });
 
+    it("keeps the signed-in list when the earlier signed-out request finishes last", async () => {
+        let answerSignedOut;
+        fetchSpy.mockReturnValueOnce(new Promise((resolve) => (answerSignedOut = resolve)));
+        fetchSpy.mockResolvedValueOnce(jsonResponse([STUDY_JAM]));
+        const url = "/events?view=month&date=2026-10-20";
+        const { rerender } = render(page(url));
+
+        isAuthenticated = true;
+        rerender(page(url));
+        expect(await screen.findByRole("button", { name: /Study Jam/ })).toBeInTheDocument();
+
+        await act(async () => answerSignedOut(jsonResponse([RESUME_CLINIC])));
+        expect(screen.getByRole("button", { name: /Study Jam/ })).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: /Resume Clinic/ })).not.toBeInTheDocument();
+    });
+
     it("shows a Career event as Career, not Professional", async () => {
         await visit("/events?view=day&date=2026-10-21");
 

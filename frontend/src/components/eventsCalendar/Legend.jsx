@@ -21,7 +21,7 @@ function Legend({ layout = "row", className, isTagShown, onToggle, onShowAll, is
             aria-labelledby={headingId}
         >
             <span id={headingId} className="legend__heading">
-                Show
+                Filter
             </span>
 
             <ul className="legend__items">

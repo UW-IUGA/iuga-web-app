@@ -118,3 +118,45 @@
         bottom: 0;
     }
 }
+
+// A short arc of `$color` that travels around the element's border. Draws on
+// ::before, so the element needs no other ::before. Keyframes live in base/motion.
+// - `$mode: loop` circles forever at a constant, linear speed.
+// - `$mode: cue` is a one-time invitation: one unhurried lap, fading
+//   in and away, then nothing. It plays as soon as the mixin applies, so a
+//   caller controls when by adding its selector (a class or attribute) then.
+// - `$mode: pulse` repeats that lap, then rests for twice as long, so the
+//   cue returns now and then without ever running constantly.
+// Under reduced motion there is no arc at all.
+@mixin border-sweep($color, $mode: loop, $duration: 3.2s, $width: 2px) {
+    position: relative;
+
+    &::before {
+        content: "";
+        position: absolute;
+        inset: -1px;
+        padding: $width;
+        border-radius: inherit;
+        background: conic-gradient(from var(--sweep), transparent 0deg 250deg, $color 320deg, transparent 360deg);
+        // Paints only the ring between the padding box and the content box.
+        mask:
+            linear-gradient(#000 0 0) content-box,
+            linear-gradient(#000 0 0);
+        mask-composite: exclude;
+        pointer-events: none;
+
+        @if $mode == cue {
+            opacity: 0;
+            animation: border-sweep-cue $duration cubic-bezier(0.45, 0, 0.55, 1) both;
+        } @else if $mode == pulse {
+            opacity: 0;
+            animation: border-sweep-pulse $duration cubic-bezier(0.45, 0, 0.55, 1) infinite;
+        } @else {
+            animation: border-sweep $duration linear infinite;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            content: none;
+        }
+    }
+}

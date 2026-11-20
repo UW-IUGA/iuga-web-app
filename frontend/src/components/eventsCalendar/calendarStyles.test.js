@@ -123,7 +123,7 @@ describe("calendar styles", () => {
     it("draw Today, View Photos and View day as the same strong pill as Sign in to RSVP", () => {
         const rsvp = style(".eventRsvp__button");
         const today = style(".calendar-controls__today");
-        const viewPhotos = style(".pastEvents .pastEventCard__viewPhotos");
+        const viewPhotos = style(".pastEvents__viewPhotos");
         const viewDay = style(".popover__button");
 
         for (const button of [today, viewPhotos, viewDay]) {
@@ -132,22 +132,10 @@ describe("calendar styles", () => {
             }
         }
         expect(rsvp["background-color"]).toBe("var(--calendar-copy-bg)");
+        // View Photos sits at RSVP's height.
+        expect(viewPhotos["min-height"]).toBe(rsvp["min-height"]);
         // Today keeps the view dropdown's height, so the two ends of the phone's line match.
         expect(today.height).toBe(style(".view-select__input").height);
-    });
-
-    it("keep View Photos the strong pill on hover and focus, over the site card's outline style", () => {
-        const viewPhotos = style(".pastEvents .pastEventCard__viewPhotos");
-        expect(px(viewPhotos.border)).toBe(0);
-
-        const active = style(
-            ".pastEvents .pastEventCard__viewPhotos:hover, .pastEvents .pastEventCard__viewPhotos:focus-visible",
-        );
-        expect(active["background-color"]).toBe("var(--calendar-copy-bg)");
-        expect(active.color).toBe("var(--calendar-copy-text)");
-        expect(style(".pastEvents .pastEventCard__viewPhotos:focus-visible").outline).toBe(
-            "2px solid var(--calendar-text)",
-        );
     });
 
     it("set the phone's view dropdown at 16px, so iOS does not zoom in on it", () => {

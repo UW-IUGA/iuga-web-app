@@ -24,6 +24,7 @@ function PastEvents() {
                         key={event.id}
                         reversed={position % 2 === 1}
                         onOpenPhoto={(index) => setOpenPhoto({ event, index })}
+                        viewPhotosClassName="pastEvents__viewPhotos"
                     />
                 ))}
             </div>

@@ -1,18 +1,20 @@
 /*
 Purpose: The shop's product mockups on rotation, with a progress bar per slide,
-         for the Merch preview on the homepage.
+         for the Merch preview on the homepage. It fills the preview card, with
+         the destination's copy over the bottom of the image.
 
 `playing` pauses the rotation while the preview is hidden. Hovering also pauses
 it, and visitors who prefer reduced motion see the first product without rotation.
 */
 
+import { Link } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { shopProducts } from "../assets/data/ShopData";
 import useMediaQuery from "../hooks/useMediaQuery";
 
 const SLIDE_MS = 2600;
 
-export default function MerchCarousel({ playing }) {
+export default function MerchCarousel({ playing, label, detail, cta, to }) {
   const [index, setIndex] = useState(0);
   const [hovered, setHovered] = useState(false);
   const autoplay = !useMediaQuery("(prefers-reduced-motion: reduce)");
@@ -41,10 +43,8 @@ export default function MerchCarousel({ playing }) {
   }, [running, index]);
 
   return (
-    // The mockups are drawn on white, so the frame stays light in both themes.
     <div
       className="homeMerchCarousel"
-      data-theme="light"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
@@ -57,7 +57,8 @@ export default function MerchCarousel({ playing }) {
           decoding="async"
         />
       ))}
-      <span className="homeMerchFooter">
+      <div className="homeMerchCaption">
+        <span className="homeMerchEyebrow">{label}</span>
         <span className="homeMerchNames">
           {shopProducts.map((item, i) => (
             <span
@@ -68,23 +69,29 @@ export default function MerchCarousel({ playing }) {
             </span>
           ))}
         </span>
-        <span className="homeMerchSteps">
-          {shopProducts.map((item, i) => (
-            <span key={item.sku} className={i < index ? "isDone" : undefined}>
-              {i === index && autoplay && (
-                <span
-                  key={index}
-                  className="homeMerchProgress"
-                  style={{
-                    animationDuration: `${SLIDE_MS}ms`,
-                    animationPlayState: running ? "running" : "paused",
-                  }}
-                />
-              )}
-            </span>
-          ))}
-        </span>
-      </span>
+        <p>{detail}</p>
+        <div className="homeMerchFooter">
+          <Link className="homePrimaryLink" to={to} tabIndex={-1}>
+            {cta}
+          </Link>
+          <span className="homeMerchSteps">
+            {shopProducts.map((item, i) => (
+              <span key={item.sku} className={i < index ? "isDone" : undefined}>
+                {i === index && autoplay && (
+                  <span
+                    key={index}
+                    className="homeMerchProgress"
+                    style={{
+                      animationDuration: `${SLIDE_MS}ms`,
+                      animationPlayState: running ? "running" : "paused",
+                    }}
+                  />
+                )}
+              </span>
+            ))}
+          </span>
+        </div>
+      </div>
     </div>
   );
 }

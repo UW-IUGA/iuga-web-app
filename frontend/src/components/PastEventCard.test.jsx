@@ -36,4 +36,25 @@ describe("PastEventCard", () => {
 
         expect(onOpenPhoto.mock.calls).toEqual([[0], [3]]);
     });
+
+    test("View Photos opens the viewer at the first photo", () => {
+        const onOpenPhoto = vi.fn();
+        render(<PastEventCard event={makeEvent(9)} onOpenPhoto={onOpenPhoto} />);
+
+        fireEvent.click(screen.getByRole("button", { name: "View Photos" }));
+
+        expect(onOpenPhoto).toHaveBeenCalledWith(0);
+    });
+
+    test("draws View Photos as the site's filled pill unless the caller picks another style", () => {
+        const { unmount } = render(<PastEventCard event={makeEvent(2)} onOpenPhoto={vi.fn()} />);
+        expect(screen.getByRole("button", { name: "View Photos" })).toHaveClass("pill-button", "pill-button--fill");
+        unmount();
+
+        render(<PastEventCard event={makeEvent(2)} onOpenPhoto={vi.fn()} viewPhotosClassName="pastEvents__viewPhotos" />);
+        const button = screen.getByRole("button", { name: "View Photos" });
+        expect(button).toHaveClass("pastEventCard__viewPhotos", "pastEvents__viewPhotos");
+        expect(button).not.toHaveClass("pill-button");
+        expect(button).not.toHaveClass("pill-button--fill");
+    });
 });

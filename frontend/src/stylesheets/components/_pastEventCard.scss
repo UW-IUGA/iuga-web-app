@@ -73,8 +73,11 @@ Expected Response Information: A cover photo beside the event story, with a row 
     font-weight: $font-weight-bold;
 }
 
-// The shared filled pill (pill-button--fill) supplies the look; this keeps the icon spacing.
+// The icon beside the label. The button's look comes from the class the caller
+// passes: the site's filled pill by default, or a page's own button style.
 .pastEventCard__viewPhotos {
+    display: inline-flex;
+    align-items: center;
     gap: 10px;
     font-family: inherit;
 }

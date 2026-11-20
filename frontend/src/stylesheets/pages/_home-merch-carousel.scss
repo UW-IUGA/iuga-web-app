@@ -1,0 +1,111 @@
+@use "../abstracts" as *;
+
+// Merch: the shop's product mockups on rotation, with a progress bar per slide.
+.homeMerchCarousel {
+    position: absolute;
+    inset: 0;
+    background: theme(surface);
+    color: theme(heading);
+
+    > img {
+        position: absolute;
+        inset: $space-6 $space-6 $space-14;
+        width: calc(100% - #{$space-12});
+        height: calc(100% - #{$space-6} - #{$space-14});
+        object-fit: contain;
+        opacity: 0;
+        filter: blur(4px);
+        transform: scale(0.97);
+        transition:
+            opacity 600ms $ease-out,
+            filter 600ms $ease-out,
+            transform 600ms $ease-out;
+
+        &.isActive {
+            opacity: 1;
+            filter: none;
+            transform: none;
+        }
+    }
+}
+
+// A quiet footer row: the product name on the left, its progress on the right.
+// The name is a caption, so it stays smaller and lighter than the card's heading.
+.homeMerchFooter {
+    position: absolute;
+    right: $space-6;
+    bottom: $space-5;
+    left: $space-6;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-6;
+}
+
+// Every name sits in one grid cell and the active one fades in, matching the image.
+.homeMerchNames {
+    display: grid;
+    min-width: 0;
+
+    > span {
+        grid-area: 1 / 1;
+        overflow: hidden;
+        color: theme(text-muted);
+        font-size: $font-size-small;
+        font-weight: $font-weight-regular;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 600ms ease;
+
+        &.isActive {
+            opacity: 1;
+        }
+    }
+}
+
+.homeMerchSteps {
+    display: flex;
+    flex: 0 0 120px;
+    gap: 6px;
+
+    > span {
+        flex: 1;
+        height: 3px;
+        overflow: hidden;
+        border-radius: $radius-pill;
+        background: theme-alpha(brand, 0.14);
+
+        &.isDone {
+            background: theme(brand);
+        }
+    }
+}
+
+// Constant motion, so linear; transform keeps it on the compositor.
+.homeMerchProgress {
+    display: block;
+    height: 100%;
+    background: theme(brand);
+    transform-origin: left;
+    animation-name: homeMerchProgress;
+    animation-timing-function: linear;
+}
+
+@keyframes homeMerchProgress {
+    from {
+        transform: scaleX(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .homeMerchCarousel > img,
+    .homeMerchNames > span {
+        transition: opacity $duration-fade ease;
+    }
+
+    .homeMerchCarousel > img {
+        filter: none;
+        transform: none;
+    }
+}

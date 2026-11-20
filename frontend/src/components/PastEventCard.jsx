@@ -6,6 +6,8 @@ Expected Request Information:
   the cover. thumbnail is an optional smaller file used wherever the photo is shown small.
 - reversed: when true, the cover photo sits on the right on wide screens.
 - onOpenPhoto: called with the position of the photo a visitor opens.
+- viewPhotosClassName: optional. The class that styles the "View Photos" button. Defaults to
+  the site's filled pill; a page with its own button style passes its class instead.
 
 Expected Response Information:
 - A card whose photos and "View Photos" button all report which photo to open.
@@ -36,7 +38,7 @@ function PhotoButton({ photo, className = "", isCover = false, onOpen, children 
     );
 }
 
-function PastEventCard({ event, reversed = false, onOpenPhoto }) {
+function PastEventCard({ event, reversed = false, onOpenPhoto, viewPhotosClassName = "pill-button pill-button--fill" }) {
     const headingId = useId();
     const [cover, ...otherPhotos] = event.photos;
     const thumbnails = otherPhotos.slice(0, MAX_THUMBNAILS);
@@ -57,7 +59,7 @@ function PastEventCard({ event, reversed = false, onOpenPhoto }) {
                         </PhotoButton>
                     ))}
                 </div>
-                <button className="pastEventCard__viewPhotos" type="button" onClick={() => onOpenPhoto(0)}>
+                <button className={`pastEventCard__viewPhotos ${viewPhotosClassName}`} type="button" onClick={() => onOpenPhoto(0)}>
                     <FontAwesomeIcon icon={faImages} aria-hidden="true" />
                     View Photos
                 </button>

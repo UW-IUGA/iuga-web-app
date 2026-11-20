@@ -1,8 +1,15 @@
+/*
+Purpose: Style the resource cards and the round resource icon they share with Start Here and search.
+Expected Request Information: Classes emitted by ResourceCard (and .resourceIcon wherever it is used).
+Expected Response Information: A card with the icon above its tags, name, bullets, and link.
+*/
 @use "../abstracts" as *;
+@use "../base/misc";
 
+// The icon sits above the text at every width, so the title and bullets start at the card's left edge.
 .resourceCard {
     display: flex;
-    min-height: 230px;
+    flex-direction: column;
     gap: $margin-content;
     padding: 22px;
     transition:
@@ -15,7 +22,73 @@
     }
 }
 
-.resourceCardIcon {
+.resourceCard__content {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+
+    h3 {
+        margin: $space-1 0 $space-2;
+        color: theme(text);
+        font-size: $font-size-subheading;
+        line-height: 1.25;
+    }
+
+    > p:not(.resourceCard__category) {
+        margin: 0 0 $space-5;
+        color: theme(text-muted);
+        font-size: $font-size-body;
+        line-height: 1.55;
+    }
+}
+
+.resourceCard__category {
+    @extend %pageKicker;
+}
+
+.resourceCard__highlights {
+    display: grid;
+    gap: 6px;
+    margin: 0 0 $space-5;
+    padding: 0;
+    list-style: none;
+    color: theme(text-muted);
+    font-size: $font-size-body;
+    line-height: 1.45;
+
+    li {
+        position: relative;
+        padding-left: $space-5;
+
+        &::before {
+            position: absolute;
+            top: 0.55em;
+            left: 2px;
+            width: 7px;
+            height: 7px;
+            content: "";
+            border-radius: 50%;
+            background: theme(accent);
+        }
+    }
+}
+
+.resourceCard__link,
+.resourceCard__pending {
+    align-self: flex-start;
+    margin-top: auto;
+}
+
+.resourceCard__pending {
+    color: theme(text-muted);
+    font-size: $font-size-small;
+    font-weight: $font-weight-medium;
+}
+
+// A resource's round logo, shared by the cards, the Start Here links, and the search suggestions. A resource
+// without a logo shows its first letter.
+.resourceIcon {
     display: grid;
     width: 60px;
     height: 60px;
@@ -37,48 +110,14 @@
     }
 }
 
-.resourceCardContent {
-    display: flex;
-    min-width: 0;
-    flex: 1;
-    flex-direction: column;
-
-    h3 {
-        margin: $space-1 0 $space-2;
-        color: theme(text);
-        font-size: $font-size-subheading;
-        line-height: 1.25;
-    }
-
-    > p:not(.resourceCardCategory) {
-        margin: 0 0 $space-5;
-        color: theme(text-muted);
-        font-size: $font-size-small;
-        line-height: 1.55;
-    }
-}
-
-.resourceCardLink,
-.resourceCardPending {
-    align-self: flex-start;
-    margin-top: auto;
-}
-
-.resourceCardPending {
-    color: theme(text-muted);
-    font-size: $font-size-small;
-    font-weight: $font-weight-medium;
-}
-
 @include media("<tablet") {
     .resourceCard {
-        min-height: 0;
         padding: 18px;
-    }
 
-    .resourceCardIcon {
-        width: 48px;
-        height: 48px;
-        flex-basis: 48px;
+        .resourceIcon {
+            width: 48px;
+            height: 48px;
+            flex-basis: 48px;
+        }
     }
 }

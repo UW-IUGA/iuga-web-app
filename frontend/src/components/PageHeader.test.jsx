@@ -22,4 +22,11 @@ describe("PageHeader", () => {
         expect(screen.getByRole("link", { name: "Explore events" })).toBeInTheDocument();
         expect(screen.getByRole("img", { name: "Students at an event" })).toBeInTheDocument();
     });
+
+    test("leaves out the label line when a page has no label", () => {
+        const { container } = render(<PageHeader title="Make the most of the iSchool." />);
+
+        expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Make the most of the iSchool.");
+        expect(container.querySelector(".pageHeader__label")).not.toBeInTheDocument();
+    });
 });

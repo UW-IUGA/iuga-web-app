@@ -6,6 +6,7 @@
 @use "base/colors";
 @use "base/misc";
 @use "base/elements";
+@use "base/motion";
 
 @use "layout/container";
 @use "layout/navigation";
@@ -19,6 +20,7 @@
 @use "components/emailContactDialog";
 @use "components/electionfaqCard";
 @use "components/eventAgenda";
+@use "components/homeEvents";
 @use "components/eventCategoryPills";
 @use "components/eventDialog";
 @use "components/eventsCalendar";

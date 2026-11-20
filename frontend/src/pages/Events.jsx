@@ -62,8 +62,10 @@ function ListStatus({ status, onRetry }) {
 function EventsPage() {
   const { mode, selectedDate, goToDay, goToDate, goToToday, step, setMode } =
     useCalendarView();
-  const { records, status, retry } = useEventList();
-  const { can } = useAuthContext();
+  const { can, isAuthenticated } = useAuthContext();
+  const { records, status, retry } = useEventList({
+    refreshKey: isAuthenticated,
+  });
 
   useEffect(() => {
     window.scrollTo(0, 0);

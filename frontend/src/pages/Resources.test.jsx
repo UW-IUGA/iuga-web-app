@@ -35,18 +35,19 @@ function renderResourcesPage() {
 }
 
 describe("ResourcesPage", () => {
-    test("keeps categories compact until their accordion is opened", () => {
+    test("opens every category under All resources and lets one be closed", () => {
         renderResourcesPage();
 
         expect(screen.getByRole("heading", { level: 1, name: "Find support at the iSchool and UW." })).toBeInTheDocument();
-        const academicCategory = screen.getByRole("button", { name: `Show ${resourceTags.ACADEMIC}` });
-        expect(academicCategory).toHaveAttribute("aria-expanded", "false");
-        expect(screen.queryByRole("link", { name: /Visit resource/ })).not.toBeInTheDocument();
+        const academicCategory = screen.getByRole("button", { name: `Hide ${resourceTags.ACADEMIC}` });
+        expect(academicCategory).toHaveAttribute("aria-expanded", "true");
+        expect(screen.getByRole("button", { name: `Hide ${resourceTags.CAREER}` })).toHaveAttribute("aria-expanded", "true");
 
         fireEvent.click(academicCategory);
-        expect(screen.getByRole("button", { name: `Hide ${resourceTags.ACADEMIC}` })).toHaveAttribute("aria-expanded", "true");
+        expect(screen.getByRole("button", { name: `Show ${resourceTags.ACADEMIC}` })).toHaveAttribute("aria-expanded", "false");
+        fireEvent.click(screen.getByRole("button", { name: `Show ${resourceTags.ACADEMIC}` }));
 
-        const link = screen.getAllByRole("link", { name: /Visit resource/ })
+        const link = screen.getAllByRole("link", { name: /Learn more/ })
             .find((resourceLink) => resourceLink.getAttribute("href") === "https://academicsupport.uw.edu/clue/");
         expect(link).toHaveAttribute("href", "https://academicsupport.uw.edu/clue/");
         expect(link).toHaveAttribute("target", "_blank");

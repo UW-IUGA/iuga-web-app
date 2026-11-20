@@ -1,10 +1,15 @@
 /*
- * Purpose: Search box for the resources pages that doubles as the way into the tag filters.
- * Expected Request: An id and label, plus `filters`, the object returned by useResourceFilters.
- * Expected Response: A combobox with a suggestion list of matching tags (applied as filters) and resource names
- *   (searched for), usable with the keyboard. Selected tags show as checked boxes in the sidebar, not chips in the
- *   field, so picking one never changes the field's height and moves the filters below it.
- */
+Purpose: The Resources page's search box, which also suggests tags to filter by.
+
+Expected Request Information:
+- id, label, placeholder: for the search field.
+- filters: the object returned by useResourceFilters.
+
+Expected Response Information:
+- A combobox whose suggestion list holds matching tags (picked to filter by them) and resource names (picked to
+  search for them), usable with the keyboard.
+*/
+
 import { Fragment, useState } from "react";
 import HighlightMatch from "./HighlightMatch";
 
@@ -13,7 +18,7 @@ const GROUP_LABELS = {
     resource: "Resources",
 };
 
-const ResourceSearchBox = ({ id, label, showLabel = false, placeholder, className = "", filters }) => {
+function ResourceSearchBox({ id, label, placeholder, filters }) {
     const {
         searchTerm, setSearchTerm, selectedTags, suggestions, applyTagSuggestion, applyResourceSuggestion,
         highlightPattern,
@@ -61,9 +66,9 @@ const ResourceSearchBox = ({ id, label, showLabel = false, placeholder, classNam
     };
 
     return (
-        <div className={`resourceSearchBox ${className}`.trim()}>
-            <label className={showLabel ? "resourceSearchLabel" : "sr-only"} htmlFor={id}>{label}</label>
-            <div className="resourceSearchField">
+        <div className="resourceSearchBox">
+            <label className="resourceSearchBox__label" htmlFor={id}>{label}</label>
+            <div className="resourceSearchBox__field">
                 <input
                     id={id}
                     type="search"
@@ -86,15 +91,22 @@ const ResourceSearchBox = ({ id, label, showLabel = false, placeholder, classNam
                 />
             </div>
             {expanded && (
-                <ul className="resourceSearchSuggestions" id={listboxId} role="listbox" aria-label={`${label} suggestions`}>
+                <ul
+                    className="resourceSearchBox__suggestions"
+                    id={listboxId}
+                    role="listbox"
+                    aria-label={`${label} suggestions`}
+                >
                     {options.map((option, index) => (
                         <Fragment key={option.key}>
                             {(index === 0 || options[index - 1].kind !== option.kind) && (
-                                <li className="resourceSearchGroupLabel" role="presentation">{GROUP_LABELS[option.kind]}</li>
+                                <li className="resourceSearchBox__groupLabel" role="presentation">
+                                    {GROUP_LABELS[option.kind]}
+                                </li>
                             )}
                             <li
                                 id={optionId(index)}
-                                className="resourceSearchOption"
+                                className="resourceSearchBox__option"
                                 role="option"
                                 aria-selected={index === activeIndex}
                                 // Keeps focus in the input so its blur does not close the list before the click lands.
@@ -103,19 +115,21 @@ const ResourceSearchBox = ({ id, label, showLabel = false, placeholder, classNam
                             >
                                 {option.kind === "tag" ? (
                                     <>
-                                        <span className="resourceSearchOptionTag">
+                                        <span className="resourceSearchBox__optionTag">
                                             <HighlightMatch text={option.tag} pattern={highlightPattern} />
                                         </span>
-                                        <span className="resourceSearchOptionHint">Add filter</span>
+                                        <span className="resourceSearchBox__optionHint">Add filter</span>
                                     </>
                                 ) : (
                                     <>
-                                        <span className="resourceCardIcon" aria-hidden="true">
+                                        <span className="resourceIcon" aria-hidden="true">
                                             {option.resource.rImage
                                                 ? <img src={option.resource.rImage} alt="" />
                                                 : option.resource.rName.charAt(0)}
                                         </span>
-                                        <span><HighlightMatch text={option.resource.rName} pattern={highlightPattern} /></span>
+                                        <span>
+                                            <HighlightMatch text={option.resource.rName} pattern={highlightPattern} />
+                                        </span>
                                     </>
                                 )}
                             </li>
@@ -125,6 +139,6 @@ const ResourceSearchBox = ({ id, label, showLabel = false, placeholder, classNam
             )}
         </div>
     );
-};
+}
 
 export default ResourceSearchBox;

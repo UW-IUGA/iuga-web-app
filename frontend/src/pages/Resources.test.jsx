@@ -149,11 +149,8 @@ describe("ResourcesPage", () => {
         expect(resultCards()).toHaveLength(1);
     });
 
-    test.each([
-        ["the Home page's student organizations link", `/resources?category=${resourceTags.COMMUNITY}`],
-        ["an older link to the Community tag", "/resources?tags=Community"],
-    ])("opens %s filtered to Social", (_, path) => {
-        renderResourcesPage(resources, path);
+    test("opens the Home page's student organizations link filtered to Social", () => {
+        renderResourcesPage(resources, `/resources?category=${resourceTags.COMMUNITY}`);
 
         expect(screen.getByRole("checkbox", { name: /^Social/ })).toBeChecked();
         expect(resultCards()).toHaveLength(1);

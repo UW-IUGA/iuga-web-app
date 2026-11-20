@@ -1,4 +1,4 @@
-import { buildHighlightPattern, scoreResource, textMatchesTokens, tokenize } from "./resourceSearch";
+import { buildHighlightPattern, resourceMatchesTokens, textMatchesTokens, tokenize } from "./resourceSearch";
 
 const resource = (rName, { tags = [], highlights = [], rDescription = "" } = {}) => ({ rName, tags, highlights, rDescription });
 
@@ -7,7 +7,6 @@ const careerServices = resource("iSchool Career Services", {
     highlights: ["One-on-one advising for the job search"],
 });
 const dubsTech = resource("DubsTech", { tags: ["RSO"], highlights: ["Covers design and software engineering"] });
-const uxClub = resource("UX @ UW Club", { tags: ["RSO"], highlights: ["Grow your UX skills"] });
 
 describe("tokenize", () => {
     test("splits on any whitespace and lowercases", () => {
@@ -19,39 +18,31 @@ describe("tokenize", () => {
     });
 });
 
-describe("scoreResource", () => {
+describe("resourceMatchesTokens", () => {
     test("words match anywhere in the resource, not as one phrase", () => {
-        expect(scoreResource(careerServices, tokenize("career advising"))).toBeGreaterThan(0);
+        expect(resourceMatchesTokens(careerServices, tokenize("career advising"))).toBe(true);
     });
 
     test("every word has to match", () => {
-        expect(scoreResource(careerServices, tokenize("career hackathon"))).toBe(0);
+        expect(resourceMatchesTokens(careerServices, tokenize("career hackathon"))).toBe(false);
     });
 
     test("words match from the start of a word only", () => {
-        expect(scoreResource(resource("Maintenance club"), tokenize("ai"))).toBe(0);
-        expect(scoreResource(resource("Club", { tags: ["AI/ML"] }), tokenize("ml"))).toBeGreaterThan(0);
-    });
-
-    test("a name match outranks a match in the bullets", () => {
-        const query = tokenize("ux");
-        expect(scoreResource(uxClub, query)).toBeGreaterThan(scoreResource(resource("Figma", { highlights: ["ux tools"] }), query));
+        expect(resourceMatchesTokens(resource("Maintenance club"), tokenize("ai"))).toBe(false);
+        expect(resourceMatchesTokens(resource("Club", { tags: ["AI/ML"] }), tokenize("ml"))).toBe(true);
     });
 
     test("a plural word matches its singular", () => {
-        expect(scoreResource(careerServices, tokenize("jobs"))).toBeGreaterThan(0);
+        expect(resourceMatchesTokens(careerServices, tokenize("jobs"))).toBe(true);
     });
 
-    test("synonyms match but score below the typed word", () => {
-        const synonyms = { coding: ["software"] };
-        const direct = resource("Club", { highlights: ["coding projects"] });
-        expect(scoreResource(dubsTech, tokenize("coding"), synonyms)).toBeGreaterThan(0);
-        expect(scoreResource(direct, tokenize("coding"), synonyms)).toBeGreaterThan(scoreResource(dubsTech, tokenize("coding"), synonyms));
+    test("synonyms match", () => {
+        expect(resourceMatchesTokens(dubsTech, tokenize("coding"), { coding: ["software"] })).toBe(true);
     });
 
     test("regex characters in a query are matched literally", () => {
-        expect(scoreResource(resource("iSchool Career Services (Canvas)"), tokenize("(canvas)"))).toBeGreaterThan(0);
-        expect(scoreResource(careerServices, tokenize("(.*)"))).toBe(0);
+        expect(resourceMatchesTokens(resource("iSchool Career Services (Canvas)"), tokenize("(canvas)"))).toBe(true);
+        expect(resourceMatchesTokens(careerServices, tokenize("(.*)"))).toBe(false);
     });
 });
 

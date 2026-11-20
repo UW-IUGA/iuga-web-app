@@ -1,51 +1,57 @@
 /*
- * Purpose: Search, tag filtering, and search suggestions for the Resources page, kept in the URL.
- * Expected Request: useResourceFilters(resources) under a router, with resources that each carry `tags` and
- *   `highlights`. Reads ?q= and ?tags= (comma-separated); a legacy ?category= is read as its matching tag.
- * Expected Response: Filter state, setters, the matching resources in A–Z order, per-tag match counts,
- *   a highlight pattern for the search words, and tag and resource suggestions for the search box.
- */
+Purpose: Search, tag filtering, and search suggestions for the Resources page, kept in the URL so a filtered
+         view can be shared or reloaded.
+
+Expected Request Information:
+- resources: tagged resources (from tagResources), each with `tags` and `highlights`.
+- The URL's ?q= and ?tags= (comma-separated), or the original page's ?category=, read as its matching tag.
+
+Expected Response Information:
+- The search text, selected tags, and setters for both.
+- filteredResources: the matching resources in A–Z order.
+- tagCounts: how many results each tag would give.
+- highlightPattern for marking the search words, and suggestions for the search box.
+*/
+
 import { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { allTags, renamedTags, searchSynonyms, tagForCategory, tagGroups } from "../assets/data/ResourceTagData";
-import { buildHighlightPattern, scoreResource, textMatchesTokens, tokenize } from "../utils/resourceSearch";
+import { allTags, searchSynonyms, tagForCategory, tagGroups } from "../assets/data/ResourceTagData";
+import { buildHighlightPattern, resourceMatchesTokens, textMatchesTokens, tokenize } from "../utils/resourceSearch";
 
 const MAX_TAG_SUGGESTIONS = 4;
 const MAX_RESOURCE_SUGGESTIONS = 5;
 
-const readTags = (searchParams) => {
+function readTags(searchParams) {
     const tags = searchParams.get("tags");
-    if (tags !== null) {
-        return tags.split(",").map((tag) => renamedTags[tag] ?? tag).filter((tag) => allTags.includes(tag));
-    }
-    const legacyTag = tagForCategory[searchParams.get("category")];
-    return legacyTag ? [legacyTag] : [];
-};
+    if (tags !== null) return tags.split(",").filter((tag) => allTags.includes(tag));
+    const categoryTag = tagForCategory[searchParams.get("category")];
+    return categoryTag ? [categoryTag] : [];
+}
 
 // Tags in the same group widen results (any of them); tags in different groups narrow them (each group must match).
-const matchesTagGroups = (resource, selectedTags, skippedGroup) => tagGroups.every((group) => {
-    if (group === skippedGroup) return true;
-    const groupSelection = group.tags.filter((tag) => selectedTags.includes(tag));
-    return groupSelection.length === 0 || groupSelection.some((tag) => resource.tags.includes(tag));
-});
+function matchesTagGroups(resource, selectedTags, skippedGroup) {
+    return tagGroups.every((group) => {
+        if (group === skippedGroup) return true;
+        const groupSelection = group.tags.filter((tag) => selectedTags.includes(tag));
+        return groupSelection.length === 0 || groupSelection.some((tag) => resource.tags.includes(tag));
+    });
+}
 
 const compareNames = (first, second) =>
     first.rName.trim().localeCompare(second.rName.trim(), "en", { sensitivity: "base" });
 
-const useResourceFilters = (resources) => {
+export default function useResourceFilters(resources) {
     const [searchParams, setSearchParams] = useSearchParams();
     const searchTerm = searchParams.get("q") ?? "";
     const selectedTags = useMemo(() => readTags(searchParams), [searchParams]);
     const tokens = useMemo(() => tokenize(searchTerm), [searchTerm]);
     const hasQuery = tokens.length > 0;
 
-    // Every write re-saves the tags so a legacy ?category= is converted rather than lost. A ?sort= from an older
-    // link is dropped, since results are always A–Z.
+    // Every write re-saves the tags, so a ?category= link becomes a ?tags= one instead of losing its filter.
     const updateParams = (changes, options) => {
         setSearchParams((currentParams) => {
             const nextParams = new URLSearchParams(currentParams);
             nextParams.delete("category");
-            nextParams.delete("sort");
             Object.entries({ tags: selectedTags.join(","), ...changes }).forEach(([key, value]) => {
                 if (value) {
                     nextParams.set(key, value);
@@ -70,23 +76,22 @@ const useResourceFilters = (resources) => {
     const applyTagSuggestion = (tag) => updateParams({ q: "", tags: [...selectedTags, tag].join(",") });
     const applyResourceSuggestion = (resource) => updateParams({ q: resource.rName.trim() });
 
-    const scoredMatches = useMemo(() => resources
-        .map((resource) => ({ resource, score: hasQuery ? scoreResource(resource, tokens, searchSynonyms) : 0 }))
-        .filter(({ score }) => !hasQuery || score > 0), [resources, tokens, hasQuery]);
+    const resourcesMatchingSearch = useMemo(() => {
+        if (!hasQuery) return resources;
+        return resources.filter((resource) => resourceMatchesTokens(resource, tokens, searchSynonyms));
+    }, [resources, tokens, hasQuery]);
 
-    // Results are always A–Z, whether browsing, filtering, or searching.
-    const filteredResources = useMemo(() => scoredMatches
-        .filter(({ resource }) => matchesTagGroups(resource, selectedTags))
-        .map(({ resource }) => resource)
-        .sort(compareNames), [scoredMatches, selectedTags]);
+    const filteredResources = useMemo(
+        () => resourcesMatchingSearch.filter((resource) => matchesTagGroups(resource, selectedTags)).sort(compareNames),
+        [resourcesMatchingSearch, selectedTags]
+    );
 
     // A tag's count is how many results there would be with it selected, given the other groups' selections.
-    const tagCounts = useMemo(() => Object.fromEntries(tagGroups.flatMap((group) => group.tags.map((tag) => [
-        tag,
-        scoredMatches.filter(({ resource }) =>
-            resource.tags.includes(tag) && matchesTagGroups(resource, selectedTags, group)
-        ).length,
-    ]))), [scoredMatches, selectedTags]);
+    const tagCounts = useMemo(() => Object.fromEntries(tagGroups.flatMap((group) => group.tags.map((tag) => {
+        const resultsWithTag = resourcesMatchingSearch.filter((resource) =>
+            resource.tags.includes(tag) && matchesTagGroups(resource, selectedTags, group)).length;
+        return [tag, resultsWithTag];
+    }))), [resourcesMatchingSearch, selectedTags]);
 
     const highlightPattern = useMemo(() => buildHighlightPattern(tokens, searchSynonyms), [tokens]);
 
@@ -118,6 +123,4 @@ const useResourceFilters = (resources) => {
         suggestions,
         isFiltering: hasQuery || selectedTags.length > 0,
     };
-};
-
-export default useResourceFilters;
+}

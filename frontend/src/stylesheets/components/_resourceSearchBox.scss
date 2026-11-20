@@ -1,6 +1,7 @@
 /*
 Purpose: Style the Resources search box and the suggestion list below it.
 Expected Request Information: Classes emitted by ResourceSearchBox.
+Expected Response Information: A rounded search field with a floating list of tag and resource suggestions.
 */
 @use "../abstracts" as *;
 @use "../base/misc";
@@ -11,14 +12,13 @@ Expected Request Information: Classes emitted by ResourceSearchBox.
     gap: $space-2;
 }
 
-.resourceSearchLabel {
+.resourceSearchBox__label {
     @extend %pageKicker;
 }
 
-.resourceSearchField {
+.resourceSearchBox__field {
     display: flex;
     align-items: center;
-    gap: 6px;
     min-height: 48px;
     box-sizing: border-box;
     padding: 5px $space-2 5px 10px;
@@ -53,7 +53,7 @@ Expected Request Information: Classes emitted by ResourceSearchBox.
     }
 }
 
-.resourceSearchSuggestions {
+.resourceSearchBox__suggestions {
     position: absolute;
     z-index: 6;
     top: calc(100% + 6px);
@@ -70,12 +70,12 @@ Expected Request Information: Classes emitted by ResourceSearchBox.
     box-shadow: 0 18px 40px theme-alpha(shadow, 0.16);
 }
 
-.resourceSearchGroupLabel {
+.resourceSearchBox__groupLabel {
     @extend %pageKicker;
     padding: $space-2 10px $space-1;
 }
 
-.resourceSearchOption {
+.resourceSearchBox__option {
     display: flex;
     align-items: center;
     gap: $space-3;
@@ -90,7 +90,7 @@ Expected Request Information: Classes emitted by ResourceSearchBox.
         background: theme(tint);
     }
 
-    .resourceCardIcon {
+    .resourceIcon {
         width: 30px;
         height: 30px;
         flex-basis: 30px;
@@ -98,20 +98,20 @@ Expected Request Information: Classes emitted by ResourceSearchBox.
     }
 }
 
-.resourceSearchOptionTag {
+.resourceSearchBox__optionTag {
     padding: 3px $space-3;
     border-radius: $radius-pill;
     background: theme(tint);
     color: theme(heading);
     font-weight: $font-weight-medium;
 
-    .resourceSearchOption:hover &,
-    .resourceSearchOption[aria-selected="true"] & {
+    .resourceSearchBox__option:hover &,
+    .resourceSearchBox__option[aria-selected="true"] & {
         background: theme(surface);
     }
 }
 
-.resourceSearchOptionHint {
+.resourceSearchBox__optionHint {
     margin-left: auto;
     color: theme(text-muted);
     font-size: $font-size-small;

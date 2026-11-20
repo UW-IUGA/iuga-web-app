@@ -1,10 +1,14 @@
 /*
- * Purpose: Tag data for the Resources page: the tag groups, search synonyms, and how today's categorized
- *   resources become tagged ones.
- * Expected Request: Imported by the Resources page and useResourceFilters.
- * Expected Response: The full tag list, tag groups, tagResources() for the resources grouped by category,
- *   pickStartHere() for the Start Here picks, and extraTags, where interest tags are added by hand.
- */
+Purpose: Tag data for the Resources page: the tag groups, search synonyms, each resource's bullet points, and
+         how the categorized resources in ResourcesData become tagged ones.
+
+Expected Response Information:
+- tagGroups and allTags: the filter tags.
+- tagResources(resourcesByCategory): each resource with its tags and bullet points.
+- pickStartHere(taggedResources): the Start Here resources, in order.
+- extraTags: where interest tags are added to resources by hand.
+*/
+
 import { resourceTags } from "./Enum";
 
 // Type says who runs a resource; support tags replace the old fixed categories; interest tags are added by
@@ -28,11 +32,6 @@ export const tagGroups = [
 ];
 
 export const allTags = tagGroups.flatMap((group) => group.tags);
-
-// Tags that were renamed, so an older link such as ?tags=Community still opens the same filter.
-export const renamedTags = {
-    Community: "Social",
-};
 
 // Search-only alternate words: typing a key also finds resources matching its values (plurals are handled
 // automatically). These are never shown on the page.
@@ -70,7 +69,7 @@ export const searchSynonyms = {
     international: ["f-1"],
 };
 
-// Maps the old ?category= values (still linked from the Home page) to their tags.
+// Maps the original page's ?category= values (still linked from the Home page) to their tags.
 export const tagForCategory = {
     [resourceTags.ACADEMIC]: "Academic",
     [resourceTags.CAREER]: "Career",

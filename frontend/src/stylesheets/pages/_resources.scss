@@ -1,7 +1,14 @@
+/*
+Purpose: Style the Resources page: Start Here beside the page title, then the filter sidebar beside the resource
+         cards.
+Expected Request Information: Classes emitted by the Resources page.
+Expected Response Information: Start Here lines up with the title and intro on desktops and moves under them on
+         smaller screens; the sidebar stays beside the cards on laptops and above them on tablets and phones.
+*/
 @use "../abstracts" as *;
 @use "../base/misc";
 
-.resourcesPage {
+.resources {
     @extend %pageFrame;
     margin-bottom: $space-24;
 
@@ -19,34 +26,23 @@
     }
 }
 
-%resourcesLegend {
-    @extend %pageKicker;
-    margin-bottom: 6px;
-    padding: 0;
-}
-
-.resourcesKicker,
-.resourceCardCategory {
+.resources__startHereLabel {
     @extend %pageKicker;
 }
 
-// Start Here: four small cards beside the page title. They stretch to the header text's height, so their top and
-// bottom line up with the label and the end of the intro.
-
-// The text column is only as wide as the title and intro need (36rem holds the title's longest line and the
-// intro at desktop sizes, so neither rewraps), and the panel fills the rest of the row.
-.resourcesPage .pageHeader--withVisual {
+// Start Here: the text column is only as wide as the title and intro need (36rem), and Start Here fills the rest
+// of the row, stretching so its top and bottom line up with the title and the end of the intro.
+.resources .pageHeader--withVisual {
     grid-template-columns: minmax(0, 36rem) minmax(0, 1fr);
     gap: $space-8;
     align-items: stretch;
 }
 
-.resourcesPage .pageHeader__visual {
+.resources .pageHeader__visual {
     display: flex;
 }
 
-// No panel behind Start Here: each pick is its own small site card that lifts on hover, like the resource cards.
-.resourcesStartHere {
+.resources__startHere {
     display: flex;
     flex: 1;
     flex-direction: column;
@@ -58,8 +54,7 @@
     }
 }
 
-// Two by two; the rows grow to fill the height beside the header text.
-.resourcesStartList {
+.resources__startList {
     display: grid;
     flex: 1;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -70,9 +65,8 @@
     list-style: none;
 }
 
-// The names are subheading size so they read easily, and each icon is sized from that same value (2.25 times the
-// text size), so the icons grow and shrink with the text.
-.resourcesStartLink {
+// Each icon is sized from the name's font size, so the two grow and shrink together.
+.resources__startLink {
     display: flex;
     height: 100%;
     box-sizing: border-box;
@@ -93,7 +87,7 @@
         transform 150ms ease;
     @include focus-ring;
 
-    .resourceCardIcon {
+    .resourceIcon {
         width: calc(#{$font-size-subheading} * 2.25);
         height: calc(#{$font-size-subheading} * 2.25);
         flex-basis: calc(#{$font-size-subheading} * 2.25);
@@ -106,46 +100,69 @@
     }
 }
 
-.resourcesNoBreak {
+.resources__keepOnOneLine {
     white-space: nowrap;
 }
 
-// Below desktop width the panel's column is too narrow to fit beside the header text, so it moves under
-// the text (as PageHeader does on tablets). It stays two by two, since the names are too large for one row of four.
+// Below desktop width Start Here is too narrow beside the title, so it moves under the intro.
 @include media("<desktop") {
-    .resourcesPage .pageHeader--withVisual {
+    .resources .pageHeader--withVisual {
         grid-template-columns: minmax(0, 1fr);
-        gap: $space-8;
     }
 }
 
-// Filter sidebar beside the results. The results header takes the first row over the cards' column only, so the
-// sidebar starts level with the first row of cards.
-
-.resourcesDirectory {
+// The results header sits over the cards' column only, so the sidebar starts level with the first row of cards.
+.resources__directory {
     display: grid;
     grid-template-areas:
         ". header"
         "sidebar results";
-    // Wide enough for the longest tag ("Entrepreneurship") on one line beside its checkbox and count, with the
-    // sidebar's scrollbar showing.
+    // Wide enough for the longest tag ("Entrepreneurship") beside its checkbox, count, and the scrollbar.
     grid-template-columns: 292px minmax(0, 1fr);
     gap: 0 $space-8;
     align-items: start;
 }
 
-// Taller than the sticky sidebar can be, so moving the results to the top of the view after a filter change
-// (see Resources.jsx) always has room, and the sidebar keeps its place even with no results. The scroll margin
-// matches the sidebar's sticky offset.
-.resourcesResults {
+.resources__resultsHeader {
+    grid-area: header;
+    margin-bottom: $space-6;
+    padding-bottom: $space-3;
+    border-bottom: 1px solid theme(border-subtle);
+}
+
+.resources__resultsTitle {
+    margin: 0 0 6px;
+    // Paging lands here; keep it clear of the sticky navbar.
+    scroll-margin-top: $space-24;
+
+    &:focus {
+        outline: none;
+    }
+}
+
+// One line, so picking tags never changes the header's height.
+.resources__resultCount {
+    overflow: hidden;
+    margin: 0;
+    color: theme(text-muted);
+    font: $font-weight-medium #{$font-size-label}/ 1.4 $font-family-base;
+    letter-spacing: $letter-spacing-label;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+// Taller than the sidebar can be, so after a filter change the results can always be scrolled to the top of the
+// view (see Resources.jsx). The scroll margin matches the sidebar's sticky offset.
+.resources__resultsBody {
     grid-area: results;
     min-height: calc(100vh - #{$space-24});
     scroll-margin-top: $space-24;
 }
 
-// Stays in view below the sticky navbar; a sidebar taller than the window scrolls on its own, up and down only.
-// Right-to-left direction puts that scrollbar on the left edge, and each item inside is set back to left-to-right.
-.resourcesSidebar {
+// Stays in view below the navbar and scrolls on its own when taller than the window. Right-to-left puts the
+// scrollbar on the left edge; the items inside are set back to left-to-right.
+.resources__sidebar {
     grid-area: sidebar;
     position: sticky;
     top: $space-24;
@@ -168,11 +185,13 @@
     }
 
     legend {
-        @extend %resourcesLegend;
+        @extend %pageKicker;
+        margin-bottom: 6px;
+        padding: 0;
     }
 }
 
-.resourcesSidebarHeader {
+.resources__sidebarHeader {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -183,11 +202,38 @@
     }
 }
 
-.resourcesSidebarHeader .resourcesFiltersToggle {
+.resources__sidebarHeader .resources__filtersToggle {
     display: none;
 }
 
-.resourcesFilterOption {
+// Text-only, styled like the "Search" label above it. The selector matches the specificity of the shared rule in
+// components/_buttons.scss that pads buttons between 1024px and 1299px, and loads later, so it keeps its own padding.
+.resources .resources__sidebar button.resources__clearButton {
+    @extend %pageKicker;
+    justify-self: center;
+    margin-top: -$space-1;
+    padding: $space-1 $space-2;
+    border-radius: $radius;
+    background: transparent;
+    @include focus-ring;
+
+    &:hover {
+        color: theme(heading);
+    }
+
+    &::before {
+        content: none;
+    }
+
+    &:disabled {
+        border: 0;
+        background: transparent;
+        color: theme(text-muted);
+        opacity: 0.7;
+    }
+}
+
+.resources__filterOption {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -209,14 +255,14 @@
     }
 }
 
-// A tag name too long for the row wraps onto a second line instead of widening the sidebar.
-.resourcesFilterName {
+// A tag name too long for its row wraps rather than widening the sidebar.
+.resources__filterName {
     flex: 1;
     min-width: 0;
     overflow-wrap: anywhere;
 }
 
-.resourcesFilterCount {
+.resources__filterCount {
     min-width: 22px;
     padding: 2px 6px;
     border-radius: $radius-pill;
@@ -227,68 +273,7 @@
     text-align: center;
 }
 
-// Text-only, in the same small capitals as the "Search" label above it, centered under the search bar. It opts out
-// of the site-wide filled button styles. The shared rule in components/_buttons.scss that pads buttons between 1024px
-// and 1299px compiles to specificity 0,3,1; this selector matches it and loads later, so the button keeps its own
-// padding at every width.
-.resourcesPage .resourcesSidebar button.resourcesClearButton {
-    @extend %pageKicker;
-    justify-self: center;
-    margin-top: -$space-1;
-    padding: $space-1 $space-2;
-    border-radius: $radius;
-    background: transparent;
-    @include focus-ring;
-
-    &:hover {
-        color: theme(heading);
-    }
-
-    &::before {
-        content: none;
-    }
-
-    // Nothing to clear yet: plain muted text rather than the site-wide grey disabled button.
-    &:disabled {
-        border: 0;
-        background: transparent;
-        color: theme(text-muted);
-        opacity: 0.7;
-    }
-}
-
-// Results
-
-.resourcesResultsHeader {
-    grid-area: header;
-    margin-bottom: $space-6;
-    padding-bottom: $space-3;
-    border-bottom: 1px solid theme(border-subtle);
-}
-
-.resourcesResultsTitle {
-    margin: 0 0 6px;
-    // Paging lands here; keep it clear of the sticky navbar.
-    scroll-margin-top: $space-24;
-
-    &:focus {
-        outline: none;
-    }
-}
-
-// Always one line, so the header's height never changes as tags are picked; the checked boxes list them all.
-.resourcesResultCount {
-    overflow: hidden;
-    margin: 0;
-    color: theme(text-muted);
-    font: $font-weight-medium #{$font-size-label}/ 1.4 $font-family-base;
-    letter-spacing: $letter-spacing-label;
-    text-overflow: ellipsis;
-    text-transform: uppercase;
-    white-space: nowrap;
-}
-
-.resourceGrid {
+.resources__cardGrid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: $grid-gap;
@@ -307,13 +292,13 @@
     }
 }
 
-.resourcePaginationButton:disabled {
+.resourcePagination__button:disabled {
     opacity: 0.4;
     background: theme(surface);
     color: theme(text);
 }
 
-.resourcesEmptyState {
+.resources__emptyState {
     display: grid;
     justify-items: center;
     gap: $space-3;
@@ -330,16 +315,15 @@
     }
 }
 
-// Three cards per row once the sidebar leaves room for them.
 @include media(">=desktop") {
-    .resourceGrid {
+    .resources__cardGrid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
 
+// The sidebar moves above the results, no longer sticky or scrolling, with its tags behind the Show button.
 @include media("<sm-desktop") {
-    // Filters first, as before, then the results header and cards.
-    .resourcesDirectory {
+    .resources__directory {
         grid-template-areas:
             "sidebar"
             "header"
@@ -347,13 +331,11 @@
         grid-template-columns: minmax(0, 1fr);
     }
 
-    // The sidebar is not sticky here, so the results only need their own height.
-    .resourcesResults {
+    .resources__resultsBody {
         min-height: 0;
     }
 
-    // Not sticky or scrolling here, so the left-hand scrollbar setup is not needed.
-    .resourcesSidebar {
+    .resources__sidebar {
         position: static;
         max-height: none;
         margin-bottom: $space-8;
@@ -361,18 +343,18 @@
         direction: ltr;
     }
 
-    .resourcesSidebarHeader .resourcesFiltersToggle {
+    .resources__sidebarHeader .resources__filtersToggle {
         display: inline-flex;
         height: 36px;
         padding: 6px $space-4;
         font-size: $font-size-small;
     }
 
-    .resourcesFilterGroups {
+    .resources__filterGroups {
         display: none;
     }
 
-    .resourcesFilterGroups--open {
+    .resources__filterGroups--open {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 0 $space-4;
@@ -380,14 +362,14 @@
 }
 
 @include media("<tablet") {
-    .resourcesPage {
+    .resources {
         width: 100%;
         margin-bottom: $space-16;
     }
 
-    .resourcesStartList,
-    .resourcesFilterGroups--open,
-    .resourceGrid {
+    .resources__startList,
+    .resources__filterGroups--open,
+    .resources__cardGrid {
         grid-template-columns: 1fr;
     }
 

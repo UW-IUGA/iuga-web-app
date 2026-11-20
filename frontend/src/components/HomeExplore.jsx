@@ -36,7 +36,8 @@ function WholePhoto({ image }) {
 }
 
 // `image` is the row's thumbnail. `Preview` fills the large card and receives
-// that image and whether its card is the one showing. `tone` is an event
+// that image and whether its card is the one showing. An `immersive` preview
+// fills the whole card and carries its own copy over the image. `tone` is an event
 // category colour; without one the brand colour is used. `invite` marks the one
 // destination worth a nudge once the section is in view.
 const DESTINATIONS = [
@@ -72,6 +73,7 @@ const DESTINATIONS = [
     to: "/shop",
     image: fairMerch,
     Preview: MerchCarousel,
+    immersive: true,
   },
   {
     label: "About IUGA",
@@ -152,12 +154,27 @@ export default function HomeExplore() {
           aria-hidden="true"
         >
           <div className="homePreviewPhoto">
-            {DESTINATIONS.map(({ to, image, Preview }, i) => (
-              <div key={to} className={activeClass("homePreviewLayer", i === active)}>
-                <Preview image={image} playing={i === active} />
-              </div>
-            ))}
+            {DESTINATIONS.map(({ to, image, Preview, immersive }, i) =>
+              immersive ? null : (
+                <div key={to} className={activeClass("homePreviewLayer", i === active)}>
+                  <Preview image={image} playing={i === active} />
+                </div>
+              ),
+            )}
           </div>
+          {DESTINATIONS.map((destination, i) =>
+            destination.immersive ? (
+              <div
+                key={destination.to}
+                className={activeClass("homePreviewLayer isImmersive", i === active)}
+              >
+                <destination.Preview
+                  {...destination}
+                  playing={i === active}
+                />
+              </div>
+            ) : null,
+          )}
           <div className="homePreviewBody">
             {DESTINATIONS.map((destination, i) => (
               <div

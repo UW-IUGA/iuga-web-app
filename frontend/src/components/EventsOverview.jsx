@@ -37,7 +37,7 @@ const loadEventDetails = async (event) => {
 
 function EventsOverview() {
     const { isAuthenticated, can } = useAuthContext();
-    const { state, pathname } = useLocation();
+    const { state } = useLocation();
     const [calendarEvents, setCalendarEvents] = useState([]);
     // "loading" until the list arrives, then "ready"; "failed" if it could not be fetched.
     const [eventsStatus, setEventsStatus] = useState("loading");
@@ -54,10 +54,6 @@ function EventsOverview() {
     const [rsvps, setRsvps] = useState({ session: 0, eventIds: new Set() });
     // The past event whose photos are open in the viewer, and which photo is showing.
     const [openPhoto, setOpenPhoto] = useState(null);
-
-    useEffect(() => {
-        window.scrollTo(0, 0);
-    }, [pathname]);
 
     // RSVPs belong to whoever was signed in when they were made, so a new session starts empty.
     useEffect(() => {

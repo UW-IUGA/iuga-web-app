@@ -63,7 +63,8 @@ function ResourcesPage({ resources }) {
     const resultCount = visibleCategories.reduce((count, category) => count + category.items.length, 0);
     const isFiltering = searchTerm.trim().length > 0 || selectedCategory !== ALL_RESOURCES;
 
-    // Every section starts open; a new filter or search reopens any closed ones.
+    // Every section starts open. Picking a category, or starting or clearing a
+    // search, reopens any the visitor closed.
     useEffect(() => {
         setCollapsedCategories(new Set());
     }, [isFiltering, selectedCategory]);

@@ -16,3 +16,18 @@
     background-color: theme(accent);
     outline-color: theme(accent);
 }
+
+// A category's colour as `--tone`, for anything marked data-tone to read: a
+// pill, a card, or a button inside a toned card, which inherits it. Elements
+// with no tone fall back to their own default, usually the brand.
+[data-tone="academic"] {
+    --tone: #{theme(academic-primary)};
+}
+
+[data-tone="career"] {
+    --tone: #{theme(career-primary)};
+}
+
+[data-tone="social"] {
+    --tone: #{theme(social-primary)};
+}

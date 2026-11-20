@@ -41,21 +41,8 @@
     }
 
     // A fill means "this is the action" (--fill) or "this is selected"
-    // (aria-pressed). Its colour is the button's tone: brand by default, or a
-    // category through data-tone.
-    --pill-tone: #{theme(brand)};
-
-    &[data-tone="academic"] {
-        --pill-tone: #{theme(academic-primary)};
-    }
-
-    &[data-tone="career"] {
-        --pill-tone: #{theme(career-primary)};
-    }
-
-    &[data-tone="social"] {
-        --pill-tone: #{theme(social-primary)};
-    }
+    // (aria-pressed). Its colour is the tone (base/colors), or the brand.
+    --pill-tone: var(--tone, #{theme(brand)});
 
     &[data-tone] {
         border-color: var(--pill-tone);

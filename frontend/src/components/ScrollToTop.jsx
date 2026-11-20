@@ -1,5 +1,5 @@
 /*
-Purpose: Open every page at its top, so pages need not do it themselves.
+Purpose: Start new pages at the top. When visitors go back or forward, return them to where they left off.
 Authentication/Authorization Requirements: None.
 
 Expected Request Information:

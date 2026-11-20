@@ -61,7 +61,13 @@ function EventAgenda({ events = [], initialDate, status = "ready", onRetry, onSe
     );
     const showingFeatured = isFeatured && !browsing;
 
-    // When the featured events are in a later week, the strip sits on the week of the first one.
+    /*
+    The row of days shows the current week. When this week has no events, the
+    agenda features the next upcoming ones instead, and the row of days moves to
+    the week of the soonest one. When nothing is upcoming, the agenda features the
+    most recent past events, and the row of days stays on the current week.
+    Either way, the row stays put until the visitor picks a day or changes weeks.
+    */
     const anchor =
         showingFeatured && featured.kind === "upcoming" && featured.items[0]
             ? new Date(featured.items[0].eStartDate)

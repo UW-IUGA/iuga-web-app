@@ -1,5 +1,5 @@
 /*
-Purpose: Style the event popover opened from the month and week views.
+Purpose: Style the event popover opened from the month, week and day views.
 Expected Request Information: Classes emitted by EventPopover, rendered into document.body, inside an .eventsCalendar root.
 Expected Response Information: A floating card with the event's details and a close button.
 */
@@ -7,15 +7,19 @@ Expected Response Information: A floating card with the event's details and a cl
 @use "../../abstracts/eventsCalendar" as *;
 
 .eventsCalendar {
-    // The event popover, shared by the week and month views. Fixed to the
-    // viewport and placed beside the event from script (EventPopover), outside
-    // the calendar so its clipping cannot cut it off.
+    // The event popover, shared by the month, week and day views. Placed on the
+    // page beside the event from script (EventPopover), outside the calendar so
+    // its clipping cannot cut it off. On the page rather than fixed to the window,
+    // so it scrolls with the page, and its event, without any script.
     .popover {
-        position: fixed;
+        position: absolute;
         top: 0;
         left: 0;
-        // Over the sticky nav (10) and its scrim (9), like any popup.
-        z-index: 20;
+        // Over the page (nothing on it is above 2; the grid keeps its own layers inside
+        // it), but under the sticky site navigation (100). EventPopover places it below
+        // the navigation, and once the page scrolls on with the calendar it slides up
+        // under the navigation like the rest of the page, rather than over it.
+        z-index: 90;
 
         // Wide enough that a typical event's description wraps to a few lines
         // rather than a tall column, so it rarely needs to scroll at all.
@@ -51,13 +55,18 @@ Expected Response Information: A floating card with the event's details and a cl
         gap: $calendar-space-sm;
     }
 
+    // View day, in the month and week views' popover. The same strong pill as
+    // Sign in to RSVP, at the 32px that fits the bar beside Close.
     .popover__button {
+        @include calendar-strong-button;
+
         min-height: 32px;
         padding: $calendar-space-xs $calendar-space-md;
-        font-size: 13px;
     }
 
     .popover__close {
+        // Stays on the right even when the bar has no View day button.
+        margin-left: auto;
         width: 32px;
         height: 32px;
         padding: 0;

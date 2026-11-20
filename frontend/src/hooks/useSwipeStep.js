@@ -11,7 +11,7 @@ const DRAG_RATIO = 0.6;
 const ENTER_OFFSET = 40;
 
 /**
- * Swipe across the calendar to step it, as the toolbar's arrows do. The arrows
+ * Swipe across the calendar to step it, as the CalendarControls arrows do. The arrows
  * stay: a swipe is a path-based gesture, so WCAG 2.5.1 asks for a single-tap
  * way to do the same, and a screen reader keeps swipes for itself.
  *
@@ -39,11 +39,13 @@ export default function useSwipeStep(ref, onStep, enabled = true) {
         let start = null;
         let axis = null;
         let dx = 0;
+        let dy = 0;
 
         const reset = () => {
             start = null;
             axis = null;
             dx = 0;
+            dy = 0;
         };
 
         const springBack = () => {
@@ -99,7 +101,8 @@ export default function useSwipeStep(ref, onStep, enabled = true) {
 
             const touch = event.touches[0];
             dx = touch.clientX - start.x;
-            axis ??= lockAxis(dx, touch.clientY - start.y);
+            dy = touch.clientY - start.y;
+            axis ??= lockAxis(dx, dy);
 
             if (axis === "y") {
                 reset();
@@ -117,7 +120,7 @@ export default function useSwipeStep(ref, onStep, enabled = true) {
                 reset();
                 return;
             }
-            const amount = swipeStep(dx);
+            const amount = swipeStep(dx, dy);
             reset();
             if (amount) step(amount);
             else springBack();

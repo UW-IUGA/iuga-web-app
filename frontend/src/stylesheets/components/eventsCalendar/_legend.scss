@@ -1,13 +1,21 @@
 /*
-Purpose: Style the event category colour key.
+Purpose: Style the event tag key, which is also the tag filter.
 Expected Request Information: Classes emitted by Legend, inside an .eventsCalendar root.
-Expected Response Information: A row or column of coloured dots, each with its category name.
+Expected Response Information: A "Show" group of tags, each its colour square and name, as a column or a row of chips.
 */
 @use "../../abstracts" as *;
 @use "../../abstracts/eventsCalendar" as *;
 
 .eventsCalendar {
-    // The colour key: what each event label's colour means.
+    // One space between everything in the legend: the Show label, each tag, and
+    // Show all, across a row and down a column alike.
+    $legend-gap: $calendar-space-sm;
+
+    // The tags and Show all, a step up from the view switch's 13px so the filter
+    // reads easily; the Show label matches it, set apart by its weight.
+    $legend-font-size: 14px;
+
+    // The tag key and filter: what each colour means, and whether its events show.
     // The elections pages style a global .legend as a sticky column. The
     // calendar's key sets back what they set, so it lays out the same anywhere.
     .legend {
@@ -15,23 +23,24 @@ Expected Response Information: A row or column of coloured dots, each with its c
         top: auto;
         display: flex;
         flex-direction: row;
-        list-style: none;
+        align-items: center;
+        gap: $legend-gap;
+        font-size: $legend-font-size;
     }
 
-    // In the toolbar, beside the range. Wraps rather than overflowing on a narrow
+    // In the controls, beside the range. Wraps rather than overflowing on a narrow
     // screen.
     .legend--row {
         flex-wrap: wrap;
-        gap: $calendar-space-2xs $calendar-space-md;
     }
 
-    // Under the mini month, one label to a line to fit the sidebar's width.
+    // Under the mini month, one tag to a line to fit the sidebar's width.
     .legend--column {
         flex-direction: column;
-        gap: $calendar-space-sm;
+        align-items: flex-start;
     }
 
-    // The toolbar's copy in the month, week and day views. Those keep their
+    // The copy in CalendarControls for month, week and day. Those views keep their
     // legend under the mini month, so this one shows only where the sidebar is
     // hidden — the same query that hides it, so exactly one copy is ever shown
     // and a screen reader never meets two.
@@ -43,56 +52,123 @@ Expected Response Information: A row or column of coloured dots, each with its c
         }
     }
 
-    // The elections pages' .legend pads its li, gives it a pointer, and bolds it on
-    // hover. The calendar's key is not clickable, so it has none of that.
+    // Set like the mini month's label above it (.mini__label).
+    .legend__heading {
+        font-size: $legend-font-size;
+        font-weight: 500;
+        color: $calendar-text;
+    }
+
+    // Bundled close, as the key's items were before they could be pressed. The
+    // elections pages' .legend indents its ul by 1.25rem, which opened a wide gap
+    // after Show, so it is set back here.
+    .legend__items {
+        display: flex;
+        flex-wrap: wrap;
+        gap: $legend-gap;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .legend--column .legend__items {
+        flex-direction: column;
+    }
+
+    // The elections pages' .legend pads its li, sets it at the body size, gives it a
+    // pointer, and bolds it on hover. Here the label inside it is the control, so
+    // the li stays plain, at the legend's own size.
     .legend__item,
     .legend__item:hover {
         padding: 0;
         cursor: auto;
+        font-size: inherit;
         font-weight: inherit;
     }
 
-    .legend__item {
+    // One tag: its square and its name, all of it pressable. 24px tall, the minimum
+    // target (WCAG 2.5.8), so the column stays as compact as the key was.
+    .legend__toggle {
+        position: relative;
+        min-height: 24px;
+
         display: flex;
         align-items: center;
         gap: $calendar-space-sm;
 
-        // The view switch's size, in full white. White clears 17:1 on the page and
-        // 15:1 on a card (WCAG 1.4.3 asks 4.5:1).
-        font-size: $calendar-control-font-size;
         color: $calendar-text;
+        cursor: pointer;
     }
 
-    // The label colours clear 3:1 against the page and the cards, the minimum
-    // for a graphic that carries meaning (WCAG 1.4.11), so the swatch reads
-    // without a border.
-    .legend__swatch {
+    // Hidden events: the name steps back. Muted text still clears 4.5:1 on every
+    // surface the key sits on (contrast.test.js).
+    .legend__toggle--off {
+        color: $calendar-copy-muted;
+    }
+
+    // The real checkbox, invisible over the box drawn for it, so a click anywhere on
+    // the tag still lands on a label and the keyboard reaches a native control.
+    .legend__input {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    // The key's colour square, as it always was: filled while the tag's events
+    // show, hollow once they are hidden. The outline is drawn inside the square,
+    // so the two states are the same size. The label colours clear 3:1 against the
+    // page and the cards (WCAG 1.4.11), so the outline reads as well as the fill.
+    .legend__color {
         flex: 0 0 auto;
         width: 13px;
         height: 13px;
+
         border-radius: 4px;
+        background-color: var(--legend-color);
     }
 
-    // One line on a narrow screen; the query below decides when it is two.
-    @include media("<=#{$calendar-mobile}") {
-        .legend--row {
-            flex-wrap: nowrap;
-            gap: $calendar-space-sm $calendar-space-md;
+    .legend__toggle--off .legend__color {
+        background-color: transparent;
+        box-shadow: inset 0 0 0 2px var(--legend-color);
+    }
+
+    // The input is invisible, so its focus ring is drawn on the box beside it.
+    .legend__input:focus-visible + .legend__color {
+        outline: 2px solid $calendar-text;
+        outline-offset: 2px;
+    }
+
+    .legend__toggle:hover .legend__color {
+        filter: brightness(1.1);
+    }
+
+    // In the controls, each tag is a chip: an outlined pill, which says it can be
+    // pressed where a bare row of names did not.
+    .legend--row .legend__toggle {
+        gap: $calendar-space-xs;
+        padding: 0 $calendar-space-sm 0 $calendar-space-xs;
+        border: 1px solid $calendar-control-border;
+        border-radius: $calendar-radius-pill;
+
+        &:hover {
+            background-color: $calendar-hover;
         }
     }
 
-    // In the toolbar on a narrow screen, four labels on a line, never wrapped to
-    // a stray three and one. Where the width under the range cannot hold all four
-    // at full size — the narrowest phones, or any phone at a large text size —
-    // it goes to two lines of two rather than shrinking the text.
+    // Turns every tag back on. Shown only while some are off. A text button, quieter
+    // than the tags, at the 24px minimum target.
+    .legend__showAll {
+        min-height: 24px;
+        padding: 0;
 
-    // Asked of the width the legend is given (see .toolbar in _toolbar.scss),
-    // not of the screen, so zoom and text size are counted for free.
-    @container toolbar-legend (max-width: 330px) {
-        .legend--row {
-            display: grid;
-            grid-template-columns: repeat(2, max-content);
-            gap: $calendar-space-sm $calendar-space-lg;
-        }
+        font-size: $legend-font-size;
+        text-decoration: underline;
+        background-color: transparent;
+        color: $calendar-text;
+        border-radius: $calendar-radius-sm;
     }
 }

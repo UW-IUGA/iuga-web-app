@@ -10,10 +10,10 @@ Expected Response Information: Day columns over an hour gutter, with event block
     // Must match HOUR_HEIGHT in TimeGrid.jsx — event offsets are percentages of
     // the column, so the two have to agree or events drift off their slots.
     $grid-hour-height: 48px;
-    $grid-gutter-width: 56px;
-    // On a phone, just wide enough for "12 PM" at the gutter's 10px, which hands
-    // the rest back to the days.
-    $grid-gutter-width-narrow: 40px;
+    $grid-gutter-width: 62px;
+    // On a phone, wide enough for "12 PM" at the gutter's 11px with a little
+    // room either side, which hands the rest back to the days.
+    $grid-gutter-width-narrow: 44px;
 
     // The day headers' height: the weekday, the 26px day number and their
     // padding. Stated so the scroller can keep that much clear (see .grid__scroll).
@@ -80,8 +80,6 @@ Expected Response Information: Day columns over an hour gutter, with event block
         align-items: center;
         gap: 2px;
 
-        background: transparent;
-        border-radius: 0;
         color: $calendar-text;
 
         // A solid fill, like Google Calendar's today circle. The old 20% white was
@@ -156,13 +154,21 @@ Expected Response Information: Day columns over an hour gutter, with event block
     .grid__gutter-cell {
         position: relative;
 
+        // The hour labels. Full text colour at 12px, up from muted grey at 10px,
+        // which was hard to read against the grid. A phone's narrow gutter takes
+        // 11px, so "12 PM" fits without crowding the days.
         span {
             position: absolute;
             top: -0.5em;
             right: $calendar-space-sm;
-            font-size: 10px;
+            font-size: 12px;
+            font-weight: 500;
             white-space: nowrap;
-            color: $calendar-copy-muted;
+            color: $calendar-text;
+
+            @include media("<=#{$calendar-mobile}") {
+                font-size: 11px;
+            }
         }
     }
 
@@ -295,15 +301,9 @@ Expected Response Information: Day columns over an hour gutter, with event block
         }
     }
 
-    // A phone's week (TimeGrid's onPickColumn): the day's column is the target,
-    // and a press on an event passes through to it, as the month's chips do.
-    .grid--tap-days {
-        .grid__col {
-            cursor: pointer;
-        }
-
-        .grid__event--button {
-            pointer-events: none;
-        }
+    // A phone's week (TimeGrid's onPickColumn): a press on a day's empty space
+    // goes to that day, as the month's does. Its events still open their popover.
+    .grid--tap-days .grid__col {
+        cursor: pointer;
     }
 }

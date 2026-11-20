@@ -17,6 +17,12 @@ describe("lockAxis", () => {
         // A dead diagonal is not clearly across, so it is not a swipe.
         expect(lockAxis(20, 20)).toBe("y");
     });
+
+    it("leaves a diagonal that leans toward 45 degrees to the scroll", () => {
+        // A scroll can drift like this. Only a move clearly across is a swipe.
+        expect(lockAxis(-30, -25)).toBe("y");
+        expect(lockAxis(-30, 20)).toBe("y");
+    });
 });
 
 describe("swipeStep", () => {
@@ -28,6 +34,15 @@ describe("swipeStep", () => {
     it("springs back from a swipe too short to count", () => {
         expect(swipeStep(-(SWIPE_MIN - 1))).toBe(0);
         expect(swipeStep(SWIPE_MIN - 1)).toBe(0);
+    });
+
+    it("does not step for a touch that is not clearly across by its end", () => {
+        // It started across, but it ran a long way down the page as well.
+        expect(swipeStep(-120, 100)).toBe(0);
+    });
+
+    it("still steps for a swipe that is across by a clear margin", () => {
+        expect(swipeStep(-120, 40)).toBe(1);
     });
 });
 

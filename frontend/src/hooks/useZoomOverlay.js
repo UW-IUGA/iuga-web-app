@@ -79,17 +79,17 @@ export default function useZoomOverlay() {
             gsap.set(el, grow);
             gsap.set(content, { opacity: 1, pointerEvents: "all" });
         } else {
-            gsap.to(el, { ...grow, duration: 0.25 });
+            gsap.to(el, { ...grow, duration: 0.15 });
             gsap.to(content, {
                 opacity: 1,
                 pointerEvents: "all",
                 duration: 0.075,
-                delay: 0.25,
+                delay: 0.15,
                 onStart: () =>
                     gsap.fromTo(
                         items,
                         { y: 50, rotation: () => gsap.utils.random(-20, 20), opacity: 0 },
-                        { y: 0, rotation: 0, opacity: 1, duration: 1, ease: "power2.out", stagger: 0.1 },
+                        { y: 0, rotation: 0, opacity: 1, duration: 0.5, ease: "power2.out", stagger: 0.1 },
                     ),
             });
         }
@@ -126,7 +126,7 @@ export default function useZoomOverlay() {
         gsap.to(content, {
             opacity: 0,
             pointerEvents: "none",
-            duration: 0.2,
+            duration: 0.15,
             onComplete: () => gsap.to(el, { ...shrink, duration: 0.3, onComplete: finish }),
         });
     };

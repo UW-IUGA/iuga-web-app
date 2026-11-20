@@ -91,15 +91,63 @@ describe("calendar styles", () => {
 
     it("keep every control past the 24px minimum target (2.5.8)", () => {
         expect(px(style(".pad__event, .pad__more")["min-height"])).toBeGreaterThanOrEqual(24);
-        expect(px(style(".toolbar__today").height)).toBeGreaterThanOrEqual(24);
+        expect(px(style(".calendar-controls__today").height)).toBeGreaterThanOrEqual(24);
         expect(px(style(".picker__toggle")["min-height"])).toBeGreaterThanOrEqual(24);
         expect(px(style(".strip__month")["min-height"])).toBeGreaterThanOrEqual(24);
         expect(px(style(".strip__month")["min-width"])).toBeGreaterThanOrEqual(24);
     });
 
-    it("pass a phone's tap through the chips too small to aim at, to their day (2.5.8)", () => {
-        expect(style(".pad__event, .pad__more", PHONE)["pointer-events"]).toBe("none");
-        expect(style(".grid--tap-days .grid__event--button")["pointer-events"]).toBe("none");
+    it("let a phone's tap open a month chip or a week event, as on a wide screen", () => {
+        expect(style(".pad__event, .pad__more", PHONE)["pointer-events"]).toBeUndefined();
+        expect(rules.some((rule) => rule.selector.includes(".grid--tap-days .grid__event--button"))).toBe(false);
+    });
+
+    it("keep the phone chips at the 24px minimum target, now that a tap opens them (2.5.8)", () => {
+        expect(px(style(".pad__event, .pad__more", PHONE)["min-height"])).toBeGreaterThanOrEqual(24);
+    });
+
+    it("fit three phone chips in a phone's day", () => {
+        // The chips and their two 2px gaps, under the offset below the day number.
+        const chips = 3 * px(style(".pad__event, .pad__more", PHONE)["min-height"]) + 2 * 2;
+        const offset = px(style(".pad__events", PHONE)["margin-top"]);
+        expect(px(style(".pad", PHONE)["min-height"])).toBeGreaterThanOrEqual(chips + offset);
+    });
+
+    it("keep the month the week and day's height on a phone, rather than shrinking its weeks", () => {
+        expect(style(".card--month", PHONE)["min-height"]).toBeUndefined();
+        expect(rules.some((rule) => rule.media === PHONE && rule.selector.includes(".row:not(.weekday-header)"))).toBe(
+            false,
+        );
+    });
+
+    it("draw Today, View Photos and View day as the same strong pill as Sign in to RSVP", () => {
+        const rsvp = style(".eventRsvp__button");
+        const today = style(".calendar-controls__today");
+        const viewPhotos = style(".pastEvents .pastEventCard__viewPhotos");
+        const viewDay = style(".popover__button");
+
+        for (const button of [today, viewPhotos, viewDay]) {
+            for (const property of ["background-color", "color", "font-size", "font-weight", "border-radius"]) {
+                expect(button[property]).toBe(rsvp[property]);
+            }
+        }
+        expect(rsvp["background-color"]).toBe("var(--calendar-copy-bg)");
+        // Today keeps the view dropdown's height, so the two ends of the phone's line match.
+        expect(today.height).toBe(style(".view-select__input").height);
+    });
+
+    it("keep View Photos the strong pill on hover and focus, over the site card's outline style", () => {
+        const viewPhotos = style(".pastEvents .pastEventCard__viewPhotos");
+        expect(px(viewPhotos.border)).toBe(0);
+
+        const active = style(
+            ".pastEvents .pastEventCard__viewPhotos:hover, .pastEvents .pastEventCard__viewPhotos:focus-visible",
+        );
+        expect(active["background-color"]).toBe("var(--calendar-copy-bg)");
+        expect(active.color).toBe("var(--calendar-copy-text)");
+        expect(style(".pastEvents .pastEventCard__viewPhotos:focus-visible").outline).toBe(
+            "2px solid var(--calendar-text)",
+        );
     });
 
     it("set the phone's view dropdown at 16px, so iOS does not zoom in on it", () => {
@@ -110,6 +158,73 @@ describe("calendar styles", () => {
         for (const selector of [".events__main--swipe", ".grid__scroll", ".picker__month .mini__body"]) {
             expect(style(selector)["touch-action"]).toBe("pan-y pinch-zoom");
         }
+    });
+
+    it("make every tag in the legend's filter, and Show all, at least the 24px target (2.5.8)", () => {
+        expect(px(style(".legend__toggle")["min-height"])).toBeGreaterThanOrEqual(24);
+        expect(px(style(".legend__showAll")["min-height"])).toBeGreaterThanOrEqual(24);
+    });
+
+    it("ring the drawn box when its hidden checkbox has keyboard focus (2.4.7)", () => {
+        const input = style(".legend__input");
+        expect(input.opacity).toBe("0");
+
+        const ring = style(".legend__input:focus-visible + .legend__color");
+        expect(ring.outline).toBe("2px solid var(--calendar-text)");
+    });
+
+    it("keep the key's filled square for a shown tag, and hollow it out, with a muted name, once hidden", () => {
+        const square = style(".legend__color");
+        expect(square["background-color"]).toBe("var(--legend-color)");
+        expect(square.width).toBe("13px");
+
+        // Outlined inside the square, so a hidden tag's square is the same size.
+        const hidden = style(".legend__toggle--off .legend__color");
+        expect(hidden["background-color"]).toBe("transparent");
+        expect(hidden["box-shadow"]).toBe("inset 0 0 0 2px var(--legend-color)");
+        // No tick drawn in it: the fill alone says the tag is on.
+        expect(rules.some((rule) => rule.selector.includes(".legend__color::after"))).toBe(false);
+
+        // copy-muted clears 4.5:1 on every surface the legend sits on (contrast.test.js).
+        expect(style(".legend__toggle--off").color).toBe("var(--calendar-copy-muted)");
+    });
+
+    it("space the legend's Show label, tags and Show all evenly", () => {
+        const gap = style(".legend").gap;
+        expect(style(".legend__items").gap).toBe(gap);
+
+        // The elections pages' global .legend indents its ul and sets its li at the
+        // body size; inside the calendar both are set back.
+        const list = style(".legend__items");
+        expect(list.padding).toBe("0");
+        expect(list.margin).toBe("0");
+        expect(style(".legend__item, .legend__item:hover")["font-size"]).toBe("inherit");
+
+        // Show all takes the same gap: no padding or margin of its own widens it.
+        expect(style(".legend__showAll").padding).toBe("0");
+        expect(rules.some((rule) => rule.selector.includes(".legend__showAll") && "margin-left" in rule.declarations)).toBe(
+            false,
+        );
+    });
+
+    it("set the legend's Show label like the mini month's", () => {
+        const heading = style(".legend__heading");
+        const mini = style(".mini__label");
+        expect(heading["font-size"]).toBe(mini["font-size"]);
+        expect(heading["font-weight"]).toBe(mini["font-weight"]);
+        expect(heading["text-transform"]).toBeUndefined();
+    });
+
+    it("stack the event popover over the page but under the sticky site navigation", () => {
+        const navigation = sass.compile(
+            resolve(dirname(new URL(import.meta.url).pathname), "../../stylesheets/layout/_navigation-base.scss"),
+        ).css;
+        const navZ = Number(navigation.match(/\.site-navigation \{[^}]*z-index:\s*(\d+)/)[1]);
+        const popoverZ = Number(style(".popover")["z-index"]);
+
+        expect(popoverZ).toBeLessThan(navZ);
+        // Over every layer the page sets outside the grid, which keeps its own inside it.
+        expect(popoverZ).toBeGreaterThan(2);
     });
 
     it("keep a focused event clear of the sticky day header (2.4.11)", () => {

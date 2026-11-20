@@ -106,10 +106,10 @@ Expected Response Information: A grid of day pads, with event chips or colour-fi
             }
         }
 
-        // A phone's floor: 22px for the smaller day number, three 14px chips, the
+        // A phone's floor: 22px for the smaller day number, three 24px chips, the
         // two 2px gaps and the cell's padding (see the phone chips, below).
         @include media("<=#{$calendar-mobile}") {
-            min-height: 76px;
+            min-height: 106px;
         }
     }
 
@@ -148,6 +148,13 @@ Expected Response Information: A grid of day pads, with event chips or colour-fi
             border-radius: $calendar-radius-pill;
         }
 
+        // The days from the months either side: their number muted, so the
+        // month's own days lead. Their chips keep full colour, which the text
+        // on them needs to stay readable.
+        .pad--out .pad__day {
+            color: $calendar-copy-muted;
+        }
+
         // Today, circled the way the week view's day header circles it. A solid
         // fill rather than a tint, so it clears the 3:1 a state indicator needs
         // against the day (WCAG 1.4.11): white on the day cell is 12.6:1.
@@ -173,21 +180,14 @@ Expected Response Information: A grid of day pads, with event chips or colour-fi
             }
 
             // The week's structure rather than a wall of tiles: days ruled off by
-            // hairlines, with no gaps or rounded corners between them.
-
-            // And not stretched. On a desktop the weeks share $calendar-view-height so the
-            // chips get room; on a tall phone that made every day a 140px tile of
-            // mostly nothing. Here each week is as tall as three chips need, so the
-            // month comes out shorter than the week and day on a phone.
-            min-height: 0;
-
+            // hairlines, with no gaps or rounded corners between them. The weeks
+            // still share $calendar-view-height, as on a desktop, so the month is
+            // the week and day's height on a phone too; a short phone, where that
+            // is under three tappable chips a day, gets the taller month the pad's
+            // floor sets.
             .row,
             .weekday-header {
                 gap: 0;
-            }
-
-            .row:not(.weekday-header) {
-                flex: none;
             }
 
             .pad {
@@ -205,8 +205,8 @@ Expected Response Information: A grid of day pads, with event chips or colour-fi
                 }
             }
 
-            // The days of the months either side, which print no number, are set
-            // back with the faintest wash rather than the tile's dimmed fill.
+            // The days of the months either side are set back with the faintest
+            // wash rather than the tile's dimmed fill.
             .pad--out {
                 background-color: $calendar-hover-faintest;
             }
@@ -312,16 +312,12 @@ Expected Response Information: A grid of day pads, with event chips or colour-fi
         }
     }
 
-    // A day on a phone is a seventh of the screen, about 45px, and 26px chips
-    // left it room for one name and a cut-off second. Google Calendar's answer is
-    // to make the whole day the thing a finger presses, and the chips a preview
-    // of what is inside it, which is what this does.
-
-    // A tap passes through a chip to the day's button beneath, so the day is the
-    // only target under a finger and it is far past 24px (WCAG 2.5.8); the chips
-    // no longer need to be. They shrink to 14px, and three fit in the 76px day.
-    // A keyboard or screen reader still reaches each chip and opens it as before:
-    // only the pointer goes through.
+    // A day on a phone is a seventh of the screen, about 45px. A tap on a chip
+    // opens its popover, as it does on a wide screen, so the chips stay at the
+    // 24px minimum target (WCAG 2.5.8) and the day grows to 106px to hold three;
+    // the month runs taller than the screen and scrolls with the page. The text
+    // drops to 10px and the padding to a sliver, so a name has room to show. A
+    // tap anywhere else in the day still opens the day.
     @include media("<=#{$calendar-mobile}") {
         .pad__events {
             margin-top: 22px;
@@ -329,12 +325,10 @@ Expected Response Information: A grid of day pads, with event chips or colour-fi
 
         .pad__event,
         .pad__more {
-            min-height: 14px;
-            line-height: 14px;
+            min-height: 24px;
+            line-height: 24px;
             padding: 0 $calendar-space-2xs;
             font-size: 10px;
-
-            pointer-events: none;
         }
 
         .card--month .pad__day {

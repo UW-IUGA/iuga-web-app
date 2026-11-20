@@ -2,7 +2,7 @@
 Purpose: The shared top of every page, so each page introduces itself the same way.
 
 Expected Request Information:
-- label: optional; the page's name as it appears in the navigation, shown above the title.
+- label: optional small line above the title; pages that leave it out show only the title.
 - title: what a student can do on this page; it becomes the page's only main heading.
 - intro: optional one or two sentences shown under the title.
 - children: optional page actions shown under the intro.

@@ -42,6 +42,11 @@ const chip = (name) => screen.getByRole("button", { name });
 
 afterEach(cleanup);
 
+// jsdom lays nothing out, so a chip sits at the origin with no room to its left.
+// This test is about the preferred side, so it places the chip mid-window, where both fit.
+let midWindowSpy;
+afterEach(() => midWindowSpy?.mockRestore());
+
 describe("MonthCard", () => {
     it("opens an event in a popover beside its chip", () => {
         const { container, onPickDay } = renderMonth();
@@ -67,6 +72,9 @@ describe("MonthCard", () => {
     });
 
     it("opens any other day to the left", () => {
+        midWindowSpy = vi
+            .spyOn(Element.prototype, "getBoundingClientRect")
+            .mockReturnValue({ left: 600, right: 760, top: 300, bottom: 340, width: 160, height: 40, x: 600, y: 300, toJSON() {} });
         renderMonth();
 
         fireEvent.click(chip("Industry Panel"));
@@ -215,12 +223,36 @@ describe("MonthCard", () => {
             expect(container.querySelectorAll(".pad--out").length).toBeGreaterThan(0);
         });
 
-        it("prints no day number on a spill cell, since 0 and negatives are not dates", () => {
+        it("prints the real date on each spill cell, never 0 or a negative", () => {
             const { container } = renderMonth();
 
-            for (const cell of container.querySelectorAll(".pad--out")) {
-                expect(cell.querySelector(".pad__day")).toBeNull();
-            }
+            // October 2026 opens on a Thursday: Sep 27 to 30 lead in, and Nov 1 to
+            // 7 trail after the 31st.
+            const numbers = [...container.querySelectorAll(".pad--out .pad__day")].map((node) => node.textContent);
+            expect(numbers).toEqual(["27", "28", "29", "30", "1", "2", "3", "4", "5", "6", "7"]);
+        });
+
+        it("shows the events of the months either side, when the grid carries them", () => {
+            const september = normalizeEvent({
+                eId: "sep",
+                eName: "September Mixer",
+                eStartDate: "2026-09-29T19:00:00Z",
+                eEndDate: "2026-09-29T21:00:00Z",
+            });
+            const { container } = render(
+                <MonthCard
+                    title="October 2026"
+                    rows={buildMonthGrid(2026, 9, [september], { withOutside: true })}
+                    onPickDay={vi.fn()}
+                />,
+            );
+
+            const chip = screen.getByRole("button", { name: "September Mixer" });
+            expect(chip.closest(".pad").classList).toContain("pad--out");
+            expect(container.querySelectorAll(".pad__event")).toHaveLength(1);
+
+            fireEvent.click(chip);
+            expect(screen.getByRole("dialog", { name: "September Mixer" })).toBeTruthy();
         });
 
         it("names a spill cell by the real date it opens", () => {

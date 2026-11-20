@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useLayoutEffect, useMemo, useRef } from "react";
 import useNow from "../../hooks/useNow";
 import { colorForLabels, formatClockTime, formatWeekday, overlapBox, zonedParts } from "../../utils/calendar/calendar";
+import { firstEvent, scrollTopFor } from "../../utils/calendar/gridScroll";
 
-// Where to land when the view opens somewhere other than today. Mid-morning
-// shows a populated stretch rather than six empty hours above it.
+// Where to land on a day or week with no events, other than today.
+// Mid-morning shows a likely stretch rather than six empty hours above it.
 const DEFAULT_SCROLL_HOUR = 7;
 
 // In pixels, so it has to agree with _time-grid.scss.
@@ -25,7 +26,7 @@ function hourLabel(hour) {
  * views share one component with a different column count. Event and column
  * presses are reported to the caller; the selected event stays the caller's.
  */
-function TimeGrid({ columns, onSelectDay, onPickEvent, openEventKey = null, onPickColumn }) {
+function TimeGrid({ columns, onPickEvent, openEventKey = null, onPickColumn }) {
     const scrollRef = useRef(null);
     const now = useNow();
     const nowParts = zonedParts(now);
@@ -33,20 +34,30 @@ function TimeGrid({ columns, onSelectDay, onPickEvent, openEventKey = null, onPi
     const nowFraction = ((nowParts.hour * 60 + nowParts.minute) / 1440) * 100;
     const anyToday = useMemo(() => columns.some((column) => column.isToday), [columns]);
 
-    // Run once on mount. Re-running per anchor change would yank the scroll
-    // position away from wherever the viewer has moved to.
-    useEffect(() => {
+    // Each day or week opens with its first event at the top, so nobody has to
+    // scroll to find what is on. With no events it opens two hours before now
+    // for today, or mid-morning. Keyed by the days shown rather than the
+    // columns' identity, so a date picked inside the same week does not move
+    // the view out from under the viewer. The first event's start is in the key
+    // too: the grid is up while the event list loads, so it lands again once the
+    // events arrive, but a reload of the same list leaves it alone. Before paint,
+    // so it never flashes at midnight first.
+    const first = firstEvent(columns);
+    const scrollKey = `${columns.map((column) => column.key).join()}|${first?.startMinutes ?? ""}`;
+    useLayoutEffect(() => {
         const scroller = scrollRef.current;
         if (!scroller) return;
-        scroller.scrollTop = (anyToday ? Math.max(nowParts.hour - 2, 0) : DEFAULT_SCROLL_HOUR) * HOUR_HEIGHT;
+        scroller.scrollTop = first
+            ? scrollTopFor(first, HOUR_HEIGHT)
+            : (anyToday ? Math.max(nowParts.hour - 2, 0) : DEFAULT_SCROLL_HOUR) * HOUR_HEIGHT;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [scrollKey]);
 
     return (
         <div className={`grid${onPickColumn ? " grid--tap-days" : ""}`} style={{ "--grid-cols": columns.length }}>
-            {/* Scrolls on its own, and the day headers inside it stay stuck at the
-          top, so focusing them never moves it: without a tab stop of its own a
-          keyboard could not scroll the day view (WCAG 2.1.1). Focused, the
+            {/* Scrolls on its own, with the day headers stuck to its top. It has a tab
+          stop of its own: in a day with no events there is nothing else to focus,
+          and without one a keyboard could not scroll it (WCAG 2.1.1). Focused, the
           arrow keys and Page Up / Down move through the day. */}
             <div className="grid__scroll" ref={scrollRef} tabIndex={0} role="region" aria-label="Schedule">
                 {/* Inside the scroller, stuck to its top, rather than above it. Above
@@ -55,17 +66,18 @@ function TimeGrid({ columns, onSelectDay, onPickEvent, openEventKey = null, onPi
             weekdays. In here both share one width, scrollbar or none. */}
                 <div className="grid__head">
                     <div className="grid__gutter-head" aria-hidden="true" />
+                    {/* Labels, not controls: a click on a weekday leaves the view where
+              it is. The event popover's View day, the view switch and the date
+              picker are the ways to a day. */}
                     {columns.map((column) => (
-                        <button
-                            type="button"
+                        <div
                             key={column.key}
                             className={`grid__dayhead${column.isToday ? " grid__dayhead--today" : ""}`}
                             aria-current={column.isToday ? "date" : undefined}
-                            onClick={() => onSelectDay(column.date)}
                         >
                             <span className="grid__dayhead-name">{formatWeekday(column.date)}</span>
                             <span className="grid__dayhead-number">{column.parts.day}</span>
-                        </button>
+                        </div>
                     ))}
                 </div>
 
@@ -79,10 +91,10 @@ function TimeGrid({ columns, onSelectDay, onPickEvent, openEventKey = null, onPi
                     </div>
 
                     {columns.map((column, columnIndex) => (
-                        // A pointer shortcut only: the day header above is the same
-                        // action for a keyboard, so the column is not a second tab stop.
-                        // On a phone, overlapping events make blocks narrower than the
-                        // 24px minimum target (WCAG 2.5.8), so the column is the target.
+                        // On a phone, a press on a day's empty space goes to the day; a
+                        // press on an event still opens it. A pointer shortcut only, so
+                        // not a tab stop: a keyboard reaches the day from an event's View
+                        // day, the view switch or the date picker.
                         <div
                             className="grid__col"
                             key={column.key}
@@ -108,14 +120,18 @@ function TimeGrid({ columns, onSelectDay, onPickEvent, openEventKey = null, onPi
                                           "data-popover-trigger": "",
                                           "aria-haspopup": "dialog",
                                           "aria-expanded": openEventKey === `${column.key}|${key}`,
-                                          onClick: (click) =>
+                                          onClick: (click) => {
+                                              // The event, not the day: keep it from the
+                                              // column's tap-to-day beneath.
+                                              click.stopPropagation();
                                               onPickEvent({
                                                   event: item.event,
                                                   date: column.date,
                                                   columnIndex,
                                                   key: `${column.key}|${key}`,
                                                   el: click.currentTarget,
-                                              }),
+                                              });
+                                          },
                                       }
                                     : {};
 

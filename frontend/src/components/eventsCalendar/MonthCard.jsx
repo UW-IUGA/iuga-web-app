@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { colorForLabels, dayLabel, formatLongDay, isSameDay } from "../../utils/calendar/calendar";
+import { colorForLabels, dayLabel, formatLongDay, isSameDay, zonedParts } from "../../utils/calendar/calendar";
 import Card from "./Card";
 import EventPopover from "./EventPopover";
 
@@ -57,9 +57,9 @@ function MonthCard({ title, rows, onPickDay }) {
         // clickable through to it. "today" is in the name too: the circle is visual only.
         const label = dayLabel(cell.date, cell.events.length, isToday);
 
-        // A spill cell's day number is 0 or negative. Rendering it would print a
-        // date that does not exist.
-        const dayNumber = cell.inMonth && <span className="pad__day">{cell.day}</span>;
+        // A spill cell's own day count is 0 or negative, so it prints its real
+        // date instead ("30", "1"), muted by the stylesheet.
+        const dayNumber = <span className="pad__day">{cell.inMonth ? cell.day : zonedParts(cell.date).day}</span>;
 
         // `event` is null for "+N more", which opens the whole day.
         const getEventChipKey = (event) => `${cell.id}|${event ? event.id : "more"}`;

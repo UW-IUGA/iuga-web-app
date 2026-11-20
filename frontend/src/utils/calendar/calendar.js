@@ -88,6 +88,32 @@ function colorForLabels(labels) {
     return LABEL_COLORS[labels?.[0]] ?? UNLABELLED_COLOR;
 }
 
+// The legend's tags an event is filed under for the tag filter: its labels the
+// legend knows, or Academic when it has none, the colour it is drawn in then.
+function tagsOf(event) {
+    const known = (event.labels ?? []).filter((label) => EVENT_LABELS.includes(label));
+    return known.length > 0 ? known : ["Academic"];
+}
+
+/**
+ * The events the tag filter leaves on the calendar: those with any of
+ * `shownTags`. Each one's shown labels move to the front, so it is drawn in a
+ * colour that is still on (colorForLabels takes the first); its detail still
+ * lists every label. With every tag shown it returns `events` itself, so the
+ * views' memos keep their input.
+ */
+export function filterByTags(events, shownTags) {
+    if (EVENT_LABELS.every((tag) => shownTags.includes(tag))) return events;
+    const shown = new Set(shownTags);
+
+    return events.flatMap((event) => {
+        if (!tagsOf(event).some((tag) => shown.has(tag))) return [];
+        const labels = event.labels ?? [];
+        const ordered = [...labels.filter((label) => shown.has(label)), ...labels.filter((label) => !shown.has(label))];
+        return [ordered[0] === labels[0] ? event : { ...event, labels: ordered }];
+    });
+}
+
 export function normalizeEvent(raw) {
     const start = new Date(raw.eStartDate);
     // Read the wall-clock position out of the Pacific zone rather than the
@@ -103,7 +129,6 @@ export function normalizeEvent(raw) {
         // Displayed names, once each: Career and Professional both read as Career.
         labels: Array.isArray(raw.eLabels) ? [...new Set(categoriesFor(raw))] : [],
         thumbnail: raw.eThumbnailPath ?? null,
-        altLink: raw.eAltLink?.title && raw.eAltLink?.url ? raw.eAltLink : null,
         participants: typeof raw.participants === "number" ? raw.participants : null,
         showParticipants: raw.showParticipants ?? false,
         rsvpEnabled: raw.rsvpEnabled ?? false,
@@ -220,7 +245,7 @@ export function dayLabel(date, eventCount, isToday = false) {
 
 /**
  * "All Events", "October 2026", "Oct 18 – Oct 24, 2026", "Thu, Oct 22, 2026" —
- * whatever the current view is actually showing, so the toolbar label never
+ * whatever the current view is actually showing, so the CalendarControls label never
  * claims a wider span than the grid beneath it.
  *
  * Year view is the whole archive rather than a single year, so it takes no
@@ -246,7 +271,11 @@ export function formatRange(mode, anchor) {
     return MONTH_YEAR_FMT.format(anchor);
 }
 
-export function buildMonthGrid(year, month, events) {
+// Six weeks of cells around `month`. Only the month's own days take events
+// unless `withOutside` is set: the month view fills the days spilling in from
+// the months either side too, while the year view and the mini month leave
+// them empty.
+export function buildMonthGrid(year, month, events, { withOutside = false } = {}) {
     const firstWeekDay = new Date(Date.UTC(year, month, 1)).getUTCDay();
     const dayCount = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
     // Every cell gets its real date, so consumers navigate without re-deriving
@@ -261,11 +290,18 @@ export function buildMonthGrid(year, month, events) {
         events: [],
     }));
 
+    // The outside days, by their real date, for an event from another month.
+    const outside = withOutside
+        ? new Map(cells.filter((cell) => !cell.inMonth).map((cell) => [dayKeyOf(cell.date), cell]))
+        : null;
+
     for (const event of events) {
         // Bucketing alone is not enough: an event on the 21st of another month
         // would otherwise land in this grid's 21st cell.
-        if (event.year !== year || event.month !== month) continue;
-        const cell = cells[firstWeekDay + event.day - 1];
+        const cell =
+            event.year === year && event.month === month
+                ? cells[firstWeekDay + event.day - 1]
+                : outside?.get(`${event.year}-${event.month}-${event.day}`);
         if (cell) cell.events.push(event);
     }
 
@@ -274,8 +310,9 @@ export function buildMonthGrid(year, month, events) {
     return rows;
 }
 
-export function groupByMonth(rawEvents) {
-    const events = rawEvents.map(normalizeEvent);
+// The months that hold `events` (normalized, so the tag filter has had its
+// say), newest first.
+export function groupByMonth(events) {
     const buckets = new Map();
 
     for (const event of events) {

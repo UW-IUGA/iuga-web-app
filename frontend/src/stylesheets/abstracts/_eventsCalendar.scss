@@ -56,7 +56,7 @@ $calendar-palette-dark: (
     // clears 3:1 on a card, the level WCAG 1.4.11 sets for graphics that
     // carry meaning.
     divider: #737373,
-    // The outline of the toolbar's buttons and selects, and the view switch's track.
+    // The outline of the controls' buttons and selects, and the view switch's track.
     control-border: #333,
     track: #333,
     // Hover washes, from a button's to a grid cell's to an out-of-month day.
@@ -67,7 +67,9 @@ $calendar-palette-dark: (
     popover-shadow: rgba(0, 0, 0, 0.5),
     label-academic: #5fa5f9,
     label-career: #2cd4bf,
-    label-social: #e879f9,
+    label-social: #a78bfa,
+    label-career-tint: rgba(44, 212, 191, 0.14),
+    label-career-line: rgba(44, 212, 191, 0.45),
 );
 
 $calendar-palette-light: (
@@ -99,7 +101,9 @@ $calendar-palette-light: (
     // The prototype's Career teal, at the same hue, darkened only as far as
     // white text needs: 4.6:1, and 4.1:1 against a card.
     label-career: #1b8376,
-    label-social: #a21caf,
+    label-social: #6d28d9,
+    label-career-tint: rgba(27, 131, 118, 0.14),
+    label-career-line: rgba(27, 131, 118, 0.45),
 );
 
 @if map.keys($calendar-palette-dark) != map.keys($calendar-palette-light) {
@@ -139,6 +143,25 @@ $calendar-hover-faintest: var(--calendar-hover-faintest);
 $calendar-popover-border: var(--calendar-popover-border);
 $calendar-popover-shadow: var(--calendar-popover-shadow);
 
+// The calendar's strong button: a pill in the one strong fill, which presses
+// down a pixel. Shared by Today (CalendarControls), Sign in to RSVP
+// (EventRsvp), View Photos (PastEvents) and View day (EventPopover), so they
+// cannot drift apart. Each sets its own height and padding.
+@mixin calendar-strong-button {
+    font-size: 14px;
+    font-weight: 600;
+    background-color: $calendar-copy-bg;
+    color: $calendar-copy-text;
+    border-radius: $calendar-radius-pill;
+    transition:
+        transform 120ms ease,
+        opacity 120ms ease;
+
+    &:active:not(:disabled) {
+        transform: translateY(1px);
+    }
+}
+
 // The height of the month, week and day views, so switching between them
 // keeps the calendar the same size: the week grid's 72vh scrolling area plus
 // a day header about 6vh tall on a laptop.
@@ -170,7 +193,7 @@ $calendar-radius-pill: 4em;
 $calendar-font-family: "Rubik";
 
 // Breakpoints, for `@include media(...)`. At and below $calendar-mobile the
-// sidebar goes and the toolbar takes the phone layout; it must agree with
+// sidebar goes and the controls take the phone layout; it must agree with
 // MOBILE_QUERY in utils/calendar/breakpoints.js (breakpoints.test.js checks).
 // $calendar-desktop is the floor the sidebar comes back at. $calendar-tablet
 // hands the year view back the roomier spacing its phone-first base trims.

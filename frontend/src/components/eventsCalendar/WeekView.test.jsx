@@ -43,6 +43,16 @@ const timed = (id, name, start, end, labels = []) =>
 
 afterEach(cleanup);
 
+// jsdom lays nothing out, so an event sits at the origin with no room to its left.
+// Tests about which side a popover prefers place the event mid-window, where both fit.
+let midWindowSpy;
+function placeMidWindow() {
+    midWindowSpy = vi
+        .spyOn(Element.prototype, "getBoundingClientRect")
+        .mockReturnValue({ left: 600, right: 760, top: 300, bottom: 340, width: 160, height: 40, x: 600, y: 300, toJSON() {} });
+}
+afterEach(() => midWindowSpy?.mockRestore());
+
 describe("WeekView", () => {
     it("renders seven day columns", () => {
         const { container } = renderWeek();
@@ -52,10 +62,11 @@ describe("WeekView", () => {
     });
 
     it("heads the columns with the days of the anchor week", () => {
-        renderWeek();
+        const { container } = renderWeek();
+        const heads = [...container.querySelectorAll(".grid__dayhead")].map((head) => head.textContent);
 
-        expect(screen.getByRole("button", { name: /Sun\s*18/ })).toBeTruthy();
-        expect(screen.getByRole("button", { name: /Sat\s*24/ })).toBeTruthy();
+        expect(heads[0]).toMatch(/Sun\s*18/);
+        expect(heads[6]).toMatch(/Sat\s*24/);
     });
 
     it("draws an hour gutter", () => {
@@ -139,13 +150,24 @@ describe("WeekView", () => {
         expect(event.style.height).toBe(`${(90 / 1440) * 100}%`);
     });
 
-    it("asks to open a day when its header is clicked", () => {
-        const { onSelectDay } = renderWeek();
+    it("stays in the week when a weekday header is clicked", () => {
+        const { container, onSelectDay } = renderWeek();
+        const thursday = container.querySelectorAll(".grid__dayhead")[4];
+        expect(thursday.textContent).toMatch(/Thu\s*22/);
 
-        fireEvent.click(screen.getByRole("button", { name: /Thu\s*22/ }));
+        fireEvent.click(thursday);
 
-        expect(onSelectDay).toHaveBeenCalledTimes(1);
-        expect(onSelectDay.mock.calls[0][0].toISOString().slice(0, 10)).toBe("2026-10-22");
+        expect(onSelectDay).not.toHaveBeenCalled();
+    });
+
+    it("draws the weekday headers as labels, with no buttons or tab stops", () => {
+        const { container } = renderWeek();
+
+        expect(screen.queryByRole("button", { name: /Thu\s*22/ })).toBeNull();
+        for (const head of container.querySelectorAll(".grid__dayhead")) {
+            expect(head.tagName).toBe("DIV");
+            expect(head.hasAttribute("tabindex")).toBe(false);
+        }
     });
 
     describe("event popover", () => {
@@ -186,6 +208,7 @@ describe("WeekView", () => {
         });
 
         it("opens any other day to the left", () => {
+            placeMidWindow();
             renderWeek({ events: [tuesday()] });
 
             fireEvent.click(eventButton("Coffee & Networking"));
@@ -283,8 +306,7 @@ describe("WeekView", () => {
 });
 
 describe("WeekView on a phone", () => {
-    // Overlapping events split a ~40px column, under the 24px minimum target
-    // (2.5.8), so there the day's column is the target instead.
+    // A tap on a day's empty space goes to the day; a tap on an event opens it.
     const phone = () => {
         window.matchMedia = (query) => ({
             matches: query === "(max-width: 900px)",
@@ -302,7 +324,7 @@ describe("WeekView on a phone", () => {
         timed(2, "Design Workshop", "2026-10-20T17:30:00.000Z", "2026-10-20T19:00:00.000Z"),
     ];
 
-    it("goes to the day for a press anywhere in its column", () => {
+    it("goes to the day for a press on its column's empty space", () => {
         phone();
         const { container, onSelectDay } = renderWeek({ events: overlapping });
 
@@ -314,18 +336,19 @@ describe("WeekView on a phone", () => {
         expect(container.querySelector(".grid").classList).toContain("grid--tap-days");
     });
 
-    it("keeps every event a button, so a keyboard or screen reader still opens it", () => {
+    it("opens a tapped event in its popover rather than going to the day", () => {
         phone();
-        renderWeek({ events: overlapping });
+        const { onSelectDay } = renderWeek({ events: overlapping });
 
         const event = screen.getByRole("button", { name: /Design Workshop/ });
         expect(event.getAttribute("aria-haspopup")).toBe("dialog");
-        fireEvent.keyDown(event, { key: "Enter" });
         fireEvent.click(event);
-        expect(screen.getByRole("dialog")).toBeTruthy();
+
+        expect(screen.getByRole("dialog", { name: "Design Workshop" })).toBeTruthy();
+        expect(onSelectDay).not.toHaveBeenCalled();
     });
 
-    it("adds no tab stop for the columns: the day header is the keyboard way to the day", () => {
+    it("adds no tab stop for the columns, which are a pointer shortcut only", () => {
         phone();
         const { container } = renderWeek({ events: overlapping });
 

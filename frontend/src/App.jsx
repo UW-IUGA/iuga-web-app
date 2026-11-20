@@ -13,6 +13,7 @@ import ShopPickupPage from "./pages/ShopPickup";
 import { ToastContainer, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import ScrollToTop from "./components/ScrollToTop";
 import Navbar from "./layouts/Navbar";
 import { ShopCartProvider } from "./context/ShopCartContext";
 import ShopMaintenanceBanner from "./components/ShopMaintenanceBanner";
@@ -65,6 +66,7 @@ function App() {
 
     return (
         <div id="rootContainer" data-theme={showSiteChrome ? undefined : "light"}>
+            <ScrollToTop />
             <ToastContainer
                 position="bottom-center"
                 autoClose={2000}

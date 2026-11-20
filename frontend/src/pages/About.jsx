@@ -1,13 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import StudentProfileCard from "../components/StudentProfileCard";
 import { groupType } from "../assets/data/Enum";
 import PageHeader from "../components/PageHeader";
 
 function AboutPage({ teams }) {
-    useEffect(() => {
-        window.scrollTo(0, 0);
-    }, []);
-
     const years = Object.keys(teams);
     const [selectedYear, setSelectedYear] = useState(years[years.length - 1]);
     const officers = teams[selectedYear]?.[groupType.OFFICERS] ?? [];

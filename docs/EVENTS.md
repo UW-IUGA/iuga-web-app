@@ -92,14 +92,6 @@ Each photo has a full-size WebP and a smaller thumbnail in `assets/gallery/past-
 | `backend/routes/api/v1/controllers/eventRequests.js` | Officer request workflow and publication on approval. |
 | `backend/publishedEvents.js` | Directly maintained event records seeded at server startup. |
 
-## Code retained for a future homepage refactor
-
-`components/EventsOverview.jsx` is not routed by `App.jsx`, so it does not currently appear on the events page or homepage. It was kept because its weekly agenda and photo-led presentation were intended as source material for a more substantial homepage events section. The homepage currently uses its own small upcoming-events teaser in `pages/Home.jsx` instead.
-
-These components are only used by the unrouted `EventsOverview` flow and are not part of the live pages today: `EventAgenda`, `EventDialog`, `EventThumbnail`, `EventCategoryPills`, and `PhotoCollage`. They are candidates to be refactored into homepage-owned components when that homepage work happens; they should not be treated as current events-page components or deleted as unused before then.
-
-Other components from that old flow are shared with live pages: `PageHeader` is used by several pages, `PastEventCard` and `PhotoLightbox` serve the current event recaps, and `EventOperations` serves officer requests. Do not classify these as dormant. For current behavior, start with `pages/Events.jsx` and `pages/Home.jsx`.
-
 ## Tests
 
 - `frontend/src/pages/Events.test.jsx` covers calendar navigation and the event list on `/events`.

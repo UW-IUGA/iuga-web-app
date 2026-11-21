@@ -31,21 +31,16 @@ frontend/src/
 │   ├── Dropdown.jsx
 │   ├── ElectionFAQCard.jsx
 │   ├── EmailContactDialog.jsx ← Mail-provider compose dialog for committee and shop contact
-│   ├── EventAgenda.jsx        ← Legacy weekly agenda; not used by the current routes (see EVENTS.md)
-│   ├── EventsOverview.jsx     ← Legacy weekly events page; not routed (see EVENTS.md)
 │   ├── eventsCalendar/        ← The events calendar's views and controls, event RSVP, and previous events (see EVENTS.md)
-│   ├── EventCategoryPills.jsx ← Category labels for the legacy weekly agenda
-│   ├── EventDialog.jsx        ← Details and RSVP dialog for the legacy weekly page
-│   ├── EventThumbnail.jsx     ← Event photo or category tile for the legacy weekly agenda
+│   ├── EventCategoryPills.jsx ← Category labels on homepage event rows
+│   ├── EventThumbnail.jsx     ← Event photo or category tile on homepage event rows
 │   ├── GradientLine.jsx
 │   ├── PastEventCard.jsx      ← Past event recap with a cover photo and thumbnails
-│   ├── PhotoCollage.jsx       ← Up to three overlapping photos for the legacy weekly page
 │   ├── PhotoLightbox.jsx      ← Full-size photo viewer for a set of photos
 │   ├── ResourceCard.jsx
 │   ├── RolePage.jsx
 │   ├── AdminBar.jsx           ← Officer admin bar: IUGA Admin brand, a link to each admin page, back to site, sign out
-│   ├── ShopMaintenanceBanner.jsx ← Site-wide maintenance countdown for students with items in their cart
-│   └── WeekNavigation.jsx     ← Previous/next week control
+│   └── ShopMaintenanceBanner.jsx ← Site-wide maintenance countdown for students with items in their cart
 ├── context/
 │   └── AuthContext.jsx   ← Authentication state (React Context)
 ├── hooks/
@@ -380,8 +375,7 @@ palette for `#1a1a1a` pages, `#272727` surfaces, and white headings.
 - **Exceptions.** The officer pages (`/admin/*`) stay light: `App.jsx` sets
   `data-theme="light"` on their root. Photos keep their own colours; the black
   logo and footer icons turn white through `--artwork-filter`. The events
-  calendar keeps its own palette tokens (`docs/EVENTS.md`). The legacy weekly
-  events components are outside the current calendar theme.
+  calendar keeps its own palette tokens (`docs/EVENTS.md`).
 
 ---
 

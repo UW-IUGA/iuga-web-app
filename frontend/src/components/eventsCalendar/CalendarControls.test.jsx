@@ -107,7 +107,7 @@ describe("CalendarControls", () => {
   it("makes the legend a group of tag checkboxes named Show, every tag on by default", () => {
     renderCalendarControls();
 
-    const group = screen.getByRole("group", { name: "Show" });
+    const group = screen.getByRole("group", { name: "Filter" });
     const boxes = within(group).getAllByRole("checkbox");
     expect(boxes.map((box) => box.closest("label").textContent)).toEqual([
       "Academic",
@@ -128,7 +128,7 @@ describe("CalendarControls", () => {
   it("reports a tag turned off, and offers Show all once any is off", () => {
     const { tagFilter } = renderCalendarControls({ hiddenTags: ["Career"] });
 
-    const group = screen.getByRole("group", { name: "Show" });
+    const group = screen.getByRole("group", { name: "Filter" });
     expect(within(group).getByRole("checkbox", { name: "Career" }).checked).toBe(false);
 
     fireEvent.click(within(group).getByRole("checkbox", { name: "Social" }));

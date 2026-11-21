@@ -90,6 +90,7 @@ Every `Events` row is public the moment it's inserted, which is why pending requ
 | `DISCORD_IUGA_OFFICER_ROLE_ID` | IUGA board role that may also approve or deny. |
 | `DISCORD_APPROVAL_CHANNEL_ID` | Channel where event approval cards are posted. |
 | `DISCORD_RSO_APPROVAL_CHANNEL_ID` | Channel where RSO officer verification cards are posted (`#rso-approvals`). |
+| `DISCORD_ANNOUNCEMENT_CHANNEL_ID` | Channel where approved events are announced (`#rso-events`). Empty skips the announcement; the Scheduled Event is still created. |
 
 These are set once. Day-to-day changes (new RSOs, new officers) happen in Discord and never need a redeploy. The old `DISCORD_RSO_OFFICERS` list was removed; officers on it need to run `/rso-verify` once.
 
@@ -105,6 +106,7 @@ Create each of these as a Secret text credential:
 - `DISCORD_IUGA_OFFICER_ROLE_ID`
 - `DISCORD_APPROVAL_CHANNEL_ID`
 - `DISCORD_RSO_APPROVAL_CHANNEL_ID`
+- `DISCORD_ANNOUNCEMENT_CHANNEL_ID`
 
 `DISCORD_PUBLIC_KEY` is a Secret text credential too. `dev.jenkinsfile` and `prod.jenkinsfile` bind all of them in the Deploy stage, and `ci/deploy.groovy` passes them to the container with `docker run -e`. The image itself doesn't contain any of them. If a credential is missing in Jenkins, the Deploy stage fails before the container starts.
 

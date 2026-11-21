@@ -110,7 +110,12 @@ if (process.env.DISCORD_PUBLIC_KEY) {
       models,
       directory: rsoDirectory,
       client: discordClient,
-      config: { ...reviewerRoles, approvalChannelId: process.env.DISCORD_APPROVAL_CHANNEL_ID },
+      config: {
+        ...reviewerRoles,
+        approvalChannelId: process.env.DISCORD_APPROVAL_CHANNEL_ID,
+        announcementChannelId: process.env.DISCORD_ANNOUNCEMENT_CHANNEL_ID,
+        guildId: process.env.DISCORD_GUILD_ID,
+      },
     }),
     rsoVerification: createRsoVerification({
       models,

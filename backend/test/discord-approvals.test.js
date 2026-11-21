@@ -5,6 +5,8 @@ import { EVENT_COMMAND } from "../discordCommandDefinition.js";
 
 const NOW = new Date("2026-11-12T20:00:00Z");
 const APPROVAL_CHANNEL = "approvals-channel";
+const ANNOUNCEMENT_CHANNEL = "rso-events-channel";
+const GUILD_ID = "guild-1";
 const OFFICER_ROLE = "officer-role";
 const MOD_ROLE = "mod-role";
 const IUGA_OFFICER_ROLE = "iuga-officer-role";
@@ -83,6 +85,10 @@ function createClient() {
       messageSequence += 1;
       return { id: String(messageSequence) };
     },
+    async createScheduledEvent(guildId, body) {
+      calls.push({ method: "createScheduledEvent", guildId, body });
+      return { id: "scheduled-1" };
+    },
     async sendDirectMessage(userId, body) {
       calls.push({ method: "sendDirectMessage", userId, body });
       if (client.failDm) throw new Error("Discord POST /users/@me/channels failed with status 403");
@@ -124,6 +130,8 @@ function setup({ directoryFails = false } = {}) {
       modRoleId: MOD_ROLE,
       iugaOfficerRoleId: IUGA_OFFICER_ROLE,
       approvalChannelId: APPROVAL_CHANNEL,
+      announcementChannelId: ANNOUNCEMENT_CHANNEL,
+      guildId: GUILD_ID,
     },
     now: () => clock.now,
   });
@@ -523,6 +531,74 @@ describe("/event preview buttons", () => {
     assert.match(logged.mock.calls[0].arguments.join(" "), /50001 "Missing Access"/);
     assert.equal(context.models.DiscordEventSubmissions.docs.length, 0);
     assert.equal(context.models.DiscordEventDrafts.docs.length, 1);
+  });
+});
+
+describe("approval announces the event", () => {
+  const announcementPosts = (client) =>
+    client.calls.filter((call) => call.method === "postMessage" && call.channelId === ANNOUNCEMENT_CHANNEL);
+
+  it("posts one announcement to the announcement channel and saves the IDs", async () => {
+    const { id, models, flow, client } = await pendingSubmission();
+
+    await flow.handle(componentInteraction(mod(), `approve:${id}`));
+
+    assert.equal(announcementPosts(client).length, 1);
+    assert.equal(client.calls.filter((call) => call.method === "createScheduledEvent").length, 1);
+    const [row] = models.DiscordEventSubmissions.docs;
+    assert.equal(row.announcementChannelId, ANNOUNCEMENT_CHANNEL);
+    assert.ok(row.announcementMessageId);
+    assert.equal(row.scheduledEventId, "scheduled-1");
+  });
+
+  it("keeps the event published and shows the failure on the card when the announcement fails", async () => {
+    const { id, models, flow, client } = await pendingSubmission();
+    client.failPost = true;
+
+    const response = await flow.handle(componentInteraction(mod(), `approve:${id}`));
+
+    assert.equal(models.Events.docs.length, 1);
+    assert.match(response.data.embeds[0].footer.text, /Published to the Events page\. Discord announcement failed\./);
+    const [row] = models.DiscordEventSubmissions.docs;
+    assert.equal(row.announcementMessageId, undefined);
+    assert.equal(row.scheduledEventId, "scheduled-1");
+  });
+
+  it("announces once when Approve is clicked twice", async () => {
+    const { id, flow, client } = await pendingSubmission();
+
+    await flow.handle(componentInteraction(mod(), `approve:${id}`));
+    await flow.handle(componentInteraction(mod(), `approve:${id}`));
+
+    assert.equal(announcementPosts(client).length, 1);
+  });
+
+  it("announces once when two moderators click Approve at the same moment", async () => {
+    const { id, flow, client } = await pendingSubmission();
+
+    await Promise.all([
+      flow.handle(componentInteraction(mod(), `approve:${id}`)),
+      flow.handle(componentInteraction(mod(), `approve:${id}`)),
+    ]);
+
+    assert.equal(announcementPosts(client).length, 1);
+  });
+
+  it("keeps the published event and the announcement when saving the announcement IDs fails", async (t) => {
+    const logged = t.mock.method(console, "error", () => {});
+    const { id, models, flow, client } = await pendingSubmission();
+    const saveSubmission = models.DiscordEventSubmissions.updateOne;
+    models.DiscordEventSubmissions.updateOne = (filter, update) => {
+      if (update.$set?.announcementMessageId) throw new Error("database down");
+      return saveSubmission(filter, update);
+    };
+
+    const response = await flow.handle(componentInteraction(mod(), `approve:${id}`));
+
+    assert.equal(models.Events.docs.length, 1);
+    assert.equal(announcementPosts(client).length, 1);
+    assert.match(response.data.embeds[0].footer.text, /Published to the Events page\./);
+    assert.match(logged.mock.calls.map((call) => call.arguments.join(" ")).join("\n"), /Saving announcement IDs failed: database down/);
   });
 });
 

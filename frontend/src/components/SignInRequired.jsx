@@ -53,7 +53,7 @@ function LockedPreview({ onSignIn }) {
                             <FontAwesomeIcon icon={faLock} aria-hidden="true" className="studentVoicePreview__lock" />
                             <h2>Sign in required</h2>
                             <p>Sign in with your UW NetID to share your feedback with the IUGA executive board.</p>
-                            <button type="button" className="pill-button" onClick={onSignIn}>
+                            <button type="button" className="pill-button pill-button--fill" onClick={onSignIn}>
                                 Sign in with UW NetID
                             </button>
                         </div>

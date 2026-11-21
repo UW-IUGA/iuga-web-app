@@ -18,6 +18,7 @@ import figma_uw_logo from "../logos/figma-uw.jpg";
 import husky_coding_project_logo from "../logos/husky-coding-project.png";
 import tca_logo from "../logos/tca.jpg";
 import ux_uw_logo from "../logos/ux-uw.jpg";
+import product_space_logo from "../logos/product-space-logo-trimmed.webp";
 
 export const resources = {
   [resourceTags.ACADEMIC]: [
@@ -165,7 +166,8 @@ export const resources = {
       "rName": "Product Space @ UW",
       "rDescription": "Cultivating tomorrow’s product leaders. Join a nationwide family of students in product today 💜",
       "rLink": "https://linktr.ee/uwproductspace_?utm_source=ig&utm_medium=social&utm_content=link_in_bio",
-      "rImage": null,
+      "rImage": product_space_logo,
+      "rImageInset": true,
     },
     {
       "rName": "Figma @ UW",

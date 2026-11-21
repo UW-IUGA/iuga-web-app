@@ -1,7 +1,9 @@
+import { resourceTagTones } from "../assets/data/Enum";
+
 const ResourceCard = ({ resource, category }) => {
     return (
         <article className="resourceCard editorial-card">
-            <div className="resourceCardIcon">
+            <div className={`resourceCardIcon${resource.rImageInset ? " resourceCardIcon--inset" : ""}`}>
                 {resource.rImage ? (
                     <img src={resource.rImage} alt={`${resource.rName} icon`} />
                 ) : (
@@ -9,13 +11,12 @@ const ResourceCard = ({ resource, category }) => {
                 )}
             </div>
             <div className="resourceCardContent">
-                <p className="resourceCardCategory">{category}</p>
                 <h3>{resource.rName}</h3>
                 <p>{resource.rDescription}</p>
                 {resource.rLink ? (
-                    <a className="pill-button resourceCardLink" href={resource.rLink} target="_blank" rel="noreferrer">
-                        Visit resource
-                        <span className="sr-only"> (opens in a new tab)</span>
+                    <a className="pill-button pill-button--fill resourceCardLink" data-tone={resourceTagTones[category]} href={resource.rLink} target="_blank" rel="noreferrer">
+                        Learn more
+                        <span className="sr-only"> about {resource.rName} (opens in a new tab)</span>
                     </a>
                 ) : (
                     <span className="resourceCardPending">Details coming soon</span>

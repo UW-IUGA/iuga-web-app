@@ -6,10 +6,6 @@
     margin-bottom: $space-24;
 }
 
-.resourceCardCategory {
-    @extend %pageKicker;
-}
-
 .resourcesDirectory {
     padding-top: 10px;
 }
@@ -187,4 +183,12 @@
     .resourceCategoryMeta {
         gap: $space-2;
     }
+}
+
+// Names the chips as filters, so they read as a choice rather than links.
+.resourceFilters__label {
+    flex-basis: 100%;
+    color: theme(text-muted);
+    font-size: $font-size-small;
+    font-weight: $font-weight-medium;
 }

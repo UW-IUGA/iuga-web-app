@@ -181,24 +181,17 @@ router.get("/id/:eId", async function (req, res) {
 });
 
 /*
-Purpose: For the homepage's 3 nearest future events, ordered by start time
-Authentication/Authorization Requirements: None
-
-Expected Request Information (<r> indicates a required field to include in the call):
-- Parameters: N/A
-- Queries: N/A
-- Body: N/A
+Purpose: The 3 nearest future events, soonest first.
 
 Expected Response Information:
 - return [{
             eId: event id,
             eName: String event name,
             eStartDate: Date event starts,
-            eEndDate: Date event ends,
-            eOrganizers: Array of String event organizer(s),
+            eOrganizers: String event organizer(s),
             eDescription: String event description,
             eLabels: Array of String event category label(s),
-            eThumbnail: a Image of event
+            eThumbnailPath: String event thumbnail URL, when the event has one
         }]
 */
 router.get("/upcoming", async function (req, res) {

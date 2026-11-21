@@ -35,7 +35,7 @@ function Card({
                 <div className="card-title">
                     <h2 className="card-title__heading">
                         {title}
-                        {/* The outline is visual only, and aria-current on a card is not
+                        {/* The border is visual only, and aria-current on a card is not
                 announced by every screen reader, so the heading says it too. */}
                         {isCurrentMonth && <span className="sr-only">, this month</span>}
                     </h2>

@@ -32,7 +32,7 @@ function nonJsonExcerpt(text) {
 /*
  * @behavior Describe a failed Discord call for operators: route, status, Discord's code and message,
  *   a likely cause when the code is well known, and any invalid fields. Never includes the token.
- * @returns { message, discordCode } where discordCode is Discord's numeric code, or undefined
+ * @returns { message, discordCode, likelyCause }; discordCode and likelyCause are undefined when unknown
  */
 async function describeFailure(method, path, response) {
   const summary = `Discord ${method} ${path} failed with status ${response.status}`;
@@ -54,7 +54,7 @@ async function describeFailure(method, path, response) {
   if (likelyCause) sentences.push(`Likely cause: ${likelyCause}`);
   const invalidFields = invalidFieldEntries(body?.errors);
   if (invalidFields.length) sentences.push(`Invalid fields: ${invalidFields.join("; ")}`);
-  return { message: sentences.join(". "), discordCode: hasDiscordCode ? body.code : undefined };
+  return { message: sentences.join(". "), discordCode: hasDiscordCode ? body.code : undefined, likelyCause };
 }
 
 /*
@@ -71,8 +71,8 @@ export function createDiscordClient({ botToken, fetchImpl = fetch }) {
       body: body === undefined ? undefined : JSON.stringify(body),
     });
     if (!response.ok) {
-      const { message, discordCode } = await describeFailure(method, path, response);
-      throw Object.assign(new Error(message), { discordCode });
+      const { message, discordCode, likelyCause } = await describeFailure(method, path, response);
+      throw Object.assign(new Error(message), { discordCode, likelyCause });
     }
     return response.status === 204 ? null : response.json();
   }
@@ -80,6 +80,15 @@ export function createDiscordClient({ botToken, fetchImpl = fetch }) {
   return {
     postMessage(channelId, body) {
       return call("POST", `/channels/${channelId}/messages`, body);
+    },
+    deleteMessage(channelId, messageId) {
+      return call("DELETE", `/channels/${channelId}/messages/${messageId}`);
+    },
+    createScheduledEvent(guildId, body) {
+      return call("POST", `/guilds/${guildId}/scheduled-events`, body);
+    },
+    deleteScheduledEvent(guildId, eventId) {
+      return call("DELETE", `/guilds/${guildId}/scheduled-events/${eventId}`);
     },
     registerGuildCommands(applicationId, guildId, commands) {
       return call("PUT", `/applications/${applicationId}/guilds/${guildId}/commands`, commands);

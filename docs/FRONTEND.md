@@ -386,9 +386,8 @@ palette for `#1a1a1a` pages, `#272727` surfaces, and white headings.
 | `react-router-dom` | Client-side routing |
 | `@azure/msal-browser`, `@azure/msal-react` | UW Azure AD authentication |
 | `react-ga4` | Google Analytics 4 |
-| `react-responsive` | Responsive breakpoint rendering |
 | `react-toastify` | Toast notifications |
-| `date-fns` / `dateformat` | Date formatting |
+| `date-fns` | Date formatting |
 | `gsap` | Events calendar animation: swipe steps and the year view's day overlay |
 | `sass` | SCSS compilation |
 | `@fortawesome/*` | Icon set |

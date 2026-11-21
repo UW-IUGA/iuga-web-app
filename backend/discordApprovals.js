@@ -1,6 +1,8 @@
 import { EVENT_COMMAND } from "./discordCommandDefinition.js";
 import { DRAFT_LIFETIME_MS } from "./discordEventDrafts.js";
 import { EVENT_FORM_ACTION, eventForm, readEventForm } from "./discordEventForm.js";
+import { createEventAnnouncements } from "./discordAnnouncements.js";
+import { categoriesOf, eventCardBase } from "./discordEventCard.js";
 import { canReview } from "./discordReviewers.js";
 import {
   BUTTON_PRIMARY,
@@ -32,7 +34,6 @@ import {
 } from "./discordInteractions.js";
 import { validateSubmission } from "./discordSubmissionRules.js";
 
-const PACIFIC = "America/Los_Angeles";
 const REASON_LIMIT = 500;
 const AUTOCOMPLETE_LIMIT = 25;
 const NOT_VERIFIED = "Only verified RSO officers can submit events. Use /rso-verify to ask the IUGA board to verify you.";
@@ -51,13 +52,6 @@ const ENTRY_LABELS = [
   ["description", "Description"],
 ];
 
-const dateFormat = new Intl.DateTimeFormat("en-US", {
-  timeZone: PACIFIC,
-  dateStyle: "medium",
-  timeStyle: "short",
-});
-const timeFormat = new Intl.DateTimeFormat("en-US", { timeZone: PACIFIC, timeStyle: "short" });
-
 /*
  * @behavior Run the /event submission and moderator approval flow for Discord interactions.
  *           Officers fill in a draft through the form, preview it, and send it for review; moderators
@@ -66,12 +60,18 @@ const timeFormat = new Intl.DateTimeFormat("en-US", { timeZone: PACIFIC, timeSty
  * @param models — provides DiscordEventDrafts, DiscordEventSubmissions, and Events
  * @param directory — the RSO directory; rsosOf(member) gives the RSOs a member represents
  * @param client — Discord REST client with postMessage and sendDirectMessage
- * @param config — { modRoleId, iugaOfficerRoleId, approvalChannelId }
+ * @param config — { modRoleId, iugaOfficerRoleId, approvalChannelId, announcementChannelId, guildId }
  * @param now — returns the current Date
  */
 export function createDiscordApprovals({ models, directory, client, config, now = () => new Date() }) {
   const submissions = () => models.DiscordEventSubmissions;
   const drafts = () => models.DiscordEventDrafts;
+  const announcements = createEventAnnouncements({
+    client,
+    channelId: config.announcementChannelId,
+    guildId: config.guildId,
+    now,
+  });
 
   function isReviewer(member) {
     return canReview(member, config);
@@ -267,12 +267,22 @@ export function createDiscordApprovals({ models, directory, client, config, now 
     }
 
     await submissions().updateOne({ _id: id }, { $set: { publishedEventId: event._id } });
-    return updateCard(
-      cardEmbed(claimed, {
-        color: COLOR_APPROVED,
-        statusText: `Approved by ${displayName(reviewer)}. Published to the Events page.`,
-      }),
-    );
+    const problems = await announceApproved(id, claimed);
+    const statusText = [`Approved by ${displayName(reviewer)}. Published to the Events page.`, ...problems].join(" ");
+    return updateCard(cardEmbed(claimed, { color: COLOR_APPROVED, statusText }));
+  }
+
+  // The event is already published, so a failed announcement is reported on the card, not undone.
+  async function announceApproved(id, row) {
+    const { problems, ...created } = await announcements.announce(row);
+    if (Object.keys(created).length) {
+      try {
+        await submissions().updateOne({ _id: id }, { $set: created });
+      } catch (error) {
+        console.error(`Saving announcement IDs failed: ${error.message}`);
+      }
+    }
+    return problems;
   }
 
   async function handleDenyStart(interaction, id) {
@@ -330,32 +340,10 @@ export function createDiscordApprovals({ models, directory, client, config, now 
   return { handle };
 }
 
-function formatWhen(start, end) {
-  const startText = `${dateFormat.format(start)} Pacific`;
-  return end ? `${startText} to ${timeFormat.format(end)}` : startText;
-}
-
 function cardEmbed(row, { color, statusText }) {
-  const fields = [
-    { name: "RSO", value: row.rsoName, inline: true },
-    { name: "Categories", value: categoriesOf(row).join(", "), inline: true },
-    { name: "When", value: formatWhen(row.eStartDate, row.eEndDate) },
-    { name: "Location", value: row.eLocation },
-  ];
-  if (row.rsvpUrl) fields.push({ name: "RSVP", value: row.rsvpUrl });
-  if (row.denyReason) fields.push({ name: "Denial reason", value: row.denyReason });
-  return {
-    title: row.eName,
-    description: row.eDescription,
-    color,
-    fields,
-    footer: { text: statusText },
-  };
-}
-
-// Submissions made before categories became a list store a single eLabel.
-function categoriesOf(row) {
-  return row.eLabels?.length ? row.eLabels : [row.eLabel];
+  const card = eventCardBase(row);
+  if (row.denyReason) card.fields.push({ name: "Denial reason", value: row.denyReason });
+  return { ...card, color, footer: { text: statusText } };
 }
 
 function eventFields(row) {

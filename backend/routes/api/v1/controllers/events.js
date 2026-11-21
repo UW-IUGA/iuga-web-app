@@ -113,7 +113,7 @@ Expected Response Information:
 - 400 when eId is not a valid id, 404 when no event has it
 - return {
             eId, eName, eOrganizers, eStartDate, eEndDate, eLocation, eDescription,
-            ePics, eLabels, eThumbnailPath, eAltLink,
+            eLabels, eThumbnailPath, eAltLink,
             rsvpQuestions: Array of { qId, qString },
             rsvpAnswers: Array of { qId, aString }, the signed-in user's answers or [],
             participants: Number of RSVPs, or null when showParticipants is false,

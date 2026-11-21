@@ -1,21 +1,3 @@
-/*
-Purpose: Show one week of events as a strip of days above a list of event rows.
-
-Expected Request Information:
-- events: event records (eId, eName, eStartDate, eLocation, eOrganizers, eLabels;
-  eThumbnailPath and hasRSVPd are optional).
-- initialDate: optional date whose week is shown first; defaults to today.
-- status: "ready" (default), "loading" while events are being fetched, or
-  "failed" when they could not be fetched.
-- onRetry: called when a visitor asks to try again after a failure.
-- onSelectEvent: called with the event a visitor opens.
-
-Expected Response Information:
-- Week navigation, seven day buttons that filter the list to one day, and the
-  week's events. An empty week offers a jump to the next upcoming event. While
-  loading or after a failure it says so instead of claiming the week is empty.
-*/
-
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRight, faCheck, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 import { format, isSameDay, isToday, isValid } from "date-fns";
@@ -35,22 +17,80 @@ const eventTime = (event) => format(new Date(event.eStartDate), "h:mm a");
 
 const countLabel = (count) => `${count} ${count === 1 ? "event" : "events"}`;
 
-// The soonest event that is still upcoming and starts after the given day.
+const byStartDate = (first, second) => new Date(first.eStartDate) - new Date(second.eStartDate);
+
 const nextEventAfter = (events, day) =>
     events
         .filter((event) => new Date(event.eStartDate) > day && new Date(event.eStartDate) >= new Date())
-        .sort((first, second) => new Date(first.eStartDate) - new Date(second.eStartDate))[0];
+        .sort(byStartDate)[0];
 
-function EventAgenda({ events = [], initialDate, status = "ready", onRetry, onSelectEvent }) {
+const getFeaturedEvents = (events, count) => {
+    const now = new Date();
+    const valid = events.filter((event) => isValid(new Date(event.eStartDate)));
+
+    const thisWeek = getWeekDays(getWeekStart(now))
+        .flatMap((day) => eventsForDay(valid, day))
+        .sort(byStartDate);
+
+    if (thisWeek.length > 0) {
+        return { items: thisWeek, kind: "week" };
+    }
+
+    const upcoming = valid.filter((event) => new Date(event.eStartDate) >= now).sort(byStartDate);
+
+    if (upcoming.length > 0) {
+        return { items: upcoming.slice(0, count), kind: "upcoming" };
+    }
+
+    const past = valid.filter((event) => new Date(event.eStartDate) < now).sort((a, b) => byStartDate(b, a));
+
+    return { items: past.slice(0, count), kind: "past" };
+};
+
+function EventAgenda({ events = [], initialDate, status = "ready", onRetry, onSelectEvent, featuredCount }) {
     const headingId = useId();
     const [weekAnchor, setWeekAnchor] = useState(() => safeDate(initialDate));
     const [selectedDay, setSelectedDay] = useState(null);
-    const weekStart = useMemo(() => getWeekStart(weekAnchor), [weekAnchor]);
+    // True once a visitor picks a day or changes weeks, so the featured events step aside.
+    const [browsing, setBrowsing] = useState(false);
+
+    const isFeatured = Number.isInteger(featuredCount) && featuredCount > 0;
+    const featured = useMemo(
+        () => (isFeatured ? getFeaturedEvents(events, featuredCount) : null),
+        [events, featuredCount, isFeatured],
+    );
+    const showingFeatured = isFeatured && !browsing;
+
+    /*
+    The row of days shows the current week. When this week has no events, the
+    agenda features the next upcoming ones instead, and the row of days moves to
+    the week of the soonest one. When nothing is upcoming, the agenda features the
+    most recent past events, and the row of days stays on the current week.
+    Either way, the row stays put until the visitor picks a day or changes weeks.
+    */
+    const anchor =
+        showingFeatured && featured.kind === "upcoming" && featured.items[0]
+            ? new Date(featured.items[0].eStartDate)
+            : weekAnchor;
+    const anchorTime = anchor.getTime();
+    const weekStart = useMemo(() => getWeekStart(new Date(anchorTime)), [anchorTime]);
     const weekDays = useMemo(() => getWeekDays(weekStart), [weekStart]);
 
     const showWeekOf = (date) => {
         setWeekAnchor(date);
         setSelectedDay(null);
+    };
+
+    // Used for actions a visitor takes themselves.
+    const browseWeekOf = (date) => {
+        showWeekOf(date);
+        setBrowsing(true);
+    };
+
+    const backToFeatured = () => {
+        setBrowsing(false);
+        setSelectedDay(null);
+        setWeekAnchor(safeDate(initialDate));
     };
 
     useEffect(() => {
@@ -65,11 +105,54 @@ function EventAgenda({ events = [], initialDate, status = "ready", onRetry, onSe
     );
     const nextEvent = visibleDays.length === 0 ? nextEventAfter(events, weekDays[6]) : null;
 
+    const renderEvent = (event, day) => (
+        <li key={event.eId}>
+            <button
+                className="eventAgenda__event"
+                type="button"
+                aria-label={`${event.eName}, ${format(day, "EEEE, MMMM d")} at ${eventTime(event)}. View details`}
+                onClick={() => onSelectEvent?.(event)}
+            >
+                <span className="eventAgenda__date" aria-hidden="true">
+                    <span>{format(day, "EEE")}</span>
+                    <strong>{format(day, "d")}</strong>
+                </span>
+                <EventThumbnail event={event} />
+                <span className="eventAgenda__body">
+                    <span className="eventAgenda__meta">
+                        {eventTime(event)} · {event.eLocation || "Location to be announced"}
+                    </span>
+                    <strong>{event.eName}</strong>
+                    {event.eOrganizers && (
+                        <span className="eventAgenda__host">Hosted by {event.eOrganizers}</span>
+                    )}
+                    <EventCategoryPills event={event} />
+                </span>
+                {event.hasRSVPd ? (
+                    <span className="eventAgenda__going">
+                        <FontAwesomeIcon icon={faCheck} aria-hidden="true" />
+                        Going
+                    </span>
+                ) : (
+                    <span className="eventAgenda__details" aria-hidden="true">
+                        Details
+                        <FontAwesomeIcon icon={faChevronRight} />
+                    </span>
+                )}
+            </button>
+        </li>
+    );
+
+    const heading =
+        showingFeatured && featured.kind === "past" && featured.items.length > 0
+            ? "Recent events."
+            : "Find your next event.";
+
     return (
         <section className="eventAgenda" aria-labelledby={headingId}>
             <div className="eventAgenda__header">
-                <h2 id={headingId}>Find your next event.</h2>
-                <WeekNavigation weekStart={weekStart} onChange={showWeekOf} />
+                <h2 id={headingId}>{heading}</h2>
+                <WeekNavigation weekStart={weekStart} onChange={browseWeekOf} />
             </div>
 
             <div className="eventAgenda__days" role="group" aria-label="Days this week">
@@ -87,7 +170,10 @@ function EventAgenda({ events = [], initialDate, status = "ready", onRetry, onSe
                             disabled={dayEvents.length === 0}
                             aria-pressed={isSelected}
                             aria-label={`${format(day, "EEEE, MMMM d")}${isToday(day) ? ", today" : ""}: ${countLabel(dayEvents.length)}`}
-                            onClick={() => setSelectedDay(isSelected ? null : day)}
+                            onClick={() => {
+                                setSelectedDay(isSelected ? null : day);
+                                setBrowsing(true);
+                            }}
                         >
                             <span>{isToday(day) ? "Today" : format(day, "EEE")}</span>
                             <strong>{format(day, "d")}</strong>
@@ -114,11 +200,24 @@ function EventAgenda({ events = [], initialDate, status = "ready", onRetry, onSe
                     </button>
                 </div>
             )}
-            {status === "ready" && (visibleDays.length === 0 ? (
+
+            {status === "ready" && showingFeatured && (
+                featured.items.length === 0 ? (
+                    <div className="eventAgenda__empty">
+                        <p>No events yet. Check back soon.</p>
+                    </div>
+                ) : (
+                    <ol className="eventAgenda__list">
+                        {featured.items.map((event) => renderEvent(event, new Date(event.eStartDate)))}
+                    </ol>
+                )
+            )}
+
+            {status === "ready" && !showingFeatured && (visibleDays.length === 0 ? (
                 <div className="eventAgenda__empty">
                     <p>Nothing is scheduled this week.</p>
                     {nextEvent && (
-                        <button type="button" onClick={() => showWeekOf(new Date(nextEvent.eStartDate))}>
+                        <button type="button" onClick={() => browseWeekOf(new Date(nextEvent.eStartDate))}>
                             Next event: {format(new Date(nextEvent.eStartDate), "EEE, MMM d")}
                             <FontAwesomeIcon icon={faArrowRight} aria-hidden="true" />
                         </button>
@@ -127,43 +226,7 @@ function EventAgenda({ events = [], initialDate, status = "ready", onRetry, onSe
             ) : (
                 <ol className="eventAgenda__list">
                     {visibleDays.flatMap(({ day, events: dayEvents }) =>
-                        dayEvents.map((event) => (
-                            <li key={event.eId}>
-                                <button
-                                    className="eventAgenda__event"
-                                    type="button"
-                                    aria-label={`${event.eName}, ${format(day, "EEEE, MMMM d")} at ${eventTime(event)}. View details`}
-                                    onClick={() => onSelectEvent?.(event)}
-                                >
-                                    <span className="eventAgenda__date" aria-hidden="true">
-                                        <span>{format(day, "EEE")}</span>
-                                        <strong>{format(day, "d")}</strong>
-                                    </span>
-                                    <EventThumbnail event={event} />
-                                    <span className="eventAgenda__body">
-                                        <span className="eventAgenda__meta">
-                                            {eventTime(event)} · {event.eLocation || "Location to be announced"}
-                                        </span>
-                                        <strong>{event.eName}</strong>
-                                        {event.eOrganizers && (
-                                            <span className="eventAgenda__host">Hosted by {event.eOrganizers}</span>
-                                        )}
-                                        <EventCategoryPills event={event} />
-                                    </span>
-                                    {event.hasRSVPd ? (
-                                        <span className="eventAgenda__going">
-                                            <FontAwesomeIcon icon={faCheck} aria-hidden="true" />
-                                            Going
-                                        </span>
-                                    ) : (
-                                        <span className="eventAgenda__details" aria-hidden="true">
-                                            Details
-                                            <FontAwesomeIcon icon={faChevronRight} />
-                                        </span>
-                                    )}
-                                </button>
-                            </li>
-                        )),
+                        dayEvents.map((event) => renderEvent(event, day)),
                     )}
                 </ol>
             ))}

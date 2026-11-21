@@ -225,7 +225,7 @@ Defined in `src/App.jsx`:
 
 | Path | Page Component | Data Source |
 |---|---|---|
-| `/` | `HomePage` | `upcomingEvents` (prop — mock or API) |
+| `/` | `HomePage` | Mock data or `GET /api/v1/events/`, loaded by the `HomeEvents` section |
 | `/events` | `EventsPage` | Mock data or `GET /api/v1/events`; an event's details use `GET /api/v1/events/id/{eId}`, its RSVP posts to `POST /api/v1/events/rsvp`, and officers also call `/api/v1/event-requests`. See [EVENTS.md](./EVENTS.md) |
 | `/resources` | `ResourcesPage` | Static data from `assets/data/ResourcesData.js` |
 | `/student-voice` | `StudentVoicePage` | Archived from navigation and homepage; direct URL still requires UW sign-in. Existing forms come from `assets/data/StudentVoiceData.js`. See [STUDENT_VOICE.md](./STUDENT_VOICE.md). |
@@ -246,8 +246,9 @@ The backend also serves `index.html` for each of these paths to enable deep link
 kept in the URL, and loads event records from the backend. Event details load
 when opened and include RSVP when the event supports it. Officers with
 `events.requests.manage` also see the request workspace below the calendar.
-The homepage shows up to three upcoming events and links to the calendar. See
-[EVENTS.md](./EVENTS.md) for the visitor flow, data sources, and code map.
+The homepage shows up to three upcoming events, or the most recent past events
+when none are scheduled, and links to the calendar. See [EVENTS.md](./EVENTS.md)
+for the visitor flow, data sources, and code map.
 
 ### Venmo checkout hold
 
@@ -294,8 +295,10 @@ tracking or proof of payment.
 
 In Vite dev mode, the frontend uses **mock data**:
 
-- **Homepage events**: `MockCalendarData.js`
-- **Calendar events**: `MockCalendarData.js` plus `MockUpcomingEvents.js` (imported directly, no fetch). The latter mirrors the real events in `backend/publishedEvents.js` and adds sample events dated relative to today, so the calendar always has something upcoming
+- **Homepage and calendar events**: `useEventList` uses `MockCalendarData.js`
+  and `MockUpcomingEvents.js` without fetching. The latter mirrors the events in
+  `backend/publishedEvents.js` and adds samples dated relative to today, so the
+  calendar always has something upcoming.
 - **Single event details**: the listed mock event, with `mockEvent` from `MockCalendarData.js` supplying any RSVP fields it lacks. The calendar's RSVP answers locally after a short wait and sends no request, but it still needs a signed-in student
 
 No backend is required for frontend development. The exception is the shop: it reads its catalog and prices from the API in both dev and production, because prices and sizes must never be duplicated in the frontend — in dev the Vite `/api` proxy to the backend must be running for live prices and sizes. Without it, `/shop` shows the read-only preview described in the routing table.

@@ -112,6 +112,7 @@
     }
 
     .homePreview {
+        position: relative;
         display: flex;
         flex-direction: column;
         overflow: hidden;
@@ -132,6 +133,18 @@
     .homePreviewLayer {
         position: absolute;
         inset: 0;
+        z-index: 0;
+
+        // Covers the whole card, copy included, so the card never resizes.
+        &.isImmersive {
+            z-index: 1;
+            pointer-events: none;
+
+            &.isActive {
+                pointer-events: auto;
+            }
+        }
+
         overflow: hidden;
         opacity: 0;
         transition: opacity $duration-fade $ease-out;

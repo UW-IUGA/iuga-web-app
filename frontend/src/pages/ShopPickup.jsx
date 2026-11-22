@@ -22,8 +22,8 @@ import { faMagnifyingGlass, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { useAuthContext } from "../context/AuthContext";
 import AdminBar from "../components/AdminBar";
 import { formatDateTime } from "../utils/shopFormat";
+import { saveShopPurchaseChange, SHOP_PURCHASES_URL as API } from "../utils/shopPurchaseApi";
 
-const API = "/api/v1/shop/purchases";
 const SEARCH_LABEL = "Search by name, email, or Venmo";
 const SEARCH_DELAY_MS = 300;
 const REFRESH_MS = 15000;
@@ -342,26 +342,18 @@ export default function ShopPickupPage() {
     // Sends one handoff change at the revision the officer saw. Returns the saved order, or a message and whether
     // trying again can help, plus the order as it is now after a conflict. A failed or lost save never counts as saved.
     const sendPickup = async (order, pickedUp) => {
-        let response;
-        let body;
+        let outcome;
         try {
-            response = await fetch(`${API}/${order.id}/pickup`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ pickedUp, expectedRevision: order.revision }),
-            });
-            body = await readJson(response);
+            outcome = await saveShopPurchaseChange(order, "pickup", { pickedUp });
         } catch {
             return { message: NOT_SAVED, retry: true };
         }
-        if (response.ok) return { order: body.purchase };
-        if (response.status === 409) {
-            // Another officer acted first: show the order as it is now, with the server's reason.
-            const current = await fetch(`${API}/${order.id}`).then(readJson).catch(() => null);
-            return { message: body?.message || CHANGED_ELSEWHERE, retry: false, current: current?.purchase ?? null };
+        if (outcome.order) return { order: outcome.order };
+        if (outcome.current) {
+            return { message: outcome.message || CHANGED_ELSEWHERE, retry: false, current: await outcome.current };
         }
-        if (response.status >= 500) return { message: NOT_SAVED, retry: true };
-        return { message: body?.message || NOT_SAVED, retry: false };
+        if (outcome.status >= 500) return { message: NOT_SAVED, retry: true };
+        return { message: outcome.message || NOT_SAVED, retry: false };
     };
 
     // shownIds is the ready list as the officer saw it when tapping, or null while searching.

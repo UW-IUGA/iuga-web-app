@@ -22,8 +22,8 @@ import AdminBar from "../components/AdminBar";
 import { usePopover } from "../hooks/usePopover";
 import { useModalDialog } from "../hooks/useModalDialog";
 import { formatCents, formatDateTime } from "../utils/shopFormat";
+import { loadShopPurchase, saveShopPurchaseChange, SHOP_PURCHASES_URL as API } from "../utils/shopPurchaseApi";
 
-const API = "/api/v1/shop/purchases";
 // Each filter is one server query. Balance remaining and Follow-up look across every payment status.
 // Paid orders are split by pickup, so Ready for pickup holds only orders still to hand over and Picked up
 // keeps finished ones out of the way without hiding them from search or All.
@@ -1342,17 +1342,12 @@ export default function ShopOrdersPage() {
     }, []);
 
     // Shows the order's latest saved state with a notice, for a fresh review after a conflict or lost response.
-    const refreshOrder = useCallback(async (id, notice, current) => {
+    const refreshOrder = useCallback(async (id, notice, current, latest) => {
         updateItem(id, { notice, saving: false });
-        try {
-            const response = await fetch(`${API}/${id}`);
-            const body = await readJson(response);
-            if (current === generation.current && response.ok) {
-                updateItem(id, { order: body.purchase });
-                showSavedOrder(body.purchase);
-            }
-        } catch {
-            // The notice already asks the officer to review before trying again.
+        const order = await (latest ?? loadShopPurchase(id));
+        if (current === generation.current && order) {
+            updateItem(id, { order });
+            showSavedOrder(order);
         }
     }, [showSavedOrder, updateItem]);
 
@@ -1366,26 +1361,20 @@ export default function ShopOrdersPage() {
     const sendDecision = useCallback(async (item, path, payload, method = "PATCH") => {
         const current = generation.current;
         updateItem(item.id, { saving: true, notice: null });
-        let response;
-        let body;
+        let outcome;
         try {
-            response = await fetch(`${API}/${item.id}/${path}`, {
-                method,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...payload, expectedRevision: item.order.revision }),
-            });
-            body = await readJson(response);
+            outcome = await saveShopPurchaseChange(item.order, path, payload, method);
         } catch {
             if (current === generation.current) refreshOrder(item.id, LOST_RESPONSE_MESSAGE, current);
             return { message: LOST_RESPONSE_MESSAGE };
         }
-        if (!response.ok) {
-            const message = body?.message || GENERIC_FAILURE;
-            if (response.status === 409) refreshOrder(item.id, message, current);
+        if (!outcome.order) {
+            const message = outcome.message || GENERIC_FAILURE;
+            if (outcome.current) refreshOrder(item.id, message, current, outcome.current);
             else updateItem(item.id, { saving: false, notice: message });
             return { message };
         }
-        const order = body.purchase;
+        const { order } = outcome;
         recentPages.current.clear();
         showSavedOrder(order);
         setCountsKey((key) => key + 1);

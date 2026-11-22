@@ -33,6 +33,7 @@ import {
   updateMessage,
 } from "./discordInteractions.js";
 import { validateSubmission } from "./discordSubmissionRules.js";
+import { publishApprovedEvent } from "./eventPublication.js";
 
 const REASON_LIMIT = 500;
 const AUTOCOMPLETE_LIMIT = 25;
@@ -241,35 +242,30 @@ export function createDiscordApprovals({ models, directory, client, config, now 
     if (!isReviewer(reviewer)) return reply("Only moderators or IUGA officers can approve events.");
     if (!OBJECT_ID.test(id)) return reply(STALE_MESSAGE);
 
-    const row = await submissions().findById(id);
-    if (!row) return reply(STALE_MESSAGE);
-    if (row.status !== "pending") return reply(REVIEWED_MESSAGE);
-    if (row.submitterDiscordId === reviewer.user.id) return reply("You cannot approve your own event.");
-
-    const claimed = await submissions().findOneAndUpdate(
-      { _id: id, status: "pending" },
-      { $set: { status: "approved", reviewerDiscordId: reviewer.user.id } },
-      { new: true },
-    );
-    if (!claimed) return reply(REVIEWED_MESSAGE);
-
-    let event;
+    let result;
     try {
-      event = await models.Events.create(eventFields(claimed));
+      result = await publishApprovedEvent({
+        Events: models.Events,
+        submissions: submissions(),
+        id,
+        reviewableStatuses: ["pending"],
+        prepareApproval: (row) => row.submitterDiscordId === reviewer.user.id ? null : {
+          eventFields: eventFields(row),
+          approvalFields: { reviewerDiscordId: reviewer.user.id },
+        },
+      });
     } catch (error) {
       console.error(`Event publish failed: ${error.message}`);
-      await submissions().findOneAndUpdate(
-        { _id: id, status: "approved" },
-        { $set: { status: "pending" }, $unset: { reviewerDiscordId: "" } },
-        { new: true },
-      );
-      return reply("Publishing failed, so the request is still pending. Try approving again.");
+      return reply("Couldn't confirm publication. Try approving again to check the current status.");
     }
+    if (result.kind === "missing") return reply(STALE_MESSAGE);
+    if (result.kind === "reviewed") return reply(REVIEWED_MESSAGE);
+    if (result.kind === "refused") return reply("You cannot approve your own event.");
 
-    await submissions().updateOne({ _id: id }, { $set: { publishedEventId: event._id } });
-    const problems = await announceApproved(id, claimed);
+    const approved = result.submission;
+    const problems = await announceApproved(id, approved);
     const statusText = [`Approved by ${displayName(reviewer)}. Published to the Events page.`, ...problems].join(" ");
-    return updateCard(cardEmbed(claimed, { color: COLOR_APPROVED, statusText }));
+    return updateCard(cardEmbed(approved, { color: COLOR_APPROVED, statusText }));
   }
 
   // The event is already published, so a failed announcement is reported on the card, not undone.

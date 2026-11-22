@@ -1,3 +1,5 @@
+import { RESPONSE_MESSAGE, RESPONSE_UPDATE_MESSAGE } from "./discordInteractions.js";
+
 const DISCORD_API = "https://discord.com/api/v10";
 const MAX_NON_JSON_EXCERPT_LENGTH = 200;
 
@@ -78,6 +80,24 @@ export function createDiscordClient({ botToken, fetchImpl = fetch }) {
   }
 
   return {
+    async completeDeferredInteraction(interaction, result) {
+      const updateCard = result.type === RESPONSE_UPDATE_MESSAGE;
+      if (!updateCard && result.type !== RESPONSE_MESSAGE) throw new Error("Unsupported deferred interaction result");
+      const webhook = `/webhooks/${encodeURIComponent(interaction.application_id)}/${encodeURIComponent(interaction.token)}`;
+      const path = updateCard ? `${webhook}/messages/@original` : webhook;
+      let response;
+      try {
+        response = await fetchImpl(`${DISCORD_API}${path}`, {
+          method: updateCard ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(result.data),
+        });
+      } catch {
+        // The webhook URL is a credential; do not expose transport errors that could include it.
+        throw new Error("Discord deferred interaction request failed");
+      }
+      if (!response.ok) throw new Error(`Discord deferred interaction failed with status ${response.status}`);
+    },
     postMessage(channelId, body) {
       return call("POST", `/channels/${channelId}/messages`, body);
     },

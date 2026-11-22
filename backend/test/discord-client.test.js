@@ -12,6 +12,36 @@ async function errorMessageFromFailedPost(status, bodyText) {
   return error.message;
 }
 
+describe("deferred Discord approvals", () => {
+  const interaction = { application_id: "123", token: "private-interaction-token" };
+
+  it("edits the approval card on success and sends refusals privately", async () => {
+    const calls = [];
+    const client = createDiscordClient({ botToken: BOT_TOKEN, fetchImpl: async (url, request) => {
+      calls.push({ url, method: request.method, data: JSON.parse(request.body), headers: request.headers });
+      return new Response(null, { status: 204 });
+    } });
+    await client.completeDeferredInteraction(interaction, { type: 7, data: { components: [] } });
+    await client.completeDeferredInteraction(interaction, { type: 4, data: { content: "Already reviewed", flags: 64 } });
+
+    const webhook = `https://discord.com/api/v10/webhooks/123/${interaction.token}`;
+    assert.deepEqual(calls.map(({ url, method, data }) => ({ url, method, data })), [
+      { url: `${webhook}/messages/@original`, method: "PATCH", data: { components: [] } },
+      { url: webhook, method: "POST", data: { content: "Already reviewed", flags: 64 } },
+    ]);
+    assert.ok(calls.every(({ headers }) => !new Headers(headers).has("Authorization")));
+  });
+
+  it("does not expose the interaction token when delivery fails", async () => {
+    const client = createDiscordClient({ botToken: BOT_TOKEN, fetchImpl: async () => new Response(interaction.token, { status: 404 }) });
+    await assert.rejects(client.completeDeferredInteraction(interaction, { type: 7, data: {} }), (error) => {
+      assert.match(error.message, /404/);
+      assert.doesNotMatch(error.message, /private-interaction-token/);
+      return true;
+    });
+  });
+});
+
 describe("Discord client errors", () => {
   it("names the route, status, Discord code, and Discord message", async () => {
     const message = await errorMessageFromFailedPost(403, JSON.stringify({ message: "Missing Access", code: 50001 }));

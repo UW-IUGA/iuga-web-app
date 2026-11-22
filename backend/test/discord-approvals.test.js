@@ -108,10 +108,20 @@ function createDirectory(rsosByUser, { fails = false } = {}) {
 }
 
 function setup({ directoryFails = false } = {}) {
+  const events = createCollection();
   const models = {
     DiscordEventSubmissions: createCollection(),
     DiscordEventDrafts: createCollection(),
-    Events: createCollection(),
+    Events: {
+      ...events,
+      async startSession() {
+        return { withTransaction: (work) => work(), async endSession() {} };
+      },
+      async create([fields]) {
+        events.failCreate = this.failCreate;
+        return [await events.create(fields)];
+      },
+    },
   };
   const client = createClient();
   const rsosByUser = {
@@ -706,7 +716,7 @@ describe("approval", () => {
     assert.equal(models.Events.docs.length, 1);
   });
 
-  it("reverts to pending and tells the moderator when the Events insert fails", async (t) => {
+  it("keeps the request pending and tells the moderator when the Events insert fails", async (t) => {
     t.mock.method(console, "error", () => {});
     const { id, models, flow } = await pendingSubmission();
     models.Events.failCreate = true;
@@ -714,7 +724,7 @@ describe("approval", () => {
     const response = await flow.handle(componentInteraction(mod(), `approve:${id}`));
 
     assert.equal(response.data.flags, EPHEMERAL);
-    assert.match(response.data.content, /still pending/);
+    assert.match(response.data.content, /Couldn't confirm publication/);
     assert.equal(models.Events.docs.length, 0);
     const [row] = models.DiscordEventSubmissions.docs;
     assert.equal(row.status, "pending");

@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { addDays, addMonths, addWeeks, buildWeekDates, zonedMidnight, zonedParts } from "../utils/calendar/calendar";
+import { addDays, addMonths, addWeeks, buildWeekDates, zonedMidnight, toISODate } from "../utils/calendar/calendar";
 
 // The calendar's view and date live in the page's query string
 // (`/events?view=week&date=2026-10-20`), so a view can be shared or bookmarked
@@ -37,11 +37,6 @@ function parseDateParam(value) {
     const match = ISO_DAY.exec(value ?? "");
     if (!match) return null;
     return zonedMidnight(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
-}
-
-function toISODate(date) {
-    const { year, month, day } = zonedParts(date);
-    return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
 export default function useCalendarView() {

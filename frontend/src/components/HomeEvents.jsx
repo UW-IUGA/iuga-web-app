@@ -8,7 +8,7 @@ Which events to show and how to word them lives in utils/homeEvents.
 
 import { useId } from "react";
 import { Link } from "react-router-dom";
-import { format } from "date-fns";
+import { formatCalendarDateBadge, formatClockTime } from "../utils/calendar/calendar";
 import useEventList from "../hooks/useEventList";
 import EventCategoryPills from "./EventCategoryPills";
 import EventThumbnail from "./EventThumbnail";
@@ -23,6 +23,7 @@ function sectionState(status, items) {
 
 function HomeEventRow({ event, now }) {
   const start = startOf(event);
+  const { month, day } = formatCalendarDateBadge(start);
 
   return (
     <Link
@@ -31,13 +32,13 @@ function HomeEventRow({ event, now }) {
       data-tone={categoriesFor(event)[0]?.toLowerCase()}
     >
       <span className="homeEvents__date" aria-hidden="true">
-        <span>{format(start, "MMM")}</span>
-        <strong>{format(start, "d")}</strong>
+        <span>{month}</span>
+        <strong>{day}</strong>
       </span>
       <EventThumbnail event={event} />
       <span className="homeEvents__body">
         <span className="homeEvents__meta">
-          {dayLabel(start, now)} · {format(start, "h:mm a")} ·{" "}
+          {dayLabel(start, now)} · {formatClockTime(start)} ·{" "}
           {event.eLocation || "Location to be announced"}
         </span>
         <strong>{event.eName}</strong>

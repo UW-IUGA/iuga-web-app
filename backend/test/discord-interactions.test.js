@@ -18,17 +18,25 @@ describe("Discord interactions endpoint", () => {
   let server;
   let baseUrl;
   const handled = [];
+  let approval;
+  const completed = [];
 
   before(async () => {
     const app = express();
     const flow = {
       async handle(interaction) {
         handled.push(interaction);
+        if (interaction.data?.custom_id?.startsWith("approve:")) return approval.promise;
         if (interaction.data?.custom_id === "explode") throw new Error("internal failure detail");
         return { type: 4, data: { content: "from the flow" } };
       },
     };
-    app.use("/api/v1/discord", createDiscordRouter({ publicKey: publicKeyHex, flow }));
+    const client = {
+      async completeDeferredInteraction(interaction, result) {
+        completed.push({ interaction, result });
+      },
+    };
+    app.use("/api/v1/discord", createDiscordRouter({ publicKey: publicKeyHex, flow, client }));
     app.use((err, _req, res, _next) => res.status(err.status ?? 500).json({ error: err.type ?? "error" }));
     server = app.listen(0);
     await once(server, "listening");
@@ -83,6 +91,27 @@ describe("Discord interactions endpoint", () => {
     const json = await response.json();
     assert.deepEqual(json, { type: 4, data: { content: "from the flow" } });
     assert.deepEqual(handled, [{ type: 2, data: { name: "event" } }]);
+  });
+
+  it("acknowledges approval before the database work finishes, then sends the outcome", async () => {
+    approval = Promise.withResolvers();
+    const interaction = { type: 3, application_id: "123", token: "test-token", data: { custom_id: "approve:507f1f77bcf86cd799439011" } };
+    const body = Buffer.from(JSON.stringify(interaction));
+    const result = { type: 7, data: { components: [] } };
+    try {
+      const response = await fetch(baseUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...sign(body) },
+        body,
+        signal: AbortSignal.timeout(1000),
+      });
+      assert.deepEqual(await response.json(), { type: 6 });
+      assert.deepEqual(completed, []);
+    } finally {
+      approval.resolve(result);
+    }
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.deepEqual(completed, [{ interaction, result }]);
   });
 
   it("returns a private generic reply when the flow throws", async (t) => {

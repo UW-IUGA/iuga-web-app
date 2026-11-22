@@ -20,7 +20,7 @@ import { createDiscordClient } from "./discordClient.js";
 import { createRsoDirectory } from "./rsoDirectory.js";
 import { createRsoVerification } from "./discordRsoVerification.js";
 import { createDiscordDispatcher } from "./discordDispatcher.js";
-import { httpErrorHandler, sendSpaError } from "./http/errors.js";
+import { httpErrorHandler } from "./http/errors.js";
 import {
   isAllowedOrigin,
   configureCorsAndReadiness,
@@ -108,7 +108,7 @@ if (process.env.DISCORD_PUBLIC_KEY) {
   app.use(
     "/api/v1/discord",
     createRateLimiter({ limit: 60, windowMs: 60_000 }),
-    createDiscordRouter({ publicKey: process.env.DISCORD_PUBLIC_KEY, flow: discordFlows }),
+    createDiscordRouter({ publicKey: process.env.DISCORD_PUBLIC_KEY, flow: discordFlows, client: discordClient }),
   );
 }
 

@@ -49,6 +49,10 @@ describe("resource records", () => {
         });
     });
 
+    test("links every resource over https", () => {
+        resources.filter(({ rLink }) => rLink).forEach(({ rName, rLink }) => expect(rLink, rName).toMatch(/^https:\/\//));
+    });
+
     // Logos load on a page of 40+ cards, so each stays small.
     test("keeps WebP logos at 30 KB or less and every logo under 100 KB", () => {
         const dir = "src/assets/logos";

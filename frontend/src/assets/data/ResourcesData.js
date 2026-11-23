@@ -231,7 +231,7 @@ export const resources = [
   {
     "rName": "Women in Informatics (Winfo)",
     "rDescription": "Women in Informatics supports ways to empower women to thrive as producers of technology. Winfo is a supportive network of women in technology fields who provide students with mentorship, resources and support toward career development and academic pursuits.",
-    "rLink": "http://winfo.ischool.uw.edu/",
+    "rLink": "https://ischool.uw.edu/diversity/resources/student-groups/winfo",
     "rImage": winfo_logo,
     "type": "Student clubs",
     "tags": ["iOrgs"],

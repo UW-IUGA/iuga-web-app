@@ -1,3 +1,4 @@
+import { readdirSync, statSync } from "node:fs";
 import { resources } from "./ResourcesData";
 import { allTags, clubAreas, resourceTypes, tagGroups } from "./resourceTaxonomy";
 
@@ -45,6 +46,15 @@ describe("resource records", () => {
         resources.forEach(({ rName, type, tags }) => {
             const areas = tags.filter((tag) => clubAreas.includes(tag));
             expect(areas.length, `${rName} is in ${areas.join(", ") || "no area"}`).toBe(type === resourceTypes.CLUB ? 1 : 0);
+        });
+    });
+
+    // Logos load on a page of 40+ cards, so each stays small.
+    test("keeps WebP logos at 30 KB or less and every logo under 100 KB", () => {
+        const dir = "src/assets/logos";
+        readdirSync(dir).forEach((file) => {
+            const size = statSync(`${dir}/${file}`).size;
+            expect(size, file).toBeLessThanOrEqual(file.endsWith(".webp") ? 30 * 1024 : 100 * 1024);
         });
     });
 

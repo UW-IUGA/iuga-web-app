@@ -14,7 +14,7 @@ import iqueeries_logo from "../logos/iqueeries-logo.png";
 import winfo_logo from "../logos/winfo-logo.jpeg";
 import binfo_logo from "../logos/binfo-logo.png";
 import isaca_logo from "../logos/isaca-logo.png";
-import imuslims_logo from "../logos/imuslims-logo.jpeg";
+import imuslims_logo from "../logos/imuslims.webp";
 import aws_student_builder_group_logo from "../logos/aws-student-builder-group.jpg";
 import claude_builder_club_logo from "../logos/claude-builder-club-uw.jpg";
 import comet_logo from "../logos/comet-uw.jpg";

@@ -158,7 +158,7 @@ markup at every breakpoint. Its presentation is split across these partials:
 - `_navigation-desktop.scss` — compact laptop link spacing
 
 The header holds the logo on the left and one centered group of page links:
-Events, Resources, Merch, About, and Get Involved. The account
+Home, Events, Merch, Resources, Get Involved, and About. The account
 control sits to the right of the group. On smaller desktops the link spacing
 tightens to keep the navigation on one line; below the sm-desktop breakpoint
 the links collapse into a hamburger panel. Only one dropdown is open at a time,

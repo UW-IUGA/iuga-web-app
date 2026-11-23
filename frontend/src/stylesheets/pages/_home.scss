@@ -133,6 +133,25 @@
     li {
         min-width: 0;
         min-height: 0;
+
+        // The hero is seen once per visit, so its photos enter as one wave: the lead
+        // photo rises furthest, the other two follow with shorter moves and shrinking gaps.
+        // The copy is not animated, so it is readable and clickable from the first frame.
+        @include page-entrance-rise {
+            &:nth-child(1) {
+                --rise: 20px;
+            }
+
+            &:nth-child(2) {
+                --rise: 14px;
+                animation-delay: 110ms;
+            }
+
+            &:nth-child(3) {
+                --rise: 10px;
+                animation-delay: 180ms;
+            }
+        }
     }
 
     li:first-child {
@@ -173,27 +192,6 @@
         li:first-child {
             grid-row: auto;
             grid-column: 1 / -1;
-        }
-    }
-}
-
-// The hero is seen once per visit, so its photos enter as one wave: the lead
-// photo rises furthest, the other two follow with shorter moves and shrinking gaps.
-// The copy is not animated, so it is readable and clickable from the first frame.
-.homeHeroPhotos li {
-    @include page-entrance-rise {
-        &:nth-child(1) {
-            --rise: 20px;
-        }
-
-        &:nth-child(2) {
-            --rise: 14px;
-            animation-delay: 110ms;
-        }
-
-        &:nth-child(3) {
-            --rise: 10px;
-            animation-delay: 180ms;
         }
     }
 }

@@ -50,9 +50,9 @@ describe("resource records", () => {
         });
     });
 
-    // Abe's list of the iSchool's student clubs, by area, plus the four the page already had (marked).
-    test("lists every club on Abe's list under its area", () => {
-        const abesList = {
+    // The iSchool student club list this page is built from, by area, plus the four the page already had (marked).
+    test("lists every club on the club list under its area", () => {
+        const clubsByArea = {
             iOrgs: [
                 "Black in Informatics (Binfo)", "Women in Informatics (Winfo)", "iQueeries", "iMuslims", "iJournal",
             ],
@@ -65,16 +65,16 @@ describe("resource records", () => {
             "Software Engineering": [
                 "Husky Coding Project", "Society of Women Engineers UW (SWE UW)",
                 "Software Engineering Career Club (SWECC)", "Web Impact UW",
-                "AWS Student Builder Group @ UW", // not on Abe's list
+                "AWS Student Builder Group @ UW", // not on the club list
             ],
             "DS/ML": [
                 "DubsTech", "Data Science Society at UW", "interactive intelligence (i2)",
-                "Claude Builder Club @ UW", "Comet @ UW", // not on Abe's list
+                "Claude Builder Club @ UW", "Comet @ UW", // not on the club list
             ],
-            "UI/UX": ["UX @ UW Club", "Women in UX", "UX Health @ UW", "Figma @ UW"], // Figma is not on Abe's list
+            "UI/UX": ["UX @ UW Club", "Women in UX", "UX Health @ UW", "Figma @ UW"], // Figma is not on the club list
             Cybersecurity: ["ThinkCyber UW", "Batman's Kitchen", "ISACA", "WiCyS UW"],
         };
-        Object.entries(abesList).forEach(([area, names]) => {
+        Object.entries(clubsByArea).forEach(([area, names]) => {
             const inArea = resources.filter(({ tags }) => tags.includes(area)).map(({ rName }) => rName);
             expect(inArea.sort(), area).toEqual([...names].sort());
         });

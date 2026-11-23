@@ -3,7 +3,7 @@ Purpose: Every resource on the Resources page, one record each. A record holds e
 
 Expected Response Information:
 - resources: a list of { rName, rDescription, rLink, rImage, rImageInset?, type, tags, summary }.
-  - type: who runs it, one of the Type tags in resourceTaxonomy (RSO, iSchool, UW).
+  - type: who runs it, one of resourceTypes in resourceTaxonomy.
   - tags: the record's other filter tags, each spelled as in resourceTaxonomy.
   - summary: one to three short bullets for the card, restating rDescription.
 */
@@ -72,7 +72,7 @@ export const resources = [
     "rLink": "https://canvas.uw.edu/courses/1614908",
     "rImage": canvas_logo,
     "type": "iSchool",
-    "tags": ["Career"],
+    "tags": ["Jobs & internships"],
     "summary": [
       "One-on-one advising for professional development goals and the job search",
       "Help with job search strategies and specific opportunities",
@@ -85,7 +85,7 @@ export const resources = [
     "rLink": "https://ischool.uw.edu/alumni/get-involved/imentorship",
     "rImage": ischool_logo,
     "type": "iSchool",
-    "tags": ["Career"],
+    "tags": ["Jobs & internships"],
     "summary": [
       "Work closely, one-on-one, with an information professional as you pursue your professional dreams",
       "They can provide insight, guidance, and support, and help you jumpstart a professional network",
@@ -98,7 +98,7 @@ export const resources = [
     "rLink": "https://iss.washington.edu/f1-employment/off-campus-employment-f1/cpt/",
     "rImage": uw_logo,
     "type": "UW",
-    "tags": ["Career"],
+    "tags": ["Jobs & internships"],
     "summary": [
       "Serves as work authorization for students on F-1 visas while studying at UW",
       "Learn practical skills related to your major through different types of activities",
@@ -110,7 +110,7 @@ export const resources = [
     "rLink": "https://iss.washington.edu/f1-employment/post-completion/",
     "rImage": uw_logo,
     "type": "UW",
-    "tags": ["Career"],
+    "tags": ["Jobs & internships"],
     "summary": [
       "Temporary work authorization in the United States",
       "For international students on F-1 visas",
@@ -122,7 +122,7 @@ export const resources = [
     "rLink": "https://iss.washington.edu/f1-employment/on-campus/",
     "rImage": uw_logo,
     "type": "UW",
-    "tags": ["Career"],
+    "tags": ["Jobs & internships"],
     "summary": [
       "On-campus work option for F-1 international students",
       "Earn money and gain work experience while maintaining your visa status",
@@ -182,8 +182,8 @@ export const resources = [
     "rDescription": "Black in Informatics is a community-driven organization dedicated to fostering the professional, academic, and personal development of Black students within the Informatics program. Its mission is to amplify the presence and successes of Black students in Informatics, guiding them throughout their journey at UW with resources, mentorship, and specialized learning experiences.",
     "rLink": "https://linktr.ee/binfouw",
     "rImage": binfo_logo,
-    "type": "RSO",
-    "tags": ["Social"],
+    "type": "Student clubs",
+    "tags": [],
     "summary": [
       "Community-driven organization fostering the professional, academic, and personal development of Black students in Informatics",
       "Its mission is to amplify the presence and successes of Black students in Informatics",
@@ -195,8 +195,8 @@ export const resources = [
     "rDescription": "iMuslims is a student-led organization dedicated to providing Muslim students at the iSchool with resources and community that will allow them to thrive at UW and beyond. We empower students to be information and technology leaders by promoting connection, establishing networks, and building professional skills through event programming. All students are welcome at our events — you can keep up with our org by following us on Instagram @imuslims.uw.",
     "rLink": "https://www.instagram.com/imuslims.uw/",
     "rImage": imuslims_logo,
-    "type": "RSO",
-    "tags": ["Social"],
+    "type": "Student clubs",
+    "tags": [],
     "summary": [
       "Student-led resources and community to help Muslim students at the iSchool thrive at UW and beyond",
       "Empowers students to be information and technology leaders through events that promote connection, establish networks, and build professional skills",
@@ -208,8 +208,8 @@ export const resources = [
     "rDescription": "iQueeries provides a safe, positive, and nurturing space for LGBTQIA+ and supportive ally students in the Information School. It works to foster a strong, supportive queer community within the iSchool as well as UW at large, and to promote positive change and social justice within the field of information sciences. iQueeries is intersectional: all identities and experiences are welcome and encouraged to share their voices.",
     "rLink": "https://depts.washington.edu/ischoolq/",
     "rImage": iqueeries_logo,
-    "type": "RSO",
-    "tags": ["Social"],
+    "type": "Student clubs",
+    "tags": [],
     "summary": [
       "Safe, positive, and nurturing space for LGBTQIA+ and supportive ally students in the iSchool",
       "Fosters a strong, supportive queer community in the iSchool and UW at large, and promotes positive change and social justice in the information sciences",
@@ -221,8 +221,8 @@ export const resources = [
     "rDescription": "ISACA aims to engage students who are interested in learning about information security and risk. This student group accomplishes this by hosting workshops and events that teach students about basic information security procedures and best practices.",
     "rLink": "https://www.instagram.com/isacauw/",
     "rImage": isaca_logo,
-    "type": "RSO",
-    "tags": ["Social"],
+    "type": "Student clubs",
+    "tags": [],
     "summary": [
       "For students interested in learning about information security and risk",
       "Workshops and events on basic information security procedures and best practices",
@@ -233,8 +233,8 @@ export const resources = [
     "rDescription": "Women in Informatics supports ways to empower women to thrive as producers of technology. Winfo is a supportive network of women in technology fields who provide students with mentorship, resources and support toward career development and academic pursuits.",
     "rLink": "http://winfo.ischool.uw.edu/",
     "rImage": winfo_logo,
-    "type": "RSO",
-    "tags": ["Social"],
+    "type": "Student clubs",
+    "tags": [],
     "summary": [
       "Empowers women to thrive as producers of technology",
       "Supportive network of women in technology fields",
@@ -246,8 +246,8 @@ export const resources = [
     "rDescription": "Student built. Community-driven. Future-focused. DubHacks is a tech and entrepreneurship non-profit in Seattle run by students at the University of Washington. We bring together students of all backgrounds to tackle the issues they are most passionate about.",
     "rLink": "https://dubhacks.co/",
     "rImage": dubhacks_logo,
-    "type": "RSO",
-    "tags": ["Social"],
+    "type": "Student clubs",
+    "tags": [],
     "summary": [
       "Student built, community-driven, and future-focused",
       "Tech and entrepreneurship nonprofit in Seattle run by UW students",
@@ -259,8 +259,8 @@ export const resources = [
     "rDescription": "Building Tomorrow's Founders. A 16-week program transforming exceptional UW students into funded startup founders through intensive mentorship, resources, and community at UW's Top Startup Incubator.",
     "rLink": "https://next.dubhacks.co/",
     "rImage": dubhacksnext_logo,
-    "type": "RSO",
-    "tags": ["Social"],
+    "type": "Student clubs",
+    "tags": [],
     "summary": [
       "Building tomorrow's founders",
       "16-week program turning exceptional UW students into funded startup founders",
@@ -272,8 +272,8 @@ export const resources = [
     "rDescription": "Learn and build with AI. Backed by Claude.",
     "rLink": "https://linktr.ee/claudeatuofwa?utm_source=ig&utm_medium=social&utm_content=link_in_bio",
     "rImage": claude_builder_club_logo,
-    "type": "RSO",
-    "tags": ["Social"],
+    "type": "Student clubs",
+    "tags": [],
     "summary": [
       "Learn and build with AI",
       "Backed by Claude",
@@ -284,8 +284,8 @@ export const resources = [
     "rDescription": "A community for students of all levels who want to grow their UX skills.",
     "rLink": "https://uxuw.framer.website/?utm_source=ig&utm_medium=social&utm_content=link_in_bio",
     "rImage": ux_uw_logo,
-    "type": "RSO",
-    "tags": ["Social"],
+    "type": "Student clubs",
+    "tags": [],
     "summary": [
       "Community for students who want to grow their UX skills",
       "Open to students of all levels",
@@ -296,8 +296,8 @@ export const resources = [
     "rDescription": "Helping Huskies explore, build & connect through cloud tech ☁️ Powered by AWS.",
     "rLink": "https://bio.site/awssbguw?utm_source=ig&utm_medium=social&utm_content=link_in_bio",
     "rImage": aws_student_builder_group_logo,
-    "type": "RSO",
-    "tags": ["Social"],
+    "type": "Student clubs",
+    "tags": [],
     "summary": [
       "Helping Huskies explore, build, and connect through cloud tech",
       "Powered by AWS",
@@ -309,8 +309,8 @@ export const resources = [
     "rLink": "https://linktr.ee/uwproductspace_?utm_source=ig&utm_medium=social&utm_content=link_in_bio",
     "rImage": product_space_logo,
     "rImageInset": true,
-    "type": "RSO",
-    "tags": ["Social"],
+    "type": "Student clubs",
+    "tags": [],
     "summary": [
       "Cultivating tomorrow's product leaders",
       "Part of a nationwide family of students in product",
@@ -321,8 +321,8 @@ export const resources = [
     "rDescription": "Making design accessible for everyone ✨ Bringing Figma closer to UW 🐾💜",
     "rLink": "https://www.instagram.com/figmaatuw/",
     "rImage": figma_uw_logo,
-    "type": "RSO",
-    "tags": ["Social"],
+    "type": "Student clubs",
+    "tags": [],
     "summary": [
       "Making design accessible for everyone",
       "Bringing Figma closer to UW",
@@ -333,8 +333,8 @@ export const resources = [
     "rDescription": "Browse at the speed of thought 🪐 Managed by Perplexity Campus Ambassadors :)",
     "rLink": "https://www.instagram.com/uwcomet/",
     "rImage": comet_logo,
-    "type": "RSO",
-    "tags": ["Social"],
+    "type": "Student clubs",
+    "tags": [],
     "summary": [
       "Browse at the speed of thought",
       "Managed by Perplexity Campus Ambassadors",
@@ -345,8 +345,8 @@ export const resources = [
     "rDescription": "UW's largest tech community. We host workshops, hackathons, and talks on design, data science, and software engineering.",
     "rLink": "https://linktr.ee/dubstech?utm_source=ig&utm_medium=social&utm_content=link_in_bio",
     "rImage": dubstech_logo,
-    "type": "RSO",
-    "tags": ["Social"],
+    "type": "Student clubs",
+    "tags": [],
     "summary": [
       "UW's largest tech community",
       "Hosts workshops, hackathons, and talks",
@@ -358,8 +358,8 @@ export const resources = [
     "rDescription": "Inspiring engineering & design students at UW to build what they care about!",
     "rLink": "https://www.cseed.co/cseed-teams",
     "rImage": cseed_logo,
-    "type": "RSO",
-    "tags": ["Social"],
+    "type": "Student clubs",
+    "tags": [],
     "summary": [
       "Inspiring engineering and design students at UW to build what they care about",
     ],
@@ -369,8 +369,8 @@ export const resources = [
     "rDescription": "Your launchpad for tech teamwork @ the UW. Husky Coding Project is a student organization at University of Washington that aims to provide a space for students, regardless of major or background, to gain group project work experience within the tech field.",
     "rLink": "https://hcp-uw.com/",
     "rImage": husky_coding_project_logo,
-    "type": "RSO",
-    "tags": ["Social"],
+    "type": "Student clubs",
+    "tags": [],
     "summary": [
       "Your launchpad for tech teamwork at UW",
       "A space to gain group project work experience in the tech field",
@@ -382,8 +382,8 @@ export const resources = [
     "rDescription": "The premier technology consultancy.",
     "rLink": "https://linktr.ee/tca_uw?utm_source=ig&utm_medium=social&utm_content=link_in_bio",
     "rImage": tca_logo,
-    "type": "RSO",
-    "tags": ["Social"],
+    "type": "Student clubs",
+    "tags": [],
     "summary": [
       "The premier technology consultancy",
     ],

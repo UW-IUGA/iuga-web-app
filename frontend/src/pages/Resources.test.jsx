@@ -20,7 +20,7 @@ const resources = [
         rLink: "https://ischool.uw.edu/career",
         rImage: null,
         type: "iSchool",
-        tags: ["Career"],
+        tags: ["Jobs & internships"],
         summary: [],
     },
     {
@@ -28,14 +28,14 @@ const resources = [
         rDescription: "A club still writing its description.",
         rLink: "",
         rImage: null,
-        type: "RSO",
-        tags: ["Social"],
+        type: "Student clubs",
+        tags: [],
         summary: [],
     },
 ];
 
 const club = (rName, fields = {}) => ({
-    rName, rDescription: "A student club.", rLink: "https://example.com", rImage: null, type: "RSO", tags: ["Social"],
+    rName, rDescription: "A student club.", rLink: "https://example.com", rImage: null, type: "Student clubs", tags: [],
     summary: [], ...fields,
 });
 
@@ -120,10 +120,29 @@ describe("ResourcesPage", () => {
         renderResourcesPage();
 
         const club = screen.getByRole("heading", { name: "Example Student Club" }).closest("article");
-        expect(within(club).getByText("RSO · Social")).toBeInTheDocument();
+        expect(within(club).getByText("Student clubs")).toBeInTheDocument();
         expect(within(club).getByText("A club still writing its description.")).toBeInTheDocument();
         expect(within(club).getByText("Details coming soon")).toBeInTheDocument();
         expect(within(club).queryByRole("link")).not.toBeInTheDocument();
+    });
+
+    test("groups the filters by who runs a resource and what it helps with", () => {
+        renderResourcesPage();
+
+        const options = (name) => within(screen.getByRole("group", { name }))
+            .getAllByRole("checkbox")
+            .map((box) => box.closest("label").textContent.replace(/\d+$/, "").trim());
+        expect(options("Who runs it")).toEqual(["Student clubs", "iSchool", "UW"]);
+        expect(options("What it helps with")).toEqual(["Academic", "Jobs & internships", "Mental Health", "DEI"]);
+    });
+
+    // Every club is social, so Social, Career and Community say nothing on this page (they stay on Events).
+    test("offers no Social, Career or Community filter", () => {
+        renderResourcesPage();
+
+        ["Social", "Career", "Community"].forEach((label) => {
+            expect(screen.queryByRole("checkbox", { name: new RegExp(`^${label}`) })).not.toBeInTheDocument();
+        });
     });
 
     test("lists resources A–Z with no sort menu", () => {
@@ -139,15 +158,15 @@ describe("ResourcesPage", () => {
         const clearAll = screen.getByRole("button", { name: "Clear All Filters" });
         expect(clearAll).toBeDisabled();
 
-        fireEvent.click(screen.getByRole("checkbox", { name: /^Career/ }));
+        fireEvent.click(screen.getByRole("checkbox", { name: /^Jobs & internships/ }));
         fireEvent.change(screen.getByRole("combobox", { name: "Search" }), { target: { value: "advising" } });
         expect(resultCards()).toHaveLength(1);
-        expect(screen.getByText("1 resource · Career")).toBeInTheDocument();
+        expect(screen.getByText("1 resource · Jobs & internships")).toBeInTheDocument();
         expect(clearAll).toBeEnabled();
 
         fireEvent.click(clearAll);
         expect(resultCards()).toHaveLength(3);
-        expect(screen.getByRole("checkbox", { name: /^Career/ })).not.toBeChecked();
+        expect(screen.getByRole("checkbox", { name: /^Jobs & internships/ })).not.toBeChecked();
         expect(screen.getByRole("combobox", { name: "Search" })).toHaveValue("");
         expect(clearAll).toBeDisabled();
     });
@@ -157,7 +176,7 @@ describe("ResourcesPage", () => {
         const search = screen.getByRole("combobox", { name: "Search" });
         expect(search).toHaveAttribute("placeholder", "Name, keyword, or tag");
 
-        fireEvent.click(screen.getByRole("checkbox", { name: /^Career/ }));
+        fireEvent.click(screen.getByRole("checkbox", { name: /^Jobs & internships/ }));
 
         expect(search).toHaveAttribute("placeholder", "Search these results");
     });
@@ -172,6 +191,13 @@ describe("ResourcesPage", () => {
         expect(within(card).getByText("tutoring", { selector: "mark" })).toBeInTheDocument();
     });
 
+    test("opens an older career link filtered to jobs and internships", () => {
+        renderResourcesPage(resources, `/resources?category=${resourceTags.CAREER}`);
+
+        expect(screen.getByRole("checkbox", { name: /^Jobs & internships/ })).toBeChecked();
+        expect(resultCards()).toHaveLength(1);
+    });
+
     test("opens filtered to the category named in an older link", () => {
         renderResourcesPage(resources, `/resources?category=${resourceTags.ACADEMIC}`);
 
@@ -179,10 +205,10 @@ describe("ResourcesPage", () => {
         expect(resultCards()).toHaveLength(1);
     });
 
-    test("opens the Home page's student organizations link filtered to Social", () => {
+    test("opens an older student organizations link filtered to student clubs", () => {
         renderResourcesPage(resources, `/resources?category=${resourceTags.COMMUNITY}`);
 
-        expect(screen.getByRole("checkbox", { name: /^Social/ })).toBeChecked();
+        expect(screen.getByRole("checkbox", { name: /^Student clubs/ })).toBeChecked();
         expect(resultCards()).toHaveLength(1);
         expect(screen.getByRole("heading", { name: "Example Student Club" })).toBeInTheDocument();
     });

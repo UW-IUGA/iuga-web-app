@@ -71,7 +71,7 @@ describe("HomePage", () => {
 
     expect(screen.getByRole("link", { name: /RSOs/ })).toHaveAttribute(
       "href",
-      "/resources?category=Community",
+      "/resources?tags=Student+clubs",
     );
     expect(screen.getByRole("link", { name: /^Resources/ })).toHaveAttribute(
       "href",

@@ -1,7 +1,7 @@
 import { resources } from "./ResourcesData";
 import { allTags, tagGroups } from "./resourceTaxonomy";
 
-const typeTags = tagGroups.find((group) => group.label === "Type").tags;
+const typeTags = tagGroups.find((group) => group.label === "Who runs it").tags;
 
 describe("resource records", () => {
     test("gives every resource one to three summary bullets", () => {
@@ -22,6 +22,17 @@ describe("resource records", () => {
         resources.forEach(({ rName, rDescription, rLink }) => {
             [rName, rDescription, rLink].forEach((text) => expect(text, rName).toBe(text.trim()));
         });
+    });
+
+    test("files the career office and F-1 work resources under Jobs & internships, and no club", () => {
+        const jobs = resources.filter(({ tags }) => tags.includes("Jobs & internships")).map(({ rName }) => rName);
+        expect(jobs.sort()).toEqual([
+            "Curricular Practical Training for F-1 Students",
+            "On-campus Employment for F-1 Students",
+            "Post Completion OPT for F-1 Students",
+            "iMentorship",
+            "iSchool Career Services (Canvas)",
+        ]);
     });
 
     // A typo in a tag would otherwise drop the resource from that filter without any sign.

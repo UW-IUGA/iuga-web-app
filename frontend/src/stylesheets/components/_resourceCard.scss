@@ -1,7 +1,7 @@
 /*
 Purpose: Style the resource cards and the round resource icon they share with Start Here and search.
 Expected Request Information: Classes emitted by ResourceCard (and .resourceIcon wherever it is used).
-Expected Response Information: A card with the icon above its tags, name, bullets, and link.
+Expected Response Information: A card with the icon above its name, bullets, and link.
 */
 @use "../abstracts" as *;
 @use "../base/misc";

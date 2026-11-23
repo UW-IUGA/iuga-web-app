@@ -2,12 +2,12 @@
 Purpose: One resource in the Resources page grid.
 
 Expected Request Information:
-- resource: a tagged resource { rName, rDescription, rLink, rImage, tags, highlights }.
+- resource: a tagged resource { rName, rDescription, rLink, rImage, rImageInset, tags, highlights }.
 - highlight: the search pattern from useResourceFilters, or null.
 
 Expected Response Information:
 - A card with the resource's tags, name, and bullets (or its description when it has no bullets yet), and a link
-  to the resource when it has one.
+  to the resource when it has one. A logo that is not square (rImageInset) shows whole instead of cropped.
 */
 
 import HighlightMatch from "./HighlightMatch";
@@ -15,7 +15,7 @@ import HighlightMatch from "./HighlightMatch";
 function ResourceCard({ resource, highlight }) {
     return (
         <article className="resourceCard editorial-card">
-            <div className="resourceIcon">
+            <div className={`resourceIcon${resource.rImageInset ? " resourceIcon--inset" : ""}`}>
                 {resource.rImage ? (
                     <img src={resource.rImage} alt={`${resource.rName} icon`} />
                 ) : (
@@ -38,12 +38,12 @@ function ResourceCard({ resource, highlight }) {
                 )}
                 {resource.rLink ? (
                     <a
-                        className="pill-button resourceCard__link"
+                        className="pill-button pill-button--fill resourceCard__link"
                         href={resource.rLink}
                         target="_blank"
                         rel="noreferrer"
                     >
-                        More Info
+                        Learn more
                         <span className="sr-only"> about {resource.rName} (opens in a new tab)</span>
                     </a>
                 ) : (

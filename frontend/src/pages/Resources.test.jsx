@@ -82,9 +82,19 @@ describe("ResourcesPage", () => {
 
         expect(resultCards()).toHaveLength(3);
         expect(screen.getByText("3 resources")).toBeInTheDocument();
-        const link = screen.getByRole("link", { name: /More Info about UW CLUE Program/ });
+        const link = screen.getByRole("link", { name: "Learn more about UW CLUE Program (opens in a new tab)" });
         expect(link).toHaveAttribute("href", "https://academicsupport.uw.edu/clue/");
         expect(link).toHaveAttribute("target", "_blank");
+        expect(link).toHaveClass("pill-button", "pill-button--fill");
+    });
+
+    test("shows a logo that is not square whole instead of cropping it", () => {
+        const wideLogo = { rName: "Wide Logo Club", rDescription: "A club.", rLink: "", rImage: "/wide.png", rImageInset: true };
+        renderResourcesPage({ ...resources, [resourceTags.COMMUNITY]: [wideLogo] });
+
+        const card = screen.getByRole("heading", { name: "Wide Logo Club" }).closest("article");
+        expect(within(card).getByRole("img", { name: "Wide Logo Club icon" }).parentElement)
+            .toHaveClass("resourceIcon", "resourceIcon--inset");
     });
 
     test("shows Start Here beside the page title", () => {
@@ -163,6 +173,8 @@ describe("ResourcesPage", () => {
         fireEvent.click(screen.getByRole("checkbox", { name: /^SWE/ }));
 
         expect(screen.getByRole("heading", { name: "No resources match those filters." })).toBeInTheDocument();
+        const emptyState = screen.getByRole("heading", { name: "No resources match those filters." }).parentElement;
+        expect(within(emptyState).getByRole("button", { name: "Clear All Filters" })).toHaveClass("pill-button--fill");
     });
 
     test("pages through resources 15 at a time", () => {

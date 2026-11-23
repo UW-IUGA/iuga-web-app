@@ -1,13 +1,10 @@
 import ElectionFAQCard from "../components/ElectionFAQCard";
 import GradientLine from "../components/GradientLine";
 import { electionfaqTags } from "../assets/data/Enum";
-import { useEffect, useRef } from "react";
-import { useLocation } from 'react-router-dom';
+import { useRef } from "react";
 
 function ElectionsFAQPage({ electionFAQ }) {
     const categoryRefs = useRef({});
-
-    const {pathname} = useLocation();
 
     const handleClick = (category) => {
         const categoryRef = categoryRefs.current[category];
@@ -17,10 +14,6 @@ function ElectionsFAQPage({ electionFAQ }) {
             window.scrollTo({ top: y, behavior: "smooth" });
         }
     };
-
-    useEffect(() => {
-        window.scrollTo(0, 0);
-    }, [pathname]);
 
     return (
         <div className="baseContainer">

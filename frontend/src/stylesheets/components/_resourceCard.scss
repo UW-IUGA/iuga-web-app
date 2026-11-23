@@ -110,6 +110,13 @@ Expected Response Information: A card with the icon above its tags, name, bullet
     }
 }
 
+// Logos that are not square show whole, with room around them, instead of cropped.
+.resourceIcon--inset img {
+    box-sizing: border-box;
+    padding: 14%;
+    object-fit: contain;
+}
+
 @include media("<tablet") {
     .resourceCard {
         padding: 18px;

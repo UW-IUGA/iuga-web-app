@@ -34,13 +34,14 @@ $thumb-inset: 2px;
     box-sizing: border-box;
     width: $track-width;
     height: $track-height;
-    border: 1px solid theme(border-subtle);
+    // Neutral greys from the theme, so the switch sits quietly in either navbar.
+    border: 1px solid theme(line, #e4dce9);
     border-radius: $radius-pill;
-    background: theme(tint);
+    background: theme(fill-subtle, #f4f4f4);
     transition: border-color 180ms ease;
 
     .themeToggle:hover & {
-        border-color: theme(accent);
+        border-color: theme(text-muted);
     }
 }
 
@@ -82,7 +83,7 @@ $thumb-inset: 2px;
 
     .themeToggle[aria-checked="false"] &--sun,
     .themeToggle[aria-checked="true"] &--moon {
-        color: theme(accent);
+        color: theme(heading);
     }
 }
 

@@ -45,8 +45,7 @@ backend/
 │       │   ├── roles.js           ← Role catalog and role assignments
 │       │   ├── eventRequests.js   ← Event request workflow and operations
 │       │   ├── recruitment.js     ← Public committee recruitment campaign status
-│       │   ├── shop.js            ← Merch catalog browsing and checkout
-│       │   └── administration.js ← Unmounted officer/committee stubs
+│       │   └── shop.js            ← Merch catalog browsing and checkout
 │       └── utils/
 │           ├── auth.js        ← Authentication and permission middleware
 │           ├── csrf.js        ← Origin checks for session mutations
@@ -249,23 +248,6 @@ Online checkout is not exposed in production: `POST /checkout` returns 503 for a
 Manual Venmo checkout uses the `/holds` routes. Signed-out requests get 401 first. Other requests get 503 unless `createShopRouter()` receives `manualCheckoutExposed: true`, which `apiv1.js` sets from `SHOP_MANUAL_CHECKOUT_EXPOSED=true`. Holds use transactions, which need a replica set. Local `npm start` always starts a replica-set container (see `docs/DEVELOPMENT.md`). Deployments set the flag from `shopManualCheckout` in each Jenkinsfile's `cfg` (see `docs/DEPLOYMENT.md`): on for dev and production, off for staging until its MongoDB is a replica set.
 
 Each hold creation first writes the student's `ShopStudentCheckouts` document inside the transaction. This serializes concurrent checkouts even with disjoint products: the later committed hold replaces the earlier active hold. A refused replacement rolls back, leaving the earlier hold and its units intact.
-
-### Administration (`/api/v1/administration`) — *not currently wired*
-
-⚠️ **These endpoints are defined in `controllers/administration.js` but are NOT imported by `apiv1.js`. All requests to `/api/v1/administration/*` currently return 404.**
-
-All endpoints are **stubs** returning placeholder text:
-
-| Method | Path | Description |
-|---|---|---|
-| `POST` | `/officers` | Save/update officer (stub) |
-| `GET` | `/officers` | Retrieve officer (stub) |
-| `DELETE` | `/officers` | Remove officer (stub) |
-| `POST` | `/committees` | Save/update committee (stub) |
-| `GET` | `/committees` | Retrieve committee (stub) |
-| `DELETE` | `/committees` | Remove committee (stub) |
-
-To activate, import and mount `administrationRouter` in `apiv1.js`.
 
 ---
 

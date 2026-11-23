@@ -1,0 +1,247 @@
+@use "../abstracts" as *;
+
+// Explore: a list of destinations beside a preview of the one hovered or focused.
+// The preview is a desktop affordance; every row is itself a link, so narrow
+// screens drop the preview and keep one tap to the destination. The brand is
+// the default tone; a destination with a category takes its colour
+// from the site-wide data-tone rule, which beats this inherited one.
+.homeExplore {
+    --tone: #{theme(brand)};
+
+    padding: $space-16 0;
+
+    .homeSectionHeading {
+        margin-bottom: $space-7;
+
+        h2 {
+            color: theme(heading);
+            font-size: $font-size-section;
+            letter-spacing: $letter-spacing-heading;
+            line-height: 1.05;
+
+            span {
+                color: theme(heading);
+            }
+        }
+    }
+
+    .homeDestinations {
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+        gap: $space-7;
+    }
+
+    // Rows share the column's height equally, so the list lines up with the
+    // preview and every gap stays the same.
+    .homeDestinationList {
+        display: grid;
+        grid-auto-rows: 1fr;
+        gap: $space-3;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .homeDestination {
+        display: flex;
+        height: 100%;
+        align-items: center;
+        gap: $space-4;
+        padding: 14px 18px;
+        border: 1px solid theme(border-subtle);
+        border-radius: $radius-card-media;
+        background: theme(surface);
+        color: theme(heading);
+
+        img {
+            flex: none;
+            width: 64px;
+            height: 64px;
+            border-radius: $radius;
+        }
+
+        &.isActive {
+            border-color: var(--tone);
+            box-shadow: inset 0 0 0 1px var(--tone);
+            color: var(--tone);
+        }
+
+        &:focus-visible {
+            outline-offset: 3px;
+        }
+    }
+
+    // The one action worth a nudge: once the section is in view, a calm lap of
+    // its colour every 12 seconds, resting most of the time.
+    .homeDestination[data-invite] {
+        @include border-sweep(var(--tone), $mode: pulse, $duration: 12s);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+        .homeDestination:not(.isActive):hover {
+            border-color: var(--tone);
+        }
+    }
+
+    .homePrimaryLink {
+        border-color: var(--tone);
+        background: var(--tone);
+    }
+
+    .homeDestinationText {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+
+        strong {
+            font-size: $font-size-subheading;
+            line-height: 1.2;
+        }
+
+        span {
+            color: theme(text-muted);
+            font-size: $font-size-small;
+            line-height: 1.4;
+        }
+    }
+
+    .homeDestinationArrow {
+        margin-left: auto;
+        opacity: 0.6;
+    }
+
+    .homePreview {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid theme(border-subtle);
+        border-radius: $radius-card;
+        background: theme(surface);
+        box-shadow: 0 12px 30px theme-alpha(shadow, 0.12);
+    }
+
+    // Every destination's image stays mounted and the active one fades in over the
+    // others, so quick hovers retarget mid-fade instead of restarting.
+    .homePreviewPhoto {
+        position: relative;
+        flex: 1 0 300px;
+        background: theme(surface);
+    }
+
+    .homePreviewLayer {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+
+        // Covers the whole card, copy included, so the card never resizes.
+        &.isImmersive {
+            z-index: 1;
+            pointer-events: none;
+
+            &.isActive {
+                pointer-events: auto;
+            }
+        }
+
+        overflow: hidden;
+        opacity: 0;
+        transition: opacity $duration-fade $ease-out;
+
+        &.isActive {
+            opacity: 1;
+        }
+
+        > img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        // Shows the whole photo; a blurred copy fills the frame around it.
+        > img.isWhole {
+            object-fit: contain;
+        }
+
+        > .homePreviewBackdrop {
+            filter: blur(24px);
+            transform: scale(1.15);
+        }
+    }
+
+    // Every destination's copy sits in the same grid cell and only the active one
+    // is visible, so the card is always as tall as the longest copy and never
+    // resizes on hover.
+    .homePreviewBody {
+        display: grid;
+        padding: $space-6 $space-7 $space-7;
+
+        > div {
+            grid-area: 1 / 1;
+            display: flex;
+            flex-direction: column;
+            visibility: hidden;
+
+            &.isActive {
+                visibility: visible;
+            }
+        }
+
+        h3 {
+            margin-bottom: 10px;
+            color: theme(heading);
+            font-size: clamp(24px, 2.6vw, 32px);
+            line-height: 1.1;
+        }
+
+        p {
+            margin-bottom: 22px;
+            line-height: 1.6;
+        }
+
+        // The preview's call to action reuses the hero's primary pill.
+        .homePrimaryLink {
+            display: inline-flex;
+            align-self: flex-start;
+            margin-top: auto;
+        }
+    }
+
+    @include media("<sm-desktop") {
+        .homeDestinations {
+            grid-template-columns: 1fr;
+        }
+        .homePreview {
+            display: none;
+        }
+    }
+
+    @include media("<tablet") {
+        padding: $space-10 0;
+
+        .homeDestination {
+            gap: $space-3;
+            padding: $space-3;
+
+            img {
+                width: 52px;
+                height: 52px;
+            }
+        }
+    }
+}
+
+@include media(">=1500px") {
+    .homeExplore .homeDestination {
+        padding: $space-6;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .homePreviewLayer {
+        transition: opacity $duration-fade ease;
+    }
+}

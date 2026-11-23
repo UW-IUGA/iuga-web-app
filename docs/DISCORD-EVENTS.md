@@ -118,6 +118,11 @@ These need someone with Jenkins or developer access. Details are in [DISCORD.md]
 
 1. Copy the `#rso-approvals` channel ID (User Settings → Advanced → Developer Mode, then right-click the channel → Copy Channel ID) and save it in Jenkins as the `DISCORD_RSO_APPROVAL_CHANNEL_ID` Secret text credential.
 2. Save the application ID and server ID in Jenkins as the `DISCORD_APP_ID` and `DISCORD_GUILD_ID` Secret text credentials. After that, every deploy updates `/rso-verify` and `/event` in Discord by itself.
+3. Copy the `#rso-events` channel ID the same way and save it in Jenkins as the `DISCORD_ANNOUNCEMENT_CHANNEL_ID` Secret text credential. The bot needs View Channel, Send Messages, and Embed Links in `#rso-events`, and the Create Events permission on the server.
+
+## Announcements
+
+When a moderator approves an event, the bot also posts it in `#rso-events` and creates a Discord Scheduled Event. The two parts are independent. If one fails, the event stays on the website, and the approval card says which part failed and why. An event with no end time, or one that has already started, gets only the announcement.
 
 ## Where this is heading
 

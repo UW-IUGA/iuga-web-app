@@ -2,7 +2,7 @@
 Purpose: One resource in the Resources page grid.
 
 Expected Request Information:
-- resource: a tagged resource { rName, rDescription, rLink, rImage, rImageInset, tags, highlights }.
+- resource: a resource record (ResourcesData).
 - highlight: the search pattern from useResourceFilters, or null.
 
 Expected Response Information:
@@ -10,6 +10,7 @@ Expected Response Information:
   to the resource when it has one. A logo that is not square (rImageInset) shows whole instead of cropped.
 */
 
+import { labelsOf } from "../assets/data/resourceTaxonomy";
 import HighlightMatch from "./HighlightMatch";
 
 function ResourceCard({ resource, highlight }) {
@@ -24,12 +25,12 @@ function ResourceCard({ resource, highlight }) {
             </div>
             <div className="resourceCard__content">
                 <p className="resourceCard__category">
-                    <HighlightMatch text={resource.tags.join(" · ")} pattern={highlight} />
+                    <HighlightMatch text={labelsOf(resource).join(" · ")} pattern={highlight} />
                 </p>
                 <h3><HighlightMatch text={resource.rName} pattern={highlight} /></h3>
-                {resource.highlights.length > 0 ? (
-                    <ul className="resourceCard__highlights">
-                        {resource.highlights.map((text) => (
+                {resource.summary.length > 0 ? (
+                    <ul className="resourceCard__summary">
+                        {resource.summary.map((text) => (
                             <li key={text}><HighlightMatch text={text} pattern={highlight} /></li>
                         ))}
                     </ul>

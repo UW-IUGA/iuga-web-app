@@ -3,7 +3,7 @@ Purpose: The Resources page: Start Here links to the main iSchool resources besi
          resource, A–Z, beside a search and tag filter sidebar.
 
 Expected Request Information:
-- resources: the resources grouped by category (ResourcesData).
+- resources: the resource records (ResourcesData).
 - The URL's ?q=, ?tags=, and the original page's ?category= (see useResourceFilters).
 
 Expected Response Information:
@@ -11,7 +11,7 @@ Expected Response Information:
 */
 
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import { pickStartHere, tagGroups, tagResources } from "../assets/data/ResourceTagData";
+import { tagGroups } from "../assets/data/resourceTaxonomy";
 import PageHeader from "../components/PageHeader";
 import ResourceCard from "../components/ResourceCard";
 import ResourcePagination from "../components/ResourcePagination";
@@ -19,6 +19,7 @@ import ResourceSearchBox from "../components/ResourceSearchBox";
 import usePagination from "../hooks/usePagination";
 import useResourceFilters from "../hooks/useResourceFilters";
 import useResourcePageSize from "../hooks/useResourcePageSize";
+import { pickStartHere } from "./resourceStartHere";
 
 const INTRO = "IUGA is just one of many RSOs and groups affiliated with the iSchool that makes the iSchool "
     + "everything it is. Explore the resources below to take full advantage of everything the iSchool offers its "
@@ -35,9 +36,8 @@ const keepHyphenatedWordsWhole = (name) => name
     ));
 
 function ResourcesPage({ resources }) {
-    const taggedResources = useMemo(() => tagResources(resources), [resources]);
-    const startHere = useMemo(() => pickStartHere(taggedResources), [taggedResources]);
-    const filters = useResourceFilters(taggedResources);
+    const startHere = useMemo(() => pickStartHere(resources), [resources]);
+    const filters = useResourceFilters(resources);
     const {
         selectedTags, toggleTag, clearFilters, filteredResources, tagCounts, highlightPattern, isFiltering,
     } = filters;

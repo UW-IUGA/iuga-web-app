@@ -3,43 +3,47 @@ import "@testing-library/jest-dom";
 import { MemoryRouter } from "react-router-dom";
 import ResourcesPage from "./Resources";
 import { resourceTags } from "../assets/data/Enum";
-
-const resources = Object.fromEntries(Object.values(resourceTags).map((category) => [category, []]));
-resources[resourceTags.ACADEMIC] = [
+// Records as in ResourcesData. None has bullets yet, so each card shows its description.
+const resources = [
     {
         rName: "UW CLUE Program",
         rDescription: "Academic tutoring and support.",
         rLink: "https://academicsupport.uw.edu/clue/",
         rImage: null,
+        type: "UW",
+        tags: ["Academic"],
+        summary: [],
     },
-];
-resources[resourceTags.CAREER] = [
     {
         rName: "iSchool Career Services (Canvas)",
         rDescription: "Career advising and job search support.",
         rLink: "https://ischool.uw.edu/career",
         rImage: null,
+        type: "iSchool",
+        tags: ["Career"],
+        summary: [],
     },
-];
-resources[resourceTags.COMMUNITY] = [
     {
         rName: "Example Student Club",
         rDescription: "A club still writing its description.",
         rLink: "",
         rImage: null,
+        type: "RSO",
+        tags: ["Social"],
+        summary: [],
     },
 ];
 
-// Enough community resources to fill more than one 15-card page.
-const manyResources = {
-    ...resources,
-    [resourceTags.COMMUNITY]: Array.from({ length: 20 }, (_, index) => ({
-        rName: `Club ${String(index + 1).padStart(2, "0")}`,
-        rDescription: "A student club.",
-        rLink: "https://example.com",
-        rImage: null,
-    })),
-};
+const club = (rName, fields = {}) => ({
+    rName, rDescription: "A student club.", rLink: "https://example.com", rImage: null, type: "RSO", tags: ["Social"],
+    summary: [], ...fields,
+});
+
+// Enough clubs to fill more than one 15-card page.
+const manyResources = [
+    ...resources.slice(0, 2),
+    ...Array.from({ length: 20 }, (_, index) => club(`Club ${String(index + 1).padStart(2, "0")}`)),
+];
 
 beforeEach(() => {
     window.scrollTo = vi.fn();
@@ -89,8 +93,7 @@ describe("ResourcesPage", () => {
     });
 
     test("shows a logo that is not square whole instead of cropping it", () => {
-        const wideLogo = { rName: "Wide Logo Club", rDescription: "A club.", rLink: "", rImage: "/wide.png", rImageInset: true };
-        renderResourcesPage({ ...resources, [resourceTags.COMMUNITY]: [wideLogo] });
+        renderResourcesPage([club("Wide Logo Club", { rImage: "/wide.png", rImageInset: true })]);
 
         const card = screen.getByRole("heading", { name: "Wide Logo Club" }).closest("article");
         expect(within(card).getByRole("img", { name: "Wide Logo Club icon" }).parentElement)

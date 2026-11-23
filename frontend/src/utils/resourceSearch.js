@@ -3,7 +3,7 @@ Purpose: Word-based search for the Resources page: matching and highlighting.
 
 Expected Request Information:
 - query: what the student typed; it is split into lowercase words.
-- resource: a record with rName, rDescription, tags, and highlights.
+- resource: a resource record (ResourcesData).
 - synonyms: search-only alternate words, e.g. { job: ["career"] }; keys and values are lowercase.
 
 Expected Response Information:
@@ -12,6 +12,8 @@ Expected Response Information:
 - resourceMatchesTokens(resource, tokens, synonyms) says whether every word matches somewhere in the resource.
 - buildHighlightPattern(tokens, synonyms) returns a one-group RegExp for String.split, or null with no words.
 */
+
+import { labelsOf } from "../assets/data/resourceTaxonomy";
 
 const escapeRegExp = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -32,7 +34,7 @@ export const textMatchesTokens = (text, tokens, synonyms = {}) =>
 
 // Each word may match a different part of the resource, so the parts are searched as one text.
 export const resourceMatchesTokens = (resource, tokens, synonyms = {}) => textMatchesTokens(
-    [resource.rName, ...resource.tags, ...resource.highlights, resource.rDescription].join("\n"),
+    [resource.rName, ...labelsOf(resource), ...resource.summary, resource.rDescription].join("\n"),
     tokens,
     synonyms
 );

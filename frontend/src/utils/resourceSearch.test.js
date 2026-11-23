@@ -1,12 +1,13 @@
 import { buildHighlightPattern, resourceMatchesTokens, textMatchesTokens, tokenize } from "./resourceSearch";
 
-const resource = (rName, { tags = [], highlights = [], rDescription = "" } = {}) => ({ rName, tags, highlights, rDescription });
+const resource = (rName, { type = "UW", tags = [], summary = [], rDescription = "" } = {}) => ({ rName, type, tags, summary, rDescription });
 
 const careerServices = resource("iSchool Career Services", {
-    tags: ["iSchool", "Career"],
-    highlights: ["One-on-one advising for the job search"],
+    type: "iSchool",
+    tags: ["Career"],
+    summary: ["One-on-one advising for the job search"],
 });
-const dubsTech = resource("DubsTech", { tags: ["RSO"], highlights: ["Covers design and software engineering"] });
+const dubsTech = resource("DubsTech", { type: "RSO", summary: ["Covers design and software engineering"] });
 
 describe("tokenize", () => {
     test("splits on any whitespace and lowercases", () => {

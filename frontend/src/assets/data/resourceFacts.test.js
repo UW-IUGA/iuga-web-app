@@ -5,24 +5,24 @@ Purpose: Characterization test for the Resources data. It freezes what every car
 */
 import { writeFileSync } from "node:fs";
 import { resources } from "./ResourcesData";
-import { pickStartHere, tagResources } from "./ResourceTagData";
+import { labelsOf } from "./resourceTaxonomy";
+import { pickStartHere } from "../../pages/resourceStartHere";
 import expected from "./__fixtures__/resource-facts.json";
 
 function currentFacts() {
-    const tagged = tagResources(resources);
     return {
-        cards: tagged
+        cards: resources
             .map((resource) => ({
                 name: resource.rName.trim(),
-                tags: resource.tags,
-                bullets: resource.highlights,
+                tags: labelsOf(resource),
+                bullets: resource.summary,
                 description: resource.rDescription,
                 link: resource.rLink,
                 hasLogo: Boolean(resource.rImage),
                 inset: Boolean(resource.rImageInset),
             }))
             .sort((first, second) => first.name.localeCompare(second.name)),
-        startHere: pickStartHere(tagged).map((resource) => resource.rName.trim()),
+        startHere: pickStartHere(resources).map((resource) => resource.rName.trim()),
     };
 }
 

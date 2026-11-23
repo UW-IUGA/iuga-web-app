@@ -6,7 +6,8 @@ Expected Response Information:
 - tagGroups and allTags: the filter tags, by group.
 - labelsOf(resource): a resource's type followed by its tags, as the filters and search see them.
 - searchSynonyms: search-only alternate words.
-- tagForCategory: the tag each of the original page's ?category= values opens (still linked from Home).
+- tagForCategory: the tag each of the original page's ?category= values opens, so older bookmarks and shared links
+  keep their filter.
 */
 
 import { resourceTags } from "./Enum";

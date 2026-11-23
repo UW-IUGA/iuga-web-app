@@ -29,15 +29,17 @@ const resources = [
         rLink: "",
         rImage: null,
         type: "Student clubs",
-        tags: [],
+        tags: ["iOrgs"],
         summary: [],
     },
 ];
 
 const club = (rName, fields = {}) => ({
-    rName, rDescription: "A student club.", rLink: "https://example.com", rImage: null, type: "Student clubs", tags: [],
+    rName, rDescription: "A student club.", rLink: "https://example.com", rImage: null, type: "Student clubs", tags: ["Software Engineering"],
     summary: [], ...fields,
 });
+
+const CLUBS_ONLY = "/resources?tags=Student+clubs";
 
 // Enough clubs to fill more than one 15-card page.
 const manyResources = [
@@ -120,7 +122,7 @@ describe("ResourcesPage", () => {
         renderResourcesPage();
 
         const club = screen.getByRole("heading", { name: "Example Student Club" }).closest("article");
-        expect(within(club).getByText("Student clubs")).toBeInTheDocument();
+        expect(within(club).getByText("Student clubs · iOrgs")).toBeInTheDocument();
         expect(within(club).getByText("A club still writing its description.")).toBeInTheDocument();
         expect(within(club).getByText("Details coming soon")).toBeInTheDocument();
         expect(within(club).queryByRole("link")).not.toBeInTheDocument();
@@ -145,8 +147,40 @@ describe("ResourcesPage", () => {
         });
     });
 
-    test("lists resources A–Z with no sort menu", () => {
+    test("lists support first, then each club area in Abe's order, when no filter is on", () => {
+        renderResourcesPage([
+            club("UX Club", { tags: ["UI/UX"] }),
+            club("Muslim Students Club", { tags: ["iOrgs"] }),
+            club("Hack Club", { tags: ["Entrepreneurship"] }),
+            resources[0],
+        ]);
+
+        const headings = screen.getAllByRole("heading", { level: 3 }).map(({ textContent }) => textContent);
+        expect(headings).toEqual(["Support", "iOrgs", "Entrepreneurship", "UI/UX"]);
+        const iOrgs = screen.getByRole("region", { name: "iOrgs" });
+        expect(within(iOrgs).getByRole("heading", { level: 4, name: "Muslim Students Club" })).toBeInTheDocument();
+        expect(within(screen.getByRole("region", { name: "Support" })).getByRole("heading", { level: 4 }))
+            .toHaveTextContent("UW CLUE Program");
+    });
+
+    test("shows every resource at once when no filter is on", () => {
+        renderResourcesPage(manyResources);
+
+        expect(resultCards()).toHaveLength(22);
+        expect(screen.queryByRole("navigation", { name: "Resource pages" })).not.toBeInTheDocument();
+    });
+
+    test("switches to one list once a filter is on", () => {
         renderResourcesPage();
+
+        fireEvent.click(screen.getByRole("checkbox", { name: /^UW/ }));
+
+        expect(screen.queryByRole("region", { name: "Support" })).not.toBeInTheDocument();
+        expect(screen.getByRole("heading", { level: 3, name: "UW CLUE Program" })).toBeInTheDocument();
+            });
+
+    test("lists filtered resources A–Z with no sort menu", () => {
+        renderResourcesPage(resources, "/resources?tags=Student+clubs,iSchool,UW");
 
         const names = resultCards().map((card) => within(card).getByRole("heading").textContent);
         expect(names).toEqual(["Example Student Club", "iSchool Career Services (Canvas)", "UW CLUE Program"]);
@@ -223,8 +257,8 @@ describe("ResourcesPage", () => {
         expect(within(emptyState).getByRole("button", { name: "Clear All Filters" })).toHaveClass("pill-button--fill");
     });
 
-    test("pages through resources 15 at a time", () => {
-        renderResourcesPage(manyResources);
+    test("pages through filtered resources 15 at a time", () => {
+        renderResourcesPage(manyResources, CLUBS_ONLY);
 
         expect(resultCards()).toHaveLength(15);
         const pages = screen.getByRole("navigation", { name: "Resource pages" });
@@ -233,7 +267,7 @@ describe("ResourcesPage", () => {
 
         fireEvent.click(within(pages).getByRole("button", { name: /Next/ }));
 
-        expect(resultCards()).toHaveLength(7);
+        expect(resultCards()).toHaveLength(5);
         expect(pages).toHaveTextContent("Page 2 of 2");
         expect(within(pages).getByRole("button", { name: /Next/ })).toBeDisabled();
         expect(screen.getByRole("heading", { name: "All Resources" })).toHaveFocus();
@@ -250,7 +284,7 @@ describe("ResourcesPage", () => {
     ])("at %ipx wide, shows %i cards to a page", (width, cardsPerPage) => {
         setScreenWidth(width);
 
-        renderResourcesPage(manyResources);
+        renderResourcesPage(manyResources, CLUBS_ONLY);
 
         expect(resultCards()).toHaveLength(cardsPerPage);
     });

@@ -273,6 +273,19 @@ Expected Response Information: Start Here lines up with the title and intro on d
     text-align: center;
 }
 
+// With no filter on, the list runs in sections: support, then each club area. Card names sit one step below the
+// section headings in the type scale.
+.resources__section + .resources__section {
+    margin-top: $space-6;
+}
+
+.resources__sectionTitle {
+    margin: 0 0 $space-4;
+    color: theme(heading);
+    font-size: $font-size-section;
+    letter-spacing: $letter-spacing-heading;
+}
+
 .resources__cardGrid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));

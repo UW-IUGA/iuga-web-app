@@ -1,6 +1,7 @@
 /*
 Purpose: The Resources page: Start Here links to the main iSchool resources beside the page title, then every
-         resource, A–Z, beside a search and tag filter sidebar.
+         resource beside a search and tag filter sidebar. With no filter on, the resources sit in sections (support,
+         then each club area); with one on, they form one A–Z list in pages.
 
 Expected Request Information:
 - resources: the resource records (ResourcesData).
@@ -11,7 +12,7 @@ Expected Response Information:
 */
 
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import { tagGroups } from "../assets/data/resourceTaxonomy";
+import { sectionsOf, tagGroups } from "../assets/data/resourceTaxonomy";
 import PageHeader from "../components/PageHeader";
 import ResourceCard from "../components/ResourceCard";
 import ResourcePagination from "../components/ResourcePagination";
@@ -164,7 +165,25 @@ function ResourcesPage({ resources }) {
                     </aside>
 
                     <div className="resources__resultsBody" ref={resultsRef}>
-                        {filteredResources.length > 0 ? (
+                        {!isFiltering ? (
+                            sectionsOf(filteredResources).map((section) => {
+                                const headingId = `resources-section-${section.heading.replace(/\W+/g, "-")}`;
+                                return (
+                                    <section
+                                        key={section.heading}
+                                        className="resources__section"
+                                        aria-labelledby={headingId}
+                                    >
+                                        <h3 className="resources__sectionTitle" id={headingId}>{section.heading}</h3>
+                                        <div className="resources__cardGrid">
+                                            {section.resources.map((resource) => (
+                                                <ResourceCard key={resource.rName} resource={resource} headingLevel={4} />
+                                            ))}
+                                        </div>
+                                    </section>
+                                );
+                            })
+                        ) : filteredResources.length > 0 ? (
                             <>
                                 <div className="resources__cardGrid">
                                     {pagination.pageItems.map((resource) => (

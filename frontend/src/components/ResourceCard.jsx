@@ -13,7 +13,8 @@ Expected Response Information:
 import { labelsOf } from "../assets/data/resourceTaxonomy";
 import HighlightMatch from "./HighlightMatch";
 
-function ResourceCard({ resource, highlight }) {
+function ResourceCard({ resource, highlight, headingLevel = 3 }) {
+    const Heading = `h${headingLevel}`;
     return (
         <article className="resourceCard editorial-card">
             <div className={`resourceIcon${resource.rImageInset ? " resourceIcon--inset" : ""}`}>
@@ -27,7 +28,7 @@ function ResourceCard({ resource, highlight }) {
                 <p className="resourceCard__category">
                     <HighlightMatch text={labelsOf(resource).join(" · ")} pattern={highlight} />
                 </p>
-                <h3><HighlightMatch text={resource.rName} pattern={highlight} /></h3>
+                <Heading className="resourceCard__name"><HighlightMatch text={resource.rName} pattern={highlight} /></Heading>
                 {resource.summary.length > 0 ? (
                     <ul className="resourceCard__summary">
                         {resource.summary.map((text) => (

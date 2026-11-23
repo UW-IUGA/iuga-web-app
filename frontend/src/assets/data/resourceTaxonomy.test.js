@@ -1,4 +1,4 @@
-import { allTags, labelsOf, tagForCategory, tagGroups } from "./resourceTaxonomy";
+import { allTags, labelsOf, sectionsOf, tagForCategory, tagGroups } from "./resourceTaxonomy";
 
 const groupTags = (label) => tagGroups.find((group) => group.label === label).tags;
 
@@ -25,6 +25,20 @@ describe("resource tags", () => {
             "Academic", "Jobs & internships", "Student clubs", "Mental Health", "DEI",
         ]);
         Object.values(tagForCategory).forEach((tag) => expect(allTags).toContain(tag));
+    });
+
+    test("lists support, then clubs by area, then any club still without an area", () => {
+        const uw = { rName: "Health", type: "UW", tags: [] };
+        const ux = { rName: "UX Club", type: "Student clubs", tags: ["UI/UX"] };
+        const orgs = { rName: "Org", type: "Student clubs", tags: ["iOrgs"] };
+        const loose = { rName: "New Club", type: "Student clubs", tags: [] };
+
+        expect(sectionsOf([ux, loose, uw, orgs])).toEqual([
+            { heading: "Support", resources: [uw] },
+            { heading: "iOrgs", resources: [orgs] },
+            { heading: "UI/UX", resources: [ux] },
+            { heading: "More clubs", resources: [loose] },
+        ]);
     });
 
     test("labels a resource with its type, then its tags", () => {

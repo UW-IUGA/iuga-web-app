@@ -28,7 +28,7 @@ Expected Response Information: A card with the icon above its tags, name, bullet
     flex: 1;
     flex-direction: column;
 
-    h3 {
+    .resourceCard__name {
         margin: $space-1 0 $space-2;
         color: theme(text);
         font-size: $font-size-subheading;

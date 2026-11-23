@@ -6,6 +6,8 @@ Expected Response Information:
 - clubAreas: the club areas, in the order the page lists them.
 - tagGroups and allTags: the filter tags, by group.
 - labelsOf(resource): a resource's type followed by its tags, as the filters and search see them.
+- sectionsOf(resources): the unfiltered page's sections, each { heading, resources }, keeping the given order
+  within each; empty sections are left out.
 - searchSynonyms: search-only alternate words.
 - tagForCategory: the tag each of the original page's ?category= values opens (still linked from Home).
 */
@@ -49,6 +51,17 @@ export const tagGroups = [
 export const allTags = tagGroups.flatMap((group) => group.tags);
 
 export const labelsOf = (resource) => [resource.type, ...resource.tags];
+
+// Support services first, then the clubs by area. "More clubs" catches a club added without an area, so it still
+// shows; the data tests keep it empty.
+export const sectionsOf = (resources) => {
+    const clubs = resources.filter(({ type }) => type === resourceTypes.CLUB);
+    return [
+        { heading: "Support", resources: resources.filter(({ type }) => type !== resourceTypes.CLUB) },
+        ...clubAreas.map((area) => ({ heading: area, resources: clubs.filter(({ tags }) => tags.includes(area)) })),
+        { heading: "More clubs", resources: clubs.filter(({ tags }) => !tags.some((tag) => clubAreas.includes(tag))) },
+    ].filter((section) => section.resources.length > 0);
+};
 
 // Search-only alternate words: typing a key also finds resources matching its values (plurals are handled
 // automatically). These are never shown on the page.

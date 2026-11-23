@@ -14,6 +14,6 @@ export const START_HERE = [
 ];
 
 export const pickStartHere = (resources) => START_HERE.flatMap((name) => {
-    const resource = resources.find((candidate) => candidate.rName.trim() === name);
+    const resource = resources.find((candidate) => candidate.rName === name);
     return resource ? [resource] : [];
 });

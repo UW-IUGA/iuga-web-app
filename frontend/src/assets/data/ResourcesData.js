@@ -154,7 +154,7 @@ export const resources = [
     ],
   },
   {
-    "rName": "iSchool Office of IDEAS ",
+    "rName": "iSchool Office of IDEAS",
     "rDescription": "At the iSchool, inclusion and connectedness are celebrated as essential components of academic excellence.",
     "rLink": "https://ischool.uw.edu/diversity",
     "rImage": ischool_logo,

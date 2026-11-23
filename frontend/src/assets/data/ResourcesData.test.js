@@ -17,6 +17,13 @@ describe("resource records", () => {
             .forEach((text) => expect(text).not.toMatch(/[:;]/));
     });
 
+    // Names are shown, sorted, searched and matched by Start Here as written, so stray spaces would show up.
+    test("writes names, descriptions and links without surrounding spaces", () => {
+        resources.forEach(({ rName, rDescription, rLink }) => {
+            [rName, rDescription, rLink].forEach((text) => expect(text, rName).toBe(text.trim()));
+        });
+    });
+
     // A typo in a tag would otherwise drop the resource from that filter without any sign.
     test("spells every type and tag as the filters do", () => {
         resources.forEach(({ rName, type, tags }) => {

@@ -3,7 +3,7 @@ import { START_HERE, pickStartHere } from "./resourceStartHere";
 
 describe("Start Here", () => {
     test("finds all four picks in the resources, in order", () => {
-        expect(pickStartHere(resources).map(({ rName }) => rName.trim())).toEqual(START_HERE);
+        expect(pickStartHere(resources).map(({ rName }) => rName)).toEqual(START_HERE);
         expect(START_HERE).toEqual([
             "iSchool Student Services",
             "iSchool Peer Advisors",

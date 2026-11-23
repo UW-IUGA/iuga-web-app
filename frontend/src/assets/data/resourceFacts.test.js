@@ -13,7 +13,7 @@ function currentFacts() {
     return {
         cards: resources
             .map((resource) => ({
-                name: resource.rName.trim(),
+                name: resource.rName,
                 tags: labelsOf(resource),
                 bullets: resource.summary,
                 description: resource.rDescription,
@@ -22,7 +22,7 @@ function currentFacts() {
                 inset: Boolean(resource.rImageInset),
             }))
             .sort((first, second) => first.name.localeCompare(second.name)),
-        startHere: pickStartHere(resources).map((resource) => resource.rName.trim()),
+        startHere: pickStartHere(resources).map((resource) => resource.rName),
     };
 }
 

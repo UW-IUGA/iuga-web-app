@@ -38,7 +38,7 @@ function matchesTagGroups(resource, selectedTags, skippedGroup) {
 }
 
 const compareNames = (first, second) =>
-    first.rName.trim().localeCompare(second.rName.trim(), "en", { sensitivity: "base" });
+    first.rName.localeCompare(second.rName, "en", { sensitivity: "base" });
 
 export default function useResourceFilters(resources) {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -74,7 +74,7 @@ export default function useResourceFilters(resources) {
     };
     // Picking a suggested tag turns the typed words into that filter.
     const applyTagSuggestion = (tag) => updateParams({ q: "", tags: [...selectedTags, tag].join(",") });
-    const applyResourceSuggestion = (resource) => updateParams({ q: resource.rName.trim() });
+    const applyResourceSuggestion = (resource) => updateParams({ q: resource.rName });
 
     const resourcesMatchingSearch = useMemo(() => {
         if (!hasQuery) return resources;

@@ -24,10 +24,10 @@ function setup(entry = "/events") {
 afterEach(cleanup);
 
 describe("useCalendarView", () => {
-    it("defaults to the year view on today", () => {
+    it("defaults to the month view on today", () => {
         const { result } = setup("/events");
 
-        expect(result.current.mode).toBe("year");
+        expect(result.current.mode).toBe("month");
         expect(result.current.isDefaultMode).toBe(true);
         expect(result.current.selectedDate.toDateString()).toBe(new Date().toDateString());
     });
@@ -45,10 +45,10 @@ describe("useCalendarView", () => {
         expect(zonedParts(result.current.selectedDate)).toMatchObject({ year: 2026, month: 9, day: 20, hour: 0 });
     });
 
-    it("falls back to year for an unknown view", () => {
+    it("falls back to month for an unknown view", () => {
         const { result } = setup("/events?view=fortnight");
 
-        expect(result.current.mode).toBe("year");
+        expect(result.current.mode).toBe("month");
     });
 
     it("falls back to today for a malformed date", () => {
@@ -70,9 +70,18 @@ describe("useCalendarView", () => {
     it("omits the view when it is the default", () => {
         const { result, written } = setup("/events?view=week&date=2026-10-20");
 
-        act(() => result.current.setMode("year"));
+        act(() => result.current.setMode("month"));
 
         expect(written().has("view")).toBe(false);
+        expect(written().get("date")).toBe("2026-10-20");
+    });
+
+    it("writes year into the URL, now that it is no longer the default", () => {
+        const { result, written } = setup("/events?view=week&date=2026-10-20");
+
+        act(() => result.current.setMode("year"));
+
+        expect(written().get("view")).toBe("year");
         expect(written().get("date")).toBe("2026-10-20");
     });
 
@@ -97,7 +106,7 @@ describe("useCalendarView", () => {
         const { result } = setup("/events?view=year&date=2026-10-20");
 
         expect(result.current.mode).toBe("year");
-        expect(result.current.isDefaultMode).toBe(true);
+        expect(result.current.isDefaultMode).toBe(false);
     });
 
     it("steps the month view a month at a time", () => {
@@ -106,7 +115,7 @@ describe("useCalendarView", () => {
         act(() => result.current.step(1));
 
         expect(written().get("date")).toBe("2026-11-20");
-        expect(written().get("view")).toBe("month");
+        expect(written().has("view")).toBe(false);
     });
 
     it("clamps a month step to the end of a shorter month", () => {
@@ -167,7 +176,7 @@ describe("useCalendarView", () => {
         act(() => result.current.goToDate(new Date("2026-12-09T20:00:00.000Z")));
 
         expect(written().get("date")).toBe("2026-12-09");
-        expect(written().get("view")).toBe("month");
+        expect(written().has("view")).toBe(false);
     });
 
     it("does not step the year view", () => {
@@ -183,7 +192,8 @@ describe("useCalendarView", () => {
 
         act(() => result.current.goToToday());
 
-        expect(written().get("view")).toBe("month");
+        expect(written().has("view")).toBe(false);
+        expect(result.current.mode).toBe("month");
         expect(written().get("date")).toBe(todayISO());
     });
 

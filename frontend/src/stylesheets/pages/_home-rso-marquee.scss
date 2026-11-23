@@ -1,0 +1,93 @@
+@use "../abstracts" as *;
+
+// RSOs: two rows of club logos drifting in opposite directions, without end.
+.homeRsoMarquee {
+    --rso-tile: 84px;
+    --rso-gap: #{$space-4};
+
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--rso-gap);
+    overflow: hidden;
+    background: theme(surface);
+    // Logos fade in and out at the edges instead of being cut off.
+    mask-image: linear-gradient(90deg, transparent, $color-black 12%, $color-black 88%, transparent);
+}
+
+.homeRsoRow {
+    display: flex;
+    width: max-content;
+}
+
+// Padding after the last logo equals the gap, so both copies tile seamlessly.
+.homeRsoTrack {
+    display: flex;
+    flex: none;
+    gap: var(--rso-gap);
+    margin: 0;
+    padding: 0 var(--rso-gap) 0 0;
+    list-style: none;
+    animation: homeRsoDrift 38s linear infinite;
+    animation-play-state: var(--marquee-state, running);
+
+    li {
+        display: grid;
+        width: var(--rso-tile);
+        height: var(--rso-tile);
+        place-items: center;
+        overflow: hidden;
+        border: 1px solid theme(border-subtle);
+        border-radius: 50%;
+        background: theme(surface);
+        position: relative;
+        // The inner shadow sits over the logo, since an inset shadow on the tile
+        // itself would be hidden behind the image.
+        &::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            box-shadow:
+                inset 0 0 0 1px theme-alpha(shadow, 0.12),
+                inset 0 -6px 12px theme-alpha(shadow, 0.12);
+            pointer-events: none;
+        }
+    }
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    img.isInset {
+        padding: 14%;
+    }
+}
+
+.homeRsoRow:nth-child(2) .homeRsoTrack {
+    animation-direction: reverse;
+    animation-duration: 46s;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .homeRsoMarquee:hover .homeRsoTrack {
+        animation-play-state: paused;
+    }
+}
+
+// Constant motion, so linear; one copy's width is exactly one loop.
+@keyframes homeRsoDrift {
+    to {
+        transform: translateX(-100%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .homeRsoTrack {
+        animation: none;
+    }
+}

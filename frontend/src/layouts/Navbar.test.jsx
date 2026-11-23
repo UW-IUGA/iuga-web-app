@@ -38,7 +38,7 @@ describe("global navigation", () => {
         renderNavigation();
         const nav = screen.getByRole("navigation", { name: "Primary navigation" });
         const links = [...nav.querySelectorAll("a")].map((link) => link.textContent || link.querySelector("img")?.alt);
-        expect(links.slice(0, 6)).toEqual(["IUGA home", "Events", "Resources", "Merch", "About", "Get Involved"]);
+        expect(links.slice(0, 6)).toEqual(["IUGA home", "Events", "Merch", "Resources", "Get Involved", "About"]);
         expect(screen.queryByRole("link", { name: "Student Voice" })).not.toBeInTheDocument();
         expect(screen.getByRole("link", { name: "About" })).toHaveAttribute("href", "/about");
         expect(screen.getByRole("link", { name: "Get Involved" })).toHaveAttribute("href", "/get-involved");

@@ -1,4 +1,4 @@
-import { primaryCategory } from "./eventCategoryIcons";
+import { primaryCategory } from "./eventCategory";
 
 describe("primaryCategory", () => {
     test("a Career label is drawn as Career", () => {

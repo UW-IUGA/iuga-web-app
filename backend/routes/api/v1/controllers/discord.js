@@ -1,12 +1,18 @@
 import express from "express";
+import { INTERACTION_COMPONENT, OBJECT_ID, parseCustomId, reply } from "../../../../discordInteractions.js";
 import { REQUEST_BODY_LIMIT } from "../../../../http/boundary.js";
 import { sendError } from "../helpers/sendError.js";
 import { verifyDiscordSignature } from "../utils/discordSignature.js";
 
 const INTERACTION_PING = 1;
 const INTERACTION_RESPONSE_PONG = 1;
-const INTERACTION_RESPONSE_MESSAGE = 4;
-const EPHEMERAL_FLAG = 64;
+const DEFERRED_UPDATE_MESSAGE = 6;
+const GENERIC_FAILURE = "Something went wrong. Try again in a few minutes.";
+
+function isEventApproval(interaction) {
+  const [action, id] = parseCustomId(interaction.data?.custom_id);
+  return interaction.type === INTERACTION_COMPONENT && action === "approve" && OBJECT_ID.test(id);
+}
 
 /*
  * @behavior Receive Discord interaction requests. Rejects unsigned requests, answers PING, and
@@ -14,8 +20,9 @@ const EPHEMERAL_FLAG = 64;
  *           private generic reply, and only the error message is logged.
  * @param publicKey — the application's Ed25519 public key, as hex
  * @param flow — { handle(interaction) } returning a Discord interaction response
+ * @param client — sends the outcome of approvals acknowledged before their database work runs
  */
-export function createDiscordRouter({ publicKey, flow }) {
+export function createDiscordRouter({ publicKey, flow, client }) {
   const router = express.Router();
 
   // Parse the body as raw bytes: the signature covers the exact bytes Discord sent.
@@ -44,14 +51,23 @@ export function createDiscordRouter({ publicKey, flow }) {
         return res.json({ type: INTERACTION_RESPONSE_PONG });
       }
 
+      async function handle() {
+        try {
+          return await flow.handle(interaction);
+        } catch (error) {
+          console.error("Discord interaction failed:", error);
+          return reply(GENERIC_FAILURE);
+        }
+      }
+
+      if (!isEventApproval(interaction)) return res.json(await handle());
+
+      res.json({ type: DEFERRED_UPDATE_MESSAGE });
+      const result = await handle();
       try {
-        return res.json(await flow.handle(interaction));
+        await client.completeDeferredInteraction(interaction, result);
       } catch (error) {
-        console.error("Discord interaction failed:", error);
-        return res.json({
-          type: INTERACTION_RESPONSE_MESSAGE,
-          data: { content: "Something went wrong. Try again in a few minutes.", flags: EPHEMERAL_FLAG },
-        });
+        console.error("Discord could not deliver the deferred approval result:", error.message);
       }
     },
   );

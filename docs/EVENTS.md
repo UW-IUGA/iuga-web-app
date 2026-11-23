@@ -78,27 +78,19 @@ Each photo has a full-size WebP and a smaller thumbnail in `assets/gallery/past-
 
 | Path | Responsibility |
 |---|---|
-| `frontend/src/App.jsx` | Routes `/` and `/events`; loads the homepage's upcoming event list. |
-| `frontend/src/pages/Home.jsx` | Filters and displays the homepage event teaser. |
+| `frontend/src/App.jsx` | Routes `/` and `/events`. |
+| `frontend/src/components/HomeEvents.jsx` | Loads and displays the homepage event teaser through `useEventList`. |
 | `frontend/src/pages/Events.jsx` | Composes the calendar, views, previous event recaps, and officer workspace. |
 | `frontend/src/hooks/useEventList.js` | Loads the public event list and owns its loading, failure, and retry states. |
 | `frontend/src/hooks/useCalendarView.js` | Reads and updates the selected view and date in the URL. |
 | `frontend/src/components/eventsCalendar/` | Calendar controls, views, event details, RSVP context, and previous-event section. |
 | `frontend/src/components/EventOperations.jsx` | Officer request list, filters, form, and request details. |
-| `frontend/src/utils/calendar/calendar.js` | Event normalization, Pacific date handling, grids, and display formatting. |
+| `frontend/src/utils/calendar/calendar.js` | Event normalization, grids, and Pacific dates and times for both the homepage and calendar. |
 | `frontend/src/assets/data/PastEventsData.js` | Local previous-event copy and photo references. |
 | `frontend/src/stylesheets/components/eventsCalendar/` | Styles for the calendar components, scoped to `.eventsCalendar`. |
 | `backend/routes/api/v1/controllers/events.js` | Public event list and details, RSVP handling, and participant endpoints. |
 | `backend/routes/api/v1/controllers/eventRequests.js` | Officer request workflow and publication on approval. |
 | `backend/publishedEvents.js` | Directly maintained event records seeded at server startup. |
-
-## Code retained for a future homepage refactor
-
-`components/EventsOverview.jsx` is not routed by `App.jsx`, so it does not currently appear on the events page or homepage. It was kept because its weekly agenda and photo-led presentation were intended as source material for a more substantial homepage events section. The homepage currently uses its own small upcoming-events teaser in `pages/Home.jsx` instead.
-
-These components are only used by the unrouted `EventsOverview` flow and are not part of the live pages today: `EventAgenda`, `EventDialog`, `EventThumbnail`, `EventCategoryPills`, and `PhotoCollage`. They are candidates to be refactored into homepage-owned components when that homepage work happens; they should not be treated as current events-page components or deleted as unused before then.
-
-Other components from that old flow are shared with live pages: `PageHeader` is used by several pages, `PastEventCard` and `PhotoLightbox` serve the current event recaps, and `EventOperations` serves officer requests. Do not classify these as dormant. For current behavior, start with `pages/Events.jsx` and `pages/Home.jsx`.
 
 ## Tests
 

@@ -1,0 +1,135 @@
+@use "../abstracts" as *;
+
+// Merch: the whole catalog on rotation across the full preview card, with the
+// copy on a scrim over the bottom of the image, like the hero's photo captions.
+.homeMerchCarousel {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    // The mockups are drawn on white, so the frame stays white in both themes.
+    background: $color-white;
+
+    > img {
+        position: absolute;
+        inset: $space-4 $space-6 30%;
+        width: calc(100% - #{$space-12});
+        height: calc(70% - #{$space-4});
+        object-fit: contain;
+        opacity: 0;
+        filter: blur(4px);
+        transform: scale(0.96);
+        transition:
+            opacity 600ms $ease-out,
+            filter 600ms $ease-out,
+            transform 600ms $ease-out;
+
+        &.isActive {
+            opacity: 1;
+            filter: none;
+            transform: none;
+        }
+    }
+}
+
+.homeMerchCaption {
+    position: absolute;
+    inset: auto 0 0;
+    display: flex;
+    flex-direction: column;
+    padding: $space-14 $space-7 $space-6;
+    background: linear-gradient(to top, rgba(15, 15, 15, 0.88), rgba(15, 15, 15, 0.62) 62%, transparent);
+    color: $color-white;
+
+    > p {
+        max-width: 42ch;
+        margin: $space-2 0 $space-5;
+        color: rgba(255, 255, 255, 0.82);
+        line-height: 1.5;
+        text-wrap: pretty;
+    }
+}
+
+.homeMerchEyebrow {
+    margin-bottom: $space-1;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: $font-size-small;
+    font-weight: $font-weight-bold;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+// Every name sits in one grid cell and the active one fades in with its image.
+.homeMerchNames {
+    display: grid;
+    min-width: 0;
+
+    > span {
+        grid-area: 1 / 1;
+        overflow: hidden;
+        font-size: clamp(28px, 3vw, 40px);
+        font-weight: $font-weight-bold;
+        line-height: 1.05;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        opacity: 0;
+        transform: translateY(6px);
+        transition:
+            opacity 400ms $ease-out,
+            transform 400ms $ease-out;
+
+        &.isActive {
+            opacity: 1;
+            transform: none;
+        }
+    }
+}
+
+.homeMerchFooter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-6;
+}
+
+.homeMerchSteps {
+    display: flex;
+    flex: 0 0 120px;
+    gap: 6px;
+
+    > span {
+        flex: 1;
+        height: 3px;
+        overflow: hidden;
+        border-radius: $radius-pill;
+        background: rgba(255, 255, 255, 0.28);
+
+        &.isDone {
+            background: $color-white;
+        }
+    }
+}
+
+// Constant motion, so linear; transform keeps it on the compositor.
+.homeMerchProgress {
+    display: block;
+    height: 100%;
+    background: $color-white;
+    transform-origin: left;
+    animation-name: homeMerchProgress;
+    animation-timing-function: linear;
+}
+
+@keyframes homeMerchProgress {
+    from {
+        transform: scaleX(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .homeMerchCarousel > img,
+    .homeMerchNames > span {
+        filter: none;
+        transform: none;
+        transition: opacity $duration-fade ease;
+    }
+}

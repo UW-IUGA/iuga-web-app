@@ -21,7 +21,7 @@ Every environment (dev, staging, production) follows the same five-stage pipelin
 ### Trigger
 
 - **Dev:** A push to the `dev` branch triggers the dev pipeline (checks out `*/dev`).
-- **Production:** A push to `main` triggers the production pipeline (checks out `*/main`).
+- **Production:** Deploy manually. When you’re ready to release, open the [`iuga.info` Jenkins job](https://jenkins.iuga.info/job/iuga.info/) and click **Build Now**. The job checks out the current `main` branch (`*/main`). Merging or pushing to `main` does not deploy automatically, so an accidental push won’t change the live site. Confirm that `main` contains the commit you intend to deploy before starting the job.
 - **Staging:** Uses `checkout scm` (multibranch pipeline — runs for whichever branch/tag triggered the job).
 
 > **Note:** Dev and production have their own branches; staging follows whatever branch triggered its multibranch job. There is no single shared branch for all three.
@@ -56,8 +56,8 @@ Pull requests also get a frontend-only preview on Netlify, built by GitHub Actio
 - **Network:** `iuga-server-config_default`
 - **Volume:** `/var/lib/iuga-web-app/uploads/staging:/app/backend/public/uploads`
 - **DB credentials:** `DB_URI` (Jenkins Secret text credential, injected as `DB_URI` env var), `SESSION_SECRET_STAGING` (injected as runtime `SESSION_SECRET_STAGING`)
-- **Database:** MongoDB container at `mongo:27017` (via `iuga-server-config_default` network)
-- **Shop checkout:** `shopManualCheckout: false`, so the Venmo checkout routes return 503. Shop holds use transactions, and the `mongo` container in `iuga-server-config` is a standalone server. Set it to `true` only after that container runs as a replica set and `DB_URI` names it (`replicaSet=...`).
+- **Database:** MongoDB container at `mongo:27017` (via `iuga-server-config_default` network). **Before deploying transactional event approval**, have the staging database operator convert the standalone container in `iuga-server-config` to a replica set. Update Jenkins `DB_URI` to name the set (`replicaSet=...`), verify that the app network can reach its writable primary, and smoke-test approving one staging event before rollout. There is no standalone fallback: approval fails rather than writing a partial event.
+- **Shop checkout:** `shopManualCheckout: false`, so the Venmo checkout routes return 503. The database change does not enable checkout.
 - **Deploy pattern:** health-gated candidate swap; temp port `7779` → live port `7777`; tags images `:${BUILD_NUMBER}` and `:last-good`
 - **Commit status context:** `iuga/jenkins/cicd/staging`
 

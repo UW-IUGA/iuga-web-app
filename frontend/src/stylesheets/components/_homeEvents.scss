@@ -1,0 +1,195 @@
+/*
+Purpose: Style the homepage's events section.
+Expected Request Information: Classes emitted by HomeEvents.
+Expected Response Information: A heading row above a list of event rows.
+*/
+@use "../abstracts" as *;
+
+.homeEvents {
+    margin-top: $space-9;
+
+    ol {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+}
+
+.homeEvents__header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: $space-6;
+    margin-bottom: 22px;
+
+    h2 {
+        margin: 0;
+        color: theme(heading);
+        font-size: $font-size-section;
+        font-weight: $font-weight-bold;
+        letter-spacing: $letter-spacing-heading;
+        line-height: 1.05;
+    }
+
+    p {
+        margin: $space-2 0 0;
+        color: theme(text-muted);
+        font-size: $font-size-small;
+    }
+}
+
+.homeEvents__more {
+    margin-top: $space-6;
+}
+
+// The brand is the default tone. A row with a category sets its own --tone and
+// --tone-soft from the site-wide data-tone rule, which beats these inherited ones.
+.homeEvents__list {
+    --tone: #{theme(brand)};
+    --tone-soft: #{theme-alpha(brand, 0.35)};
+    --tone-text: #{theme(accent)};
+
+    display: grid;
+    gap: $space-3;
+}
+
+.homeEvents__row {
+    display: grid;
+    grid-template-columns: 56px 148px minmax(0, 1fr);
+    align-items: center;
+    gap: $space-5;
+    padding: $space-3 $space-6 $space-3 $space-3;
+    border: 1px solid var(--tone-soft);
+    border-radius: $radius-card-media;
+    background: theme(surface);
+    color: theme(heading);
+    text-decoration: none;
+    transition:
+        border-color $duration-press $ease-out,
+        box-shadow $duration-press $ease-out,
+        transform $duration-press $ease-out;
+
+    .eventThumbnail {
+        height: 96px;
+        border-radius: $radius-card-media;
+    }
+
+    &:active {
+        transform: scale(0.985);
+    }
+
+    &:focus-visible {
+        outline: 3px solid theme(brand);
+        outline-offset: 3px;
+    }
+
+    @include media("<tablet") {
+        grid-template-columns: 48px minmax(0, 1fr);
+        padding-right: $space-4;
+
+        .eventThumbnail {
+            display: none;
+        }
+    }
+}
+
+.homeEvents__row[data-tone] {
+    --tone-text: var(--tone);
+}
+
+// Border only on hover: nothing lifts or resizes, so the page never shifts.
+@media (hover: hover) and (pointer: fine) {
+    .homeEvents__row:hover {
+        border-color: var(--tone);
+        box-shadow: inset 0 0 0 1px var(--tone);
+    }
+}
+
+.homeEvents__date {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    line-height: 1;
+
+    span {
+        color: var(--tone-text);
+        font-size: $font-size-label;
+        font-weight: $font-weight-medium;
+        letter-spacing: $letter-spacing-label;
+        text-transform: uppercase;
+    }
+
+    strong {
+        font-size: 1.75rem;
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+.homeEvents__body {
+    display: grid;
+    gap: 5px;
+    min-width: 0;
+
+    > strong {
+        font-size: $font-size-subheading;
+        line-height: 1.15;
+    }
+}
+
+.homeEvents__meta {
+    color: var(--tone-text);
+    font-size: $font-size-small;
+    font-weight: $font-weight-medium;
+}
+
+.homeEvents__host {
+    color: theme(text-muted);
+    font-size: $font-size-small;
+}
+
+.homeEvents__notice {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-4;
+    padding: 22px $space-6;
+    border: 1px dashed theme-alpha(brand, 0.25);
+    border-radius: $radius-card;
+
+    p {
+        margin: 0;
+        color: theme(text-muted);
+    }
+
+    button {
+        min-height: $pill-height;
+        padding: $pill-padding-y $pill-padding-x;
+        border: $pill-border-width solid theme(accent);
+        border-radius: $radius-pill;
+        background: theme(surface);
+        color: theme(accent);
+        font-family: inherit;
+        cursor: pointer;
+    }
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .homeEvents__notice button:hover {
+        background: theme(accent);
+        color: theme(on-fill);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .homeEvents__row {
+        transition: none;
+    }
+}
+
+@include media("<tablet") {
+    .homeEvents__header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

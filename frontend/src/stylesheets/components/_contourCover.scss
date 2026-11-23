@@ -1,0 +1,52 @@
+/*
+Purpose: Colour the contour drawing that stands in for a missing event photo.
+Expected Request Information: Classes emitted by ContourCover; the parent sets the size and corners.
+Expected Response Information: Lines in the category colour on the category's soft surface, in both themes.
+*/
+@use "../abstracts" as *;
+
+.contourCover {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    background: var(--contour-surface);
+
+    // Two classes deep so page-wide icon sizes (such as the homepage's 16px svg rule) do not shrink it.
+    .contourCover__drawing {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    &--academic {
+        --contour-line: #{theme(academic-primary)};
+        --contour-surface: #{theme(academic-secondary)};
+    }
+
+    &--career {
+        --contour-line: #{theme(career-primary)};
+        --contour-surface: #{theme(career-secondary)};
+    }
+
+    &--social {
+        --contour-line: #{theme(social-primary)};
+        --contour-surface: #{theme(social-secondary)};
+    }
+}
+
+// Thin lines between the stronger index lines, as on a topographic map.
+// Widths are screen pixels: without non-scaling-stroke the wide calendar
+// banner would scale its lines to twice or more the homepage thumbnail's.
+.contourCover__line {
+    fill: none;
+    stroke: var(--contour-line);
+    vector-effect: non-scaling-stroke;
+    stroke-opacity: 0.45;
+    stroke-width: 1.4;
+
+    &--emphasized {
+        stroke-opacity: 0.8;
+        stroke-width: 2.5;
+    }
+}

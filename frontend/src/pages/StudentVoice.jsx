@@ -63,7 +63,7 @@ function StudentVoicePage({ forms = studentVoiceForms }) {
                                         <h3>{form.title}</h3>
                                         <p>{form.description}</p>
                                         <a
-                                            className="pill-button"
+                                            className="pill-button pill-button--fill"
                                             href={form.href}
                                             target="_blank"
                                             rel="noopener noreferrer"

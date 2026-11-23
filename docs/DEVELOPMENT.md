@@ -316,6 +316,7 @@ The repository has a small but real test surface, although coverage is incomplet
   ```bash
   npm test --prefix backend
   ```
+  For transaction tests, set `SHOP_REPLSET_URI` to a disposable MongoDB replica set before running the backend suite. This also runs the event approval tests for concurrent reviews, rollback, and Discord announcements. Those tests are skipped without the URI.
 - **CI deploy helper:** regression tests for the health-gated deploy sequence in `ci/deploy.groovy`, under `ci/test/`. They stub `docker` and assert the invoke/rollback behavior, so no daemon is needed. Run them with:
   ```bash
   node --test 'ci/test/*.test.js'

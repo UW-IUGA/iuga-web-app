@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 import { colorForLabels, formatEventDateTime } from "../../utils/calendar/calendar";
+import { primaryCategory } from "../../utils/eventCategory";
+import ContourCover from "../ContourCover";
 import EventRsvp from "./EventRsvp";
 import { useEventRsvp } from "./EventRsvpContext";
 
@@ -30,7 +32,15 @@ function EventDetail({ event: listEvent, headingLevel = 3 }) {
             <div className="detail__accent" style={{ backgroundColor: colorForLabels(event.labels) }} />
 
             <div className="detail__body">
-                {event.thumbnail && <img className="detail__photo" src={event.thumbnail} alt="" loading="lazy" />}
+                {event.thumbnail ? (
+                    <img className="detail__photo" src={event.thumbnail} alt="" loading="lazy" />
+                ) : (
+                    <ContourCover
+                        className="detail__cover"
+                        eventId={event.id}
+                        category={primaryCategory({ eLabels: event.labels }).className}
+                    />
+                )}
 
                 <div className="detail__labels">
                     {event.labels.map((label) => (

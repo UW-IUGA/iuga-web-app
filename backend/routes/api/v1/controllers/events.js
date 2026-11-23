@@ -63,13 +63,7 @@ const toEventSummary = (event, hasRSVPd) => ({
 });
 
 /*
-Purpose: Get information for events to display on the calendar for a given month/year.
-Authentication/Authorization Requirements: None
-
-Expected Request Information (<r> indicates a required field to include in the call):
-- Parameters: N/A
-- Queries: ?year=####&month=##
-- Body: N/A
+Purpose: List every event for the events calendar and homepage.
 
 Expected Response Information:
 - return [{
@@ -82,7 +76,7 @@ Expected Response Information:
             eDescription: String event description,
             eLabels: Array of String event category label(s),
             eThumbnailPath: String event thumbnail URL, when the event has one,
-            hasRSVPd: Boolean whether the signed-in user has RSVPd
+            hasRSVPd: Boolean whether the signed-in user has RSVPd (false when signed out)
         }]
 */
 router.get("/", async function (req, res) {
@@ -110,29 +104,23 @@ router.get("/", async function (req, res) {
 });
 
 /*
-Purpose: Selecting a specific event on the calendar
-Authentication/Authorization Requirements: None
+Purpose: Get one event's details and, when signed in, the user's RSVP.
 
 Expected Request Information (<r> indicates a required field to include in the call):
 - Parameters: <r> eId
-- Queries: N/A
-- Body: N/A
 
 Expected Response Information:
-- return [{
-            eId: event id,
-            eName: String event name,
-            eStartDate: Date event starts,
-            eEndDate: Date event ends,
-            eLocation: String event location,
-            eOrganizers: Array of String event organizer(s),
-            eDescription: String event description,
-            eLabels: Array of String event category label(s),
-            ePics: Array of Image event pics,
-            qList: Array of key:value pairs representing RSVP question number and question string,
-            participants: Array of participant ids,
-            eThumbnail: a Image of event
-        }]
+- 400 when eId is not a valid id, 404 when no event has it
+- return {
+            eId, eName, eOrganizers, eStartDate, eEndDate, eLocation, eDescription,
+            eLabels, eThumbnailPath, eAltLink,
+            rsvpQuestions: Array of { qId, qString },
+            rsvpAnswers: Array of { qId, aString }, the signed-in user's answers or [],
+            participants: Number of RSVPs, or null when showParticipants is false,
+            showParticipants: Boolean,
+            rsvpEnabled: Boolean,
+            hasRSVPd: Boolean whether the signed-in user has RSVPd
+        }
 */
 router.get("/id/:eId", async function (req, res) {
   try {
@@ -193,24 +181,17 @@ router.get("/id/:eId", async function (req, res) {
 });
 
 /*
-Purpose: For the homepage's 3 nearest future events, ordered by start time
-Authentication/Authorization Requirements: None
-
-Expected Request Information (<r> indicates a required field to include in the call):
-- Parameters: N/A
-- Queries: N/A
-- Body: N/A
+Purpose: The 3 nearest future events, soonest first.
 
 Expected Response Information:
 - return [{
             eId: event id,
             eName: String event name,
             eStartDate: Date event starts,
-            eEndDate: Date event ends,
-            eOrganizers: Array of String event organizer(s),
+            eOrganizers: String event organizer(s),
             eDescription: String event description,
             eLabels: Array of String event category label(s),
-            eThumbnail: a Image of event
+            eThumbnailPath: String event thumbnail URL, when the event has one
         }]
 */
 router.get("/upcoming", async function (req, res) {
@@ -249,26 +230,21 @@ router.get("/upcoming", async function (req, res) {
 });
 
 /*
-Purpose: User signs up as a participant to an event
+Purpose: RSVP the signed-in user to an event. RSVP closes when the event starts.
 Authentication/Authorization Requirements: Logged in
 
 Expected Request Information (<r> indicates a required field to include in the call):
-- Parameters: N/A
-- Queries: N/A
 - Body: {
-            <r> uId: Current user's id to add them to event,
-            <r> eId: find the event,
-            aList: Array of key:value pairs with question number and answer string,
-            isAnon: Boolean if user is participating anon or not
+            <r> eId: the event's id,
+            <r> rsvpAnswers: Array of { qId, aString } answers to the event's RSVP questions
         }
 
 Expected Response Information:
-- {
-    status: "success"
-  }
+- { status: "success", message: "RSVP successful!" }
+- 400 for an invalid eId or answers, RSVP turned off, an event that has started, or a repeat RSVP
+- 404 when the event does not exist
 */
 router.post("/rsvp", requireAuth, async function (req, res) {
-  //Using the given event id and user id parameters, create a participant profile for the user and this pId into the event's participant list
   try {
     const { eId, rsvpAnswers } = req.body ?? {};
     if (!validId(eId)) {

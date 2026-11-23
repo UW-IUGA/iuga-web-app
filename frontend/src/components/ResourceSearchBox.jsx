@@ -3,7 +3,10 @@ Purpose: The Resources page's search box, which also suggests tags to filter by.
 
 Expected Request Information:
 - id, label, placeholder: for the search field.
-- filters: the object returned by useResourceFilters.
+- value, onChange(text): the search text.
+- suggestions: { tags, resources } to list while typing.
+- onPickTag(tag), onPickResource(resource): run when a suggestion is chosen.
+- highlightPattern: marks the typed words in each suggestion.
 
 Expected Response Information:
 - A combobox whose suggestion list holds matching tags (picked to filter by them) and resource names (picked to
@@ -18,11 +21,9 @@ const GROUP_LABELS = {
     resource: "Resources",
 };
 
-function ResourceSearchBox({ id, label, placeholder, filters }) {
-    const {
-        searchTerm, setSearchTerm, selectedTags, suggestions, applyTagSuggestion, applyResourceSuggestion,
-        highlightPattern,
-    } = filters;
+function ResourceSearchBox({
+    id, label, placeholder, value, onChange, suggestions, onPickTag, onPickResource, highlightPattern,
+}) {
     const [open, setOpen] = useState(false);
     const [activeIndex, setActiveIndex] = useState(-1);
 
@@ -36,9 +37,9 @@ function ResourceSearchBox({ id, label, placeholder, filters }) {
 
     const choose = (option) => {
         if (option.kind === "tag") {
-            applyTagSuggestion(option.tag);
+            onPickTag(option.tag);
         } else {
-            applyResourceSuggestion(option.resource);
+            onPickResource(option.resource);
         }
         setOpen(false);
         setActiveIndex(-1);
@@ -78,10 +79,10 @@ function ResourceSearchBox({ id, label, placeholder, filters }) {
                     aria-expanded={expanded}
                     aria-controls={listboxId}
                     aria-activedescendant={expanded && activeIndex >= 0 ? optionId(activeIndex) : undefined}
-                    placeholder={selectedTags.length > 0 ? "Search these results" : placeholder}
-                    value={searchTerm}
+                    placeholder={placeholder}
+                    value={value}
                     onChange={(event) => {
-                        setSearchTerm(event.target.value);
+                        onChange(event.target.value);
                         setOpen(true);
                         setActiveIndex(-1);
                     }}

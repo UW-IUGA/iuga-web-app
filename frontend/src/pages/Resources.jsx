@@ -37,10 +37,10 @@ const keepHyphenatedWordsWhole = (name) => name
 
 function ResourcesPage({ resources }) {
     const startHere = useMemo(() => pickStartHere(resources), [resources]);
-    const filters = useResourceFilters(resources);
     const {
-        selectedTags, toggleTag, clearFilters, filteredResources, tagCounts, highlightPattern, isFiltering,
-    } = filters;
+        searchTerm, setSearchTerm, selectedTags, toggleTag, clearFilters, applyTagSuggestion, applyResourceSuggestion,
+        filteredResources, tagCounts, highlightPattern, suggestions, isFiltering,
+    } = useResourceFilters(resources);
     const [filtersOpen, setFiltersOpen] = useState(false);
     const pagination = usePagination(filteredResources, useResourcePageSize());
     const resultsHeadingRef = useRef(null);
@@ -123,8 +123,13 @@ function ResourcesPage({ resources }) {
                         <ResourceSearchBox
                             id="resource-search"
                             label="Search"
-                            placeholder="Name, keyword, or tag"
-                            filters={filters}
+                            placeholder={selectedTags.length > 0 ? "Search these results" : "Name, keyword, or tag"}
+                            value={searchTerm}
+                            onChange={setSearchTerm}
+                            suggestions={suggestions}
+                            onPickTag={applyTagSuggestion}
+                            onPickResource={applyResourceSuggestion}
+                            highlightPattern={highlightPattern}
                         />
                         {/* Disabled rather than hidden when there is nothing to clear, so the filters never shift. */}
                         <button

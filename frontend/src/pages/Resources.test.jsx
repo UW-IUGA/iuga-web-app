@@ -152,6 +152,16 @@ describe("ResourcesPage", () => {
         expect(clearAll).toBeDisabled();
     });
 
+    test("invites searching within the results once a tag is picked", () => {
+        renderResourcesPage();
+        const search = screen.getByRole("combobox", { name: "Search" });
+        expect(search).toHaveAttribute("placeholder", "Name, keyword, or tag");
+
+        fireEvent.click(screen.getByRole("checkbox", { name: /^Career/ }));
+
+        expect(search).toHaveAttribute("placeholder", "Search these results");
+    });
+
     test("searches by keyword and highlights the match", () => {
         renderResourcesPage();
 

@@ -200,7 +200,7 @@ export const resources = [
     "rLink": "https://linktr.ee/binfouw",
     "rImage": binfo_logo,
     "type": "Student clubs",
-    "tags": ["iOrgs"],
+    "tags": ["iOrgs", "DEI"],
     "summary": [
       "Community-driven organization fostering the professional, academic, and personal development of Black students in Informatics",
       "Its mission is to amplify the presence and successes of Black students in Informatics",
@@ -213,7 +213,7 @@ export const resources = [
     "rLink": "https://www.instagram.com/imuslims.uw/",
     "rImage": imuslims_logo,
     "type": "Student clubs",
-    "tags": ["iOrgs"],
+    "tags": ["iOrgs", "DEI"],
     "summary": [
       "Student-led resources and community to help Muslim students at the iSchool thrive at UW and beyond",
       "Empowers students to be information and technology leaders through events that promote connection, establish networks, and build professional skills",
@@ -226,7 +226,7 @@ export const resources = [
     "rLink": "https://depts.washington.edu/ischoolq/",
     "rImage": iqueeries_logo,
     "type": "Student clubs",
-    "tags": ["iOrgs"],
+    "tags": ["iOrgs", "DEI"],
     "summary": [
       "Safe, positive, and nurturing space for LGBTQIA+ and supportive ally students in the iSchool",
       "Fosters a strong, supportive queer community in the iSchool and UW at large, and promotes positive change and social justice in the information sciences",
@@ -251,7 +251,7 @@ export const resources = [
     "rLink": "https://ischool.uw.edu/diversity/resources/student-groups/winfo",
     "rImage": winfo_logo,
     "type": "Student clubs",
-    "tags": ["iOrgs"],
+    "tags": ["iOrgs", "DEI"],
     "summary": [
       "Empowers women to thrive as producers of technology",
       "Supportive network of women in technology fields",
@@ -502,7 +502,7 @@ export const resources = [
     "rLink": "https://sweuw.org/",
     "rImage": swe_uw_logo,
     "type": "Student clubs",
-    "tags": ["Software Engineering"],
+    "tags": ["Software Engineering", "DEI"],
     "summary": [
       "Supports women and nonbinary engineers in their careers",
       "Programs and events for more than 500 students",
@@ -566,7 +566,7 @@ export const resources = [
     "rLink": "https://students.washington.edu/wiux/",
     "rImage": women_in_ux_logo,
     "type": "Student clubs",
-    "tags": ["UI/UX"],
+    "tags": ["UI/UX", "DEI"],
     "summary": [
       "Community for women and gender-expansive designers",
       "An annual conference, industry networking, and portfolio reviews",
@@ -616,7 +616,7 @@ export const resources = [
     "rLink": "https://www.instagram.com/wicys.uw/",
     "rImage": wicys_uw_logo,
     "type": "Student clubs",
-    "tags": ["Cybersecurity"],
+    "tags": ["Cybersecurity", "DEI"],
     "summary": [
       "UW Seattle student chapter of Women in CyberSecurity",
     ],

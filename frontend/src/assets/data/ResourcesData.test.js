@@ -80,6 +80,15 @@ describe("resource records", () => {
         });
     });
 
+    // Identity-based clubs also count as DEI support.
+    test("files the identity-based clubs under DEI too", () => {
+        const dei = resources.filter(({ type, tags }) => type === resourceTypes.CLUB && tags.includes("DEI"));
+        expect(dei.map(({ rName }) => rName).sort()).toEqual([
+            "Black in Informatics (Binfo)", "Society of Women Engineers UW (SWE UW)", "WiCyS UW", "Women in Informatics (Winfo)",
+            "Women in UX", "iMuslims", "iQueeries",
+        ].sort());
+    });
+
     test("links every resource over https", () => {
         resources.filter(({ rLink }) => rLink).forEach(({ rName, rLink }) => expect(rLink, rName).toMatch(/^https:\/\//));
     });

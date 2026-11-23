@@ -9,12 +9,12 @@ Expected Response Information:
   public category, or for Academic when it has none.
 */
 
+import { EVENT_LABELS } from "./calendar/calendar";
 import { categoriesFor } from "./eventStreams";
 
-const PUBLIC_CATEGORIES = ["Academic", "Social", "Career"];
 const FALLBACK_CATEGORY = "Academic";
 
 export const primaryCategory = (event) => {
-    const name = categoriesFor(event).find((category) => PUBLIC_CATEGORIES.includes(category)) ?? FALLBACK_CATEGORY;
+    const name = categoriesFor(event).find((category) => EVENT_LABELS.includes(category)) ?? FALLBACK_CATEGORY;
     return { name, className: name.toLowerCase() };
 };

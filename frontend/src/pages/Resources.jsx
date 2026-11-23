@@ -10,7 +10,7 @@ Expected Response Information:
 - Searchable, tag-filtered resource cards, with fewer to a page on smaller screens.
 */
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { pickStartHere, tagGroups, tagResources } from "../assets/data/ResourceTagData";
 import PageHeader from "../components/PageHeader";
 import ResourceCard from "../components/ResourceCard";
@@ -46,10 +46,6 @@ function ResourcesPage({ resources }) {
     const resultsHeadingRef = useRef(null);
     const resultsRef = useRef(null);
     const shownResources = useRef(filteredResources);
-
-    useEffect(() => {
-        window.scrollTo(0, 0);
-    }, []);
 
     // When the results change while the reader is scrolled into the cards, start the new results at the top of the
     // view, where the sticky sidebar sits; otherwise the shorter page snaps the scroll and jolts the sidebar.

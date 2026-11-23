@@ -97,6 +97,13 @@ describe("ResourcesPage", () => {
             .toHaveClass("resourceIcon", "resourceIcon--inset");
     });
 
+    // The app's ScrollToTop opens new pages at the top and restores the place on Back and Forward.
+    test("leaves the scroll position to the app when it opens", () => {
+        renderResourcesPage();
+
+        expect(window.scrollTo).not.toHaveBeenCalled();
+    });
+
     test("shows Start Here beside the page title", () => {
         renderResourcesPage();
 

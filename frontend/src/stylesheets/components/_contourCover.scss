@@ -36,9 +36,12 @@ Expected Response Information: Lines in the category colour on the category's so
 }
 
 // Thin lines between the stronger index lines, as on a topographic map.
+// Widths are screen pixels: without non-scaling-stroke the wide calendar
+// banner would scale its lines to twice or more the homepage thumbnail's.
 .contourCover__line {
     fill: none;
     stroke: var(--contour-line);
+    vector-effect: non-scaling-stroke;
     stroke-opacity: 0.45;
     stroke-width: 1.4;
 

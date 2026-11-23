@@ -27,7 +27,7 @@ const INTRO = "IUGA is just one of many RSOs and groups affiliated with the iSch
     + "students! From academic and career resources to personal mental health, the iSchool community does its best "
     + "to support its students in every area it can.";
 
-// The groups shown open at first; a group also starts open when the link already picks one of its filters.
+// The groups shown open at first.
 const OPEN_GROUPS = ["Who runs it", "Club area"];
 
 const resultLabel = (count) => `${count} ${count === 1 ? "resource" : "resources"}`;
@@ -46,12 +46,23 @@ function ResourcesPage({ resources }) {
         filteredResources, tagCounts, highlightPattern, suggestions, isFiltering,
     } = useResourceFilters(resources);
     const [filtersOpen, setFiltersOpen] = useState(false);
-    const [openGroups, setOpenGroups] = useState(() => tagGroups
-        .filter((group) => OPEN_GROUPS.includes(group.label) || group.tags.some((tag) => selectedTags.includes(tag)))
-        .map((group) => group.label));
-    const toggleGroup = (label) => setOpenGroups((open) => (
-        open.includes(label) ? open.filter((openLabel) => openLabel !== label) : [...open, label]
-    ));
+    const [openGroups, setOpenGroups] = useState(OPEN_GROUPS);
+    // A group holding a picked filter stays open, so the filter is always in view to untick. Picking one, by its
+    // box, a link or a search suggestion, also opens its group for good, so unticking it does not snap the group shut.
+    const hasSelection = (group) => group.tags.some((tag) => selectedTags.includes(tag));
+    const [tagsSeen, setTagsSeen] = useState(null);
+    if (tagsSeen !== selectedTags) {
+        setTagsSeen(selectedTags);
+        const picked = tagGroups.filter((group) => hasSelection(group) && !openGroups.includes(group.label));
+        if (picked.length > 0) setOpenGroups([...openGroups, ...picked.map((group) => group.label)]);
+    }
+    // Only a group with nothing picked can fold.
+    const toggleGroup = (group) => {
+        if (hasSelection(group)) return;
+        setOpenGroups((open) => (open.includes(group.label)
+            ? open.filter((label) => label !== group.label)
+            : [...open, group.label]));
+    };
     const pagination = usePagination(filteredResources, useResourcePageSize());
     const resultsHeadingRef = useRef(null);
     const resultsRef = useRef(null);
@@ -166,7 +177,7 @@ function ResourcesPage({ resources }) {
                             id="resource-filter-groups"
                         >
                             {tagGroups.map((group) => {
-                                const open = openGroups.includes(group.label);
+                                const open = openGroups.includes(group.label) || hasSelection(group);
                                 const optionsId = `resource-filters-${group.label.replace(/\W+/g, "-")}`;
                                 return (
                                     <fieldset key={group.label}>
@@ -176,7 +187,7 @@ function ResourcesPage({ resources }) {
                                                 type="button"
                                                 aria-expanded={open}
                                                 aria-controls={optionsId}
-                                                onClick={() => toggleGroup(group.label)}
+                                                onClick={() => toggleGroup(group)}
                                             >
                                                 {group.label}
                                             </button>

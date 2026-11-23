@@ -228,6 +228,33 @@ describe("ResourcesPage", () => {
         expect(clearAllButton()).toHaveTextContent(/^Clear all$/);
     });
 
+    // A folded group would otherwise hide the filter just picked, and the reader could not see it or untick it.
+    test.each(["DEI", "Academic"])("opens What it helps with when the suggested %s tag is picked", (tag) => {
+        renderResourcesPage();
+        expect(screen.getByRole("button", { name: "What it helps with" })).toHaveAttribute("aria-expanded", "false");
+
+        const search = screen.getByRole("combobox", { name: "Search" });
+        fireEvent.focus(search);
+        fireEvent.change(search, { target: { value: tag } });
+        fireEvent.click(screen.getByRole("option", { name: new RegExp(`^${tag}`) }));
+
+        expect(screen.getByRole("button", { name: "What it helps with" })).toHaveAttribute("aria-expanded", "true");
+        expect(screen.getByRole("checkbox", { name: new RegExp(`^${tag}`) })).toBeChecked();
+    });
+
+    test("keeps a group open while it has a filter on, and lets an empty group fold", () => {
+        renderResourcesPage();
+        const toggle = screen.getByRole("button", { name: "Who runs it" });
+
+        fireEvent.click(screen.getByRole("checkbox", { name: /^UW/ }));
+        fireEvent.click(toggle);
+        expect(toggle).toHaveAttribute("aria-expanded", "true");
+
+        fireEvent.click(screen.getByRole("checkbox", { name: /^UW/ }));
+        fireEvent.click(toggle);
+        expect(toggle).toHaveAttribute("aria-expanded", "false");
+    });
+
     test("folds What it helps with, and opens Who runs it and Club area", () => {
         renderResourcesPage();
 

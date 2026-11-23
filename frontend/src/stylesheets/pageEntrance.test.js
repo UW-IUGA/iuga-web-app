@@ -75,11 +75,12 @@ describe("page entrance rise", () => {
 
 describe("Events page entrance", () => {
     it("rises the calendar body with the shared motion, leaving the heading still", () => {
-        const body = motionDeclarations(".page--events .events");
+        // The calendar's page frame (components/eventsCalendar/_page.scss) owns it, at the default 14px.
+        const body = motionDeclarations(".eventsCalendar .page--events .events");
         const name = body.animation.split(" ")[0];
 
         expect(body.animation).toBe(`${name} 640ms cubic-bezier(0.23, 1, 0.32, 1) both`);
-        expect(body["--rise"]).toBe("14px");
+        expect(body).not.toHaveProperty("--rise");
         expect(fromFrame(name)).toMatchObject({ opacity: "0" });
         expect(fromFrame(name).transform).toMatch(/^translateY\(var\(--rise\b.*\)\) scale\(0\.98\)$/);
 

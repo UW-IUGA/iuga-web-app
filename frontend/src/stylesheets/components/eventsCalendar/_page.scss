@@ -46,5 +46,13 @@ Expected Response Information: A centred column holding the title, controls and 
         .page__title {
             margin-bottom: 0;
         }
+
+        // The heading and controls stay still, like Home's copy, so they are
+        // usable from the first frame. The calendar body uses the shared rise
+        // and does not replay when the view, date, or filters change, because
+        // this element stays mounted.
+        .events {
+            @include page-entrance-rise;
+        }
     }
 }

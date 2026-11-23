@@ -161,8 +161,9 @@
     }
 }
 
-// The shared page-arrival rise. Duration and easing match Home's original
-// hero entrance. Callers set --rise; the content block holds any stagger.
+// The shared page-arrival rise (keyframes in base/_motion). Duration and easing
+// match Home's original hero entrance. Callers may set --rise (14px by default);
+// the content block holds any per-element distance or stagger.
 @mixin page-entrance-rise {
     @media (prefers-reduced-motion: no-preference) {
         animation: page-entrance-rise 640ms $ease-out both;

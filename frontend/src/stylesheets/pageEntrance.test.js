@@ -54,3 +54,11 @@ describe("Home hero entrance", () => {
         expect(fromFrame(name).transform).toMatch(/^translateY\(var\(--rise\b.*\)\) scale\(0\.98\)$/);
     });
 });
+
+describe("page entrance rise", () => {
+    it("rises 14px for a caller that sets no distance", () => {
+        const name = motionDeclarations(".homeHeroPhotos li").animation.split(" ")[0];
+
+        expect(fromFrame(name).transform).toBe("translateY(var(--rise, 14px)) scale(0.98)");
+    });
+});

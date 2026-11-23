@@ -70,8 +70,7 @@ function ResourcesPage({ resources }) {
 
     const startHereSection = startHere.length > 0 && (
         <section className="resources__startHere" aria-labelledby="resources-start-here">
-            <p className="resources__startHereLabel">New to the iSchool?</p>
-            <h2 id="resources-start-here">Start Here</h2>
+            <h2 id="resources-start-here">New to the iSchool? Start here</h2>
             <ul className="resources__startList">
                 {startHere.map((resource) => (
                     <li key={resource.rName}>

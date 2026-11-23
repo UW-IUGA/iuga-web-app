@@ -35,16 +35,12 @@ Expected Response Information: A card with the icon above its tags, name, bullet
         line-height: 1.25;
     }
 
-    > p:not(.resourceCard__category) {
+    > p {
         margin: 0 0 $space-5;
         color: theme(text-muted);
         font-size: $font-size-body;
         line-height: 1.55;
     }
-}
-
-.resourceCard__category {
-    @extend %pageKicker;
 }
 
 .resourceCard__summary {

@@ -83,7 +83,7 @@ describe("ResourcesPage", () => {
         expect(within(header).getByRole("heading", { level: 1 })).toHaveTextContent("Make the most of the iSchool.");
         expect(within(header).queryByText("iSchool Resources")).not.toBeInTheDocument();
         expect(within(header).getByText(/^IUGA is just one of many RSOs/)).toBeInTheDocument();
-        const startHere = screen.getByRole("region", { name: "Start Here" });
+        const startHere = screen.getByRole("region", { name: "New to the iSchool? Start here" });
         expect(within(startHere).getByText("iSchool Career Services (Canvas)")).toBeInTheDocument();
 
         expect(resultCards()).toHaveLength(3);
@@ -112,17 +112,21 @@ describe("ResourcesPage", () => {
     test("shows Start Here beside the page title", () => {
         renderResourcesPage();
 
+        expect(screen.getByRole("heading", { level: 2, name: "New to the iSchool? Start here" })).toBeInTheDocument();
+        expect(screen.queryByText("New to the iSchool?")).not.toBeInTheDocument();
+
         const header = screen.getByRole("region", { name: "Make the most of the iSchool." });
-        const startHere = within(header).getByRole("region", { name: "Start Here" });
+        const startHere = within(header).getByRole("region", { name: "New to the iSchool? Start here" });
         expect(within(startHere).getByRole("link", { name: /iSchool Career Services \(Canvas\)/ }))
             .toHaveAttribute("href", "https://ischool.uw.edu/career");
     });
 
-    test("tags each card and falls back to the description and a pending note", () => {
+    test("falls back to the description and a pending note", () => {
         renderResourcesPage();
 
         const club = screen.getByRole("heading", { name: "Example Student Club" }).closest("article");
-        expect(within(club).getByText("Student clubs · iOrgs")).toBeInTheDocument();
+        // The filters already say who runs a resource and its area, so the card does not repeat them.
+        expect(within(club).queryByText(/Student clubs/)).not.toBeInTheDocument();
         expect(within(club).getByText("A club still writing its description.")).toBeInTheDocument();
         expect(within(club).getByText("Details coming soon")).toBeInTheDocument();
         expect(within(club).queryByRole("link")).not.toBeInTheDocument();

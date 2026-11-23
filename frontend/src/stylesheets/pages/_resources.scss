@@ -26,10 +26,6 @@ Expected Response Information: Start Here lines up with the title and intro on d
     }
 }
 
-.resources__startHereLabel {
-    @extend %pageKicker;
-}
-
 // Start Here: the text column is only as wide as the title and intro need (36rem), and Start Here fills the rest
 // of the row, stretching so its top and bottom line up with the title and the end of the intro.
 .resources .pageHeader--withVisual {
@@ -48,9 +44,10 @@ Expected Response Information: Start Here lines up with the title and intro on d
     flex-direction: column;
     gap: $space-3;
 
+    // The section size, so the heading reads above the picks' names (#390).
     h2 {
-        margin: 2px 0 0;
-        font-size: $font-size-subheading;
+        margin: 0;
+        font-size: $font-size-section;
     }
 }
 

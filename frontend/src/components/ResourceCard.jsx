@@ -4,13 +4,13 @@ Purpose: One resource in the Resources page grid.
 Expected Request Information:
 - resource: a resource record (ResourcesData).
 - highlight: the search pattern from useResourceFilters, or null.
+- headingLevel: the name's heading level, 3 by default; 4 inside a page section.
 
 Expected Response Information:
-- A card with the resource's tags, name, and bullets (or its description when it has no bullets yet), and a link
+- A card with the resource's name and bullets (or its description when it has no bullets yet), and a link
   to the resource when it has one. A logo that is not square (rImageInset) shows whole instead of cropped.
 */
 
-import { labelsOf } from "../assets/data/resourceTaxonomy";
 import HighlightMatch from "./HighlightMatch";
 
 function ResourceCard({ resource, highlight, headingLevel = 3 }) {
@@ -25,9 +25,6 @@ function ResourceCard({ resource, highlight, headingLevel = 3 }) {
                 )}
             </div>
             <div className="resourceCard__content">
-                <p className="resourceCard__category">
-                    <HighlightMatch text={labelsOf(resource).join(" · ")} pattern={highlight} />
-                </p>
                 <Heading className="resourceCard__name"><HighlightMatch text={resource.rName} pattern={highlight} /></Heading>
                 {resource.summary.length > 0 ? (
                     <ul className="resourceCard__summary">

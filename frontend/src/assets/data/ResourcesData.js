@@ -27,6 +27,23 @@ import husky_coding_project_logo from "../logos/husky-coding-project.png";
 import tca_logo from "../logos/tca.jpg";
 import ux_uw_logo from "../logos/ux-uw.jpg";
 import product_space_logo from "../logos/product-space-logo-trimmed.webp";
+import ijournal_logo from "../logos/ijournal.webp";
+import pm_club_logo from "../logos/pm-club.webp";
+import montlake_consulting_group_logo from "../logos/montlake-consulting-group.webp";
+import uw_consulting_association_logo from "../logos/uw-consulting-association.webp";
+import business_impact_group_logo from "../logos/business-impact-group.webp";
+import information_consulting_group_logo from "../logos/information-consulting-group.webp";
+import istartup_lab_logo from "../logos/istartup-lab.webp";
+import swe_uw_logo from "../logos/swe-uw.webp";
+import swecc_logo from "../logos/swecc.webp";
+import web_impact_logo from "../logos/web-impact.webp";
+import data_science_society_logo from "../logos/data-science-society.webp";
+import interactive_intelligence_logo from "../logos/interactive-intelligence.webp";
+import women_in_ux_logo from "../logos/women-in-ux.webp";
+import ux_health_logo from "../logos/ux-health.webp";
+import thinkcyber_logo from "../logos/thinkcyber.webp";
+import batmans_kitchen_logo from "../logos/batmans-kitchen.webp";
+import wicys_uw_logo from "../logos/wicys-uw.webp";
 
 export const resources = [
   {
@@ -386,6 +403,222 @@ export const resources = [
     "tags": ["PM/Consulting"],
     "summary": [
       "The premier technology consultancy",
+    ],
+  },
+  {
+    "rName": "iJournal",
+    "rDescription": "iJournal is the UW Information School's student-run publication for thought pieces, research, opinions, and creative works about technology, information, and society.",
+    "rLink": "https://www.ijournaluw.com/",
+    "rImage": ijournal_logo,
+    "type": "Student clubs",
+    "tags": ["iOrgs"],
+    "summary": [
+      "Student-run publication of the UW Information School",
+      "Publishes student thought pieces, research, opinions, and creative works",
+      "Takes submissions every quarter from undergraduates in any major",
+    ],
+  },
+  {
+    "rName": "Product Management Club @ UW",
+    "rDescription": "Product Management Club @ UW is a workshop-style community that offers resources, mentorship, and opportunities to students interested in a career in product management.",
+    "rLink": "https://webimpactuw.github.io/pmclub-uw/",
+    "rImage": pm_club_logo,
+    "type": "Student clubs",
+    "tags": ["PM/Consulting"],
+    "summary": [
+      "Workshop-style community for students interested in product management",
+      "Resources, mentorship, and opportunities for a career in PM",
+      "Events such as a Careers in Tech panel",
+    ],
+  },
+  {
+    "rName": "Montlake Consulting Group",
+    "rDescription": "Montlake Consulting Group members consult on quarter-long strategy projects for Fortune 500 companies and startups.",
+    "rLink": "https://montlakeconsulting.com/",
+    "rImage": montlake_consulting_group_logo,
+    "type": "Student clubs",
+    "tags": ["PM/Consulting"],
+    "summary": [
+      "Quarter-long strategy projects for Fortune 500 companies and startups",
+      "Teams of 4 to 5 consultants led by a student project manager",
+      "New members train for a quarter, ending in a pitch deck competition",
+    ],
+  },
+  {
+    "rName": "UW Consulting Association (UWCA)",
+    "rDescription": "UWCA helps members build consulting knowledge and professional skills through weekly meetings, new member training, and client engagements.",
+    "rLink": "https://www.uwconsulting.org/",
+    "rImage": uw_consulting_association_logo,
+    "type": "Student clubs",
+    "tags": ["PM/Consulting"],
+    "summary": [
+      "Weekly meetings with speaker panels, firm events, and interview prep workshops",
+      "PIVOT pairs new members with an upperclass mentor for 7 weeks of training",
+      "3 to 5 client engagements every quarter",
+    ],
+  },
+  {
+    "rName": "Business Impact Group (BIG)",
+    "rDescription": "Business Impact Group's student consulting teams work with small business clients across Washington State and beyond.",
+    "rLink": "https://www.uwbig.com/",
+    "rImage": business_impact_group_logo,
+    "type": "Student clubs",
+    "tags": ["PM/Consulting"],
+    "summary": [
+      "Student consulting teams work 8 weeks alongside a small business client",
+      "Clients across Washington State, the Pacific Northwest, and beyond",
+      "New members start in CORE, a quarter of weekly consulting workshops",
+    ],
+  },
+  {
+    "rName": "Information Consulting Group (ICG)",
+    "rDescription": "Information Consulting Group is a student-run consulting club at the iSchool that delivers technology and strategy projects for real organizations.",
+    "rLink": "https://www.linkedin.com/company/washingtonicg",
+    "rImage": information_consulting_group_logo,
+    "type": "Student clubs",
+    "tags": ["PM/Consulting"],
+    "summary": [
+      "Student-run technology consulting club at the iSchool, founded in 2025",
+      "Members deliver technology and strategy projects for real organizations",
+      "Focus groups in software engineering, data science, UI/UX design, and cybersecurity",
+    ],
+  },
+  {
+    "rName": "iStartup Lab",
+    "rDescription": "The iSchool's iStartup Lab helps students learn about entrepreneurship, meet other founders, and launch new businesses and organizations.",
+    "rLink": "https://startup.ischool.uw.edu/",
+    "rImage": istartup_lab_logo,
+    "type": "iSchool",
+    "tags": ["Entrepreneurship"],
+    "summary": [
+      "Courses and community events about entrepreneurship",
+      "Micro grants to help iSchool startup teams with upfront costs",
+      "Open to students in every iSchool program",
+    ],
+  },
+  {
+    "rName": "Society of Women Engineers UW (SWE UW)",
+    "rDescription": "SWE UW helps women and nonbinary engineers succeed in their careers, with programs and events for more than 500 students.",
+    "rLink": "https://sweuw.org/",
+    "rImage": swe_uw_logo,
+    "type": "Student clubs",
+    "tags": ["Software Engineering"],
+    "summary": [
+      "Supports women and nonbinary engineers in their careers",
+      "Programs and events for more than 500 students",
+      "UW section of the Society of Women Engineers",
+    ],
+  },
+  {
+    "rName": "Software Engineering Career Club (SWECC)",
+    "rDescription": "SWECC is a student-led community that helps aspiring software engineers build the skills, experience, and connections to succeed in tech.",
+    "rLink": "https://www.swecc.org/",
+    "rImage": swecc_logo,
+    "type": "Student clubs",
+    "tags": ["Software Engineering"],
+    "summary": [
+      "Student-led community for aspiring software engineers",
+      "Hands-on projects, mentorship, workshops, and a peer network",
+      "SWECC Labs guides members through open-source contributions",
+    ],
+  },
+  {
+    "rName": "Web Impact UW",
+    "rDescription": "Web Impact teaches web design and development and builds free websites for local communities and organizations in Seattle.",
+    "rLink": "https://webimpactuw.org/",
+    "rImage": web_impact_logo,
+    "type": "Student clubs",
+    "tags": ["Software Engineering"],
+    "summary": [
+      "Weekly web design and development workshops for all skill levels",
+      "Student teams build free websites for Seattle organizations starting in Winter",
+    ],
+  },
+  {
+    "rName": "Data Science Society at UW",
+    "rDescription": "The Data Science Society at UW makes data science accessible to students from all disciplines.",
+    "rLink": "https://data-science-society-at-uw.github.io/club-website/",
+    "rImage": data_science_society_logo,
+    "type": "Student clubs",
+    "tags": ["DS/ML"],
+    "summary": [
+      "Makes data science accessible to students from all disciplines",
+      "Open to all UW students at any experience level",
+      "Events, workshops, and a network of data science peers",
+    ],
+  },
+  {
+    "rName": "interactive intelligence (i2)",
+    "rDescription": "interactive intelligence (i2) is UW's student-led NeuroAI education and research organization.",
+    "rLink": "https://uw-i2.org/",
+    "rImage": interactive_intelligence_logo,
+    "type": "Student clubs",
+    "tags": ["DS/ML"],
+    "summary": [
+      "Student-led NeuroAI education and research organization",
+      "Intro course on machine learning and neuroscience, no background needed",
+      "Research Room, a two-quarter program for joining real research projects",
+    ],
+  },
+  {
+    "rName": "Women in UX",
+    "rDescription": "Women in UX connects women at UW in user experience and related fields through community and career-building events.",
+    "rLink": "https://students.washington.edu/wiux/",
+    "rImage": women_in_ux_logo,
+    "type": "Student clubs",
+    "tags": ["UI/UX"],
+    "summary": [
+      "Community for women and gender-expansive designers",
+      "An annual conference, industry networking, and portfolio reviews",
+      "Open to undergraduate and graduate students of any gender",
+    ],
+  },
+  {
+    "rName": "UX Health @ UW",
+    "rDescription": "UX Health is a student-led organization exploring the role of UX design and research in healthcare.",
+    "rLink": "https://www.instagram.com/uxhealthuw/",
+    "rImage": ux_health_logo,
+    "type": "Student clubs",
+    "tags": ["UI/UX"],
+    "summary": [
+      "Explores UX design and research in healthcare",
+      "Design teams run Winter to Spring, with applications at the end of Fall",
+    ],
+  },
+  {
+    "rName": "ThinkCyber UW",
+    "rDescription": "ThinkCyber UW is an inclusive, hands-on cybersecurity community for students of all backgrounds.",
+    "rLink": "https://linktr.ee/thinkcyberuw",
+    "rImage": thinkcyber_logo,
+    "type": "Student clubs",
+    "tags": ["Cybersecurity"],
+    "summary": [
+      "Inclusive, hands-on cybersecurity community for all backgrounds",
+      "Study groups and panels, such as a Security+ study group",
+    ],
+  },
+  {
+    "rName": "Batman's Kitchen",
+    "rDescription": "Batman's Kitchen is UW's cybersecurity club, open to every level of experience.",
+    "rLink": "https://www.batmans.kitchen/",
+    "rImage": batmans_kitchen_logo,
+    "type": "Student clubs",
+    "tags": ["Cybersecurity"],
+    "summary": [
+      "Cybersecurity club open to every level of experience",
+      "Weekly talks and Capture the Flag (CTF) nights",
+      "Runs BKCTF and prepares students for the MITRE eCTF competition",
+    ],
+  },
+  {
+    "rName": "WiCyS UW",
+    "rDescription": "WiCyS UW is the University of Washington Seattle student chapter of Women in CyberSecurity.",
+    "rLink": "https://www.instagram.com/wicys.uw/",
+    "rImage": wicys_uw_logo,
+    "type": "Student clubs",
+    "tags": ["Cybersecurity"],
+    "summary": [
+      "UW Seattle student chapter of Women in CyberSecurity",
     ],
   },
 ];

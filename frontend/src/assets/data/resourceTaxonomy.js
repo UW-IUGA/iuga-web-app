@@ -52,14 +52,15 @@ export const allTags = tagGroups.flatMap((group) => group.tags);
 
 export const labelsOf = (resource) => [resource.type, ...resource.tags];
 
-// Support services first, then the clubs by area. "More clubs" catches a club added without an area, so it still
-// shows; the data tests keep it empty.
+// Support services first, then each club area. An iSchool or UW group in an area (such as the iStartup Lab) sits
+// with its clubs. "More clubs" catches a club added without an area, so it still shows; the data tests keep it empty.
 export const sectionsOf = (resources) => {
-    const clubs = resources.filter(({ type }) => type === resourceTypes.CLUB);
+    const hasArea = ({ tags }) => tags.some((tag) => clubAreas.includes(tag));
+    const isClub = ({ type }) => type === resourceTypes.CLUB;
     return [
-        { heading: "Support", resources: resources.filter(({ type }) => type !== resourceTypes.CLUB) },
-        ...clubAreas.map((area) => ({ heading: area, resources: clubs.filter(({ tags }) => tags.includes(area)) })),
-        { heading: "More clubs", resources: clubs.filter(({ tags }) => !tags.some((tag) => clubAreas.includes(tag))) },
+        { heading: "Support", resources: resources.filter((resource) => !isClub(resource) && !hasArea(resource)) },
+        ...clubAreas.map((area) => ({ heading: area, resources: resources.filter(({ tags }) => tags.includes(area)) })),
+        { heading: "More clubs", resources: resources.filter((resource) => isClub(resource) && !hasArea(resource)) },
     ].filter((section) => section.resources.length > 0);
 };
 

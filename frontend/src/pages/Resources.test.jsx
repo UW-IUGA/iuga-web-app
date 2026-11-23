@@ -242,6 +242,17 @@ describe("ResourcesPage", () => {
         expect(screen.getByRole("checkbox", { name: new RegExp(`^${tag}`) })).toBeChecked();
     });
 
+    test("keeps a group open after the filter that opened it is unticked", () => {
+        renderResourcesPage(resources, "/resources?tags=DEI");
+        const toggle = screen.getByRole("button", { name: "What it helps with" });
+        expect(toggle).toHaveAttribute("aria-expanded", "true");
+
+        fireEvent.click(screen.getByRole("checkbox", { name: /^DEI/ }));
+
+        expect(screen.getByRole("checkbox", { name: /^DEI/ })).not.toBeChecked();
+        expect(toggle).toHaveAttribute("aria-expanded", "true");
+    });
+
     test("keeps a group open while it has a filter on, and lets an empty group fold", () => {
         renderResourcesPage();
         const toggle = screen.getByRole("button", { name: "Who runs it" });

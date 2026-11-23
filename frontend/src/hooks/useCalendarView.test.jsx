@@ -76,7 +76,7 @@ describe("useCalendarView", () => {
         expect(written().get("date")).toBe("2026-10-20");
     });
 
-    it("writes year into the URL, now that it is no longer the default", () => {
+    it("writes an explicit view for year", () => {
         const { result, written } = setup("/events?view=week&date=2026-10-20");
 
         act(() => result.current.setMode("year"));

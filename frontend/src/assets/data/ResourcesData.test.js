@@ -98,6 +98,16 @@ describe("resource records", () => {
         });
     });
 
+    // Reviewed against each club's own pages: MCG's training ends in a pitch deck competition, DSS advertises team
+    // projects, and neither ICG nor i2 runs career panels.
+    test("lists the reviewed offerings for MCG, ICG, i2 and the Data Science Society", () => {
+        const offersOf = (name) => resources.find(({ rName }) => rName === name).offers;
+        expect(offersOf("Montlake Consulting Group")).toEqual(["Project teams", "Competition"]);
+        expect(offersOf("Information Consulting Group (ICG)")).toEqual(["Project teams"]);
+        expect(offersOf("interactive intelligence (i2)")).toEqual(["Project teams"]);
+        expect(offersOf("Data Science Society at UW")).toEqual(["Project teams"]);
+    });
+
     test("links every resource over https", () => {
         resources.filter(({ rLink }) => rLink).forEach(({ rName, rLink }) => expect(rLink, rName).toMatch(/^https:\/\//));
     });

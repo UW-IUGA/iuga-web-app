@@ -450,7 +450,7 @@ export const resources = [
     "rImage": montlake_consulting_group_logo,
     "type": "Student clubs",
     "tags": ["PM/Consulting"],
-    "offers": ["Project teams"],
+    "offers": ["Project teams", "Competition"],
     "summary": [
       "Quarter-long strategy projects for Fortune 500 companies and startups",
       "Teams of 4 to 5 consultants led by a student project manager",
@@ -492,7 +492,7 @@ export const resources = [
     "rImage": information_consulting_group_logo,
     "type": "Student clubs",
     "tags": ["PM/Consulting"],
-    "offers": ["Project teams", "Career panels"],
+    "offers": ["Project teams"],
     "summary": [
       "Student-run technology consulting club at the iSchool, founded in 2025",
       "Members deliver technology and strategy projects for real organizations",
@@ -560,6 +560,7 @@ export const resources = [
     "rImage": data_science_society_logo,
     "type": "Student clubs",
     "tags": ["DS/ML"],
+    "offers": ["Project teams"],
     "summary": [
       "Makes data science accessible to students from all disciplines",
       "Open to all UW students at any experience level",
@@ -573,7 +574,7 @@ export const resources = [
     "rImage": interactive_intelligence_logo,
     "type": "Student clubs",
     "tags": ["DS/ML"],
-    "offers": ["Project teams", "Career panels"],
+    "offers": ["Project teams"],
     "summary": [
       "Student-led NeuroAI education and research organization",
       "Intro course on machine learning and neuroscience, no background needed",

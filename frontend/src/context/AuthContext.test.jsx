@@ -75,9 +75,16 @@ describe("sign-in failure dialog", () => {
 
         fireEvent.click(screen.getByText("Sign in"));
 
-        const dialog = await screen.findByRole("dialog");
-        expect(dialog).toHaveTextContent("Local environment");
-        expect(dialog).toHaveTextContent("Local sign-in unavailable");
+        const dialog = await screen.findByRole("dialog", { name: "Local sign-in unavailable" });
+        expect(dialog).toHaveTextContent("Start Docker and run npm run dev");
+        expect(screen.getByRole("link", { name: "Troubleshooting guide" })).toHaveAttribute(
+            "href",
+            "https://github.com/UW-IUGA/iuga-web-app/blob/main/docs/TROUBLESHOOTING.md#local-development-sign-in"
+        );
+        const close = screen.getByRole("button", { name: "Close" });
+        expect(close).toHaveFocus();
+        fireEvent.click(close);
+        expect(dialog).not.toBeInTheDocument();
     });
 });
 

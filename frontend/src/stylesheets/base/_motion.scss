@@ -1,0 +1,52 @@
+// Site-wide keyframes shared through mixins (abstracts/mixins).
+
+// Registered so a gradient's start angle animates smoothly; browsers without
+// @property show the border-sweep arc standing still.
+@property --sweep {
+    syntax: "<angle>";
+    inherits: false;
+    initial-value: 0deg;
+}
+
+@keyframes border-sweep {
+    to {
+        --sweep: 360deg;
+    }
+}
+
+// One lap that fades in, travels, and fades away, for border-sweep's cue mode.
+@keyframes border-sweep-cue {
+    0% {
+        --sweep: 0deg;
+        opacity: 0;
+    }
+
+    12%,
+    82% {
+        opacity: 1;
+    }
+
+    100% {
+        --sweep: 360deg;
+        opacity: 0;
+    }
+}
+
+// One lap in the first third, then a rest, for border-sweep's pulse mode.
+@keyframes border-sweep-pulse {
+    0% {
+        --sweep: 0deg;
+        opacity: 0;
+    }
+
+    4%,
+    27% {
+        opacity: 1;
+    }
+
+    33%,
+    100% {
+        --sweep: 360deg;
+        opacity: 0;
+    }
+}

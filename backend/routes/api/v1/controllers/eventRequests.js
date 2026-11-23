@@ -1,5 +1,6 @@
 import express from "express";
 import mongoose from "mongoose";
+import { publishApprovedEvent } from "../../../../eventPublication.js";
 import { sendError } from "../helpers/sendError.js";
 import { sendSuccess } from "../helpers/sendSuccess.js";
 import { requirePermission } from "../utils/auth.js";
@@ -391,39 +392,34 @@ router.post("/:id/approve", requirePermission("events.leadership.approve"), asyn
   if (!validId(req.params.id)) return sendError(res, 400, "Invalid event request ID");
 
   try {
-    const eventRequest = await findRequest(req, req.params.id);
-    if (!eventRequest) return sendError(res, 404, "Event request not found");
-    if (!LEADERSHIP_STATUSES.includes(eventRequest.status)) {
-      return sendError(res, 409, "Event request is not awaiting leadership review");
-    }
-
-    const event = await req.models.Events.create({
-      eName: eventRequest.eventName,
-      eOrganizers: eventRequest.requestingGroup,
-      eStartDate: eventRequest.proposedStartDate,
-      eEndDate: eventRequest.proposedEndDate,
-      eLocation: eventRequest.booking?.location || "TBD",
-      eDescription: eventRequest.description,
-      eRsvpEnabled: eventRequest.rsvpEnabled,
-      rsvpQuestions: eventRequest.rsvpQuestions || [],
-      ...(eventRequest.altLink?.url ? { eAltLink: { url: eventRequest.altLink.url, kind: eventRequest.altLink.kind } } : {}),
+    const reviewerId = req.session.userId;
+    const result = await publishApprovedEvent({
+      Events: req.models.Events,
+      submissions: req.models.EventRequests,
+      id: req.params.id,
+      reviewableStatuses: LEADERSHIP_STATUSES,
+      prepareApproval: (eventRequest) => ({
+        eventFields: {
+          eName: eventRequest.eventName,
+          eOrganizers: eventRequest.requestingGroup,
+          eStartDate: eventRequest.proposedStartDate,
+          eEndDate: eventRequest.proposedEndDate,
+          eLocation: eventRequest.booking?.location || "TBD",
+          eDescription: eventRequest.description,
+          eRsvpEnabled: eventRequest.rsvpEnabled,
+          rsvpQuestions: eventRequest.rsvpQuestions || [],
+          ...(eventRequest.altLink?.url ? { eAltLink: { url: eventRequest.altLink.url, kind: eventRequest.altLink.kind } } : {}),
+        },
+        approvalFields: {
+          approvedAt: new Date(),
+          approvedBy: reviewerId,
+          checkpoints: completeCheckpoint(eventRequest.checkpoints, "proposal", reviewerId),
+        },
+      }),
     });
-    const updated = await transitionRequest(req, req.params.id, LEADERSHIP_STATUSES, {
-      status: "approved",
-      approvedAt: new Date(),
-      approvedBy: req.session.userId,
-      publishedEventId: event._id,
-      checkpoints: completeCheckpoint(
-        eventRequest.checkpoints,
-        "proposal",
-        req.session.userId,
-      ),
-    });
-    if (!updated) {
-      if (req.models.Events.deleteOne) await req.models.Events.deleteOne({ _id: event._id });
-      return sendError(res, 409, "Event request was already reviewed");
-    }
-    return sendSuccess(res, { eventRequest: updated, event });
+    if (result.kind === "missing") return sendError(res, 404, "Event request not found");
+    if (result.kind !== "published") return sendError(res, 409, "Event request is not awaiting leadership review");
+    return sendSuccess(res, { eventRequest: result.submission, event: result.event });
   } catch (error) {
     console.error(error);
     return sendError(res, 500);

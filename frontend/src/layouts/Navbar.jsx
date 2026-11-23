@@ -73,10 +73,10 @@ function Navbar({ signIn, signOut }) {
                 <div id="nav-items" className={`nav-items-wrapper ${showMenu ? "nav-show-items" : ""}`}>
                     <div className="nav-primary-links">
                         <NavLink to="/events" onClick={handleNavigation}>Events</NavLink>
-                        <NavLink to="/resources" onClick={handleNavigation}>Resources</NavLink>
                         <NavLink to="/shop" onClick={handleNavigation}>Merch</NavLink>
-                        <NavLink to="/about" onClick={handleNavigation}>About</NavLink>
+                        <NavLink to="/resources" onClick={handleNavigation}>Resources</NavLink>
                         <NavLink to="/get-involved" onClick={handleNavigation}>Get Involved</NavLink>
+                        <NavLink to="/about" onClick={handleNavigation}>About</NavLink>
                         {showAdminLink && <NavLink to={ADMIN_ROOT_PATH} onClick={handleNavigation}>Admin</NavLink>}
                     </div>
                     <div className="nav-account">

@@ -8,7 +8,7 @@
 .homePage {
     box-sizing: border-box;
     flex: none;
-    padding-block: $space-14 $section-divider-gap;
+    padding-block: 0 $section-divider-gap;
     color: theme(ink);
     font: $font-weight-regular #{$font-size-body}/#{$line-height-body} $font-family-base;
 
@@ -16,6 +16,13 @@
     *::before,
     *::after {
         box-sizing: border-box;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+        font-family: inherit;
     }
 
     :where(h1, h2, h3, p) {
@@ -51,349 +58,153 @@
     }
 }
 
-.homeOpening {
-    display: grid;
-    grid-template-columns: minmax(0, 1.28fr) minmax(0, 0.72fr);
-    grid-template-areas: "intro photos" "events photos";
-    gap: $space-6 $space-18;
-}
-
-.homeIntro {
-    grid-area: intro;
-    align-self: start;
-    min-width: 0;
-}
-
-.homeAffiliation {
-    margin-bottom: $space-3;
-    color: theme(heading);
-    font-size: $font-size-small;
-    font-weight: $font-weight-medium;
-}
-
-.homeIntro h1 {
-    max-width: 18ch;
-    color: theme(heading);
-    font-size: $font-size-title;
-    letter-spacing: $letter-spacing-heading;
-    line-height: 1.08;
-}
-
 .homeSummary {
     max-width: 52ch;
     margin-top: $space-4;
     font-size: $font-size-body;
 }
 
-.homeActions {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: $space-3;
-    margin-top: $space-6;
-}
-
-.homePrimaryLink,
-.homeSecondaryLink {
+.homePrimaryLink {
     display: inline-flex;
     min-height: $pill-height + 4px;
     align-items: center;
     justify-content: center;
-    gap: 14px;
+    gap: $space-3;
     padding: $space-3 22px;
     border: 1px solid theme(brand);
     border-radius: $radius-pill;
     font-size: $font-size-small;
     font-weight: $font-weight-medium;
     white-space: nowrap;
-}
-
-.homePrimaryLink {
     background: theme(brand);
     color: theme(on-fill);
+}
 
-    &:hover {
+@media (hover: hover) and (pointer: fine) {
+    .homePrimaryLink:hover {
         border-color: theme(accent);
         background: theme(accent);
     }
 }
 
-.homeSecondaryLink {
-    background: theme(surface);
-    color: theme(heading);
+// Hero: the copy on the left and three recent event photos on the right.
+.homeOpening {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    align-items: start;
+    gap: $space-12;
+    // Same top offset as the shared page header, so every page title sits in one spot.
+    padding-top: $space-14;
 
-    &:hover {
-        background: theme(tint);
+    h1 {
+        margin: 0 0 18px;
+        color: theme(heading);
+        font-size: clamp(40px, 4.6vw, 60px);
+        letter-spacing: -0.04em;
+        line-height: 0.95;
+        text-transform: uppercase;
+        text-wrap: balance;
     }
-}
 
-.homeHeroPhotoSlot {
-    position: relative;
-    grid-area: photos;
-    min-width: 0;
-    min-height: 0;
+    @include media("<sm-desktop") {
+        grid-template-columns: 1fr;
+        gap: $space-9;
+    }
+
+    @include media("<tablet") {
+        padding-top: $space-8;
+
+        h1 {
+            font-size: clamp(34px, 9vw, 48px);
+        }
+    }
 }
 
 .homeHeroPhotos {
-    position: absolute;
-    z-index: 1;
-    inset: 0 0 -18px;
     display: grid;
-    min-width: 0;
-    grid-template-rows: minmax(0, 1fr);
-}
-
-.homeHeroPhotos > img {
-    height: 100%;
-    min-height: 0;
-}
-
-.homeHeartPhoto {
-    min-width: 0;
-    border-radius: $radius-card-media;
-    object-position: 50% 30%;
-}
-.homeEvents {
-    grid-area: events;
-    min-width: 0;
-    align-self: start;
-    padding-top: $space-3;
-}
-
-.homeEventsHeader {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: $space-5;
-    margin-bottom: $space-1;
-
-    h2 {
-        font-size: $font-size-subheading;
-    }
-}
-
-.homeEventList {
-    display: grid;
-    gap: 0;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: $space-3;
+    height: 460px;
     margin: 0;
     padding: 0;
     list-style: none;
 
     li {
         min-width: 0;
+        min-height: 0;
     }
-    li + li {
-        border-top: 1px solid theme(border-subtle);
+
+    li:first-child {
+        grid-row: 1 / -1;
     }
-}
 
-.homeEventLink {
-    display: flex;
-    min-height: 84px;
-    align-items: center;
-    gap: 18px;
-    padding: $space-3 0;
-
-    &:hover h3 {
-        color: theme(heading);
-        text-decoration: underline;
-        text-underline-offset: 4px;
+    figure {
+        position: relative;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        border-radius: $radius-card;
+        background: theme(tint);
     }
-}
 
-.homeEventDate {
-    display: flex;
-    flex: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 56px;
-    min-height: 60px;
-    border-radius: $radius;
-    background: theme(tint);
-    color: theme(heading);
-    line-height: 1;
-
-    span {
-        font-size: $font-size-label;
-        font-weight: $font-weight-medium;
-        letter-spacing: $letter-spacing-label;
-        text-transform: uppercase;
+    img {
+        height: 100%;
     }
-    strong {
-        margin-top: 6px;
-        font-size: 26px;
-        font-variant-numeric: tabular-nums;
-    }
-}
 
-.homeEventDetails {
-    min-width: 0;
-
-    h3 {
+    // White text on a dark fade, the same treatment as the Get Involved photo cards.
+    figcaption {
+        position: absolute;
+        inset: auto 0 0;
+        padding: $space-14 $space-5 $space-5;
+        background: linear-gradient(to top, rgba(15, 15, 15, 0.82), rgba(15, 15, 15, 0.4) 64%, transparent);
+        color: $color-white;
         font-size: $font-size-subheading;
-    }
-    p {
-        margin-top: 5px;
-        font-size: $font-size-small;
-    }
-}
-
-.homeEmptyEventCard {
-    display: flex;
-    align-items: center;
-    gap: $space-4;
-    margin-top: $space-12;
-    padding: 18px $space-5;
-    border-radius: $radius-card-media;
-    background: theme(surface);
-    box-shadow: 0 6px 18px theme-alpha(shadow, 0.12);
-
-    h3 {
-        font-size: $font-size-subheading;
-    }
-    p {
-        margin-top: $space-1;
-        font-size: $font-size-small;
+        font-weight: $font-weight-bold;
+        line-height: 1.12;
+        text-wrap: balance;
     }
 
-    &:hover h3 {
-        color: theme(accent);
-    }
-}
+    @include media("<tablet") {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: 220px 150px;
+        height: auto;
 
-.homeEventIcon {
-    display: grid;
-    flex: 0 0 44px;
-    width: 44px;
-    height: 44px;
-    place-items: center;
-    color: theme(heading);
-
-    svg {
-        width: 28px;
-        height: 28px;
-    }
-}
-
-.homeExplore {
-    margin-top: 42px;
-    padding-top: $space-7;
-    border-top: 1px solid theme(border-subtle);
-}
-
-.homeSectionHeading {
-    margin-bottom: $space-4;
-
-    h2 {
-        font-size: $font-size-section;
-    }
-    p {
-        max-width: none;
-        margin-top: $space-2;
-        font-size: $font-size-small;
-    }
-}
-
-.homeDestinations {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: $space-4;
-}
-
-.homeDestination {
-    display: block;
-    min-height: 100%;
-    padding: $space-5;
-    border: 1px solid transparent;
-    border-radius: $radius-card-media;
-    background: theme(surface);
-    box-shadow: 0 6px 18px theme-alpha(shadow, 0.12);
-
-    h3 {
-        font-size: $font-size-subheading;
-        text-decoration-line: underline;
-        text-decoration-thickness: 1px;
-        text-underline-offset: 0.22em;
-    }
-
-    p {
-        margin-top: 7px;
-        font-size: $font-size-small;
-    }
-
-    &:hover {
-        border-color: theme(accent);
-        box-shadow: 0 9px 22px theme-alpha(shadow, 0.16);
-
-        h3 {
-            color: theme(accent);
+        li:first-child {
+            grid-row: auto;
+            grid-column: 1 / -1;
         }
     }
 }
 
-.homeCommunity {
-    margin-top: 42px;
-    padding-top: $space-7;
-    border-top: 1px solid theme(border-subtle);
-}
+// The hero is seen once per visit, so its photos enter as one wave: the lead
+// photo rises furthest, the other two follow with shorter moves and shrinking gaps.
+// The copy is not animated, so it is readable and clickable from the first frame.
+@media (prefers-reduced-motion: no-preference) {
+    .homeHeroPhotos li {
+        animation: homeHeroRise 640ms $ease-out both;
 
-.homeCommunityLinks {
-    display: grid;
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-    gap: $space-9;
-}
+        &:nth-child(1) {
+            --rise: 20px;
+        }
 
-.homeCommunityLink {
-    min-width: 0;
-}
+        &:nth-child(2) {
+            --rise: 14px;
+            animation-delay: 110ms;
+        }
 
-.homeCommunityPhoto {
-    position: relative;
-    height: 360px;
-    overflow: hidden;
-    border-radius: $radius-card-media;
-
-    img {
-        height: 100%;
-        object-position: 50% 55%;
+        &:nth-child(3) {
+            --rise: 10px;
+            animation-delay: 180ms;
+        }
     }
 }
 
-.homeInvolvedLink img {
-    object-position: 50% 22%;
-}
-.homeShopLink img {
-    object-position: 50% 0%;
-}
-
-.homeCommunityPhoto::after {
-    position: absolute;
-    inset: 38% 0 0;
-    background: linear-gradient(to top, rgba(15, 15, 15, 0.82), rgba(15, 15, 15, 0.4) 64%, transparent);
-    content: "";
-    pointer-events: none;
-}
-
-.homePhotoLabel {
-    position: absolute;
-    z-index: 1;
-    inset: auto 0 0;
-    padding: 18px $space-5;
-
-    h3 {
-        color: $color-white;
-        font-size: $font-size-subheading;
-        line-height: 1.15;
-        text-decoration-line: underline;
-        text-decoration-thickness: 1px;
-        text-underline-offset: 0.22em;
+@keyframes homeHeroRise {
+    from {
+        opacity: 0;
+        transform: translateY(var(--rise)) scale(0.98);
     }
-}
-
-.homeCommunityLink:hover .homePhotoLabel h3 {
-    color: $color-white;
-    text-underline-offset: 4px;
 }
 
 #rootContainer:has(.homePage) {
@@ -467,172 +278,41 @@
     }
 }
 
-@include media(">=tablet", "<=1100px") {
-    .homeOpening {
-        grid-template-columns: minmax(0, 1.12fr) minmax(250px, 0.88fr);
-        gap: $space-6 $space-9;
-    }
-
-    .homeDestinations {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-    .homeCommunityLinks {
-        gap: $space-6;
-    }
-    .homeCommunityPhoto {
-        height: 320px;
-    }
-}
-
 @include media(">=1500px") {
-    .homeOpening {
-        grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
-        gap: $space-8 $space-22;
+    .homeHeroPhotos {
+        height: 520px;
     }
 
-    .homeDestinations {
-        gap: $space-5;
+    .homeOpening h1 {
+        font-size: clamp(52px, 3vw, 64px);
     }
-    .homeDestination {
-        padding: $space-6;
-    }
-    .homeCommunityLinks {
-        gap: $space-11;
-    }
-    .homeCommunityPhoto {
-        height: 420px;
+    .homeSummary {
+        font-size: 18px;
     }
 }
 
 @include media("<tablet") {
     .homePage {
-        padding-block: $space-8 $grid-gap;
+        padding: 0 0 $grid-gap;
     }
 
-    .homeOpening {
-        grid-template-columns: minmax(0, 1fr);
-        grid-template-areas: "intro" "photos" "events";
-        gap: $space-7;
-    }
-
-    .homeIntro {
-        padding: 0;
-
-        h1 {
-            max-width: 18ch;
-        }
-    }
-
-    .homeActions {
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .homePrimaryLink,
-    .homeSecondaryLink {
+    .homePrimaryLink {
         min-height: 46px;
         padding: 11px 18px;
     }
-
-    .homeHeroPhotoSlot {
-        position: static;
-    }
-
-    .homeHeroPhotos {
-        position: static;
-        inset: auto;
-        z-index: auto;
-        grid-template-columns: minmax(0, 1fr);
-        grid-template-rows: clamp(220px, 68vw, 320px);
-        height: auto;
-
-        img {
-            height: 100%;
-            border-radius: $radius-card-media;
-        }
-    }
-
-    .homeEvents {
-        padding: $space-5 0 0;
-        border-top: 1px solid theme(border-subtle);
-    }
-
-    .homeEventsHeader {
-        flex-direction: row;
-        align-items: center;
-        gap: $space-3;
-    }
-
-    .homeEventList {
-        grid-template-columns: 1fr;
-    }
-    .homeEventLink {
-        min-height: 86px;
-    }
-
-    .homeEmptyEventCard {
-        gap: $space-4;
-        padding: 18px;
-    }
-
-    .homeExplore {
-        margin-top: $space-9;
-        padding-top: $space-6;
-    }
-
-    .homeSectionHeading {
-        margin-bottom: $space-2;
-
-        p {
-            max-width: 40ch;
-            margin-top: 10px;
-        }
-    }
-
-    .homeDestinations {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: $space-3;
-    }
-
-    .homeDestination {
-        padding: $space-4;
-    }
-
-    .homeCommunity {
-        margin-top: $space-10;
-        padding-top: $space-6;
-    }
-
-    .homeCommunityLinks {
-        grid-template-columns: 1fr;
-        gap: 30px;
-    }
-
-    .homeCommunityPhoto {
-        height: clamp(300px, 86vw, 360px);
-    }
-    .homePhotoLabel {
-        padding: $space-4 18px;
-    }
 }
 
-@include media("<phone") {
-    .homeDestinations {
-        grid-template-columns: minmax(0, 1fr);
-    }
-}
-
+// Press feedback for every link on the page; colour changes ride the same curve.
 @media (prefers-reduced-motion: no-preference) {
     .homePage a {
         transition:
-            color 160ms ease,
-            background-color 160ms ease,
-            transform 160ms ease,
-            border-color 160ms ease,
-            box-shadow 160ms ease;
+            color $duration-press $ease-out,
+            background-color $duration-press $ease-out,
+            border-color $duration-press $ease-out,
+            transform $duration-press $ease-out;
 
         &:active {
-            transform: scale(0.985);
+            transform: scale(0.97);
         }
     }
 }

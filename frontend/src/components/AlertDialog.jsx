@@ -4,7 +4,7 @@
  * Expected Request: Content labels and an acknowledgment callback from the caller.
  * Expected Response: An accessible dialog that invokes onConfirm when acknowledged.
  */
-function AlertDialog({ eyebrow, title, message, confirmLabel = "Okay", onConfirm }) {
+function AlertDialog({ title, message, confirmLabel = "Okay", onConfirm }) {
     return (
         <div className="alert-dialog-overlay">
             <section
@@ -14,10 +14,6 @@ function AlertDialog({ eyebrow, title, message, confirmLabel = "Okay", onConfirm
                 aria-labelledby="alert-dialog-title"
                 aria-describedby="alert-dialog-message"
             >
-                <span className="alert-dialog-icon" aria-hidden="true">
-                    !
-                </span>
-                {eyebrow ? <span className="alert-dialog-eyebrow">{eyebrow}</span> : null}
                 <h2 id="alert-dialog-title">{title}</h2>
                 <p id="alert-dialog-message">{message}</p>
                 <button type="button" className="alert-dialog-confirm" autoFocus onClick={onConfirm}>

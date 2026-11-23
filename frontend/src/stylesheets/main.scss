@@ -6,6 +6,7 @@
 @use "base/colors";
 @use "base/misc";
 @use "base/elements";
+@use "base/motion";
 
 @use "layout/container";
 @use "layout/navigation";
@@ -18,16 +19,13 @@
 @use "components/dropdown";
 @use "components/emailContactDialog";
 @use "components/electionfaqCard";
-@use "components/eventAgenda";
+@use "components/homeEvents";
 @use "components/eventCategoryPills";
-@use "components/eventDialog";
 @use "components/eventsCalendar";
 @use "components/eventThumbnail";
 @use "components/gradientLine";
-@use "components/imageCarousel";
 @use "components/pageHeader";
 @use "components/pastEventCard";
-@use "components/photoCollage";
 @use "components/photoLightbox";
 @use "components/pastEventsLightbox";
 @use "components/resourceCard";
@@ -36,7 +34,6 @@
 @use "components/studentProfileCard";
 @use "components/sidebar";
 @use "components/themeToggle";
-@use "components/weekNavigation";
 
 @use "pages/about";
 @use "pages/elections";
@@ -44,6 +41,9 @@
 @use "pages/events";
 @use "pages/getInvolved";
 @use "pages/home";
+@use "pages/home-explore";
+@use "pages/home-rso-marquee";
+@use "pages/home-merch-carousel";
 @use "pages/resources";
 @use "pages/shop";
 @use "pages/shop-checkout";

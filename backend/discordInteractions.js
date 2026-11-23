@@ -5,8 +5,8 @@ export const INTERACTION_COMPONENT = 3;
 export const INTERACTION_AUTOCOMPLETE = 4;
 export const INTERACTION_MODAL_SUBMIT = 5;
 
-const RESPONSE_MESSAGE = 4;
-const RESPONSE_UPDATE_MESSAGE = 7;
+export const RESPONSE_MESSAGE = 4;
+export const RESPONSE_UPDATE_MESSAGE = 7;
 export const RESPONSE_AUTOCOMPLETE = 8;
 export const RESPONSE_MODAL = 9;
 

@@ -37,6 +37,13 @@
     }
 }
 
+// Logos that are not square show whole, with room around them, instead of cropped.
+.resourceCardIcon--inset img {
+    box-sizing: border-box;
+    padding: 14%;
+    object-fit: contain;
+}
+
 .resourceCardContent {
     display: flex;
     min-width: 0;
@@ -50,7 +57,7 @@
         line-height: 1.25;
     }
 
-    > p:not(.resourceCardCategory) {
+    > p {
         margin: 0 0 $space-5;
         color: theme(text-muted);
         font-size: $font-size-small;

@@ -20,7 +20,7 @@ import { createDiscordClient } from "./discordClient.js";
 import { createRsoDirectory } from "./rsoDirectory.js";
 import { createRsoVerification } from "./discordRsoVerification.js";
 import { createDiscordDispatcher } from "./discordDispatcher.js";
-import { httpErrorHandler, sendSpaError } from "./http/errors.js";
+import { httpErrorHandler } from "./http/errors.js";
 import {
   isAllowedOrigin,
   configureCorsAndReadiness,
@@ -56,20 +56,7 @@ const apiRateLimiter = createApiRateLimiter({
 
 configureCorsAndReadiness(app);
 
-/*
-Purpose: Add browser security headers to every response.
-Authentication/Authorization Requirements: None
-
-Expected Request Information:
-- Parameters: N/A
-- Queries: N/A
-- Body: N/A
-
-Expected Response Information:
-- X-Content-Type-Options: Prevents MIME-type sniffing.
-- X-Frame-Options: Prevents this application from being framed.
-- Referrer-Policy: Limits referrer data sent across origins.
-*/
+// No MIME sniffing, no framing by other sites, and only the origin as referrer across sites.
 app.use((req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
@@ -77,14 +64,8 @@ app.use((req, res, next) => {
   next();
 });
 
-/*
-Purpose: Log incoming HTTP requests for operational debugging.
-Authentication/Authorization Requirements: None
-
-Expected Request Information:
-- Any HTTP request handled by the application.
-*/
 app.use(logger("dev"));
+
 /*
 Purpose: Receive Discord interaction requests ahead of the JSON parser, so each signature is checked against the raw body.
 Authentication/Authorization Requirements: Discord request signature, verified by the router. Mounted only when DISCORD_PUBLIC_KEY is set.
@@ -110,7 +91,12 @@ if (process.env.DISCORD_PUBLIC_KEY) {
       models,
       directory: rsoDirectory,
       client: discordClient,
-      config: { ...reviewerRoles, approvalChannelId: process.env.DISCORD_APPROVAL_CHANNEL_ID },
+      config: {
+        ...reviewerRoles,
+        approvalChannelId: process.env.DISCORD_APPROVAL_CHANNEL_ID,
+        announcementChannelId: process.env.DISCORD_ANNOUNCEMENT_CHANNEL_ID,
+        guildId: process.env.DISCORD_GUILD_ID,
+      },
     }),
     rsoVerification: createRsoVerification({
       models,
@@ -122,84 +108,36 @@ if (process.env.DISCORD_PUBLIC_KEY) {
   app.use(
     "/api/v1/discord",
     createRateLimiter({ limit: 60, windowMs: 60_000 }),
-    createDiscordRouter({ publicKey: process.env.DISCORD_PUBLIC_KEY, flow: discordFlows }),
+    createDiscordRouter({ publicKey: process.env.DISCORD_PUBLIC_KEY, flow: discordFlows, client: discordClient }),
   );
 }
 
-/*
-Purpose: Parse JSON and URL-encoded bodies while rejecting payloads above 32 KB.
-Authentication/Authorization Requirements: None
-
-Expected Response Information:
-- Valid bodies are available to controllers; oversized bodies receive a client error.
-*/
+// Bodies over REQUEST_BODY_LIMIT get a 413 from httpErrorHandler.
 app.use(express.json({ limit: REQUEST_BODY_LIMIT }));
 app.use(express.urlencoded({ extended: false, limit: REQUEST_BODY_LIMIT }));
 
-/*
-Purpose: Read signed and unsigned cookies from incoming browser requests.
-Authentication/Authorization Requirements: None
-
-Expected Request Information:
-- Cookie headers supplied by the browser.
-*/
 app.use(cookieParser());
 
 // Disable entity tags so clients receive the latest generated response.
 app.disable("etag");
 
-/*
-Purpose: Serve the compiled frontend assets without conditional-cache responses.
-Authentication/Authorization Requirements: None
-
-Expected Response Information:
-- Matching static files are served; missing files continue through the route chain.
-*/
 app.use(express.static("../frontend/build"));
 
-/*
-Purpose: Create the server-side session boundary using the deployment cookie policy.
-Authentication/Authorization Requirements: None
-
-Expected Response Information:
-- Requests receive session state only when a route uses it.
-*/
 app.use(sessions(createSessionOptions(sessionSecret, process.env.DEPLOY_ENV)));
 app.use(createCsrfProtection({ isAllowedOrigin }));
 
-/*
-Purpose: Attach the shared Mongoose model registry to each request for controllers.
-Authentication/Authorization Requirements: None
-
-Expected Response Information:
-- Controllers can access models through req.models.
-*/
 app.use((req, res, next) => {
   req.models = models;
   next();
 });
 
-/*
-Purpose: Serve the compiled SPA shell for every registered client-side route.
-Authentication/Authorization Requirements: None
-
-Expected Response Information:
-- Return index.html so React Router can render the requested application page.
-- Return a safe server error if index.html cannot be read.
-*/
+// Client-side routes get index.html so React Router can render them.
 app.use(
   createSpaRouter({
     indexPath: path.join(__dirname, "../frontend/build/index.html"),
   }),
 );
 
-/*
-Purpose: Serve uploaded public assets from the backend upload directory.
-Authentication/Authorization Requirements: None
-
-Expected Response Information:
-- Matching uploaded files are served as static content.
-*/
 app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
 app.use("/api/v1", apiRateLimiter, apiv1Router);

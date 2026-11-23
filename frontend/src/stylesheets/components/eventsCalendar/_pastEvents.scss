@@ -103,27 +103,13 @@ Expected Response Information: The same palette, type, radii and focus ring as t
     }
 
     // The same strong pill as Today and Sign in to RSVP, at RSVP's height.
-    .pastEvents .pastEventCard__viewPhotos {
+    // PastEvents passes this class in place of the site's filled pill, so the
+    // button carries only the calendar's style and its focus ring.
+    .pastEvents__viewPhotos {
         @include calendar-strong-button;
 
         min-height: 40px;
         margin-top: auto;
         padding: $calendar-space-sm $calendar-space-lg;
-
-        // The site's card (components/pastEventCard) draws this as an outline that
-        // fills on hover and drops the focus ring. Here it stays the strong pill,
-        // with the calendar's ring.
-        border: 0;
-
-        &:hover,
-        &:focus-visible {
-            background-color: $calendar-copy-bg;
-            color: $calendar-copy-text;
-        }
-
-        &:focus-visible {
-            outline: 2px solid $calendar-text;
-            outline-offset: 2px;
-        }
     }
 }

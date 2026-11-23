@@ -31,21 +31,16 @@ frontend/src/
 │   ├── Dropdown.jsx
 │   ├── ElectionFAQCard.jsx
 │   ├── EmailContactDialog.jsx ← Mail-provider compose dialog for committee and shop contact
-│   ├── EventAgenda.jsx        ← Legacy weekly agenda; not used by the current routes (see EVENTS.md)
-│   ├── EventsOverview.jsx     ← Legacy weekly events page; not routed (see EVENTS.md)
 │   ├── eventsCalendar/        ← The events calendar's views and controls, event RSVP, and previous events (see EVENTS.md)
-│   ├── EventCategoryPills.jsx ← Category labels for the legacy weekly agenda
-│   ├── EventDialog.jsx        ← Details and RSVP dialog for the legacy weekly page
-│   ├── EventThumbnail.jsx     ← Event photo or category tile for the legacy weekly agenda
+│   ├── EventCategoryPills.jsx ← Category labels on homepage event rows
+│   ├── EventThumbnail.jsx     ← Event photo or category tile on homepage event rows
 │   ├── GradientLine.jsx
 │   ├── PastEventCard.jsx      ← Past event recap with a cover photo and thumbnails
-│   ├── PhotoCollage.jsx       ← Up to three overlapping photos for the legacy weekly page
 │   ├── PhotoLightbox.jsx      ← Full-size photo viewer for a set of photos
 │   ├── ResourceCard.jsx
 │   ├── RolePage.jsx
 │   ├── AdminBar.jsx           ← Officer admin bar: IUGA Admin brand, a link to each admin page, back to site, sign out
-│   ├── ShopMaintenanceBanner.jsx ← Site-wide maintenance countdown for students with items in their cart
-│   └── WeekNavigation.jsx     ← Previous/next week control
+│   └── ShopMaintenanceBanner.jsx ← Site-wide maintenance countdown for students with items in their cart
 ├── context/
 │   └── AuthContext.jsx   ← Authentication state (React Context)
 ├── hooks/
@@ -225,7 +220,7 @@ Defined in `src/App.jsx`:
 
 | Path | Page Component | Data Source |
 |---|---|---|
-| `/` | `HomePage` | `upcomingEvents` (prop — mock or API) |
+| `/` | `HomePage` | Mock data or `GET /api/v1/events/`, loaded by the `HomeEvents` section |
 | `/events` | `EventsPage` | Mock data or `GET /api/v1/events`; an event's details use `GET /api/v1/events/id/{eId}`, its RSVP posts to `POST /api/v1/events/rsvp`, and officers also call `/api/v1/event-requests`. See [EVENTS.md](./EVENTS.md) |
 | `/resources` | `ResourcesPage` | Static data from `assets/data/ResourcesData.js` |
 | `/student-voice` | `StudentVoicePage` | Archived from navigation and homepage; direct URL still requires UW sign-in. Existing forms come from `assets/data/StudentVoiceData.js`. See [STUDENT_VOICE.md](./STUDENT_VOICE.md). |
@@ -246,8 +241,9 @@ The backend also serves `index.html` for each of these paths to enable deep link
 kept in the URL, and loads event records from the backend. Event details load
 when opened and include RSVP when the event supports it. Officers with
 `events.requests.manage` also see the request workspace below the calendar.
-The homepage shows up to three upcoming events and links to the calendar. See
-[EVENTS.md](./EVENTS.md) for the visitor flow, data sources, and code map.
+The homepage shows up to three upcoming events, or the most recent past events
+when none are scheduled, and links to the calendar. See [EVENTS.md](./EVENTS.md)
+for the visitor flow, data sources, and code map.
 
 ### Venmo checkout hold
 
@@ -294,8 +290,10 @@ tracking or proof of payment.
 
 In Vite dev mode, the frontend uses **mock data**:
 
-- **Homepage events**: `MockCalendarData.js`
-- **Calendar events**: `MockCalendarData.js` plus `MockUpcomingEvents.js` (imported directly, no fetch). The latter mirrors the real events in `backend/publishedEvents.js` and adds sample events dated relative to today, so the calendar always has something upcoming
+- **Homepage and calendar events**: `useEventList` uses `MockCalendarData.js`
+  and `MockUpcomingEvents.js` without fetching. The latter mirrors the events in
+  `backend/publishedEvents.js` and adds samples dated relative to today, so the
+  calendar always has something upcoming.
 - **Single event details**: the listed mock event, with `mockEvent` from `MockCalendarData.js` supplying any RSVP fields it lacks. The calendar's RSVP answers locally after a short wait and sends no request, but it still needs a signed-in student
 
 No backend is required for frontend development. The exception is the shop: it reads its catalog and prices from the API in both dev and production, because prices and sizes must never be duplicated in the frontend — in dev the Vite `/api` proxy to the backend must be running for live prices and sizes. Without it, `/shop` shows the read-only preview described in the routing table.
@@ -377,8 +375,7 @@ palette for `#1a1a1a` pages, `#272727` surfaces, and white headings.
 - **Exceptions.** The officer pages (`/admin/*`) stay light: `App.jsx` sets
   `data-theme="light"` on their root. Photos keep their own colours; the black
   logo and footer icons turn white through `--artwork-filter`. The events
-  calendar keeps its own palette tokens (`docs/EVENTS.md`). The legacy weekly
-  events components are outside the current calendar theme.
+  calendar keeps its own palette tokens (`docs/EVENTS.md`).
 
 ---
 
@@ -389,9 +386,8 @@ palette for `#1a1a1a` pages, `#272727` surfaces, and white headings.
 | `react-router-dom` | Client-side routing |
 | `@azure/msal-browser`, `@azure/msal-react` | UW Azure AD authentication |
 | `react-ga4` | Google Analytics 4 |
-| `react-responsive` | Responsive breakpoint rendering |
 | `react-toastify` | Toast notifications |
-| `date-fns` / `dateformat` | Date formatting |
+| `date-fns` | Date formatting |
 | `gsap` | Events calendar animation: swipe steps and the year view's day overlay |
 | `sass` | SCSS compilation |
 | `@fortawesome/*` | Icon set |

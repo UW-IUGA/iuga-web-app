@@ -54,8 +54,8 @@ function makeModels({ request = submittedRequest, permissions = ["events.request
       async create(fields) {
         return { _id: requestId, ...fields };
       },
-      findById() {
-        return query(request);
+      findById(_id, _projection, options) {
+        return options?.lean ? Promise.resolve(request) : query(request);
       },
       find() {
         return query(request ? [request] : []);
@@ -79,10 +79,13 @@ function makeModels({ request = submittedRequest, permissions = ["events.request
       },
     },
     Events: {
-      async create(fields) {
-        return { _id: eventId, ...fields };
+      async startSession() {
+        const session = { withTransaction: (work) => work(), async endSession() {} };
+        return session;
       },
-      async deleteOne() {},
+      async create([fields]) {
+        return [{ _id: eventId, ...fields }];
+      },
     },
     RoleAssignments: roleAssignmentsGranting(permissions),
   };

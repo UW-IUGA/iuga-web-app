@@ -1,10 +1,8 @@
 /*
-Purpose: Load the event list the events calendar shows.
-Authentication/Authorization Requirements: None. Signed-in visitors get the same list, and it is
-  loaded again whenever sign-in state changes.
+Purpose: Load the public event list from the server or use sample events outside production.
 
 Expected Request Information:
-- None. In production it asks GET /api/v1/events/; elsewhere it uses the sample events, with no request.
+- refreshKey: optional. A change reloads the list without hiding records already on screen.
 
 Expected Response Information:
 - records: the list as the API returns it (eId, eName, eStartDate, eEndDate, eLabels, ...).
@@ -16,13 +14,11 @@ Expected Response Information:
 import { useCallback, useEffect, useState } from "react";
 import { mockCalendarData } from "../assets/mock-data/MockCalendarData";
 import { mockUpcomingEvents } from "../assets/mock-data/MockUpcomingEvents";
-import { useAuthContext } from "../context/AuthContext";
 import { isProduction } from "../runtime";
 
 const SAMPLE_EVENTS = [...mockCalendarData, ...mockUpcomingEvents];
 
-export default function useEventList() {
-    const { isAuthenticated } = useAuthContext();
+export default function useEventList({ refreshKey } = {}) {
     const [records, setRecords] = useState([]);
     const [status, setStatus] = useState("loading");
     // Bumped to ask for the list again.
@@ -57,7 +53,7 @@ export default function useEventList() {
         return () => {
             isCurrent = false;
         };
-    }, [isAuthenticated, request]);
+    }, [refreshKey, request]);
 
     return { records, status, retry };
 }

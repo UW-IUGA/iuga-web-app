@@ -12,6 +12,36 @@ async function errorMessageFromFailedPost(status, bodyText) {
   return error.message;
 }
 
+describe("deferred Discord approvals", () => {
+  const interaction = { application_id: "123", token: "private-interaction-token" };
+
+  it("edits the approval card on success and sends refusals privately", async () => {
+    const calls = [];
+    const client = createDiscordClient({ botToken: BOT_TOKEN, fetchImpl: async (url, request) => {
+      calls.push({ url, method: request.method, data: JSON.parse(request.body), headers: request.headers });
+      return new Response(null, { status: 204 });
+    } });
+    await client.completeDeferredInteraction(interaction, { type: 7, data: { components: [] } });
+    await client.completeDeferredInteraction(interaction, { type: 4, data: { content: "Already reviewed", flags: 64 } });
+
+    const webhook = `https://discord.com/api/v10/webhooks/123/${interaction.token}`;
+    assert.deepEqual(calls.map(({ url, method, data }) => ({ url, method, data })), [
+      { url: `${webhook}/messages/@original`, method: "PATCH", data: { components: [] } },
+      { url: webhook, method: "POST", data: { content: "Already reviewed", flags: 64 } },
+    ]);
+    assert.ok(calls.every(({ headers }) => !new Headers(headers).has("Authorization")));
+  });
+
+  it("does not expose the interaction token when delivery fails", async () => {
+    const client = createDiscordClient({ botToken: BOT_TOKEN, fetchImpl: async () => new Response(interaction.token, { status: 404 }) });
+    await assert.rejects(client.completeDeferredInteraction(interaction, { type: 7, data: {} }), (error) => {
+      assert.match(error.message, /404/);
+      assert.doesNotMatch(error.message, /private-interaction-token/);
+      return true;
+    });
+  });
+});
+
 describe("Discord client errors", () => {
   it("names the route, status, Discord code, and Discord message", async () => {
     const message = await errorMessageFromFailedPost(403, JSON.stringify({ message: "Missing Access", code: 50001 }));
@@ -32,6 +62,15 @@ describe("Discord client errors", () => {
       assert.match(message, cause);
     });
   }
+
+  it("exposes the likely cause on the error for callers to show", async () => {
+    const fetchImpl = async () => new Response(JSON.stringify({ message: "Missing Access", code: 50001 }), { status: 403 });
+    const client = createDiscordClient({ botToken: BOT_TOKEN, fetchImpl });
+
+    const error = await client.postMessage("123", { content: "hi" }).catch((caught) => caught);
+
+    assert.match(error.likelyCause, /bot is not in the server or cannot view this channel/);
+  });
 
   it("suggests checking the bot token on a 401", async () => {
     const message = await errorMessageFromFailedPost(401, JSON.stringify({ message: "401: Unauthorized", code: 0 }));
@@ -131,5 +170,38 @@ describe("Discord client roles", () => {
     const error = await client.addMemberRole("g1", "u1", "r1").catch((caught) => caught);
 
     assert.equal(error.discordCode, 10007);
+  });
+});
+
+describe("Discord client scheduled events and messages", () => {
+  it("creates a scheduled event in the guild and returns Discord's event", async () => {
+    const { requests, client } = recordingClient([{ status: 200, body: { id: "e1" } }]);
+    const body = {
+      name: "Hack Night",
+      entity_type: 3,
+      privacy_level: 2,
+      scheduled_start_time: "2026-12-01T18:00:00-08:00",
+      scheduled_end_time: "2026-12-01T20:00:00-08:00",
+      entity_metadata: { location: "Gates 101" },
+    };
+
+    const event = await client.createScheduledEvent("g1", body);
+
+    assert.equal(event.id, "e1");
+    assert.equal(requests[0].method, "POST");
+    assert.match(requests[0].url, /\/guilds\/g1\/scheduled-events$/);
+    assert.deepEqual(requests[0].body, body);
+  });
+
+  it("deletes a scheduled event and a message on their routes", async () => {
+    const { requests, client } = recordingClient();
+
+    await client.deleteScheduledEvent("g1", "e1");
+    await client.deleteMessage("c1", "m1");
+
+    assert.deepEqual(
+      requests.map(({ method, url }) => `${method} ${url.replace(/^.*\/api\/v10/, "")}`),
+      ["DELETE /guilds/g1/scheduled-events/e1", "DELETE /channels/c1/messages/m1"],
+    );
   });
 });

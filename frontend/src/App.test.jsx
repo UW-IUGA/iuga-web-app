@@ -2,7 +2,7 @@
  * Purpose: The site chrome around each route: public pages keep the site navbar and footer, and the
  *          officer admin pages replace them with their own admin bar. Admin pages live under /admin
  *          and stay in their own light palette when the site is dark.
- * Authentication/Authorization Requirements: Auth, pages, and site chrome are stubbed; nothing is fetched.
+ * Authentication/Authorization Requirements: Auth and site chrome are stubbed; requests are intercepted.
  * Expected Request Information: A starting route.
  * Expected Response Information: Which chrome is rendered.
  */
@@ -10,6 +10,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import App from "./App";
 
+vi.mock("./runtime", () => ({ isProduction: true, apiBaseUrl: "" }));
 vi.mock("./context/AuthContext", () => ({ useAuthContext: () => ({ signIn: vi.fn(), signOut: vi.fn() }) }));
 vi.mock("./layouts/Navbar", () => ({ default: () => <nav aria-label="Site navigation" /> }));
 vi.mock("./layouts/Footer", () => ({ default: () => <footer>Site footer</footer> }));
@@ -18,6 +19,10 @@ vi.mock("./context/ShopCartContext", () => ({ ShopCartProvider: ({ children }) =
 vi.mock("./pages/Shop", () => ({ default: () => <h1>Shop</h1> }));
 vi.mock("./pages/ShopOrders", () => ({ default: () => <h1>Orders</h1> }));
 vi.mock("./pages/ShopPickup", () => ({ default: () => <h1>Pickup</h1> }));
+
+beforeEach(() => {
+    vi.spyOn(global, "fetch").mockResolvedValue({ json: async () => [] });
+});
 
 function renderAt(path) {
     return render(
@@ -30,6 +35,13 @@ function renderAt(path) {
 afterEach(() => {
     cleanup();
     delete document.documentElement.dataset.theme;
+    vi.restoreAllMocks();
+});
+
+it("does not request event data when opening the shop", () => {
+    renderAt("/shop");
+    const requestedEvents = global.fetch.mock.calls.some(([url]) => url.startsWith("/api/v1/events/"));
+    expect(requestedEvents).toBe(false);
 });
 
 it("keeps the site navbar, shop notice, and footer on public pages", () => {

@@ -16,9 +16,6 @@ import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import Navbar from "./layouts/Navbar";
 import { ShopCartProvider } from "./context/ShopCartContext";
 import ShopMaintenanceBanner from "./components/ShopMaintenanceBanner";
-import { useState, useEffect } from "react";
-import { mockCalendarData } from "./assets/mock-data/MockCalendarData";
-import { enrichWithDevThumbnails } from "./utils/devThumbnails";
 import { resources } from "./assets/data/ResourcesData";
 import { iugaCandidates } from "./assets/data/CandidateData";
 import { electionFAQ } from "./assets/data/ElectionFAQData";
@@ -26,7 +23,6 @@ import { iugaTeams } from "./assets/data/AboutData";
 import { useAuthContext } from "./context/AuthContext";
 import SignInRequired from "./components/SignInRequired";
 import Footer from "./layouts/Footer";
-import { isProduction } from "./runtime";
 import { useTheme } from "./utils/theme";
 import { ADMIN_ROOT_PATH, ADMIN_HOME_PATH, ADMIN_SECTIONS, isAdminPath } from "./adminSections";
 
@@ -44,24 +40,6 @@ function App() {
     const showSiteChrome = !isAdminPath(pathname);
     const { theme } = useTheme();
     const pageTheme = showSiteChrome ? theme : "light";
-    const [upcomingEvents, setUpcomingEvents] = useState([]);
-
-    useEffect(() => {
-        if (isProduction) {
-            fetch('/api/v1/events/upcoming', {
-                method: "GET",
-            })
-                .then((res) => res.json())
-                .then((events) => {
-                    setUpcomingEvents(events);
-                })
-                .catch((error) => {
-                    console.log(error);
-                });
-        } else {
-            setUpcomingEvents(enrichWithDevThumbnails(mockCalendarData));
-        }
-    }, []);
 
     return (
         <div id="rootContainer" data-theme={showSiteChrome ? undefined : "light"}>
@@ -82,7 +60,7 @@ function App() {
             <ShopCartProvider>
             {showSiteChrome && <ShopMaintenanceBanner />}
             <Routes>
-                <Route path="/" element={<HomePage upcomingEvents={upcomingEvents} />} />
+                <Route path="/" element={<HomePage />} />
                 <Route path="/events" element={<EventsPage />} />
                 <Route path="/resources" element={<ResourcesPage resources={resources} />} />
                 <Route

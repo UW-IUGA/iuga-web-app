@@ -56,8 +56,8 @@ Pull requests also get a frontend-only preview on Netlify, built by GitHub Actio
 - **Network:** `iuga-server-config_default`
 - **Volume:** `/var/lib/iuga-web-app/uploads/staging:/app/backend/public/uploads`
 - **DB credentials:** `DB_URI` (Jenkins Secret text credential, injected as `DB_URI` env var), `SESSION_SECRET_STAGING` (injected as runtime `SESSION_SECRET_STAGING`)
-- **Database:** MongoDB container at `mongo:27017` (via `iuga-server-config_default` network)
-- **Shop checkout:** `shopManualCheckout: false`, so the Venmo checkout routes return 503. Shop holds use transactions, and the `mongo` container in `iuga-server-config` is a standalone server. Set it to `true` only after that container runs as a replica set and `DB_URI` names it (`replicaSet=...`).
+- **Database:** MongoDB container at `mongo:27017` (via `iuga-server-config_default` network). **Before deploying transactional event approval**, have the staging database operator convert the standalone container in `iuga-server-config` to a replica set. Update Jenkins `DB_URI` to name the set (`replicaSet=...`), verify that the app network can reach its writable primary, and smoke-test approving one staging event before rollout. There is no standalone fallback: approval fails rather than writing a partial event.
+- **Shop checkout:** `shopManualCheckout: false`, so the Venmo checkout routes return 503. The database change does not enable checkout.
 - **Deploy pattern:** health-gated candidate swap; temp port `7779` → live port `7777`; tags images `:${BUILD_NUMBER}` and `:last-good`
 - **Commit status context:** `iuga/jenkins/cicd/staging`
 

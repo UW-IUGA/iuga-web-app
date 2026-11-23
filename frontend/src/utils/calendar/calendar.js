@@ -205,6 +205,14 @@ const SHORT_MONTH_DAY_FMT = new Intl.DateTimeFormat("en-US", {
     day: "numeric",
 });
 
+export function formatCalendarDateBadge(date) {
+    const parts = SHORT_MONTH_DAY_FMT.formatToParts(date);
+    return {
+        month: parts.find(({ type }) => type === "month").value,
+        day: parts.find(({ type }) => type === "day").value,
+    };
+}
+
 const LONG_DAY_FMT = new Intl.DateTimeFormat("en-US", {
     timeZone: TIMEZONE,
     weekday: "long",
@@ -426,6 +434,11 @@ export function isSameDay(a, b, timeZone = TIMEZONE) {
     const x = zonedParts(a, timeZone);
     const y = zonedParts(b, timeZone);
     return x.year === y.year && x.month === y.month && x.day === y.day;
+}
+
+export function toISODate(date) {
+    const { year, month, day } = zonedParts(date);
+    return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
 export function dayKeyOf(date, timeZone = TIMEZONE) {

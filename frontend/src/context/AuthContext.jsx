@@ -4,7 +4,7 @@
  * Expected Request: React subtree consumers via useAuthContext() hook invoking signIn(), signOut(), can(permission), or reading state.
  * Expected Response: AuthContext value exposing user, isAuthenticated, can, authLoading, authError, signIn, and signOut.
  */
-import React, { createContext, useState, useEffect, useContext, useRef } from 'react';
+import { createContext, useState, useEffect, useContext, useRef } from 'react';
 import { useMsal } from '@azure/msal-react';
 import { toast } from 'react-toastify';
 import { loginRequest } from '../authConfig';
@@ -12,8 +12,7 @@ import useAuth from '../hooks/useAuth';
 import { isProduction, apiBaseUrl } from '../runtime';
 import AlertDialog from '../components/AlertDialog';
 
-const LOCAL_BACKEND_DOCS_PATH = 'docs/TROUBLESHOOTING.md#local-development-sign-in';
-const LOCAL_BACKEND_MESSAGE = `Local sign-in requires the Docker development environment. Start Docker and run npm run dev, then try again. Read ${LOCAL_BACKEND_DOCS_PATH} for help.`;
+const LOCAL_BACKEND_MESSAGE = 'Start Docker and run npm run dev from the project root. Then try signing in again.';
 const TROUBLESHOOTING_URL =
     'https://github.com/UW-IUGA/iuga-web-app/blob/main/docs/TROUBLESHOOTING.md#local-development-sign-in';
 const AuthContext = createContext();
@@ -233,35 +232,24 @@ export const AuthProvider = ({ children }) => {
 
   const isLocalBackendError = authError?.message === LOCAL_BACKEND_MESSAGE;
 
-  /*
-   * @behavior: Render the current auth error with the docs path as a hyperlink when it
-   *            is the known local-backend message; otherwise render the raw message.
-   * @returns {React.ReactNode} Message content for AlertDialog.
-   */
-  const renderAuthErrorMessage = () => {
-    if (!isLocalBackendError) {
-      return authError?.message;
-    }
-    const [lead, tail] = LOCAL_BACKEND_MESSAGE.split(LOCAL_BACKEND_DOCS_PATH);
-    return (
-      <>
-        {lead}
-        <a href={TROUBLESHOOTING_URL} target="_blank" rel="noreferrer">
-          {LOCAL_BACKEND_DOCS_PATH}
-        </a>
-        {tail}
-      </>
-    );
-  };
+  const dialogTitle = isLocalBackendError ? "Local sign-in unavailable" : "We couldn't sign you in";
+  const dialogMessage = isLocalBackendError ? (
+    <>
+      {LOCAL_BACKEND_MESSAGE}
+      <br />
+      <a href={TROUBLESHOOTING_URL} target="_blank" rel="noreferrer">
+        Troubleshooting guide
+      </a>
+    </>
+  ) : authError?.message;
 
   return (
     <AuthContext.Provider value={{ user, isAuthenticated, can, authLoading, authError, signIn, signOut }}>
       {authError ? (
         <AlertDialog
-          eyebrow={isLocalBackendError ? "Local environment" : "Sign-in"}
-          title={isLocalBackendError ? "Local sign-in unavailable" : "We couldn't sign you in"}
-          message={renderAuthErrorMessage()}
-          confirmLabel="I understand"
+          title={dialogTitle}
+          message={dialogMessage}
+          confirmLabel="Close"
           onConfirm={() => setAuthError(null)}
         />
       ) : null}

@@ -199,6 +199,11 @@ Expected Response Information: Start Here lines up with the title and intro on d
     }
 }
 
+// Takes focus only from code, after Clear all, so it shows no ring.
+.resources__filtersTitle:focus {
+    outline: none;
+}
+
 .resources__sidebarHeader .resources__filtersToggle {
     display: none;
 }

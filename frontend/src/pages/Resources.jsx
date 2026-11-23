@@ -55,6 +55,7 @@ function ResourcesPage({ resources }) {
     const pagination = usePagination(filteredResources, useResourcePageSize());
     const resultsHeadingRef = useRef(null);
     const resultsRef = useRef(null);
+    const filtersHeadingRef = useRef(null);
     const shownResources = useRef(filteredResources);
 
     // When the results change while the reader is scrolled into the cards, start the new results at the top of the
@@ -69,6 +70,12 @@ function ResourcesPage({ resources }) {
         // Rounded up: rounding down would leave the sidebar a fraction of a pixel lower.
         if (offset < 0) window.scrollTo({ top: Math.ceil(window.scrollY + offset), behavior: "instant" });
     }, [filteredResources]);
+
+    // Clear all removes itself, so focus moves to the sidebar's heading instead of falling to the top of the page.
+    const clearAllFilters = () => {
+        clearFilters();
+        filtersHeadingRef.current?.focus({ preventScroll: true });
+    };
 
     // Focus moves to the results heading so screen readers follow the page change.
     const goToPage = (page) => {
@@ -117,13 +124,13 @@ function ResourcesPage({ resources }) {
 
                     <aside className="resources__sidebar editorial-card" aria-label="Filters">
                         <div className="resources__sidebarHeader">
-                            <h2>Filters</h2>
+                            <h2 className="resources__filtersTitle" ref={filtersHeadingRef} tabIndex={-1}>Filters</h2>
                             {/* Only while something is on, and in this row, so it never pushes the filters down. */}
                             {isFiltering && (
                                 <button
                                     className="resources__clearButton"
                                     type="button"
-                                    onClick={clearFilters}
+                                    onClick={clearAllFilters}
                                     aria-label={selectedTags.length > 0
                                         ? `Clear all ${selectedTags.length} filter${selectedTags.length === 1 ? "" : "s"}`
                                         : undefined}

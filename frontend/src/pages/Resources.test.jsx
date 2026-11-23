@@ -221,6 +221,9 @@ describe("ResourcesPage", () => {
         expect(clearAllButton()).toHaveTextContent("Clear all (2)");
 
         fireEvent.click(clearAllButton());
+        // The button leaves with the filters, so focus moves to the sidebar instead of the top of the page.
+        expect(screen.getByRole("heading", { name: "Filters" })).toHaveFocus();
+
         fireEvent.change(screen.getByRole("combobox", { name: "Search" }), { target: { value: "club" } });
         expect(clearAllButton()).toHaveTextContent(/^Clear all$/);
     });

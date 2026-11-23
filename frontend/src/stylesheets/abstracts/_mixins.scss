@@ -160,3 +160,12 @@
         }
     }
 }
+
+// The shared page-arrival rise. Duration and easing match Home's original
+// hero entrance. Callers set --rise; the content block holds any stagger.
+@mixin page-entrance-rise {
+    @media (prefers-reduced-motion: no-preference) {
+        animation: page-entrance-rise 640ms $ease-out both;
+        @content;
+    }
+}

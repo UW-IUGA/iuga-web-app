@@ -50,3 +50,12 @@
         opacity: 0;
     }
 }
+
+// The once-per-visit rise used by Home's hero photos, and by any later page
+// that wants the same entrance. Callers set --rise.
+@keyframes page-entrance-rise {
+    from {
+        opacity: 0;
+        transform: translateY(var(--rise)) scale(0.98);
+    }
+}

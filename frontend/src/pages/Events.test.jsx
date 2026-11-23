@@ -482,6 +482,21 @@ describe("Events page: views and navigation", () => {
         expect(day.container.querySelectorAll(".grid__col")).toHaveLength(1);
     });
 
+    it("keeps the calendar body mounted when the view, date, or filters change", async () => {
+        const { container } = await visit("/events?view=month&date=2026-10-20");
+        const body = container.querySelector(".page--events .events");
+
+        fireEvent.click(screen.getByRole("radio", { name: "Week" }));
+        expect(container.querySelector(".page--events .events")).toBe(body);
+
+        fireEvent.click(screen.getByRole("button", { name: "Next week" }));
+        expect(container.querySelector(".page--events .events")).toBe(body);
+
+        const filter = screen.getAllByRole("group", { name: "Filter" })[0];
+        fireEvent.click(within(filter).getByRole("checkbox", { name: "Academic" }));
+        expect(container.querySelector(".page--events .events")).toBe(body);
+    });
+
     it("switches view from the toggle, keeping the date", async () => {
         const { container } = await visit("/events?view=month&date=2026-10-20");
 

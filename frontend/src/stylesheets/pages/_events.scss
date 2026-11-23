@@ -1,6 +1,16 @@
 @use "../abstracts" as *;
 @use "../base/misc";
 
+// The heading and controls stay still, like Home's copy, so they are
+// usable from the first frame. The calendar body uses the shared rise
+// and does not replay when the view, date, or filters change, because
+// this element stays mounted.
+.page--events .events {
+    @include page-entrance-rise {
+        --rise: 14px;
+    }
+}
+
 .eventsPage {
     @extend %pageFrame;
     max-width: 1200px;

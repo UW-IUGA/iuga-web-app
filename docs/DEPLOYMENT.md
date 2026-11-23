@@ -21,7 +21,7 @@ Every environment (dev, staging, production) follows the same five-stage pipelin
 ### Trigger
 
 - **Dev:** A push to the `dev` branch triggers the dev pipeline (checks out `*/dev`).
-- **Production:** A push to `main` triggers the production pipeline (checks out `*/main`).
+- **Production:** Deploy manually. When you’re ready to release, open the [`iuga.info` Jenkins job](https://jenkins.iuga.info/job/iuga.info/) and click **Build Now**. The job checks out the current `main` branch (`*/main`). Merging or pushing to `main` does not deploy automatically, so an accidental push won’t change the live site. Confirm that `main` contains the commit you intend to deploy before starting the job.
 - **Staging:** Uses `checkout scm` (multibranch pipeline — runs for whichever branch/tag triggered the job).
 
 > **Note:** Dev and production have their own branches; staging follows whatever branch triggered its multibranch job. There is no single shared branch for all three.

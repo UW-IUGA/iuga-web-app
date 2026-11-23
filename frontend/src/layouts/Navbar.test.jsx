@@ -38,12 +38,23 @@ describe("global navigation", () => {
         renderNavigation();
         const nav = screen.getByRole("navigation", { name: "Primary navigation" });
         const links = [...nav.querySelectorAll("a")].map((link) => link.textContent || link.querySelector("img")?.alt);
-        expect(links.slice(0, 6)).toEqual(["IUGA home", "Events", "Merch", "Resources", "Get Involved", "About"]);
+        expect(links.slice(0, 7)).toEqual(["IUGA home", "Home", "Events", "Merch", "Resources", "Get Involved", "About"]);
         expect(screen.queryByRole("link", { name: "Student Voice" })).not.toBeInTheDocument();
         expect(screen.getByRole("link", { name: "About" })).toHaveAttribute("href", "/about");
         expect(screen.getByRole("link", { name: "Get Involved" })).toHaveAttribute("href", "/get-involved");
         expect(screen.queryByRole("button", { name: /button styles/i })).not.toBeInTheDocument();
         expect(nav.querySelector("#shop-cart-slot")).toBeInTheDocument();
+    });
+
+    test("offers a Home link in the bar and the mobile menu, current only on the homepage", () => {
+        const { unmount } = renderNavigation("/events");
+        expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute("href", "/");
+        expect(screen.getByRole("link", { name: "Home" })).not.toHaveAttribute("aria-current");
+        expect(within(document.getElementById("nav-items")).getByRole("link", { name: "Home" })).toBeInTheDocument();
+        unmount();
+
+        renderNavigation("/");
+        expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute("aria-current", "page");
     });
 
     test("shows the student's name and a text sign-out action without role or avatar", () => {

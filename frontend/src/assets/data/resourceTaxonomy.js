@@ -3,6 +3,7 @@ Purpose: The Resources page's filter tags and search words.
 
 Expected Response Information:
 - resourceTypes: who runs a resource, the value of each record's `type`.
+- clubAreas: the club areas, in the order the page lists them.
 - tagGroups and allTags: the filter tags, by group.
 - labelsOf(resource): a resource's type followed by its tags, as the filters and search see them.
 - searchSynonyms: search-only alternate words.
@@ -17,6 +18,17 @@ export const resourceTypes = {
     UW: "UW",
 };
 
+// Abe's sections of the iSchool's student clubs, in his order. Each club sits in one.
+export const clubAreas = [
+    "iOrgs",
+    "PM/Consulting",
+    "Entrepreneurship",
+    "Software Engineering",
+    "DS/ML",
+    "UI/UX",
+    "Cybersecurity",
+];
+
 // "Who runs it" holds each record's type; the other groups hold its tags. Social, Career and Community are left
 // out on purpose: every club is social, and those labels belong to Events.
 export const tagGroups = [
@@ -29,11 +41,8 @@ export const tagGroups = [
         tags: ["Academic", "Jobs & internships", "Mental Health", "DEI"],
     },
     {
-        label: "Interests",
-        tags: [
-            "SWE", "Cybersecurity", "Product Management", "AI/ML", "Data", "Design", "Consulting", "Entrepreneurship",
-            "Projects", "Leadership",
-        ],
+        label: "Club area",
+        tags: clubAreas,
     },
 ];
 
@@ -60,13 +69,19 @@ export const searchSynonyms = {
     programming: ["coding", "swe", "software engineering"],
     software: ["swe"],
     developer: ["swe", "software engineering"],
+    swe: ["software engineering"],
     ux: ["design"],
     ui: ["ux", "design"],
+    design: ["ui/ux"],
+    ai: ["ds/ml"],
+    data: ["ds/ml"],
+    machine: ["ds/ml"],
+    product: ["pm/consulting"],
     security: ["cybersecurity"],
     cybersecurity: ["security"],
     cyber: ["security"],
     infosec: ["cybersecurity", "information security"],
-    pm: ["product management"],
+    pm: ["product management", "pm/consulting"],
     consulting: ["consult"],
     startup: ["entrepreneurship"],
     founder: ["entrepreneurship"],

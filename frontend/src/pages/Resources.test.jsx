@@ -213,10 +213,10 @@ describe("ResourcesPage", () => {
         expect(screen.getByRole("heading", { name: "Example Student Club" })).toBeInTheDocument();
     });
 
-    test("explains when a filter has no resources yet", () => {
+    test("explains when no resource matches the filters", () => {
         renderResourcesPage();
 
-        fireEvent.click(screen.getByRole("checkbox", { name: /^SWE/ }));
+        fireEvent.click(screen.getByRole("checkbox", { name: /^Cybersecurity/ }));
 
         expect(screen.getByRole("heading", { name: "No resources match those filters." })).toBeInTheDocument();
         const emptyState = screen.getByRole("heading", { name: "No resources match those filters." }).parentElement;

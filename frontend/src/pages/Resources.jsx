@@ -184,7 +184,7 @@ function ResourcesPage({ resources }) {
                         ) : (
                             <div className="resources__emptyState editorial-card">
                                 <h2>No resources match those filters.</h2>
-                                <p>Some interest tags have no resources yet. Try another tag or clear your filters.</p>
+                                <p>Try another filter or clear your filters.</p>
                                 <button className="pill-button pill-button--fill" type="button" onClick={clearFilters}>
                                     Clear All Filters
                                 </button>

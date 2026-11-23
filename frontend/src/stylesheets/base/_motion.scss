@@ -51,11 +51,11 @@
     }
 }
 
-// The once-per-visit rise used by Home's hero photos, and by any later page
-// that wants the same entrance. Callers set --rise.
+// The once-per-visit rise behind the page-entrance-rise mixin. --rise sets how
+// far the element travels; 14px when the caller sets none.
 @keyframes page-entrance-rise {
     from {
         opacity: 0;
-        transform: translateY(var(--rise)) scale(0.98);
+        transform: translateY(var(--rise, 14px)) scale(0.98);
     }
 }

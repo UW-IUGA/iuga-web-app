@@ -154,7 +154,7 @@ describe("ResourcesPage", () => {
         });
     });
 
-    test("lists support first, then each club area in Abe's order, when no filter is on", () => {
+    test("lists support first, then each club area in order, when no filter is on", () => {
         renderResourcesPage([
             club("UX Club", { tags: ["UI/UX"] }),
             club("Muslim Students Club", { tags: ["iOrgs"] }),

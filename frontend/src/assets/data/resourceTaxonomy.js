@@ -21,7 +21,7 @@ export const resourceTypes = {
     UW: "UW",
 };
 
-// Abe's sections of the iSchool's student clubs, in his order. Each club sits in one.
+// The areas the page files the iSchool's student clubs under, in the order it lists them. Each club sits in one.
 export const clubAreas = [
     "iOrgs",
     "PM/Consulting",

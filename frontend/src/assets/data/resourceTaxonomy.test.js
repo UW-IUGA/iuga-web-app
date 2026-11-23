@@ -8,7 +8,7 @@ describe("resource tags", () => {
         expect(groupTags("What it helps with")).toEqual(["Academic", "Jobs & internships", "Mental Health", "DEI"]);
     });
 
-    test("files clubs under Abe's seven club areas, in his order", () => {
+    test("files clubs under the seven club areas, in the page's order", () => {
         expect(groupTags("Club area")).toEqual([
             "iOrgs", "PM/Consulting", "Entrepreneurship", "Software Engineering", "DS/ML", "UI/UX", "Cybersecurity",
         ]);

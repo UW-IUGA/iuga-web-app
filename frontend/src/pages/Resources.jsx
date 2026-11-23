@@ -12,9 +12,10 @@ Expected Response Information:
 */
 
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import { sectionsOf, tagGroups } from "../assets/data/resourceTaxonomy";
+import { sectionsOf } from "../assets/data/resourceTaxonomy";
 import PageHeader from "../components/PageHeader";
 import ResourceCard from "../components/ResourceCard";
+import ResourceFilterGroups from "../components/ResourceFilterGroups";
 import ResourcePagination from "../components/ResourcePagination";
 import ResourceSearchBox from "../components/ResourceSearchBox";
 import usePagination from "../hooks/usePagination";
@@ -26,9 +27,6 @@ const INTRO = "IUGA is just one of many RSOs and groups affiliated with the iSch
     + "everything it is. Explore the resources below to take full advantage of everything the iSchool offers its "
     + "students! From academic and career resources to personal mental health, the iSchool community does its best "
     + "to support its students in every area it can.";
-
-// The groups shown open at first.
-const OPEN_GROUPS = ["Who runs it", "Club area"];
 
 const resultLabel = (count) => `${count} ${count === 1 ? "resource" : "resources"}`;
 
@@ -46,23 +44,6 @@ function ResourcesPage({ resources }) {
         filteredResources, tagCounts, highlightPattern, suggestions, isFiltering,
     } = useResourceFilters(resources);
     const [filtersOpen, setFiltersOpen] = useState(false);
-    const [openGroups, setOpenGroups] = useState(OPEN_GROUPS);
-    // A group holding a picked filter stays open, so the filter is always in view to untick. Picking one, by its
-    // box, a link or a search suggestion, also opens its group for good, so unticking it does not snap the group shut.
-    const hasSelection = (group) => group.tags.some((tag) => selectedTags.includes(tag));
-    const [tagsSeen, setTagsSeen] = useState(null);
-    if (tagsSeen !== selectedTags) {
-        setTagsSeen(selectedTags);
-        const picked = tagGroups.filter((group) => hasSelection(group) && !openGroups.includes(group.label));
-        if (picked.length > 0) setOpenGroups([...openGroups, ...picked.map((group) => group.label)]);
-    }
-    // Only a group with nothing picked can fold.
-    const toggleGroup = (group) => {
-        if (hasSelection(group)) return;
-        setOpenGroups((open) => (open.includes(group.label)
-            ? open.filter((label) => label !== group.label)
-            : [...open, group.label]));
-    };
     const pagination = usePagination(filteredResources, useResourcePageSize());
     const resultsHeadingRef = useRef(null);
     const resultsRef = useRef(null);
@@ -176,38 +157,11 @@ function ResourcesPage({ resources }) {
                             className={`resources__filterGroups${filtersOpen ? " resources__filterGroups--open" : ""}`}
                             id="resource-filter-groups"
                         >
-                            {tagGroups.map((group) => {
-                                const open = openGroups.includes(group.label) || hasSelection(group);
-                                const optionsId = `resource-filters-${group.label.replace(/\W+/g, "-")}`;
-                                return (
-                                    <fieldset key={group.label}>
-                                        <legend>
-                                            <button
-                                                className="resources__groupToggle"
-                                                type="button"
-                                                aria-expanded={open}
-                                                aria-controls={optionsId}
-                                                onClick={() => toggleGroup(group)}
-                                            >
-                                                {group.label}
-                                            </button>
-                                        </legend>
-                                        <div id={optionsId} hidden={!open}>
-                                            {group.tags.map((tag) => (
-                                                <label key={tag} className="resources__filterOption">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={selectedTags.includes(tag)}
-                                                        onChange={() => toggleTag(tag)}
-                                                    />
-                                                    <span className="resources__filterName">{tag}</span>
-                                                    <span className="resources__filterCount">{tagCounts[tag]}</span>
-                                                </label>
-                                            ))}
-                                        </div>
-                                    </fieldset>
-                                );
-                            })}
+                            <ResourceFilterGroups
+                                selectedTags={selectedTags}
+                                tagCounts={tagCounts}
+                                onToggleTag={toggleTag}
+                            />
                         </div>
                     </aside>
 

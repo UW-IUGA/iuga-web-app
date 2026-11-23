@@ -154,7 +154,7 @@ describe("ResourcesPage", () => {
         });
     });
 
-    test("lists support first, then each club area in Abe's order, when no filter is on", () => {
+    test("lists support first, then each club area in order, when no filter is on", () => {
         renderResourcesPage([
             club("UX Club", { tags: ["UI/UX"] }),
             club("Muslim Students Club", { tags: ["iOrgs"] }),
@@ -240,6 +240,17 @@ describe("ResourcesPage", () => {
 
         expect(screen.getByRole("button", { name: "What it helps with" })).toHaveAttribute("aria-expanded", "true");
         expect(screen.getByRole("checkbox", { name: new RegExp(`^${tag}`) })).toBeChecked();
+    });
+
+    test("keeps a group open after the filter that opened it is unticked", () => {
+        renderResourcesPage(resources, "/resources?tags=DEI");
+        const toggle = screen.getByRole("button", { name: "What it helps with" });
+        expect(toggle).toHaveAttribute("aria-expanded", "true");
+
+        fireEvent.click(screen.getByRole("checkbox", { name: /^DEI/ }));
+
+        expect(screen.getByRole("checkbox", { name: /^DEI/ })).not.toBeChecked();
+        expect(toggle).toHaveAttribute("aria-expanded", "true");
     });
 
     test("keeps a group open while it has a filter on, and lets an empty group fold", () => {

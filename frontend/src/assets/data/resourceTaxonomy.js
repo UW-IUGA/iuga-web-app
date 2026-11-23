@@ -9,7 +9,8 @@ Expected Response Information:
 - sectionsOf(resources): the unfiltered page's sections, each { heading, resources }, keeping the given order
   within each; empty sections are left out.
 - searchSynonyms: search-only alternate words.
-- tagForCategory: the tag each of the original page's ?category= values opens (still linked from Home).
+- tagForCategory: the tag each of the original page's ?category= values opens, so older bookmarks and shared links
+  keep their filter.
 */
 
 import { resourceTags } from "./Enum";
@@ -20,7 +21,7 @@ export const resourceTypes = {
     UW: "UW",
 };
 
-// Abe's sections of the iSchool's student clubs, in his order. Each club sits in one.
+// The areas the page files the iSchool's student clubs under, in the order it lists them. Each club sits in one.
 export const clubAreas = [
     "iOrgs",
     "PM/Consulting",

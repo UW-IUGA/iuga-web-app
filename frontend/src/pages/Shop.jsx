@@ -140,18 +140,6 @@ function ShopPage() {
         <>
             <div className="baseContainer">
                 <main className="shopPage">
-                {catalogUnavailable && (
-                    <div className="shopPage__catalogNotice">
-                        <p role="status">Ordering is unavailable right now. Products are shown as a preview.</p>
-                        <button
-                            type="button"
-                            className="shopPage__reload"
-                            onClick={() => retryCatalog()}
-                        >
-                            Reload
-                        </button>
-                    </div>
-                )}
                 <section className="shopPage__hero" aria-labelledby="shop-title">
                     <div className="shopPage__heroTop">
                         <span>Informatics Merch</span>
@@ -178,6 +166,20 @@ function ShopPage() {
                     </div>
                     <div className="shopPage__heroBottom" aria-hidden="true">Informatics Undergraduate Association</div>
                 </section>
+
+                {/* Below the hero: a notice that appears after the catalog request fails must not push the hero down. */}
+                {catalogUnavailable && (
+                    <div className="shopPage__catalogNotice">
+                        <p role="status">Ordering is unavailable right now. Products are shown as a preview.</p>
+                        <button
+                            type="button"
+                            className="shopPage__reload"
+                            onClick={() => retryCatalog()}
+                        >
+                            Reload
+                        </button>
+                    </div>
+                )}
 
                 {checkoutParam === "complete" && returnStatus !== "paid" && (
                     <div className="shopPage__banner shopPage__banner--complete" role="status">

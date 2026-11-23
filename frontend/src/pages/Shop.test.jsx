@@ -138,6 +138,20 @@ describe("when the catalog cannot load", () => {
         }
     });
 
+    test("places the unavailable notice below the hero so the hero does not move when it appears", async () => {
+        vi.mocked(globalThis.fetch).mockResolvedValue({ ok: false, status: 500, json: async () => ({}) });
+
+        render(
+            <MemoryRouter initialEntries={["/shop"]}>
+                <ShopCartProvider><ShopPage /></ShopCartProvider>
+            </MemoryRouter>,
+        );
+
+        const notice = await screen.findByText(/ordering is unavailable right now/i);
+        const hero = document.querySelector(".shopPage__hero");
+        expect(hero.compareDocumentPosition(notice) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+
     test("Reload on the preview reloads the catalog and replaces the preview with live prices", async () => {
         vi.mocked(globalThis.fetch).mockResolvedValueOnce({ ok: false, status: 503, json: async () => ({}) });
 

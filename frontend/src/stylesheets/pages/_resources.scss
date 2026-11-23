@@ -182,7 +182,7 @@ Expected Response Information: Start Here lines up with the title and intro on d
     }
 
     legend {
-        @extend %pageKicker;
+        width: 100%;
         margin-bottom: 6px;
         padding: 0;
     }
@@ -191,10 +191,10 @@ Expected Response Information: Start Here lines up with the title and intro on d
 .resources__sidebarHeader {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: $space-2;
 
     h2 {
-        margin: 0;
+        margin: 0 auto 0 0;
         font-size: $font-size-subheading;
     }
 }
@@ -203,30 +203,54 @@ Expected Response Information: Start Here lines up with the title and intro on d
     display: none;
 }
 
-// Text-only, styled like the "Search" label above it. The selector matches the specificity of the shared rule in
-// components/_buttons.scss that pads buttons between 1024px and 1299px, and loads later, so it keeps its own padding.
+// Text-only, styled like the "Search" label. The selectors match the specificity of the shared rule in
+// components/_buttons.scss that pads buttons between 1024px and 1299px, and load later, so they keep their padding.
 .resources .resources__sidebar button.resources__clearButton {
     @extend %pageKicker;
-    justify-self: center;
-    margin-top: -$space-1;
     padding: $space-1 $space-2;
     border-radius: $radius;
     background: transparent;
     @include focus-ring;
 
     &:hover {
-        color: theme(heading);
+        color: theme(text);
     }
 
     &::before {
         content: none;
     }
+}
 
-    &:disabled {
-        border: 0;
-        background: transparent;
-        color: theme(text-muted);
-        opacity: 0.7;
+// A group's name opens and closes it; the chevron points down while it is open.
+.resources .resources__sidebar button.resources__groupToggle {
+    @extend %pageKicker;
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    padding: $space-1 0;
+    border-radius: $radius;
+    background: transparent;
+    text-align: left;
+    @include focus-ring;
+
+    &::before {
+        content: none;
+    }
+
+    &::after {
+        width: 6px;
+        height: 6px;
+        margin-right: $space-1;
+        border-right: 1.5px solid currentcolor;
+        border-bottom: 1.5px solid currentcolor;
+        content: "";
+        transform: rotate(-45deg);
+        transition: transform 150ms ease;
+    }
+
+    &[aria-expanded="true"]::after {
+        transform: rotate(45deg);
     }
 }
 

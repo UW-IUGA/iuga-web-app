@@ -27,6 +27,9 @@ const INTRO = "IUGA is just one of many RSOs and groups affiliated with the iSch
     + "students! From academic and career resources to personal mental health, the iSchool community does its best "
     + "to support its students in every area it can.";
 
+// The groups shown open at first; a group also starts open when the link already picks one of its filters.
+const OPEN_GROUPS = ["Who runs it", "Club area"];
+
 const resultLabel = (count) => `${count} ${count === 1 ? "resource" : "resources"}`;
 
 // Keeps hyphenated words such as "Well-Being" on one line, so a Start Here name never breaks after the hyphen.
@@ -43,6 +46,12 @@ function ResourcesPage({ resources }) {
         filteredResources, tagCounts, highlightPattern, suggestions, isFiltering,
     } = useResourceFilters(resources);
     const [filtersOpen, setFiltersOpen] = useState(false);
+    const [openGroups, setOpenGroups] = useState(() => tagGroups
+        .filter((group) => OPEN_GROUPS.includes(group.label) || group.tags.some((tag) => selectedTags.includes(tag)))
+        .map((group) => group.label));
+    const toggleGroup = (label) => setOpenGroups((open) => (
+        open.includes(label) ? open.filter((openLabel) => openLabel !== label) : [...open, label]
+    ));
     const pagination = usePagination(filteredResources, useResourcePageSize());
     const resultsHeadingRef = useRef(null);
     const resultsRef = useRef(null);
@@ -109,6 +118,20 @@ function ResourcesPage({ resources }) {
                     <aside className="resources__sidebar editorial-card" aria-label="Filters">
                         <div className="resources__sidebarHeader">
                             <h2>Filters</h2>
+                            {/* Only while something is on, and in this row, so it never pushes the filters down. */}
+                            {isFiltering && (
+                                <button
+                                    className="resources__clearButton"
+                                    type="button"
+                                    onClick={clearFilters}
+                                    aria-label={selectedTags.length > 0
+                                        ? `Clear all ${selectedTags.length} filter${selectedTags.length === 1 ? "" : "s"}`
+                                        : undefined}
+                                >
+                                    Clear all
+                                    {selectedTags.length > 0 && ` (${selectedTags.length})`}
+                                </button>
+                            )}
                             <button
                                 className="pill-button resources__filtersToggle"
                                 type="button"
@@ -131,35 +154,42 @@ function ResourcesPage({ resources }) {
                             onPickResource={applyResourceSuggestion}
                             highlightPattern={highlightPattern}
                         />
-                        {/* Disabled rather than hidden when there is nothing to clear, so the filters never shift. */}
-                        <button
-                            className="resources__clearButton"
-                            type="button"
-                            onClick={clearFilters}
-                            disabled={!isFiltering}
-                        >
-                            Clear All Filters
-                        </button>
                         <div
                             className={`resources__filterGroups${filtersOpen ? " resources__filterGroups--open" : ""}`}
                             id="resource-filter-groups"
                         >
-                            {tagGroups.map((group) => (
-                                <fieldset key={group.label}>
-                                    <legend>{group.label}</legend>
-                                    {group.tags.map((tag) => (
-                                        <label key={tag} className="resources__filterOption">
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedTags.includes(tag)}
-                                                onChange={() => toggleTag(tag)}
-                                            />
-                                            <span className="resources__filterName">{tag}</span>
-                                            <span className="resources__filterCount">{tagCounts[tag]}</span>
-                                        </label>
-                                    ))}
-                                </fieldset>
-                            ))}
+                            {tagGroups.map((group) => {
+                                const open = openGroups.includes(group.label);
+                                const optionsId = `resource-filters-${group.label.replace(/\W+/g, "-")}`;
+                                return (
+                                    <fieldset key={group.label}>
+                                        <legend>
+                                            <button
+                                                className="resources__groupToggle"
+                                                type="button"
+                                                aria-expanded={open}
+                                                aria-controls={optionsId}
+                                                onClick={() => toggleGroup(group.label)}
+                                            >
+                                                {group.label}
+                                            </button>
+                                        </legend>
+                                        <div id={optionsId} hidden={!open}>
+                                            {group.tags.map((tag) => (
+                                                <label key={tag} className="resources__filterOption">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedTags.includes(tag)}
+                                                        onChange={() => toggleTag(tag)}
+                                                    />
+                                                    <span className="resources__filterName">{tag}</span>
+                                                    <span className="resources__filterCount">{tagCounts[tag]}</span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </fieldset>
+                                );
+                            })}
                         </div>
                     </aside>
 

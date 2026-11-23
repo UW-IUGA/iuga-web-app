@@ -74,6 +74,8 @@ function renderResourcesPage(resourceList = resources, path = "/resources") {
 }
 
 const resultCards = () => screen.queryAllByRole("article");
+const clearAllButton = () => screen.queryByRole("button", { name: /^Clear all\b(?! filters$)/ });
+const openGroup = (name) => fireEvent.click(screen.getByRole("button", { name }));
 
 describe("ResourcesPage", () => {
     test("shows the page header, Start Here picks, and every resource as a card", () => {
@@ -139,6 +141,7 @@ describe("ResourcesPage", () => {
             .getAllByRole("checkbox")
             .map((box) => box.closest("label").textContent.replace(/\d+$/, "").trim());
         expect(options("Who runs it")).toEqual(["Student clubs", "iSchool", "UW"]);
+        openGroup("What it helps with");
         expect(options("What it helps with")).toEqual(["Academic", "Jobs & internships", "Mental Health", "DEI"]);
     });
 
@@ -181,7 +184,7 @@ describe("ResourcesPage", () => {
 
         expect(screen.queryByRole("region", { name: "Support" })).not.toBeInTheDocument();
         expect(screen.getByRole("heading", { level: 3, name: "UW CLUE Program" })).toBeInTheDocument();
-            });
+    });
 
     test("lists filtered resources A–Z with no sort menu", () => {
         renderResourcesPage(resources, "/resources?tags=Student+clubs,iSchool,UW");
@@ -193,20 +196,50 @@ describe("ResourcesPage", () => {
 
     test("narrows results with tag filters and clears them all", () => {
         renderResourcesPage();
-        const clearAll = screen.getByRole("button", { name: "Clear All Filters" });
-        expect(clearAll).toBeDisabled();
+        expect(clearAllButton()).not.toBeInTheDocument();
 
+        openGroup("What it helps with");
         fireEvent.click(screen.getByRole("checkbox", { name: /^Jobs & internships/ }));
         fireEvent.change(screen.getByRole("combobox", { name: "Search" }), { target: { value: "advising" } });
         expect(resultCards()).toHaveLength(1);
         expect(screen.getByText("1 resource · Jobs & internships")).toBeInTheDocument();
-        expect(clearAll).toBeEnabled();
 
-        fireEvent.click(clearAll);
+        fireEvent.click(clearAllButton());
         expect(resultCards()).toHaveLength(3);
         expect(screen.getByRole("checkbox", { name: /^Jobs & internships/ })).not.toBeChecked();
         expect(screen.getByRole("combobox", { name: "Search" })).toHaveValue("");
-        expect(clearAll).toBeDisabled();
+        expect(clearAllButton()).not.toBeInTheDocument();
+    });
+
+    // Shown only when there is something to clear, in the header row, so it never pushes the filters down.
+    test("shows Clear all, with how many filters are on, only once something is on", () => {
+        renderResourcesPage();
+
+        fireEvent.click(screen.getByRole("checkbox", { name: /^Student clubs/ }));
+        fireEvent.click(screen.getByRole("checkbox", { name: /^iOrgs/ }));
+        expect(clearAllButton()).toHaveAccessibleName("Clear all 2 filters");
+        expect(clearAllButton()).toHaveTextContent("Clear all (2)");
+
+        fireEvent.click(clearAllButton());
+        fireEvent.change(screen.getByRole("combobox", { name: "Search" }), { target: { value: "club" } });
+        expect(clearAllButton()).toHaveTextContent(/^Clear all$/);
+    });
+
+    test("folds What it helps with, and opens Who runs it and Club area", () => {
+        renderResourcesPage();
+
+        const toggle = (name) => screen.getByRole("button", { name });
+        expect(toggle("Who runs it")).toHaveAttribute("aria-expanded", "true");
+        expect(toggle("Club area")).toHaveAttribute("aria-expanded", "true");
+        expect(toggle("What it helps with")).toHaveAttribute("aria-expanded", "false");
+        expect(screen.queryByRole("checkbox", { name: /^Academic/ })).not.toBeInTheDocument();
+
+        fireEvent.click(toggle("What it helps with"));
+        expect(toggle("What it helps with")).toHaveAttribute("aria-expanded", "true");
+        expect(screen.getByRole("checkbox", { name: /^Academic/ })).toBeInTheDocument();
+
+        fireEvent.click(toggle("Who runs it"));
+        expect(screen.queryByRole("checkbox", { name: /^Student clubs/ })).not.toBeInTheDocument();
     });
 
     test("invites searching within the results once a tag is picked", () => {
@@ -214,7 +247,7 @@ describe("ResourcesPage", () => {
         const search = screen.getByRole("combobox", { name: "Search" });
         expect(search).toHaveAttribute("placeholder", "Name, keyword, or tag");
 
-        fireEvent.click(screen.getByRole("checkbox", { name: /^Jobs & internships/ }));
+        fireEvent.click(screen.getByRole("checkbox", { name: /^iSchool/ }));
 
         expect(search).toHaveAttribute("placeholder", "Search these results");
     });

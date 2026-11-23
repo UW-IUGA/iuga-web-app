@@ -28,12 +28,13 @@ frontend/src/
 ├── components/        ← Reusable UI components
 │   ├── Button.jsx
 │   ├── CharacterCard.jsx
+│   ├── ContourCover.jsx       ← Contour lines in the category colour for an event with no photo
 │   ├── Dropdown.jsx
 │   ├── ElectionFAQCard.jsx
 │   ├── EmailContactDialog.jsx ← Mail-provider compose dialog for committee and shop contact
 │   ├── eventsCalendar/        ← The events calendar's views and controls, event RSVP, and previous events (see EVENTS.md)
 │   ├── EventCategoryPills.jsx ← Category labels on homepage event rows
-│   ├── EventThumbnail.jsx     ← Event photo or category tile on homepage event rows
+│   ├── EventThumbnail.jsx     ← Event photo or contour cover on homepage event rows
 │   ├── GradientLine.jsx
 │   ├── PastEventCard.jsx      ← Past event recap with a cover photo and thumbnails
 │   ├── PhotoLightbox.jsx      ← Full-size photo viewer for a set of photos

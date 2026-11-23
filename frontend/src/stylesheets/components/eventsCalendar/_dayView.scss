@@ -46,6 +46,13 @@ Expected Response Information: A single-day schedule; picking an event opens its
         background-color: $calendar-card-bg;
     }
 
+    // The contour drawing in place of a missing photo: shorter, as it carries no content.
+    .detail__cover {
+        aspect-ratio: 16 / 7;
+        margin-bottom: $calendar-space-sm;
+        border-radius: $calendar-radius-md;
+    }
+
     .detail__labels {
         display: flex;
         flex-wrap: wrap;

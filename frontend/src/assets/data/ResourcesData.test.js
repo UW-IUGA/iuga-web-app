@@ -1,6 +1,6 @@
 import { readdirSync, statSync } from "node:fs";
 import { resources } from "./ResourcesData";
-import { allTags, clubAreas, resourceTypes, tagGroups } from "./resourceTaxonomy";
+import { allTags, clubAreas, offerings, resourceTypes, tagGroups } from "./resourceTaxonomy";
 
 const typeTags = tagGroups.find((group) => group.label === "Who runs it").tags;
 
@@ -87,6 +87,15 @@ describe("resource records", () => {
             "Black in Informatics (Binfo)", "Society of Women Engineers UW (SWE UW)", "WiCyS UW", "Women in Informatics (Winfo)",
             "Women in UX", "iMuslims", "iQueeries",
         ].sort());
+    });
+
+    // From each club's own site or posts; a club with no offering found has none listed.
+    test("lists offerings only on clubs, each spelled as in the taxonomy and listed once", () => {
+        resources.filter(({ offers }) => offers).forEach(({ rName, type, offers }) => {
+            expect(type, rName).toBe(resourceTypes.CLUB);
+            offers.forEach((offer) => expect(offerings, `${rName} offers "${offer}"`).toContain(offer));
+            expect(new Set(offers).size, rName).toBe(offers.length);
+        });
     });
 
     test("links every resource over https", () => {

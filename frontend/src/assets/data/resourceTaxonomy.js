@@ -5,6 +5,8 @@ Expected Response Information:
 - resourceTypes: who runs a resource, the value of each record's `type`.
 - clubAreas: the club areas, in the order the page lists them.
 - tagGroups and allTags: the filter tags, by group.
+- offerings: what a club can offer, in the order cards list them; shown on cards and searched, not filtered.
+- offersOf(resource): the resource's offerings in that order, or none.
 - labelsOf(resource): a resource's type followed by its tags, as the filters and search see them.
 - sectionsOf(resources): the unfiltered page's sections, each { heading, resources }, keeping the given order
   within each; empty sections are left out.
@@ -49,6 +51,10 @@ export const tagGroups = [
 ];
 
 export const allTags = tagGroups.flatMap((group) => group.tags);
+
+export const offerings = ["Project teams", "Hackathon", "Competition", "Career panels"];
+
+export const offersOf = (resource) => offerings.filter((offer) => resource.offers?.includes(offer));
 
 export const labelsOf = (resource) => [resource.type, ...resource.tags];
 

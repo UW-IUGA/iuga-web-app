@@ -1,4 +1,4 @@
-import { allTags, labelsOf, sectionsOf, tagForCategory, tagGroups } from "./resourceTaxonomy";
+import { allTags, labelsOf, offerings, sectionsOf, tagForCategory, tagGroups } from "./resourceTaxonomy";
 
 const groupTags = (label) => tagGroups.find((group) => group.label === label).tags;
 
@@ -41,6 +41,11 @@ describe("resource tags", () => {
             { heading: "UI/UX", resources: [ux] },
             { heading: "More clubs", resources: [loose] },
         ]);
+    });
+
+    test("names four things a club can offer, none of them a filter", () => {
+        expect(offerings).toEqual(["Project teams", "Hackathon", "Competition", "Career panels"]);
+        offerings.forEach((offer) => expect(allTags).not.toContain(offer));
     });
 
     test("labels a resource with its type, then its tags", () => {

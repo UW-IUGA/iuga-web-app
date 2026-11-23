@@ -43,6 +43,25 @@ Expected Response Information: A card with the icon above its name, bullets, and
     }
 }
 
+// What a club offers, as small neutral chips under its name. They wrap, so four fit on a narrow card.
+.resourceCard__offers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 0 $space-3;
+    padding: 0;
+    list-style: none;
+
+    li {
+        padding: 2px $space-2;
+        border: 1px solid theme(border-subtle);
+        border-radius: $radius-pill;
+        color: theme(text-muted);
+        font-size: $font-size-label;
+        line-height: 1.4;
+    }
+}
+
 .resourceCard__summary {
     display: grid;
     gap: 6px;

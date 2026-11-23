@@ -7,14 +7,16 @@ Expected Request Information:
 - headingLevel: the name's heading level, 3 by default; 4 inside a page section.
 
 Expected Response Information:
-- A card with the resource's name and bullets (or its description when it has no bullets yet), and a link
+- A card with the resource's name, what it offers (offersOf), and bullets (or its description when it has no bullets yet), and a link
   to the resource when it has one. A logo that is not square (rImageInset) shows whole instead of cropped.
 */
 
+import { offersOf } from "../assets/data/resourceTaxonomy";
 import HighlightMatch from "./HighlightMatch";
 
 function ResourceCard({ resource, highlight, headingLevel = 3 }) {
     const Heading = `h${headingLevel}`;
+    const offers = offersOf(resource);
     return (
         <article className="resourceCard editorial-card">
             <div className={`resourceIcon${resource.rImageInset ? " resourceIcon--inset" : ""}`}>
@@ -26,6 +28,13 @@ function ResourceCard({ resource, highlight, headingLevel = 3 }) {
             </div>
             <div className="resourceCard__content">
                 <Heading className="resourceCard__name"><HighlightMatch text={resource.rName} pattern={highlight} /></Heading>
+                {offers.length > 0 && (
+                    <ul className="resourceCard__offers" aria-label={`${resource.rName} offers`}>
+                        {offers.map((offer) => (
+                            <li key={offer}><HighlightMatch text={offer} pattern={highlight} /></li>
+                        ))}
+                    </ul>
+                )}
                 {resource.summary.length > 0 ? (
                     <ul className="resourceCard__summary">
                         {resource.summary.map((text) => (

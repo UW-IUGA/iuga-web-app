@@ -132,3 +132,10 @@ $breakpoints: (
 $ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 $duration-press: 160ms;
 $duration-fade: 200ms;
+
+// The once-per-visit page-entrance wave. Home's three hero photos set these
+// values; other pages reuse them so arrivals stay in one family. The last
+// piece still finishes at the third delay plus the duration (820ms).
+$page-entrance-duration: 640ms;
+$page-entrance-delays: 0ms, 110ms, 180ms;
+$page-entrance-rises: 20px, 14px, 10px;

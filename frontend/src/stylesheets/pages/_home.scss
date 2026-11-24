@@ -139,17 +139,15 @@
         // The copy is not animated, so it is readable and clickable from the first frame.
         @include page-entrance-rise {
             &:nth-child(1) {
-                --rise: 20px;
+                @include page-entrance-step(1);
             }
 
             &:nth-child(2) {
-                --rise: 14px;
-                animation-delay: 110ms;
+                @include page-entrance-step(2);
             }
 
             &:nth-child(3) {
-                --rise: 10px;
-                animation-delay: 180ms;
+                @include page-entrance-step(3);
             }
         }
     }

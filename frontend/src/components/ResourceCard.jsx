@@ -1,8 +1,8 @@
 import { resourceTagTones } from "../assets/data/Enum";
 
-const ResourceCard = ({ resource, category }) => {
+const ResourceCard = ({ resource, category, className, style }) => {
     return (
-        <article className="resourceCard editorial-card">
+        <article className={className ? `resourceCard editorial-card ${className}` : "resourceCard editorial-card"} style={style}>
             <div className={`resourceCardIcon${resource.rImageInset ? " resourceCardIcon--inset" : ""}`}>
                 {resource.rImage ? (
                     <img src={resource.rImage} alt={`${resource.rName} icon`} />

@@ -3,6 +3,7 @@ import "@testing-library/jest-dom";
 import { MemoryRouter } from "react-router-dom";
 import ResourcesPage from "./Resources";
 import { resourceTags } from "../assets/data/Enum";
+import { resetPageEntranceForTests } from "../utils/pageEntrance";
 
 const resources = Object.fromEntries(Object.values(resourceTags).map((category) => [category, []]));
 resources[resourceTags.ACADEMIC] = [
@@ -23,7 +24,9 @@ resources[resourceTags.CAREER] = [
 ];
 
 beforeEach(() => {
+    resetPageEntranceForTests();
     window.scrollTo = vi.fn();
+    window.innerWidth = 1440;
 });
 
 function renderResourcesPage() {
@@ -98,3 +101,14 @@ describe("ResourcesPage", () => {
         expect(screen.getByText("UW CLUE Program")).toBeInTheDocument();
     });
 });
+
+    test("waves resource cards in across categories on the first visit", () => {
+        renderResourcesPage();
+
+        expect(document.querySelector("main.resourcesPage")).toHaveClass("pageEntrance--enter");
+        const cards = [...document.querySelectorAll("article.resourceCard")];
+        expect(cards.length).toBeGreaterThanOrEqual(2);
+        expect(cards[0]).toHaveClass("pageEntrance__item");
+        expect(cards[0].style.getPropertyValue("--entrance-i")).toBe("0");
+        expect(cards[1].style.getPropertyValue("--entrance-i")).toBe("1");
+    });

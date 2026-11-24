@@ -3,6 +3,12 @@ import { useLocation, useSearchParams } from "react-router-dom";
 import ResourceCard from "../components/ResourceCard";
 import { resourceTagTones, resourceTags } from "../assets/data/Enum";
 import PageHeader from "../components/PageHeader";
+import useEntranceColumns from "../hooks/useEntranceColumns";
+import usePageEntrance from "../hooks/usePageEntrance";
+import { entranceGridStyle } from "../utils/pageEntrance";
+
+// Matches .resourceGrid: 1 column below tablet, 2 from tablet up.
+const RESOURCES_ENTRANCE_COLUMNS = { 0: 1, 768: 2 };
 
 const ALL_RESOURCES = "All resources";
 const categories = Object.values(resourceTags);
@@ -11,6 +17,8 @@ const categoryId = (category) =>
     `resource-${category.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`;
 
 function ResourcesPage({ resources }) {
+    const entering = usePageEntrance();
+    const columns = useEntranceColumns(RESOURCES_ENTRANCE_COLUMNS);
     const { pathname } = useLocation();
     const [searchParams, setSearchParams] = useSearchParams();
     const requestedCategory = searchParams.get("category");
@@ -85,7 +93,7 @@ function ResourcesPage({ resources }) {
 
     return (
         <div className="baseContainer">
-            <main className="resourcesPage">
+            <main className={`resourcesPage${entering ? " pageEntrance--enter" : ""}`}>
                 <PageHeader
                     title="Find support at the iSchool and UW."
                     intro="Academic, career, wellbeing, and community resources, plus student organizations. Each is run by its own group, not IUGA."
@@ -126,7 +134,11 @@ function ResourcesPage({ resources }) {
 
                     {visibleCategories.length > 0 ? (
                         <div className="resourceCategoryList">
-                            {visibleCategories.map(({ category, items }) => (
+                            {visibleCategories.map(({ category, items }, sectionIndex) => {
+                                const offset = visibleCategories
+                                    .slice(0, sectionIndex)
+                                    .reduce((count, section) => count + section.items.length, 0);
+                                return (
                                 <section className="resourceCategory" id={categoryId(category)} key={category}>
                                     <div className="resourceCategoryHeader">
                                         <h2>
@@ -152,16 +164,23 @@ function ResourcesPage({ resources }) {
                                     </div>
                                     {isOpen(category) && (
                                         <div className="resourceGrid" id={`${categoryId(category)}-panel`}>
-                                            {items.map((resource) => (
-                                                <ResourceCard key={resource.rName} resource={resource} category={category} />
+                                            {items.map((resource, itemIndex) => (
+                                                <ResourceCard
+                                                    key={resource.rName}
+                                                    resource={resource}
+                                                    category={category}
+                                                    className="pageEntrance__item"
+                                                    style={entranceGridStyle(itemIndex + offset, columns)}
+                                                />
                                             ))}
                                         </div>
                                     )}
                                 </section>
-                            ))}
+                                );
+                            })}
                         </div>
                     ) : (
-                        <div className="resourcesEmptyState editorial-card">
+                        <div className="resourcesEmptyState editorial-card pageEntrance__item">
                             <h2>No resources match that search.</h2>
                             <p>Try a broader term or return to all resources.</p>
                             <button className="pill-button pill-button--fill" type="button" onClick={() => {

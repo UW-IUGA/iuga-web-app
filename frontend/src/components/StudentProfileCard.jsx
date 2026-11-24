@@ -8,11 +8,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGlobe, faUser } from "@fortawesome/free-solid-svg-icons";
 import { faLinkedin, faGithub } from "@fortawesome/free-brands-svg-icons";
 
-const StudentProfileCard = ({ profile }) => {
+const StudentProfileCard = ({ profile, className, style }) => {
     const { name, position, picture, socials } = profile;
 
     return (
-        <article className="studentProfileCard">
+        <article className={className ? `studentProfileCard ${className}` : "studentProfileCard"} style={style}>
             <div className="studentProfileCard__media">
                 {picture ? (
                     <img src={picture} alt={name} />

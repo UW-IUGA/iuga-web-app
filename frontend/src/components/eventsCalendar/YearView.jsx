@@ -21,7 +21,7 @@ function YearView({ events, onPickDay }) {
                     rows={buildMonthGrid(month.year, month.month, month.events)}
                     onPickDay={onPickDay}
                     isCurrentMonth={month.year === today.year && month.month === today.month}
-                    revealing={isMonth(month.year, month.month)}
+                    entering={isMonth(month.year, month.month)}
                     style={entranceIndexStyle(index)}
                 />
             ))}

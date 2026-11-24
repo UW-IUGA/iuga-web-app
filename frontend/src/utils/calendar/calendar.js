@@ -620,8 +620,9 @@ export function visibleEventIds(mode, selectedDate, events) {
 
 // Keys for everything currently drawn in `mode` around `selectedDate`, after
 // the tag filter has already been applied. Event, day, and year-month keys
-// let a later date or tag change rise only what just appeared.
-export function visibleRevealKeys(mode, selectedDate, events) {
+// let a later view, date, or filter change wave only what just appeared, or
+// the whole view when the mode itself changes.
+export function visibleEntranceKeys(mode, selectedDate, events) {
     const keys = new Set();
     for (const id of visibleEventIds(mode, selectedDate, events)) {
         keys.add(`event:${id}`);

@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, renderHook } from "@testing-library/react";
-import useEntranceWave, { ENTRANCE_WAVE_MS } from "./useEntranceWave";
+import useEntranceWave, { ENTRANCE_WAVE_MS, entranceContentKey } from "./useEntranceWave";
 
 const contentKey = (mode, dateKey, tagsKey = "Academic,Career,Social") =>
-    `${mode}|${dateKey}|${tagsKey}`;
+    entranceContentKey(mode, dateKey, tagsKey);
 
 const MONTH = contentKey("month", "2026-10-20");
 

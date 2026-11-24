@@ -10,7 +10,7 @@ import {
     normalizeEvent,
     startOfWeek,
     visibleEventIds,
-    visibleRevealKeys,
+    visibleEntranceKeys,
     zonedMidnight,
     zonedParts,
 } from "./calendar";
@@ -320,14 +320,14 @@ describe("visibleEventIds", () => {
     });
 });
 
-describe("visibleRevealKeys", () => {
+describe("visibleEntranceKeys", () => {
     const event = (id, start) => normalizeEvent(raw(id, start, start));
     const october = event("october", "2026-10-20T17:00:00.000Z");
     const november = event("november", "2026-11-15T18:00:00.000Z");
     const overlap = event("overlap", "2026-10-01T18:00:00.000Z");
 
     it("includes month-view day keys, so a later month can leave overlapping days still", () => {
-        const keys = visibleRevealKeys("month", new Date("2026-09-15T12:00:00.000Z"), [overlap, october]);
+        const keys = visibleEntranceKeys("month", new Date("2026-09-15T12:00:00.000Z"), [overlap, october]);
 
         expect(keys.has("event:overlap")).toBe(true);
         expect(keys.has("event:october")).toBe(false);
@@ -336,7 +336,7 @@ describe("visibleRevealKeys", () => {
     });
 
     it("lists year-view months that currently have events", () => {
-        const keys = visibleRevealKeys("year", new Date("2026-10-20T17:00:00.000Z"), [october, november]);
+        const keys = visibleEntranceKeys("year", new Date("2026-10-20T17:00:00.000Z"), [october, november]);
 
         expect(keys.has("event:october")).toBe(true);
         expect(keys.has("month:2026-9")).toBe(true);

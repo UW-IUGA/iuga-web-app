@@ -8,7 +8,7 @@ import { entranceIndexStyle } from "../../utils/calendar/motion";
 
 // Shows a compact month whose event days open an animated detail overlay
 // without leaving the year view.
-function YearCard({ title, rows, onPickDay, isCurrentMonth = false, revealing = false, style }) {
+function YearCard({ title, rows, onPickDay, isCurrentMonth = false, entering = false, style }) {
     const { isEvent } = useContext(EntranceWaveContext);
     const { open: selectedDay, openFrom, close, onKeyDown, contentRef, backRef } = useZoomOverlay();
     const isDayOverlayOpen = Boolean(selectedDay);
@@ -76,7 +76,7 @@ function YearCard({ title, rows, onPickDay, isCurrentMonth = false, revealing = 
             rows={rows}
             renderDay={renderDay}
             style={style}
-            className={`card--compact${isDayOverlayOpen ? " card--open" : ""}${revealing ? " card--enter" : ""}`}
+            className={`card--compact${isDayOverlayOpen ? " card--open" : ""}${entering ? " card--enter" : ""}`}
             isCurrentMonth={isCurrentMonth}
             isDayOverlayOpen={isDayOverlayOpen}
         >

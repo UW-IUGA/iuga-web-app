@@ -346,7 +346,7 @@ describe("Events page: filtering by tag", () => {
         try {
             const { container } = await visit("/events?view=month&date=2026-10-20");
             act(() => {
-                vi.advanceTimersByTime(1000);
+                vi.advanceTimersByTime(ENTRANCE_WAVE_MS);
             });
 
             fireEvent.click(tagBox("Career"));
@@ -379,7 +379,7 @@ describe("Events page: filtering by tag", () => {
         try {
             await visit("/events?view=month&date=2026-10-20");
             act(() => {
-                vi.advanceTimersByTime(1000);
+                vi.advanceTimersByTime(ENTRANCE_WAVE_MS);
             });
 
             fireEvent.click(screen.getByRole("radio", { name: "Week" }));
@@ -395,7 +395,7 @@ describe("Events page: filtering by tag", () => {
         try {
             const { container } = await visit("/events?view=month&date=2026-10-20");
             act(() => {
-                vi.advanceTimersByTime(1000);
+                vi.advanceTimersByTime(ENTRANCE_WAVE_MS);
             });
 
             fireEvent.click(screen.getByRole("radio", { name: "Year" }));
@@ -412,7 +412,7 @@ describe("Events page: filtering by tag", () => {
         try {
             await visit("/events?view=month&date=2026-10-20");
             act(() => {
-                vi.advanceTimersByTime(1000);
+                vi.advanceTimersByTime(ENTRANCE_WAVE_MS);
             });
 
             fireEvent.click(screen.getByRole("button", { name: "Next month" }));
@@ -430,7 +430,7 @@ describe("Events page: filtering by tag", () => {
         try {
             await visit("/events?view=month&date=2026-09-15");
             act(() => {
-                vi.advanceTimersByTime(1000);
+                vi.advanceTimersByTime(ENTRANCE_WAVE_MS);
             });
             expect(screen.getByRole("button", { name: "Welcome Night" })).not.toHaveClass("pad__event--enter");
 
@@ -448,7 +448,7 @@ describe("Events page: filtering by tag", () => {
         try {
             await visit("/events?view=week&date=2026-10-20");
             act(() => {
-                vi.advanceTimersByTime(1000);
+                vi.advanceTimersByTime(ENTRANCE_WAVE_MS);
             });
 
             fireEvent.click(screen.getByRole("button", { name: "Next week" }));
@@ -465,7 +465,7 @@ describe("Events page: filtering by tag", () => {
         try {
             await visit("/events?view=day&date=2026-10-20");
             act(() => {
-                vi.advanceTimersByTime(1000);
+                vi.advanceTimersByTime(ENTRANCE_WAVE_MS);
             });
             expect(screen.getByRole("button", { name: /Study Jam/ })).toBeInTheDocument();
 
@@ -484,7 +484,7 @@ describe("Events page: filtering by tag", () => {
         try {
             await visit("/events?view=month&date=2026-11-15");
             act(() => {
-                vi.advanceTimersByTime(1000);
+                vi.advanceTimersByTime(ENTRANCE_WAVE_MS);
             });
             expect(screen.getByRole("button", { name: "Open House" })).toBeInTheDocument();
 
@@ -502,7 +502,7 @@ describe("Events page: filtering by tag", () => {
         try {
             const { container } = await visit("/events?view=week&date=2026-10-20");
             act(() => {
-                vi.advanceTimersByTime(1000);
+                vi.advanceTimersByTime(ENTRANCE_WAVE_MS);
             });
 
             const day = [...container.querySelectorAll(".mini__day:not(.mini__day--out)")].find((cell) =>
@@ -522,7 +522,7 @@ describe("Events page: filtering by tag", () => {
         try {
             await visit("/events?view=week&date=2026-10-20");
             act(() => {
-                vi.advanceTimersByTime(1000);
+                vi.advanceTimersByTime(ENTRANCE_WAVE_MS);
             });
 
             fireEvent.click(tagBox("Career"));
@@ -540,15 +540,15 @@ describe("Events page: filtering by tag", () => {
         try {
             const { container } = await visit("/events?view=year&date=2026-10-20");
             act(() => {
-                vi.advanceTimersByTime(1000);
+                vi.advanceTimersByTime(ENTRANCE_WAVE_MS);
             });
 
             fireEvent.click(tagBox("Career"));
             fireEvent.click(tagBox("Career"));
 
-            const revealing = [...container.querySelectorAll(".pad--event--enter")];
-            expect(revealing.length).toBeGreaterThan(0);
-            expect(revealing.every((day) => day.classList.contains("pad--event"))).toBe(true);
+            const enteringDays = [...container.querySelectorAll(".pad--event--enter")];
+            expect(enteringDays.length).toBeGreaterThan(0);
+            expect(enteringDays.every((day) => day.classList.contains("pad--event"))).toBe(true);
             // Study Jam's day was already visible as Academic, so it stays still.
             const stillDays = [...container.querySelectorAll(".pad--event")].filter(
                 (day) => !day.classList.contains("pad--event--enter"),
@@ -746,7 +746,7 @@ describe("Events page: views and navigation", () => {
             expect(page).toHaveClass("page--events--enter");
 
             act(() => {
-                vi.advanceTimersByTime(999);
+                vi.advanceTimersByTime(ENTRANCE_WAVE_MS - 1);
             });
             expect(page).toHaveClass("page--events--enter");
 
@@ -767,7 +767,7 @@ describe("Events page: views and navigation", () => {
         try {
             const { container } = await visit("/events?view=month&date=2026-10-20&motionViews");
             act(() => {
-                vi.advanceTimersByTime(1000);
+                vi.advanceTimersByTime(ENTRANCE_WAVE_MS);
             });
 
             fireEvent.click(screen.getByRole("radio", { name: "Week" }));

@@ -24,7 +24,11 @@ import { useAuthContext } from "../context/AuthContext";
 import useCalendarView from "../hooks/useCalendarView";
 import useEventList from "../hooks/useEventList";
 import useSwipeStep from "../hooks/useSwipeStep";
-import useEntranceWave, { EntranceWaveContext } from "../hooks/useEntranceWave";
+import useEntranceWave, {
+  ENTRANCE_WAVE_MS,
+  EntranceWaveContext,
+  entranceContentKey,
+} from "../hooks/useEntranceWave";
 import useTagFilter from "../hooks/useTagFilter";
 import {
   buildMonthGrid,
@@ -32,17 +36,13 @@ import {
   MONTH_NAMES,
   normalizeEvent,
   toISODate,
-  visibleRevealKeys,
+  visibleEntranceKeys,
   zonedParts,
 } from "../utils/calendar/calendar";
 
 // Views that carry the mini month beside them. Year view is the exception:
 // it is already every month at once, so another would only repeat the screen.
 const SIDEBAR_MODES = ["month", "week", "day"];
-
-// Long enough for the last month-view chip: week row 5 at 80ms each, then a
-// 40ms start plus 5 × 25ms in the row, then its 400ms rise (965ms).
-const PAGE_ENTRANCE_WAVE_MS = 1000;
 
 // What the calendar says instead of its events while it has none to show.
 function ListStatus({ status, onRetry }) {
@@ -74,7 +74,7 @@ function EventsPage() {
   useEffect(() => {
     const timeout = window.setTimeout(
       () => setEntering(false),
-      PAGE_ENTRANCE_WAVE_MS,
+      ENTRANCE_WAVE_MS,
     );
     return () => window.clearTimeout(timeout);
   }, []);
@@ -126,10 +126,14 @@ function EventsPage() {
   // left-to-right wave. A new view waves in full; a date or filter change
   // only rises what just appeared. Items that leave have none.
   const visibleKeys = useMemo(
-    () => visibleRevealKeys(mode, selectedDate, events),
+    () => visibleEntranceKeys(mode, selectedDate, events),
     [mode, selectedDate, events],
   );
-  const contentKey = `${mode}|${toISODate(selectedDate)}|${shownTags.join(",")}`;
+  const contentKey = entranceContentKey(
+    mode,
+    toISODate(selectedDate),
+    shownTags,
+  );
   const entranceWave = useEntranceWave(visibleKeys, {
     active: !entering,
     contentKey,

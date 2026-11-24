@@ -27,6 +27,32 @@ $page-entrance-month-in-row-cap: 5;
 // prettier-ignore
 $page-entrance-month-chip-delay: calc(var(--entrance-row, 0) * #{$page-entrance-month-row-step} + #{$page-entrance-month-chip-base} + #{$page-entrance-month-in-row-step} * min(var(--entrance-i, 0), #{$page-entrance-month-in-row-cap}));
 
+// First visit and later view, date, or filter enters share these so a delay
+// or rise change stays in one place.
+@mixin events-month-pad-enter {
+    @include page-entrance-rise($page-entrance-item-duration) {
+        --rise: #{$page-entrance-item-rise};
+        animation-delay: calc(var(--entrance-row, 0) * #{$page-entrance-month-row-step});
+    }
+}
+
+@mixin events-month-chip-enter {
+    @include page-entrance-rise($page-entrance-item-duration) {
+        --rise: #{$page-entrance-item-rise};
+        animation-delay: $page-entrance-month-chip-delay;
+    }
+}
+
+@mixin events-year-card-enter {
+    @include page-entrance-item(
+        $page-entrance-events-duration,
+        0ms,
+        $page-entrance-item-step,
+        $page-entrance-item-cap,
+        14px
+    );
+}
+
 .eventsCalendar {
     .page {
         width: 100%;
@@ -80,13 +106,7 @@ $page-entrance-month-chip-delay: calc(var(--entrance-row, 0) * #{$page-entrance-
             // Year view: each month card pops in reading order, left to right
             // and then the next row. --entrance-i is set on the card.
             .year > * {
-                @include page-entrance-item(
-                    $page-entrance-events-duration,
-                    0ms,
-                    $page-entrance-item-step,
-                    $page-entrance-item-cap,
-                    14px
-                );
+                @include events-year-card-enter;
             }
 
             // The mini month and legend travel with the first two beats. They
@@ -107,18 +127,12 @@ $page-entrance-month-chip-delay: calc(var(--entrance-row, 0) * #{$page-entrance-
             }
 
             .card--month .pad {
-                @include page-entrance-rise($page-entrance-item-duration) {
-                    --rise: #{$page-entrance-item-rise};
-                    animation-delay: calc(var(--entrance-row, 0) * #{$page-entrance-month-row-step});
-                }
+                @include events-month-pad-enter;
             }
 
             .card--month .pad__event,
             .card--month .pad__more {
-                @include page-entrance-rise($page-entrance-item-duration) {
-                    --rise: #{$page-entrance-item-rise};
-                    animation-delay: $page-entrance-month-chip-delay;
-                }
+                @include events-month-chip-enter;
             }
 
             // Week and day: the columns themselves, left to right, on every
@@ -157,28 +171,16 @@ $page-entrance-month-chip-delay: calc(var(--entrance-row, 0) * #{$page-entrance-
     // appeared after a view, date, or filter change. These classes are not
     // under `&--enter`, so the first-visit wave is unchanged.
     .page--events .card--month .pad--enter {
-        @include page-entrance-rise($page-entrance-item-duration) {
-            --rise: #{$page-entrance-item-rise};
-            animation-delay: calc(var(--entrance-row, 0) * #{$page-entrance-month-row-step});
-        }
+        @include events-month-pad-enter;
     }
 
     .page--events .card--month .pad__event--enter,
     .page--events .card--month .pad__more--enter {
-        @include page-entrance-rise($page-entrance-item-duration) {
-            --rise: #{$page-entrance-item-rise};
-            animation-delay: $page-entrance-month-chip-delay;
-        }
+        @include events-month-chip-enter;
     }
 
     .page--events .year > .card--enter {
-        @include page-entrance-item(
-            $page-entrance-events-duration,
-            0ms,
-            $page-entrance-item-step,
-            $page-entrance-item-cap,
-            14px
-        );
+        @include events-year-card-enter;
     }
 
     .page--events .pad--event--enter,

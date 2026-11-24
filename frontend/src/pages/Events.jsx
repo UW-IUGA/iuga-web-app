@@ -37,6 +37,9 @@ import {
 // it is already every month at once, so another would only repeat the screen.
 const SIDEBAR_MODES = ["month", "week", "day"];
 
+// 640ms rise plus the last wave's 180ms delay, the same window as Home.
+const PAGE_ENTRANCE_WAVE_MS = 820;
+
 // What the calendar says instead of its events while it has none to show.
 function ListStatus({ status, onRetry }) {
   if (status === "loading") {
@@ -60,6 +63,18 @@ function ListStatus({ status, onRetry }) {
 }
 
 function EventsPage() {
+  // On for the first visit's arrival wave only (see _page.scss), so a later
+  // view, date, or filter change does not replay it.
+  const [entering, setEntering] = useState(true);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(
+      () => setEntering(false),
+      PAGE_ENTRANCE_WAVE_MS,
+    );
+    return () => window.clearTimeout(timeout);
+  }, []);
+
   const { mode, selectedDate, goToDay, goToDate, goToToday, step, setMode } =
     useCalendarView();
   const { can, isAuthenticated } = useAuthContext();
@@ -146,7 +161,9 @@ function EventsPage() {
   const calendar = (
     <>
       <div className="eventsCalendar eventsCalendar--page">
-        <section className="page page--events">
+        <section
+          className={`page page--events${entering ? " page--events--enter" : ""}`}
+        >
           <h1 className="page__title">Events</h1>
 
           <CalendarControls

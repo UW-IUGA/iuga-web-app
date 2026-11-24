@@ -103,15 +103,50 @@ describe("page entrance rise", () => {
 });
 
 describe("Events page entrance", () => {
-    it("rises the calendar body with the shared motion, leaving the heading still", () => {
-        // The calendar's page frame (components/eventsCalendar/_page.scss) owns it, at the default 14px.
-        const body = motionDeclarations(".eventsCalendar .page--events .events");
-        const name = body.animation.split(" ")[0];
+    const rootSelector = ".eventsCalendar .page--events--enter";
+    const rises = { 1: "20px", 2: "14px", 3: "10px" };
+    const delays = { 2: "110ms", 3: "180ms" };
 
-        expect(body.animation).toBe(`${name} 640ms cubic-bezier(0.23, 1, 0.32, 1) both`);
-        expect(body).not.toHaveProperty("--rise");
+    function expectStep(selector, step) {
+        const declarations = motionDeclarations(selector);
+        const name = declarations.animation.split(" ")[0];
+
+        expect(declarations.animation).toBe(`${name} 640ms cubic-bezier(0.23, 1, 0.32, 1) both`);
+        expect(declarations["--rise"]).toBe(rises[step]);
+        if (step === 1) {
+            expect(declarations).not.toHaveProperty("animation-delay");
+        } else {
+            expect(declarations["animation-delay"]).toBe(delays[step]);
+        }
+
+        return name;
+    }
+
+    it("staggers the calendar with Home's shared wave, leaving the heading still", () => {
+        const name = expectStep(`${rootSelector} .year > :nth-child(-n+4)`, 1);
+        expectStep(`${rootSelector} .year > :nth-child(n+5):nth-child(-n+8)`, 2);
+        expectStep(`${rootSelector} .year > :nth-child(n+9)`, 3);
+
+        expectStep(`${rootSelector} .events__sidebar .mini`, 1);
+        expectStep(`${rootSelector} .events__legend`, 2);
+        expectStep(`${rootSelector} .events--with-sidebar .events__main`, 3);
+
+        expectStep(`${rootSelector} .card--month .card-title`, 1);
+        expectStep(`${rootSelector} .card--month .row > :nth-child(-n+3)`, 1);
+        expectStep(`${rootSelector} .card--month .row > :nth-child(n+4):nth-child(-n+5)`, 2);
+        expectStep(`${rootSelector} .card--month .row > :nth-child(n+6)`, 3);
+
+        expectStep(`${rootSelector} .grid__head > :nth-child(n+2):nth-child(-n+4)`, 1);
+        expectStep(`${rootSelector} .grid__body > :nth-child(n+2):nth-child(-n+4)`, 1);
+        expectStep(`${rootSelector} .grid__head > :nth-child(n+5):nth-child(-n+6)`, 2);
+        expectStep(`${rootSelector} .grid__body > :nth-child(n+5):nth-child(-n+6)`, 2);
+        expectStep(`${rootSelector} .grid__head > :nth-child(n+7)`, 3);
+        expectStep(`${rootSelector} .grid__body > :nth-child(n+7)`, 3);
+
         expect(fromFrame(name)).toMatchObject({ opacity: "0" });
-        expect(fromFrame(name).transform).toMatch(/^translateY\(var\(--rise\b.*\)\) scale\(0\.98\)$/);
+        expect(fromFrame(name).transform).toBe("translateY(var(--rise, 14px)) scale(0.98)");
+
+        expect(() => motionDeclarations(".eventsCalendar .page--events .events")).toThrow(/no motion rule/);
 
         const stillParts = animatedSelectors().filter((selector) => /page__title|toolbar|view-toggle|controls/i.test(selector));
         expect(stillParts).toEqual([]);

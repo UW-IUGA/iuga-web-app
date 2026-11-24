@@ -6,6 +6,14 @@ Expected Response Information: A centred column holding the title, controls and 
 @use "../../abstracts" as *;
 @use "../../abstracts/eventsCalendar" as *;
 
+// The shared rise already on one beat of Home's wave. Local so the page can
+// name its pieces without repeating the two includes.
+@mixin events-entrance-step($step) {
+    @include page-entrance-rise {
+        @include page-entrance-step($step);
+    }
+}
+
 .eventsCalendar {
     .page {
         width: 100%;
@@ -48,11 +56,77 @@ Expected Response Information: A centred column holding the title, controls and 
         }
 
         // The heading and controls stay still, like Home's copy, so they are
-        // usable from the first frame. The calendar body uses the shared rise
-        // and does not replay when the view, date, or filters change, because
-        // this element stays mounted.
-        .events {
-            @include page-entrance-rise;
+        // usable from the first frame. The calendar's pieces use the shared
+        // rise in Home's three-beat wave, only while `page--events--enter` is
+        // on the page. That class comes off after the wave, so a later view,
+        // date, or filter change does not replay it.
+        &--enter {
+            // Year view has no sidebar, so the month cards take the same three
+            // beats, a row at a time (the grid tops out at this many columns).
+            .year > :nth-child(-n + #{$calendar-year-max-columns}) {
+                @include events-entrance-step(1);
+            }
+
+            .year
+                > :nth-child(n + #{$calendar-year-max-columns + 1}):nth-child(-n + #{$calendar-year-max-columns * 2}) {
+                @include events-entrance-step(2);
+            }
+
+            .year > :nth-child(n + #{$calendar-year-max-columns * 2 + 1}) {
+                @include events-entrance-step(3);
+            }
+
+            // Month, week and day on a wide screen: the left column, then the view.
+            @include media(">#{$calendar-mobile}") {
+                .events__sidebar .mini {
+                    @include events-entrance-step(1);
+                }
+
+                .events__legend {
+                    @include events-entrance-step(2);
+                }
+
+                .events--with-sidebar .events__main {
+                    @include events-entrance-step(3);
+                }
+            }
+
+            // On a phone the sidebar is hidden, so month and week would
+            // otherwise arrive as one block. Their columns take the same wave.
+            @include media("<=#{$calendar-mobile}") {
+                .card--month .card-title {
+                    @include events-entrance-step(1);
+                }
+
+                .card--month .row > :nth-child(-n + 3) {
+                    @include events-entrance-step(1);
+                }
+
+                .card--month .row > :nth-child(n + 4):nth-child(-n + 5) {
+                    @include events-entrance-step(2);
+                }
+
+                .card--month .row > :nth-child(n + 6) {
+                    @include events-entrance-step(3);
+                }
+
+                // The first child of the head and body is the time gutter, so
+                // the day columns start at the second child.
+                .grid__head > :nth-child(n + 2):nth-child(-n + 4),
+                .grid__body > :nth-child(n + 2):nth-child(-n + 4) {
+                    @include events-entrance-step(1);
+                }
+
+                .grid__head > :nth-child(n + 5):nth-child(-n + 6),
+                .grid__body > :nth-child(n + 5):nth-child(-n + 6) {
+                    @include events-entrance-step(2);
+                }
+
+                .grid__head > :nth-child(n + 7),
+                .grid__body > :nth-child(n + 7) {
+                    @include events-entrance-step(3);
+                }
+            }
         }
     }
 }

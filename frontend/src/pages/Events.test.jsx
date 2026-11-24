@@ -497,6 +497,31 @@ describe("Events page: views and navigation", () => {
         expect(container.querySelector(".page--events .events")).toBe(body);
     });
 
+    it("drops the arrival class after the shared wave, so a later view change does not replay it", async () => {
+        vi.useFakeTimers();
+        try {
+            const { container } = await visit("/events?view=month&date=2026-10-20");
+            const page = container.querySelector(".page--events");
+
+            expect(page).toHaveClass("page--events--enter");
+
+            act(() => {
+                vi.advanceTimersByTime(819);
+            });
+            expect(page).toHaveClass("page--events--enter");
+
+            act(() => {
+                vi.advanceTimersByTime(1);
+            });
+            expect(page).not.toHaveClass("page--events--enter");
+
+            fireEvent.click(screen.getByRole("radio", { name: "Year" }));
+            expect(page).not.toHaveClass("page--events--enter");
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
     it("switches view from the toggle, keeping the date", async () => {
         const { container } = await visit("/events?view=month&date=2026-10-20");
 

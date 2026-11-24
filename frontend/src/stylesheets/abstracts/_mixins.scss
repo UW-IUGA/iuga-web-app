@@ -1,3 +1,4 @@
+@use "sass:list";
 @use "variables" as *;
 @use "theme" as *;
 
@@ -162,11 +163,27 @@
 }
 
 // The shared page-arrival rise (keyframes in base/_motion). Duration and easing
-// match Home's original hero entrance. Callers may set --rise (14px by default);
+// come from the page-entrance tokens. Callers may set --rise (14px by default);
 // the content block holds any per-element distance or stagger.
 @mixin page-entrance-rise {
     @media (prefers-reduced-motion: no-preference) {
-        animation: page-entrance-rise 640ms $ease-out both;
+        animation: page-entrance-rise $page-entrance-duration $ease-out both;
         @content;
+    }
+}
+
+// One beat of that wave: the rise distance and, after the first step, the
+// delay. Use it inside `page-entrance-rise`'s content block so this does not
+// open a second media query. Step 1 leaves animation-delay unset, matching
+// Home's lead photo.
+@mixin page-entrance-step($step) {
+    @if $step < 1 or $step > list.length($page-entrance-rises) {
+        @error "page-entrance-step expects 1-#{list.length($page-entrance-rises)}, got #{$step}.";
+    }
+
+    --rise: #{list.nth($page-entrance-rises, $step)};
+
+    @if $step > 1 {
+        animation-delay: list.nth($page-entrance-delays, $step);
     }
 }

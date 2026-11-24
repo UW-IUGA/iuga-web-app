@@ -53,6 +53,35 @@ describe("Home hero entrance", () => {
         expect(fromFrame(name)).toMatchObject({ opacity: "0" });
         expect(fromFrame(name).transform).toMatch(/^translateY\(var\(--rise\b.*\)\) scale\(0\.98\)$/);
     });
+
+    it("compiles the hero wave to the same rules as the original literals", () => {
+        const media = [];
+        root.walkAtRules("media", (atRule) => {
+            if (!atRule.params.includes("prefers-reduced-motion: no-preference")) return;
+            const text = atRule.toString();
+            if (text.includes(".homeHeroPhotos li {")) media.push(text);
+        });
+
+        expect(media).toHaveLength(1);
+        expect(media[0]).toBe(
+            `@media (prefers-reduced-motion: no-preference) {
+  .homeHeroPhotos li {
+    animation: page-entrance-rise 640ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+  .homeHeroPhotos li:nth-child(1) {
+    --rise: 20px;
+  }
+  .homeHeroPhotos li:nth-child(2) {
+    --rise: 14px;
+    animation-delay: 110ms;
+  }
+  .homeHeroPhotos li:nth-child(3) {
+    --rise: 10px;
+    animation-delay: 180ms;
+  }
+}`
+        );
+    });
 });
 
 describe("page entrance rise", () => {

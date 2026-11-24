@@ -134,9 +134,12 @@ describe("Events page entrance", () => {
         expect(() => motionDeclarations(`${rootSelector} .events--with-sidebar .events__main`)).toThrow(/no motion rule/);
 
         expectStep(`${rootSelector} .card--month .card-title`, 1);
-        expectStep(`${rootSelector} .card--month .row > :nth-child(-n+3)`, 1);
-        expectStep(`${rootSelector} .card--month .row > :nth-child(n+4):nth-child(-n+5)`, 2);
-        expectStep(`${rootSelector} .card--month .row > :nth-child(n+6)`, 3);
+
+        const monthPad = motionDeclarations(`${rootSelector} .card--month .pad`);
+        expect(monthPad.animation).toBe("page-entrance-rise 400ms cubic-bezier(0.23, 1, 0.32, 1) both");
+        expect(monthPad["--rise"]).toBe("10px");
+        expect(monthPad["animation-delay"]).toMatch(/var\(--entrance-row/);
+        expect(monthPad["animation-delay"]).toMatch(/80ms/);
 
         expectStep(`${rootSelector} .grid__head > :nth-child(n+2):nth-child(-n+4)`, 1);
         expectStep(`${rootSelector} .grid__body > :nth-child(n+2):nth-child(-n+4)`, 1);
@@ -169,5 +172,20 @@ describe("Events page entrance", () => {
             expect(declarations["animation-delay"]).toMatch(/var\(--entrance-delay/);
             expect(declarations["animation-delay"]).toMatch(/min\(var\(--entrance-i/);
         }
+    });
+
+    it("renders the month view a week row at a time, then left to right in the row", () => {
+        const chip = motionDeclarations(`${rootSelector} .card--month .pad__event`);
+        const more = motionDeclarations(`${rootSelector} .card--month .pad__more`);
+
+        expect(chip.animation).toBe("page-entrance-rise 400ms cubic-bezier(0.23, 1, 0.32, 1) both");
+        expect(chip["--rise"]).toBe("10px");
+        expect(chip["animation-delay"]).toMatch(/var\(--entrance-row/);
+        expect(chip["animation-delay"]).toMatch(/80ms/);
+        expect(chip["animation-delay"]).toMatch(/40ms/);
+        expect(chip["animation-delay"]).toMatch(/25ms/);
+        expect(chip["animation-delay"]).toMatch(/min\(var\(--entrance-i/);
+        expect(more.animation).toBe(chip.animation);
+        expect(more["animation-delay"]).toBe(chip["animation-delay"]);
     });
 });

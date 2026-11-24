@@ -2,7 +2,7 @@ import { Fragment } from "react";
 import { WEEKDAY_ABBREVIATIONS } from "../../utils/calendar/calendar";
 
 // Draws one month's frame: its title, its weekday header, and its weeks. Each
-// day is drawn by `renderDay(cell, columnIndex)`, so the caller decides what a
+// day is drawn by `renderDay(cell, columnIndex, rowIndex)`, so the caller decides what a
 // day looks like and what happens when it is used.
 function Card({
     title,
@@ -48,10 +48,10 @@ function Card({
                     ))}
                 </div>
 
-                {rows.map((row) => (
+                {rows.map((row, rowIndex) => (
                     <div className="row" key={row[0].id}>
                         {row.map((cell, columnIndex) => (
-                            <Fragment key={cell.id}>{renderDay(cell, columnIndex)}</Fragment>
+                            <Fragment key={cell.id}>{renderDay(cell, columnIndex, rowIndex)}</Fragment>
                         ))}
                     </div>
                 ))}

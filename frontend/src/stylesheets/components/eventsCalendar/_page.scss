@@ -17,6 +17,16 @@ Expected Response Information: A centred column holding the title, controls and 
     );
 }
 
+// Month view: one beat per week row, then a quick left-to-right chip wave in
+// that row, so the grid reads top to bottom without feeling slower than the
+// other views. The chip's own rise stays the shared 400ms / 10px pop.
+$page-entrance-month-row-step: 80ms;
+$page-entrance-month-chip-base: 40ms;
+$page-entrance-month-in-row-step: 25ms;
+$page-entrance-month-in-row-cap: 5;
+// prettier-ignore
+$page-entrance-month-chip-delay: calc(var(--entrance-row, 0) * #{$page-entrance-month-row-step} + #{$page-entrance-month-chip-base} + #{$page-entrance-month-in-row-step} * min(var(--entrance-i, 0), #{$page-entrance-month-in-row-cap}));
+
 .eventsCalendar {
     .page {
         width: 100%;
@@ -89,24 +99,30 @@ Expected Response Information: A centred column holding the title, controls and 
                 @include events-entrance-step(2);
             }
 
-            // Month, week and day: the columns themselves, left to right, on
-            // every width. Day view has one column, so it takes the first beat.
+            // Month view: the title stays with the first beat. Day cells arrive
+            // a week row at a time, so the grid does not flash in by column.
+            // Chips in that row follow quickly, left to right.
             .card--month .card-title {
                 @include events-entrance-step(1);
             }
 
-            .card--month .row > :nth-child(-n + 3) {
-                @include events-entrance-step(1);
+            .card--month .pad {
+                @include page-entrance-rise($page-entrance-item-duration) {
+                    --rise: #{$page-entrance-item-rise};
+                    animation-delay: calc(var(--entrance-row, 0) * #{$page-entrance-month-row-step});
+                }
             }
 
-            .card--month .row > :nth-child(n + 4):nth-child(-n + 5) {
-                @include events-entrance-step(2);
+            .card--month .pad__event,
+            .card--month .pad__more {
+                @include page-entrance-rise($page-entrance-item-duration) {
+                    --rise: #{$page-entrance-item-rise};
+                    animation-delay: $page-entrance-month-chip-delay;
+                }
             }
 
-            .card--month .row > :nth-child(n + 6) {
-                @include events-entrance-step(3);
-            }
-
+            // Week and day: the columns themselves, left to right, on every
+            // width. Day view has one column, so it takes the first beat.
             // The first child of the head and body is the time gutter, so the
             // day columns start at the second child.
             .grid__head > :nth-child(n + 2):nth-child(-n + 4),

@@ -56,5 +56,7 @@ describe("Card", () => {
         // Index 6 is the last column of the first week; index 7 starts the second.
         expect(renderDay.mock.calls[6][1]).toBe(6);
         expect(renderDay.mock.calls[7][1]).toBe(0);
+        expect(renderDay.mock.calls[0][2]).toBe(0);
+        expect(renderDay.mock.calls[7][2]).toBe(1);
     });
 });

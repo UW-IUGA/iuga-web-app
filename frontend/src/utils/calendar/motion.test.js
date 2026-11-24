@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { entranceIndexStyle } from "./motion";
+import { entranceIndexStyle, entranceRowStyle } from "./motion";
 
 describe("entranceIndexStyle", () => {
     it("sets a 0-based --entrance-i, keeping any other style", () => {
@@ -9,3 +9,13 @@ describe("entranceIndexStyle", () => {
         });
     });
 });
+
+describe("entranceRowStyle", () => {
+    it("sets --entrance-row, keeping any other style", () => {
+        expect(entranceRowStyle(2, { backgroundColor: "red" })).toEqual({
+            backgroundColor: "red",
+            "--entrance-row": 2,
+        });
+    });
+});
+

@@ -8,3 +8,11 @@ export const entranceIndexStyle = (index, style = {}) => ({
     ...style,
     "--entrance-i": index,
 });
+
+// Week-row index for the month view's row-by-row entrance. Chips inside a day
+// still use --entrance-i for their place in that row.
+export const entranceRowStyle = (row, style = {}) => ({
+    ...style,
+    "--entrance-row": row,
+});
+

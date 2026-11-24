@@ -4,6 +4,8 @@ import { team_2026 } from "../assets/data/teams/2026";
 import EmailContactDialog from "../components/EmailContactDialog";
 import StudentProfileCard from "../components/StudentProfileCard";
 import PageHeader from "../components/PageHeader";
+import usePageEntrance from "../hooks/usePageEntrance";
+import { entranceIndexStyle } from "../utils/pageEntrance";
 
 const committeeLeaders = team_2026[groupType.OFFICERS];
 const getCommitteeLeader = (name) => committeeLeaders.find((leader) => leader.name === name);
@@ -59,6 +61,7 @@ const creativeApplicationDeadlineFormatter = new Intl.DateTimeFormat("en-US", {
 });
 
 function GetInvolvedPage() {
+    const entering = usePageEntrance();
     const [creativeApplication, setCreativeApplication] = useState(null);
 
     useEffect(() => {
@@ -122,18 +125,22 @@ function GetInvolvedPage() {
 
     return (
         <div className="baseContainer">
-            <main className="getInvolved">
+            <main className={`getInvolved${entering ? " pageEntrance--enter" : ""}`}>
                 <PageHeader
                     title="Make your mark at IUGA."
                     intro="Join a student-led committee and help shape what happens in the Informatics community."
                     visual={
                         <div className="getInvolved__leaderProfileGrid" role="group" aria-label="Committee lead profiles">
-                            {leaderProfiles.map(({ profile, isFeatured }) => (
+                            {leaderProfiles.map(({ profile, isFeatured }, index) => (
                                 <div
                                     className={`getInvolved__leaderProfile${isFeatured ? " getInvolved__leaderProfile--featured" : ""}`}
                                     key={profile.name}
                                 >
-                                    <StudentProfileCard profile={profile} />
+                                    <StudentProfileCard
+                                        profile={profile}
+                                        className="pageEntrance__hero"
+                                        style={entranceIndexStyle(index)}
+                                    />
                                 </div>
                             ))}
                         </div>
@@ -145,12 +152,12 @@ function GetInvolvedPage() {
                         <h2 id="getInvolved-committees-heading">Find your way to contribute</h2>
                    </div>
                     <div className="getInvolved__committeeList">
-                        {committees.map((committee) => {
+                        {committees.map((committee, index) => {
                             const hasCreativeApplication =
                                 committee.name === "Creative Committee" && creativeApplication !== null;
 
                             return (
-                                <article className="getInvolved__committee" key={committee.name}>
+                                <article className="getInvolved__committee pageEntrance__listItem" key={committee.name} style={entranceIndexStyle(index)}>
                                     <div className="getInvolved__committeeTitle">
                                         <h3>{committee.name}</h3>
                                         <p>Led by {committee.leader.name}</p>

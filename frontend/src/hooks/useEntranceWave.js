@@ -1,12 +1,12 @@
 import { createContext, useCallback, useEffect, useRef, useState } from "react";
 
-// How long a newly shown event keeps the reveal class. Matches the first-visit
+// How long a newly shown item keeps the enter class. Matches the first-visit
 // wave, including the last month-view chip (965ms).
-export const FILTER_REVEAL_MS = 1000;
+export const ENTRANCE_WAVE_MS = 1000;
 
 const EMPTY = new Set();
 
-const defaultReveal = {
+const defaultWave = {
     isEvent: () => false,
     isDay: () => false,
     isMonth: () => false,
@@ -15,7 +15,7 @@ const defaultReveal = {
 
 // Which event, day, or month keys should play the first-visit entrance again.
 // Defaults to none, so a calendar view rendered on its own does not animate.
-export const FilterRevealContext = createContext(defaultReveal);
+export const EntranceWaveContext = createContext(defaultWave);
 
 function idsKey(visibleIds) {
     const list = visibleIds instanceof Set ? [...visibleIds] : [...visibleIds];
@@ -31,17 +31,21 @@ function sameSet(left, right) {
     return true;
 }
 
-// Newly visible keys after a tag is turned on or the date moves, computed
-// during render so the first paint already has the class (a useEffect would
-// let the items show for a frame, then jump). Nothing when items leave, the
-// first-visit wave is still playing, or the view changes. A later date or
-// tag change replaces the set, so a rapid next-next-next cannot stack.
-export default function useFilterReveal(visibleIds, { active, mode, dateKey, tagsKey } = {}) {
+function modeOf(contentKey) {
+    if (!contentKey) return undefined;
+    return contentKey.slice(0, contentKey.indexOf("|"));
+}
+
+// Items that just appeared after the view, date, or filter changed. Computed
+// during render so the first paint already has the class. A view change treats
+// the whole new view as new; a date or filter change only marks items that
+// were not already visible. Nothing when items leave, the first-visit wave is
+// still playing, or the list refreshes in place. A later change replaces the
+// set, so rapid switching cannot stack.
+export default function useEntranceWave(visibleIds, { active, contentKey } = {}) {
     const snapshot = useRef({
         active: false,
-        mode: undefined,
-        dateKey: undefined,
-        tagsKey: undefined,
+        contentKey: undefined,
         idsKey: "",
         ids: null,
     });
@@ -52,18 +56,17 @@ export default function useFilterReveal(visibleIds, { active, mode, dateKey, tag
     if (
         snap.ids === null ||
         snap.active !== active ||
-        snap.mode !== mode ||
-        snap.dateKey !== dateKey ||
-        snap.tagsKey !== tagsKey ||
+        snap.contentKey !== contentKey ||
         snap.idsKey !== nextKey
     ) {
         const nextIds = visibleIds instanceof Set ? new Set(visibleIds) : new Set([...visibleIds].filter(Boolean));
         let nextRevealing = EMPTY;
-        if (active && snap.ids !== null && snap.mode === mode && (snap.dateKey !== dateKey || snap.tagsKey !== tagsKey)) {
-            const added = [...nextIds].filter((id) => !snap.ids.has(id));
+        if (active && snap.ids !== null && snap.contentKey !== contentKey) {
+            const viewChanged = modeOf(snap.contentKey) !== modeOf(contentKey);
+            const added = viewChanged ? [...nextIds] : [...nextIds].filter((id) => !snap.ids.has(id));
             if (added.length) nextRevealing = new Set(added);
         }
-        snapshot.current = { active, mode, dateKey, tagsKey, idsKey: nextKey, ids: nextIds };
+        snapshot.current = { active, contentKey, idsKey: nextKey, ids: nextIds };
         if (!sameSet(nextRevealing, revealingIds)) {
             setRevealingIds(nextRevealing);
         }
@@ -71,7 +74,7 @@ export default function useFilterReveal(visibleIds, { active, mode, dateKey, tag
 
     useEffect(() => {
         if (revealingIds.size === 0) return undefined;
-        const timeout = window.setTimeout(() => setRevealingIds(EMPTY), FILTER_REVEAL_MS);
+        const timeout = window.setTimeout(() => setRevealingIds(EMPTY), ENTRANCE_WAVE_MS);
         return () => window.clearTimeout(timeout);
     }, [revealingIds]);
 

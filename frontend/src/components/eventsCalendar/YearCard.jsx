@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { colorForLabels, dayLabel, formatFullDate } from "../../utils/calendar/calendar";
-import { FilterRevealContext } from "../../hooks/useFilterReveal";
+import { EntranceWaveContext } from "../../hooks/useEntranceWave";
 import useZoomOverlay from "../../hooks/useZoomOverlay";
 import Card from "./Card";
 import DayOverlay from "./DayOverlay";
@@ -9,7 +9,7 @@ import { entranceIndexStyle } from "../../utils/calendar/motion";
 // Shows a compact month whose event days open an animated detail overlay
 // without leaving the year view.
 function YearCard({ title, rows, onPickDay, isCurrentMonth = false, revealing = false, style }) {
-    const { isEvent } = useContext(FilterRevealContext);
+    const { isEvent } = useContext(EntranceWaveContext);
     const { open: selectedDay, openFrom, close, onKeyDown, contentRef, backRef } = useZoomOverlay();
     const isDayOverlayOpen = Boolean(selectedDay);
 
@@ -48,7 +48,7 @@ function YearCard({ title, rows, onPickDay, isCurrentMonth = false, revealing = 
             // Only when this day just gained its first visible event. A day
             // that already had another tag stays still.
             if (cell.events.every((event) => event.id && isEvent(event.id))) {
-                dayClasses.push("pad--event--filter-reveal");
+                dayClasses.push("pad--event--enter");
             }
         }
 
@@ -76,7 +76,7 @@ function YearCard({ title, rows, onPickDay, isCurrentMonth = false, revealing = 
             rows={rows}
             renderDay={renderDay}
             style={style}
-            className={`card--compact${isDayOverlayOpen ? " card--open" : ""}${revealing ? " card--filter-reveal" : ""}`}
+            className={`card--compact${isDayOverlayOpen ? " card--open" : ""}${revealing ? " card--enter" : ""}`}
             isCurrentMonth={isCurrentMonth}
             isDayOverlayOpen={isDayOverlayOpen}
         >

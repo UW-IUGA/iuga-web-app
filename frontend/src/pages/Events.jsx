@@ -10,7 +10,6 @@ Expected Response Information: The controls and the chosen view, with the mini m
 */
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
 import EventOperations from "../components/EventOperations";
 import CalendarControls from "../components/eventsCalendar/CalendarControls";
 import DayView from "../components/eventsCalendar/DayView";
@@ -25,7 +24,7 @@ import { useAuthContext } from "../context/AuthContext";
 import useCalendarView from "../hooks/useCalendarView";
 import useEventList from "../hooks/useEventList";
 import useSwipeStep from "../hooks/useSwipeStep";
-import useFilterReveal, { FilterRevealContext } from "../hooks/useFilterReveal";
+import useEntranceWave, { EntranceWaveContext } from "../hooks/useEntranceWave";
 import useTagFilter from "../hooks/useTagFilter";
 import {
   buildMonthGrid,
@@ -44,10 +43,6 @@ const SIDEBAR_MODES = ["month", "week", "day"];
 // Long enough for the last month-view chip: week row 5 at 80ms each, then a
 // 40ms start plus 5 × 25ms in the row, then its 400ms rise (965ms).
 const PAGE_ENTRANCE_WAVE_MS = 1000;
-
-// Opt-in only: a short rise when switching year/month/week/day. Off unless
-// the URL has `motionViews`, so the default first-visit arrival is unchanged.
-const VIEW_SWITCH_MS = 200;
 
 // What the calendar says instead of its events while it has none to show.
 function ListStatus({ status, onRetry }) {
@@ -86,21 +81,6 @@ function EventsPage() {
 
   const { mode, selectedDate, goToDay, goToDate, goToToday, step, setMode } =
     useCalendarView();
-  const [searchParams] = useSearchParams();
-  const [viewEntering, setViewEntering] = useState(false);
-  const previousMode = useRef(mode);
-
-  useEffect(() => {
-    if (previousMode.current === mode) return;
-    previousMode.current = mode;
-    if (!searchParams.has("motionViews")) return;
-    setViewEntering(true);
-    const timeout = window.setTimeout(
-      () => setViewEntering(false),
-      VIEW_SWITCH_MS,
-    );
-    return () => window.clearTimeout(timeout);
-  }, [mode, searchParams]);
   const { can, isAuthenticated } = useAuthContext();
   const { records, status, retry } = useEventList({
     refreshKey: isAuthenticated,
@@ -142,19 +122,17 @@ function EventsPage() {
     () => filterByTags(allEvents, shownTags),
     [allEvents, shownTags],
   );
-  // After the first visit, events that a tag or a date change just brought
-  // on screen play the same left-to-right wave as the first visit.
-  // Already-visible ones stay still, and items that leave have none. A view
-  // switch is snapshotted, not animated.
+  // After the first visit, a change of view, date, or filter plays the same
+  // left-to-right wave. A new view waves in full; a date or filter change
+  // only rises what just appeared. Items that leave have none.
   const visibleKeys = useMemo(
     () => visibleRevealKeys(mode, selectedDate, events),
     [mode, selectedDate, events],
   );
-  const isFilterRevealing = useFilterReveal(visibleKeys, {
+  const contentKey = `${mode}|${toISODate(selectedDate)}|${shownTags.join(",")}`;
+  const entranceWave = useEntranceWave(visibleKeys, {
     active: !entering,
-    mode,
-    dateKey: toISODate(selectedDate),
-    tagsKey: shownTags.join(","),
+    contentKey,
   });
   const tagFilter = {
     isTagShown,
@@ -232,12 +210,12 @@ function EventsPage() {
 
             <div
               ref={mainRef}
-              className={`events__main${hasSidebar ? " events__main--swipe" : ""}${viewEntering ? " events__main--view-enter" : ""}`}
+              className={`events__main${hasSidebar ? " events__main--swipe" : ""}`}
             >
               <ListStatus status={status} onRetry={retry} />
-              <FilterRevealContext.Provider value={isFilterRevealing}>
+              <EntranceWaveContext.Provider value={entranceWave}>
                 {view}
-              </FilterRevealContext.Provider>
+              </EntranceWaveContext.Provider>
             </div>
           </div>
 

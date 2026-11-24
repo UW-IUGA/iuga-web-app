@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { buildMonthGrid, groupByMonth, zonedParts } from "../../utils/calendar/calendar";
-import { FilterRevealContext } from "../../hooks/useFilterReveal";
+import { EntranceWaveContext } from "../../hooks/useEntranceWave";
 import YearCard from "./YearCard";
 import { entranceIndexStyle } from "../../utils/calendar/motion";
 
@@ -8,7 +8,7 @@ import { entranceIndexStyle } from "../../utils/calendar/motion";
 // year. Event days open within their month cards; "View day" navigates away.
 // `events` are normalized, and already through the tag filter.
 function YearView({ events, onPickDay }) {
-    const { isMonth } = useContext(FilterRevealContext);
+    const { isMonth } = useContext(EntranceWaveContext);
     const months = groupByMonth(events);
     const today = zonedParts(new Date());
 

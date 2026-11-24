@@ -2,13 +2,13 @@ import { useContext, useState } from "react";
 import { colorForLabels, dayKeyOf, dayLabel, formatLongDay, isSameDay, zonedParts } from "../../utils/calendar/calendar";
 import Card from "./Card";
 import EventPopover from "./EventPopover";
-import { FilterRevealContext } from "../../hooks/useFilterReveal";
+import { EntranceWaveContext } from "../../hooks/useEntranceWave";
 import { entranceIndexStyle, entranceRowStyle } from "../../utils/calendar/motion";
 
 // Shows a full month with event popovers. Event chips open one event;
 // "+N more" opens the day's events. The day button navigates to the day view.
 function MonthCard({ title, rows, onPickDay }) {
-    const { isEvent, isDay, isMore } = useContext(FilterRevealContext);
+    const { isEvent, isDay, isMore } = useContext(EntranceWaveContext);
     const [popoverSelection, setPopoverSelection] = useState(null);
     const today = new Date();
 
@@ -102,7 +102,7 @@ function MonthCard({ title, rows, onPickDay }) {
         });
 
         if (isDay(dayKeyOf(cell.date))) {
-            dayClasses.push("pad--filter-reveal");
+            dayClasses.push("pad--enter");
         }
 
         return (
@@ -122,7 +122,7 @@ function MonthCard({ title, rows, onPickDay }) {
                         {cell.events.slice(0, 3).map((event) => (
                             <button
                                 {...getEventChipProps(event)}
-                                className={`pad__event${isEvent(event.id) ? " pad__event--filter-reveal" : ""}`}
+                                className={`pad__event${isEvent(event.id) ? " pad__event--enter" : ""}`}
                                 key={event.id}
                                 style={entranceIndexStyle(chipIndexByKey.get(`${cell.id}|${event.id}`), {
                                     backgroundColor: colorForLabels(event.labels),
@@ -138,7 +138,7 @@ function MonthCard({ title, rows, onPickDay }) {
                         {cell.events.length > 3 && (
                             <button
                                 {...getEventChipProps(null)}
-                                className={`pad__more${isMore(dayKeyOf(cell.date)) ? " pad__more--filter-reveal" : ""}`}
+                                className={`pad__more${isMore(dayKeyOf(cell.date)) ? " pad__more--enter" : ""}`}
                                 style={entranceIndexStyle(chipIndexByKey.get(`${cell.id}|more`))}
                                 // Says what is behind it and which day, where the visible "+2 more"
                                 // says neither. Starts with the visible text, so speaking it still

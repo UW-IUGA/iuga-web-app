@@ -1,5 +1,5 @@
 import { useContext, useLayoutEffect, useMemo, useRef } from "react";
-import { FilterRevealContext } from "../../hooks/useFilterReveal";
+import { EntranceWaveContext } from "../../hooks/useEntranceWave";
 import useNow from "../../hooks/useNow";
 import { colorForLabels, formatClockTime, formatWeekday, overlapBox, zonedParts } from "../../utils/calendar/calendar";
 import { firstEvent, scrollTopFor } from "../../utils/calendar/gridScroll";
@@ -29,7 +29,7 @@ function hourLabel(hour) {
  * presses are reported to the caller; the selected event stays the caller's.
  */
 function TimeGrid({ columns, onPickEvent, openEventKey = null, onPickColumn }) {
-    const { isEvent } = useContext(FilterRevealContext);
+    const { isEvent } = useContext(EntranceWaveContext);
     const scrollRef = useRef(null);
     const now = useNow();
     const nowParts = zonedParts(now);
@@ -154,7 +154,7 @@ function TimeGrid({ columns, onPickEvent, openEventKey = null, onPickColumn }) {
                                 return (
                                     <Event
                                         key={key}
-                                        className={`grid__event${onPickEvent ? " grid__event--button" : ""}${isEvent(item.event.id) ? " grid__event--filter-reveal" : ""}`}
+                                        className={`grid__event${onPickEvent ? " grid__event--button" : ""}${isEvent(item.event.id) ? " grid__event--enter" : ""}`}
                                         {...eventButtonProps}
                                         style={entranceIndexStyle(entranceIndexByKey.get(key), {
                                             top: `${item.top}%`,

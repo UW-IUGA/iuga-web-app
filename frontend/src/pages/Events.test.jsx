@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { formatMonthYear } from "../utils/calendar/calendar";
-import { FILTER_REVEAL_MS } from "../hooks/useFilterReveal";
+import { ENTRANCE_WAVE_MS } from "../hooks/useEntranceWave";
 import EventsPage from "./Events";
 
 let production = true;
@@ -351,30 +351,30 @@ describe("Events page: filtering by tag", () => {
 
             fireEvent.click(tagBox("Career"));
             expect(screen.queryByRole("button", { name: "Resume Clinic" })).not.toBeInTheDocument();
-            expect(screen.getByRole("button", { name: "Study Jam" })).not.toHaveClass("pad__event--filter-reveal");
+            expect(screen.getByRole("button", { name: "Study Jam" })).not.toHaveClass("pad__event--enter");
 
             fireEvent.click(tagBox("Career"));
             const clinic = screen.getByRole("button", { name: "Resume Clinic" });
             const jam = screen.getByRole("button", { name: "Study Jam" });
-            expect(clinic).toHaveClass("pad__event--filter-reveal");
-            expect(jam).not.toHaveClass("pad__event--filter-reveal");
+            expect(clinic).toHaveClass("pad__event--enter");
+            expect(jam).not.toHaveClass("pad__event--enter");
 
             act(() => {
-                vi.advanceTimersByTime(FILTER_REVEAL_MS - 1);
+                vi.advanceTimersByTime(ENTRANCE_WAVE_MS - 1);
             });
-            expect(clinic).toHaveClass("pad__event--filter-reveal");
+            expect(clinic).toHaveClass("pad__event--enter");
 
             act(() => {
                 vi.advanceTimersByTime(1);
             });
-            expect(clinic).not.toHaveClass("pad__event--filter-reveal");
+            expect(clinic).not.toHaveClass("pad__event--enter");
             expect(container.querySelector(".page--events--enter")).toBeNull();
         } finally {
             vi.useRealTimers();
         }
     });
 
-    it("does not rise events when the view changes", async () => {
+    it("waves every event in the new view when switching views", async () => {
         vi.useFakeTimers();
         try {
             await visit("/events?view=month&date=2026-10-20");
@@ -383,8 +383,25 @@ describe("Events page: filtering by tag", () => {
             });
 
             fireEvent.click(screen.getByRole("radio", { name: "Week" }));
-            expect(screen.getByRole("button", { name: /Study Jam/ })).not.toHaveClass("grid__event--filter-reveal");
-            expect(screen.getByRole("button", { name: /Resume Clinic/ })).not.toHaveClass("grid__event--filter-reveal");
+            expect(screen.getByRole("button", { name: /Study Jam/ })).toHaveClass("grid__event--enter");
+            expect(screen.getByRole("button", { name: /Resume Clinic/ })).toHaveClass("grid__event--enter");
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("waves year-view month cards when switching to year view", async () => {
+        vi.useFakeTimers();
+        try {
+            const { container } = await visit("/events?view=month&date=2026-10-20");
+            act(() => {
+                vi.advanceTimersByTime(1000);
+            });
+
+            fireEvent.click(screen.getByRole("radio", { name: "Year" }));
+            const cards = [...container.querySelectorAll(".year > .card")];
+            expect(cards.length).toBeGreaterThan(0);
+            expect(cards.every((card) => card.classList.contains("card--enter"))).toBe(true);
         } finally {
             vi.useRealTimers();
         }
@@ -401,7 +418,7 @@ describe("Events page: filtering by tag", () => {
             fireEvent.click(screen.getByRole("button", { name: "Next month" }));
 
             const openHouse = screen.getByRole("button", { name: "Open House" });
-            expect(openHouse).toHaveClass("pad__event--filter-reveal");
+            expect(openHouse).toHaveClass("pad__event--enter");
             expect(screen.queryByRole("button", { name: "Study Jam" })).not.toBeInTheDocument();
         } finally {
             vi.useRealTimers();
@@ -415,12 +432,12 @@ describe("Events page: filtering by tag", () => {
             act(() => {
                 vi.advanceTimersByTime(1000);
             });
-            expect(screen.getByRole("button", { name: "Welcome Night" })).not.toHaveClass("pad__event--filter-reveal");
+            expect(screen.getByRole("button", { name: "Welcome Night" })).not.toHaveClass("pad__event--enter");
 
             fireEvent.click(screen.getByRole("button", { name: "Next month" }));
 
-            expect(screen.getByRole("button", { name: "Welcome Night" })).not.toHaveClass("pad__event--filter-reveal");
-            expect(screen.getByRole("button", { name: "Study Jam" })).toHaveClass("pad__event--filter-reveal");
+            expect(screen.getByRole("button", { name: "Welcome Night" })).not.toHaveClass("pad__event--enter");
+            expect(screen.getByRole("button", { name: "Study Jam" })).toHaveClass("pad__event--enter");
         } finally {
             vi.useRealTimers();
         }
@@ -436,7 +453,7 @@ describe("Events page: filtering by tag", () => {
 
             fireEvent.click(screen.getByRole("button", { name: "Next week" }));
 
-            expect(screen.getByRole("button", { name: /Hack Night/ })).toHaveClass("grid__event--filter-reveal");
+            expect(screen.getByRole("button", { name: /Hack Night/ })).toHaveClass("grid__event--enter");
             expect(screen.queryByRole("button", { name: /Study Jam/ })).not.toBeInTheDocument();
         } finally {
             vi.useRealTimers();
@@ -454,7 +471,7 @@ describe("Events page: filtering by tag", () => {
 
             fireEvent.click(screen.getByRole("button", { name: "Next day" }));
 
-            expect(screen.getByRole("button", { name: /Resume Clinic/ })).toHaveClass("grid__event--filter-reveal");
+            expect(screen.getByRole("button", { name: /Resume Clinic/ })).toHaveClass("grid__event--enter");
             expect(screen.queryByRole("button", { name: /Study Jam/ })).not.toBeInTheDocument();
         } finally {
             vi.useRealTimers();
@@ -473,7 +490,7 @@ describe("Events page: filtering by tag", () => {
 
             fireEvent.click(screen.getByRole("button", { name: "Today" }));
 
-            expect(screen.getByRole("button", { name: "Study Jam" })).toHaveClass("pad__event--filter-reveal");
+            expect(screen.getByRole("button", { name: "Study Jam" })).toHaveClass("pad__event--enter");
             expect(screen.queryByRole("button", { name: "Open House" })).not.toBeInTheDocument();
         } finally {
             vi.useRealTimers();
@@ -493,7 +510,7 @@ describe("Events page: filtering by tag", () => {
             );
             fireEvent.click(day);
 
-            expect(screen.getByRole("button", { name: /Hack Night/ })).toHaveClass("grid__event--filter-reveal");
+            expect(screen.getByRole("button", { name: /Hack Night/ })).toHaveClass("grid__event--enter");
             expect(screen.queryByRole("button", { name: /Study Jam/ })).not.toBeInTheDocument();
         } finally {
             vi.useRealTimers();
@@ -511,8 +528,8 @@ describe("Events page: filtering by tag", () => {
             fireEvent.click(tagBox("Career"));
             fireEvent.click(tagBox("Career"));
 
-            expect(screen.getByRole("button", { name: /Resume Clinic/ })).toHaveClass("grid__event--filter-reveal");
-            expect(screen.getByRole("button", { name: /Study Jam/ })).not.toHaveClass("grid__event--filter-reveal");
+            expect(screen.getByRole("button", { name: /Resume Clinic/ })).toHaveClass("grid__event--enter");
+            expect(screen.getByRole("button", { name: /Study Jam/ })).not.toHaveClass("grid__event--enter");
         } finally {
             vi.useRealTimers();
         }
@@ -529,12 +546,12 @@ describe("Events page: filtering by tag", () => {
             fireEvent.click(tagBox("Career"));
             fireEvent.click(tagBox("Career"));
 
-            const revealing = [...container.querySelectorAll(".pad--event--filter-reveal")];
+            const revealing = [...container.querySelectorAll(".pad--event--enter")];
             expect(revealing.length).toBeGreaterThan(0);
             expect(revealing.every((day) => day.classList.contains("pad--event"))).toBe(true);
             // Study Jam's day was already visible as Academic, so it stays still.
             const stillDays = [...container.querySelectorAll(".pad--event")].filter(
-                (day) => !day.classList.contains("pad--event--filter-reveal"),
+                (day) => !day.classList.contains("pad--event--enter"),
             );
             expect(stillDays.length).toBeGreaterThan(0);
         } finally {
@@ -745,28 +762,17 @@ describe("Events page: views and navigation", () => {
         }
     });
 
-    it("does not play a view-switch rise unless motionViews is in the URL", async () => {
-        const { container } = await visit("/events?view=month&date=2026-10-20");
-        fireEvent.click(screen.getByRole("radio", { name: "Week" }));
-        expect(container.querySelector(".events__main--view-enter")).toBeNull();
-    });
-
-    it("plays a short view-switch rise when motionViews is in the URL", async () => {
+    it("does not play the old motionViews container rise, even when motionViews is in the URL", async () => {
         vi.useFakeTimers();
         try {
             const { container } = await visit("/events?view=month&date=2026-10-20&motionViews");
+            act(() => {
+                vi.advanceTimersByTime(1000);
+            });
+
             fireEvent.click(screen.getByRole("radio", { name: "Week" }));
-            expect(container.querySelector(".events__main")).toHaveClass("events__main--view-enter");
-
-            act(() => {
-                vi.advanceTimersByTime(199);
-            });
-            expect(container.querySelector(".events__main")).toHaveClass("events__main--view-enter");
-
-            act(() => {
-                vi.advanceTimersByTime(1);
-            });
             expect(container.querySelector(".events__main--view-enter")).toBeNull();
+            expect(screen.getByRole("button", { name: /Study Jam/ })).toHaveClass("grid__event--enter");
         } finally {
             vi.useRealTimers();
         }

@@ -190,11 +190,11 @@ describe("Events page entrance", () => {
     });
 });
 
-describe("Events filter reveal", () => {
+describe("Events entrance wave", () => {
     it("replays the month view's week-row wave on newly shown pads and chips", () => {
-        const pad = motionDeclarations(".eventsCalendar .page--events .card--month .pad--filter-reveal");
-        const chip = motionDeclarations(".eventsCalendar .page--events .card--month .pad__event--filter-reveal");
-        const more = motionDeclarations(".eventsCalendar .page--events .card--month .pad__more--filter-reveal");
+        const pad = motionDeclarations(".eventsCalendar .page--events .card--month .pad--enter");
+        const chip = motionDeclarations(".eventsCalendar .page--events .card--month .pad__event--enter");
+        const more = motionDeclarations(".eventsCalendar .page--events .card--month .pad__more--enter");
 
         expect(pad.animation).toBe("page-entrance-rise 400ms cubic-bezier(0.23, 1, 0.32, 1) both");
         expect(pad["--rise"]).toBe("10px");
@@ -213,9 +213,9 @@ describe("Events filter reveal", () => {
     });
 
     it("replays the nested item wave on year days and week events", () => {
-        const yearCard = motionDeclarations(".eventsCalendar .page--events .year > .card--filter-reveal");
-        const yearDay = motionDeclarations(".eventsCalendar .page--events .pad--event--filter-reveal");
-        const gridEvent = motionDeclarations(".eventsCalendar .page--events .grid__event--filter-reveal");
+        const yearCard = motionDeclarations(".eventsCalendar .page--events .year > .card--enter");
+        const yearDay = motionDeclarations(".eventsCalendar .page--events .pad--event--enter");
+        const gridEvent = motionDeclarations(".eventsCalendar .page--events .grid__event--enter");
 
         expect(yearCard.animation).toBe("page-entrance-rise 520ms cubic-bezier(0.23, 1, 0.32, 1) both");
         expect(yearCard["--rise"]).toBe("14px");

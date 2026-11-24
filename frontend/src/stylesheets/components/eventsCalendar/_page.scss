@@ -153,25 +153,25 @@ $page-entrance-month-chip-delay: calc(var(--entrance-row, 0) * #{$page-entrance-
         }
     }
 
-    // Newly shown events after a date or tag change play the same staggered
-    // rise as the first visit, only on the items that just appeared. The class
-    // is not under `--enter`, so the first-visit wave is unchanged.
-    .page--events .card--month .pad--filter-reveal {
+    // After the first visit, the same staggered rise plays on items that just
+    // appeared after a view, date, or filter change. These classes are not
+    // under `&--enter`, so the first-visit wave is unchanged.
+    .page--events .card--month .pad--enter {
         @include page-entrance-rise($page-entrance-item-duration) {
             --rise: #{$page-entrance-item-rise};
             animation-delay: calc(var(--entrance-row, 0) * #{$page-entrance-month-row-step});
         }
     }
 
-    .page--events .card--month .pad__event--filter-reveal,
-    .page--events .card--month .pad__more--filter-reveal {
+    .page--events .card--month .pad__event--enter,
+    .page--events .card--month .pad__more--enter {
         @include page-entrance-rise($page-entrance-item-duration) {
             --rise: #{$page-entrance-item-rise};
             animation-delay: $page-entrance-month-chip-delay;
         }
     }
 
-    .page--events .year > .card--filter-reveal {
+    .page--events .year > .card--enter {
         @include page-entrance-item(
             $page-entrance-events-duration,
             0ms,
@@ -181,17 +181,8 @@ $page-entrance-month-chip-delay: calc(var(--entrance-row, 0) * #{$page-entrance-
         );
     }
 
-    .page--events .pad--event--filter-reveal,
-    .page--events .grid__event--filter-reveal {
+    .page--events .pad--event--enter,
+    .page--events .grid__event--enter {
         @include page-entrance-nested-item;
-    }
-
-    // Opt-in view-switch rise (`?motionViews`). A short 200ms ease-out on the
-    // new view only, no stagger, so it stays a tab-like swap rather than a
-    // second page arrival.
-    .events__main--view-enter > * {
-        @include page-entrance-rise($duration-fade) {
-            --rise: 8px;
-        }
     }
 }

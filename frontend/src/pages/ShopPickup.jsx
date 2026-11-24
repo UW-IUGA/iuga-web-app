@@ -20,6 +20,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { useAuthContext } from "../context/AuthContext";
+import { EntranceList, usePageEntranceClass } from "../components/PageEntrance";
 import AdminBar from "../components/AdminBar";
 import { formatDateTime } from "../utils/shopFormat";
 import { saveShopPurchaseChange, SHOP_PURCHASES_URL as API } from "../utils/shopPurchaseApi";
@@ -184,9 +185,9 @@ function PickupState({ order, saving, disabled, onPickUp }) {
     );
 }
 
-function OrderCard({ order, saving, disabled, onPickUp }) {
+function OrderCard({ order, saving, disabled, onPickUp, className, style }) {
     return (
-        <li className="shopPickup__card" aria-label={order.buyer ? fullName(order.buyer) || order.buyer.name : "Account unavailable"}>
+        <li className={className ? `shopPickup__card ${className}` : "shopPickup__card"} style={style} aria-label={order.buyer ? fullName(order.buyer) || order.buyer.name : "Account unavailable"}>
             <div className="shopPickup__who">
                 <NameLine order={order} />
                 <span className="shopPickup__venmo">@{order.venmoUsername}</span>
@@ -222,6 +223,7 @@ function LetterRail({ present, onJump }) {
 }
 
 export default function ShopPickupPage() {
+    const adminClass = usePageEntranceClass("shopAdmin shopPickup");
     const { isAuthenticated, authLoading, signIn } = useAuthContext();
     const searchRef = useRef(null);
     // One ready-list request runs at a time. A request asked for during another waits for it, and a list changed by
@@ -442,7 +444,7 @@ export default function ShopPickupPage() {
     );
 
     return (
-        <div className="shopAdmin shopPickup">
+        <div className={adminClass}>
             <AdminBar />
             <main className="shopAdmin__main shopPickup__main">
                 <div className="shopAdmin__heading">
@@ -451,6 +453,7 @@ export default function ShopPickupPage() {
                 </div>
 
                 {denied === "signedOut" && (
+                    <EntranceList>
                     <section className="shopAdmin__panel">
                         <h2>Sign in to pick up orders</h2>
                         <p>This page is for IUGA officers who hand out shop orders.</p>
@@ -458,14 +461,17 @@ export default function ShopPickupPage() {
                             Sign in with UW NetID
                         </button>
                     </section>
+                    </EntranceList>
                 )}
 
                 {denied === "forbidden" && (
+                    <EntranceList>
                     <section className="shopAdmin__panel">
                         <h2>No access to pickup</h2>
                         <p>This page is for IUGA officers who hand out shop orders.</p>
                         <p>Ask an officer who manages roles to give you order review access.</p>
                     </section>
+                    </EntranceList>
                 )}
 
                 {!denied && (
@@ -542,7 +548,7 @@ export default function ShopPickupPage() {
                                 )}
                                 {search.status === "ready" && searchOrders.length > 0 && (
                                     <ol className="shopPickup__results" aria-label="Matching orders">
-                                        {searchOrders.map((order) => renderCard(order, null))}
+                                        <EntranceList>{searchOrders.map((order) => renderCard(order, null))}</EntranceList>
                                     </ol>
                                 )}
                                 {search.status === "ready" && search.nextCursor && (
@@ -600,7 +606,7 @@ export default function ShopPickupPage() {
                                                         <section key={group.letter} id={anchorFor(group.letter)} className="shopPickup__group">
                                                             <h2 className="shopPickup__letter">{group.letter}</h2>
                                                             <ol className="shopPickup__results">
-                                                                {group.orders.map((order) => renderCard(order, readyIds))}
+                                                                <EntranceList>{group.orders.map((order) => renderCard(order, readyIds))}</EntranceList>
                                                             </ol>
                                                         </section>
                                                     ))}

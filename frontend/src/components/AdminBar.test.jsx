@@ -9,6 +9,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import AdminBar from "./AdminBar";
+import { resetPageEntranceForTests } from "../utils/pageEntrance";
 
 const auth = vi.hoisted(() => {
     const auth = { isAuthenticated: true, user: { uFirstName: "Olive" }, permissions: [], signOut: vi.fn() };
@@ -18,6 +19,7 @@ const auth = vi.hoisted(() => {
 vi.mock("../context/AuthContext", () => ({ useAuthContext: () => auth }));
 
 beforeEach(() => {
+    resetPageEntranceForTests();
     auth.permissions = ["shop.purchases.review"];
     auth.signOut.mockClear();
 });
@@ -88,3 +90,12 @@ describe("admin bar", () => {
         expect(screen.getByRole("button", { name: "Sign out" })).toBeInTheDocument();
     });
 });
+
+    test("plays the bar entrance on the first load of the visit only", () => {
+        const { unmount } = renderBar();
+        expect(screen.getByRole("banner")).toHaveClass("adminBar--enter");
+        unmount();
+        renderBar();
+        expect(screen.getByRole("banner")).toHaveClass("adminBar");
+        expect(screen.getByRole("banner")).not.toHaveClass("adminBar--enter");
+    });

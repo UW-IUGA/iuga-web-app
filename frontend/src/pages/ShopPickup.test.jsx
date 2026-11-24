@@ -11,6 +11,7 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import ShopPickupPage from "./ShopPickup";
+import { resetPageEntranceForTests } from "../utils/pageEntrance";
 
 const auth = vi.hoisted(() => ({
     isAuthenticated: true,
@@ -190,6 +191,7 @@ async function advance(ms) {
 }
 
 beforeEach(() => {
+    resetPageEntranceForTests();
     auth.isAuthenticated = true;
 });
 
@@ -943,5 +945,20 @@ describe("access and mode switch", () => {
         expect(within(bar).getByRole("link", { name: "Pickup" })).toHaveAttribute("aria-current", "page");
         expect(within(bar).getByRole("link", { name: "Orders" })).toHaveAttribute("href", "/admin/shop/orders");
         expect(within(bar).getByRole("link", { name: "Orders" })).not.toHaveAttribute("aria-current");
+    });
+});
+
+describe("first-visit entrance", () => {
+    it("waves the ready cards in, leaving the title and search still", async () => {
+        mockApi({ [BOARD]: boardResponse([person(1, "Alex", "Kim"), person(2, "Sam", "Lopez")]) });
+        renderPage();
+
+        const first = await readyCard("Alex Kim");
+        expect(document.querySelector(".shopAdmin")).toHaveClass("pageEntrance--enter");
+        expect(screen.getByRole("heading", { name: "Pickup" })).not.toHaveClass("pageEntrance__listItem");
+        expect(screen.getByRole("searchbox", { name: SEARCH_LABEL })).not.toHaveClass("pageEntrance__listItem");
+        expect(first).toHaveClass("pageEntrance__listItem");
+        expect(first.style.getPropertyValue("--entrance-i")).toBe("0");
+        expect(screen.getByRole("listitem", { name: "Sam Lopez" })).toHaveClass("pageEntrance__listItem");
     });
 });

@@ -17,6 +17,7 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown, faEllipsis, faEnvelope, faMagnifyingGlass, faPhone, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { useAuthContext } from "../context/AuthContext";
+import { EntranceList, usePageEntranceClass } from "../components/PageEntrance";
 import EmailContactDialog from "../components/EmailContactDialog";
 import AdminBar from "../components/AdminBar";
 import { usePopover } from "../hooks/usePopover";
@@ -319,6 +320,7 @@ function Overview({ counts, totals, onChooseFilter }) {
     ];
     return (
         <div className="shopAdmin__overview" role="group" aria-label="Overview">
+            <EntranceList>
             {cards.map(({ label, value, note, tone, filter }) => {
                 const className = tone ? `shopAdmin__stat shopAdmin__stat--${tone}` : "shopAdmin__stat";
                 const body = (
@@ -334,6 +336,7 @@ function Overview({ counts, totals, onChooseFilter }) {
                     <div key={label} className={className}>{body}</div>
                 );
             })}
+            </EntranceList>
         </div>
     );
 }
@@ -1154,6 +1157,7 @@ function useLockPageScroll(locked) {
 }
 
 export default function ShopOrdersPage() {
+    const adminClass = usePageEntranceClass("shopAdmin");
     const { isAuthenticated, authLoading, user, signIn } = useAuthContext();
     const [filters, setFilters] = useState(INITIAL_FILTERS);
     const [searchText, setSearchText] = useState("");
@@ -1650,7 +1654,7 @@ export default function ShopOrdersPage() {
     const shownModal = modal ? modalContent() : null;
 
     return (
-        <div className="shopAdmin">
+        <div className={adminClass}>
             <AdminBar />
             <main className="shopAdmin__main">
                 <div className="shopAdmin__heading">
@@ -1659,6 +1663,7 @@ export default function ShopOrdersPage() {
                 </div>
 
                 {view === "signedOut" && (
+                    <EntranceList>
                     <section className="shopAdmin__panel">
                         <h2>Sign in to review orders</h2>
                         <p>This page is for IUGA officers who review shop orders.</p>
@@ -1666,14 +1671,17 @@ export default function ShopOrdersPage() {
                             Sign in with UW NetID
                         </button>
                     </section>
+                    </EntranceList>
                 )}
 
                 {view === "forbidden" && (
+                    <EntranceList>
                     <section className="shopAdmin__panel">
                         <h2>No access to orders</h2>
                         <p>This page is for IUGA officers who review shop orders.</p>
                         <p>Ask an officer who manages roles to give you order review access.</p>
                     </section>
+                    </EntranceList>
                 )}
 
                 {showOrders && (
@@ -1783,6 +1791,7 @@ export default function ShopOrdersPage() {
                                 </div>
                             )}
                             {view === "ready" && items.length > 0 && (
+                                <EntranceList startAt={4}>
                                 <div className="shopAdmin__tableWrap">
                                     <table className="shopAdmin__table">
                                         <caption className="sr-only">Orders</caption>
@@ -1818,6 +1827,7 @@ export default function ShopOrdersPage() {
                                         )))}
                                     </table>
                                 </div>
+                                </EntranceList>
                             )}
                             {view === "ready" && items.length > 0 && (
                                 <div className="shopAdmin__listFooter">

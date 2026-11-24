@@ -11,6 +11,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock } from "@fortawesome/free-solid-svg-icons";
 import { useAuthContext } from "../context/AuthContext";
 import PageHeader from "./PageHeader";
+import usePageEntrance from "../hooks/usePageEntrance";
 
 const previewRows = [0, 1, 2];
 const previewChoices = [0, 1, 2, 3, 4];
@@ -21,9 +22,11 @@ const previewChoices = [0, 1, 2, 3, 4];
  * Microsoft's form app and no live form sits behind the overlay.
  */
 function LockedPreview({ onSignIn }) {
+    const entering = usePageEntrance({ onceKey: "student-voice" });
+
     return (
         <div className="baseContainer">
-            <main className="studentVoice">
+            <main className={`studentVoice${entering ? " pageEntrance--enter" : ""}`}>
                 <PageHeader
                     title="Tell IUGA what you think."
                     intro="Your feedback helps IUGA advocate for Informatics students and plan its events and programs. Sign in with your UW NetID to share it."
@@ -34,7 +37,7 @@ function LockedPreview({ onSignIn }) {
                         <h2 id="open-feedback-heading">Open feedback</h2>
                     </div>
 
-                    <div className="studentVoicePreview editorial-card">
+                    <div className="studentVoicePreview editorial-card pageEntrance__item">
                         <div className="studentVoicePreview__form" aria-hidden="true">
                             <span className="studentVoicePreview__title" />
                             {previewRows.map((row) => (

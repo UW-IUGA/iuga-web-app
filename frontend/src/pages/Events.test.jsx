@@ -45,6 +45,27 @@ const RESUME_CLINIC = {
     eLabels: ["Career"],
 };
 
+const WELCOME_NIGHT = {
+    eId: "welcome-night",
+    eName: "Welcome Night",
+    eStartDate: "2026-10-01T18:00:00.000Z",
+    eLabels: ["Social"],
+};
+
+const HACK_NIGHT = {
+    eId: "hack-night",
+    eName: "Hack Night",
+    eStartDate: "2026-10-27T01:00:00.000Z",
+    eLabels: ["Academic"],
+};
+
+const OPEN_HOUSE = {
+    eId: "open-house",
+    eName: "Open House",
+    eStartDate: "2026-11-15T18:00:00.000Z",
+    eLabels: ["Social"],
+};
+
 const GAME_NIGHT_2024 = {
     eId: "game-night",
     eName: "IUGA Game Night",
@@ -59,7 +80,7 @@ const SOCIAL_2020 = {
     eLabels: ["Social"],
 };
 
-const EVENTS = [STUDY_JAM, RESUME_CLINIC, GAME_NIGHT_2024, SOCIAL_2020];
+const EVENTS = [STUDY_JAM, RESUME_CLINIC, WELCOME_NIGHT, HACK_NIGHT, OPEN_HOUSE, GAME_NIGHT_2024, SOCIAL_2020];
 
 const jsonResponse = (body, { ok = true, status = 200, statusText = "OK" } = {}) => ({
     ok,
@@ -353,7 +374,7 @@ describe("Events page: filtering by tag", () => {
         }
     });
 
-    it("does not rise events when the view or date changes", async () => {
+    it("does not rise events when the view changes", async () => {
         vi.useFakeTimers();
         try {
             await visit("/events?view=month&date=2026-10-20");
@@ -364,9 +385,116 @@ describe("Events page: filtering by tag", () => {
             fireEvent.click(screen.getByRole("radio", { name: "Week" }));
             expect(screen.getByRole("button", { name: /Study Jam/ })).not.toHaveClass("grid__event--filter-reveal");
             expect(screen.getByRole("button", { name: /Resume Clinic/ })).not.toHaveClass("grid__event--filter-reveal");
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("rises events that a month change just brought on screen, all at once", async () => {
+        vi.useFakeTimers();
+        try {
+            await visit("/events?view=month&date=2026-10-20");
+            act(() => {
+                vi.advanceTimersByTime(1000);
+            });
+
+            fireEvent.click(screen.getByRole("button", { name: "Next month" }));
+
+            const openHouse = screen.getByRole("button", { name: "Open House" });
+            expect(openHouse).toHaveClass("pad__event--filter-reveal");
+            expect(screen.queryByRole("button", { name: "Study Jam" })).not.toBeInTheDocument();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("leaves an event still when it was already visible on an outside day of the previous month", async () => {
+        vi.useFakeTimers();
+        try {
+            await visit("/events?view=month&date=2026-09-15");
+            act(() => {
+                vi.advanceTimersByTime(1000);
+            });
+            expect(screen.getByRole("button", { name: "Welcome Night" })).not.toHaveClass("pad__event--filter-reveal");
+
+            fireEvent.click(screen.getByRole("button", { name: "Next month" }));
+
+            expect(screen.getByRole("button", { name: "Welcome Night" })).not.toHaveClass("pad__event--filter-reveal");
+            expect(screen.getByRole("button", { name: "Study Jam" })).toHaveClass("pad__event--filter-reveal");
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("rises a week-view event that the next week just brought on screen", async () => {
+        vi.useFakeTimers();
+        try {
+            await visit("/events?view=week&date=2026-10-20");
+            act(() => {
+                vi.advanceTimersByTime(1000);
+            });
 
             fireEvent.click(screen.getByRole("button", { name: "Next week" }));
-            expect(document.querySelector(".grid__event--filter-reveal")).toBeNull();
+
+            expect(screen.getByRole("button", { name: /Hack Night/ })).toHaveClass("grid__event--filter-reveal");
+            expect(screen.queryByRole("button", { name: /Study Jam/ })).not.toBeInTheDocument();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("rises a day-view event when the next day is opened", async () => {
+        vi.useFakeTimers();
+        try {
+            await visit("/events?view=day&date=2026-10-20");
+            act(() => {
+                vi.advanceTimersByTime(1000);
+            });
+            expect(screen.getByRole("button", { name: /Study Jam/ })).toBeInTheDocument();
+
+            fireEvent.click(screen.getByRole("button", { name: "Next day" }));
+
+            expect(screen.getByRole("button", { name: /Resume Clinic/ })).toHaveClass("grid__event--filter-reveal");
+            expect(screen.queryByRole("button", { name: /Study Jam/ })).not.toBeInTheDocument();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("rises events Today just brought on screen", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-10-20T17:00:00.000Z"));
+        try {
+            await visit("/events?view=month&date=2026-11-15");
+            act(() => {
+                vi.advanceTimersByTime(1000);
+            });
+            expect(screen.getByRole("button", { name: "Open House" })).toBeInTheDocument();
+
+            fireEvent.click(screen.getByRole("button", { name: "Today" }));
+
+            expect(screen.getByRole("button", { name: "Study Jam" })).toHaveClass("pad__event--filter-reveal");
+            expect(screen.queryByRole("button", { name: "Open House" })).not.toBeInTheDocument();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("rises events that picking a date just brought on screen", async () => {
+        vi.useFakeTimers();
+        try {
+            const { container } = await visit("/events?view=week&date=2026-10-20");
+            act(() => {
+                vi.advanceTimersByTime(1000);
+            });
+
+            const day = [...container.querySelectorAll(".mini__day:not(.mini__day--out)")].find((cell) =>
+                cell.textContent.startsWith("28"),
+            );
+            fireEvent.click(day);
+
+            expect(screen.getByRole("button", { name: /Hack Night/ })).toHaveClass("grid__event--filter-reveal");
+            expect(screen.queryByRole("button", { name: /Study Jam/ })).not.toBeInTheDocument();
         } finally {
             vi.useRealTimers();
         }

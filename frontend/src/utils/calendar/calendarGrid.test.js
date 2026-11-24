@@ -9,6 +9,7 @@ import {
     overlapBox,
     normalizeEvent,
     startOfWeek,
+    visibleEventIds,
     zonedMidnight,
     zonedParts,
 } from "./calendar";
@@ -286,5 +287,34 @@ describe("buildDayColumns", () => {
         const columns = buildDayColumns(week(), events);
 
         expect(new Set(columns.map((c) => c.key)).size).toBe(7);
+    });
+});
+
+describe("visibleEventIds", () => {
+    const event = (id, start) => normalizeEvent(raw(id, start, start));
+    const october = event("october", "2026-10-20T17:00:00.000Z");
+    const november = event("november", "2026-11-05T18:00:00.000Z");
+    const overlap = event("overlap", "2026-10-01T18:00:00.000Z");
+
+    it("includes a month's outside-day events, so a later month can leave them still", () => {
+        const ids = visibleEventIds("month", new Date("2026-09-15T12:00:00.000Z"), [overlap, october]);
+
+        expect(ids.has("overlap")).toBe(true);
+        expect(ids.has("october")).toBe(false);
+    });
+
+    it("lists only the events in the week or day around the selected date", () => {
+        const events = [october, november];
+        const week = visibleEventIds("week", new Date("2026-10-20T17:00:00.000Z"), events);
+        const day = visibleEventIds("day", new Date("2026-10-20T17:00:00.000Z"), events);
+
+        expect([...week]).toEqual(["october"]);
+        expect([...day]).toEqual(["october"]);
+    });
+
+    it("lists every event in year view", () => {
+        const ids = visibleEventIds("year", new Date("2026-10-20T17:00:00.000Z"), [october, november]);
+
+        expect(ids).toEqual(new Set(["october", "november"]));
     });
 });

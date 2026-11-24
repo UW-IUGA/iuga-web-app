@@ -585,4 +585,36 @@ export function buildDayColumns(dates, events, timeZone = TIMEZONE) {
     });
 }
 
+
+// Event ids currently drawn in `mode` around `selectedDate`, after the tag
+// filter has already been applied. Used to rise only events that just
+// appeared after a date or tag change.
+export function visibleEventIds(mode, selectedDate, events) {
+    const ids = new Set();
+    const add = (id) => {
+        if (id) ids.add(id);
+    };
+
+    if (mode === "year") {
+        for (const event of events) add(event.id);
+        return ids;
+    }
+
+    if (mode === "month") {
+        const { year, month } = zonedParts(selectedDate);
+        for (const row of buildMonthGrid(year, month, events, { withOutside: true })) {
+            for (const cell of row) {
+                for (const event of cell.events) add(event.id);
+            }
+        }
+        return ids;
+    }
+
+    const dates = mode === "week" ? buildWeekDates(selectedDate) : [selectedDate];
+    for (const column of buildDayColumns(dates, events)) {
+        for (const item of column.events) add(item.event.id);
+    }
+    return ids;
+}
+
 export { buildMonthGrid as default, colorForLabels, MONTH_NAMES, TIMEZONE, WEEKDAY_ABBREVIATIONS, zonedParts };

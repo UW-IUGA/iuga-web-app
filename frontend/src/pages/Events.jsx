@@ -32,6 +32,8 @@ import {
   filterByTags,
   MONTH_NAMES,
   normalizeEvent,
+  toISODate,
+  visibleEventIds,
   zonedParts,
 } from "../utils/calendar/calendar";
 
@@ -140,10 +142,18 @@ function EventsPage() {
     () => filterByTags(allEvents, shownTags),
     [allEvents, shownTags],
   );
-  // After the first visit, events that a tag just brought back get a short
-  // rise. Already-visible ones stay still, and turning a tag off has none.
-  const isFilterRevealing = useFilterReveal(events, shownTags, {
+  // After the first visit, events that a tag or a date change just brought
+  // on screen get a short rise. Already-visible ones stay still, and items
+  // that leave have none. A view switch is snapshotted, not animated.
+  const visibleIds = useMemo(
+    () => visibleEventIds(mode, selectedDate, events),
+    [mode, selectedDate, events],
+  );
+  const isFilterRevealing = useFilterReveal(visibleIds, {
     active: !entering,
+    mode,
+    dateKey: toISODate(selectedDate),
+    tagsKey: shownTags.join(","),
   });
   const tagFilter = {
     isTagShown,

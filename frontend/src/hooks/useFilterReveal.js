@@ -7,33 +7,32 @@ export const FILTER_REVEAL_MS = 180;
 // so a calendar view rendered on its own does not animate.
 export const FilterRevealContext = createContext(() => false);
 
-// Newly visible event ids after a tag is turned on, and nothing when a tag is
-// turned off, the first-visit wave is still playing, or the view or date
-// changed. The class comes off when the rise ends, so it cannot replay later.
-export default function useFilterReveal(events, shownTags, { active } = {}) {
+// Newly visible event ids after a tag is turned on or the date moves, and
+// nothing when items leave, the first-visit wave is still playing, or the
+// view changes. The class comes off when the rise ends, so it cannot replay.
+export default function useFilterReveal(visibleIds, { active, mode, dateKey, tagsKey } = {}) {
     const previousIds = useRef(null);
-    const previousTags = useRef(null);
+    const previousCause = useRef(null);
     const [revealingIds, setRevealingIds] = useState(() => new Set());
-    const tagsKey = shownTags.join(",");
 
     useEffect(() => {
-        const nextIds = new Set(events.map((event) => event.id).filter(Boolean));
+        const nextIds = visibleIds instanceof Set ? new Set(visibleIds) : new Set([...visibleIds].filter(Boolean));
 
         if (!active) {
             previousIds.current = nextIds;
-            previousTags.current = tagsKey;
+            previousCause.current = { mode, dateKey, tagsKey };
             setRevealingIds((current) => (current.size === 0 ? current : new Set()));
             return;
         }
 
         const hadIds = previousIds.current;
-        const hadTags = previousTags.current;
+        const had = previousCause.current;
         previousIds.current = nextIds;
-        previousTags.current = tagsKey;
+        previousCause.current = { mode, dateKey, tagsKey };
 
-        // First snapshot after the entrance, or the filter itself did not change
-        // (a view, date, or list refresh).
-        if (hadIds === null || hadTags === null || hadTags === tagsKey) {
+        // First snapshot after the entrance, a view switch, or a list refresh
+        // that did not change the date or the tags.
+        if (hadIds === null || had === null || had.mode !== mode || (had.dateKey === dateKey && had.tagsKey === tagsKey)) {
             return;
         }
 
@@ -46,7 +45,7 @@ export default function useFilterReveal(events, shownTags, { active } = {}) {
         setRevealingIds(new Set(added));
         const timeout = window.setTimeout(() => setRevealingIds(new Set()), FILTER_REVEAL_MS);
         return () => window.clearTimeout(timeout);
-    }, [events, tagsKey, active]);
+    }, [visibleIds, active, mode, dateKey, tagsKey]);
 
     return useCallback((id) => revealingIds.has(id), [revealingIds]);
 }

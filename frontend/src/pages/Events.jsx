@@ -24,8 +24,8 @@ import { useAuthContext } from "../context/AuthContext";
 import useCalendarView from "../hooks/useCalendarView";
 import useEventList from "../hooks/useEventList";
 import useSwipeStep from "../hooks/useSwipeStep";
+import usePageEntrance from "../hooks/usePageEntrance";
 import useEntranceWave, {
-  ENTRANCE_WAVE_MS,
   EntranceWaveContext,
   entranceContentKey,
 } from "../hooks/useEntranceWave";
@@ -69,15 +69,7 @@ function ListStatus({ status, onRetry }) {
 function EventsPage() {
   // On for the first visit's arrival wave only (see _page.scss), so a later
   // view, date, or filter change does not replay it.
-  const [entering, setEntering] = useState(true);
-
-  useEffect(() => {
-    const timeout = window.setTimeout(
-      () => setEntering(false),
-      ENTRANCE_WAVE_MS,
-    );
-    return () => window.clearTimeout(timeout);
-  }, []);
+  const entering = usePageEntrance();
 
   const { mode, selectedDate, goToDay, goToDate, goToToday, step, setMode } =
     useCalendarView();

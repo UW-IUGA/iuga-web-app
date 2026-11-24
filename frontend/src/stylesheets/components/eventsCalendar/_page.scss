@@ -17,15 +17,9 @@ Expected Response Information: A centred column holding the title, controls and 
     );
 }
 
-// Month view: one beat per week row, then a quick left-to-right chip wave in
-// that row, so the grid reads top to bottom without feeling slower than the
-// other views. The chip's own rise stays the shared 400ms / 10px pop.
-$page-entrance-month-row-step: 80ms;
-$page-entrance-month-chip-base: 40ms;
-$page-entrance-month-in-row-step: 25ms;
-$page-entrance-month-in-row-cap: 5;
-// prettier-ignore
-$page-entrance-month-chip-delay: calc(var(--entrance-row, 0) * #{$page-entrance-month-row-step} + #{$page-entrance-month-chip-base} + #{$page-entrance-month-in-row-step} * min(var(--entrance-i, 0), #{$page-entrance-month-in-row-cap}));
+// Month view uses the shared grid delay: one beat per week row, then a quick
+// left-to-right chip wave in that row. The chip's own rise stays the shared
+// 400ms / 10px pop.
 
 // First visit and later view, date, or filter enters share these so a delay
 // or rise change stays in one place.

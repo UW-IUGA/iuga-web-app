@@ -59,3 +59,18 @@
         transform: translateY(var(--rise, 14px)) scale(0.98);
     }
 }
+
+// User-triggered overlays: a small scale and fade from the trigger, not a rise.
+@keyframes overlay-entrance {
+    from {
+        opacity: 0;
+        transform: scale(var(--overlay-scale, 0.97));
+    }
+}
+
+@keyframes overlay-exit {
+    to {
+        opacity: 0;
+        transform: scale(var(--overlay-scale, 0.97));
+    }
+}

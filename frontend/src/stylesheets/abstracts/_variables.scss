@@ -157,3 +157,18 @@ $page-entrance-item-step: 40ms;
 $page-entrance-item-cap: 6;
 $page-entrance-item-base: 60ms;
 $page-entrance-item-rise: 10px;
+
+// Multi-column grids (and the Events month view) go one row at a time, then
+// left to right in the row. Items past the cap share the last in-row delay.
+$page-entrance-row-step: 80ms;
+$page-entrance-in-row-base: 40ms;
+$page-entrance-in-row-step: 25ms;
+$page-entrance-in-row-cap: 5;
+// prettier-ignore
+$page-entrance-grid-delay: calc(var(--entrance-row, 0) * #{$page-entrance-row-step} + #{$page-entrance-in-row-base} + #{$page-entrance-in-row-step} * min(var(--entrance-i, 0), #{$page-entrance-in-row-cap}));
+
+// Overlays (cart, popovers, dialogs) scale in from their trigger. Faster than
+// a page wave: these are user-triggered and should feel immediate.
+$overlay-entrance-duration: 180ms;
+$overlay-entrance-exit-duration: 140ms;
+$overlay-entrance-scale: 0.97;

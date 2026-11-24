@@ -232,3 +232,23 @@
         animation-delay: calc(var(--entrance-delay, 0ms) + #{$base} + #{$step} * min(var(--entrance-i, 0), #{$cap}));
     }
 }
+
+// A user-triggered overlay (cart, popover, dialog) scales in from its trigger.
+// Set --overlay-origin on the element (center when unset). Exit is faster.
+@mixin overlay-entrance {
+    @media (prefers-reduced-motion: no-preference) {
+        --overlay-scale: #{$overlay-entrance-scale};
+        transform-origin: var(--overlay-origin, center);
+        animation: overlay-entrance $overlay-entrance-duration $ease-out both;
+        @content;
+    }
+}
+
+@mixin overlay-exit {
+    @media (prefers-reduced-motion: no-preference) {
+        --overlay-scale: #{$overlay-entrance-scale};
+        transform-origin: var(--overlay-origin, center);
+        animation: overlay-exit $overlay-entrance-exit-duration $ease-out both;
+        @content;
+    }
+}

@@ -228,3 +228,49 @@ describe("Events entrance wave", () => {
         expect(gridEvent["animation-delay"]).toBe(yearDay["animation-delay"]);
     });
 });
+
+describe("shared page entrance", () => {
+    it("gives card-grid items the same row-then-column delay as the month view", () => {
+        const item = motionDeclarations(".pageEntrance--enter .pageEntrance__item");
+        const chip = motionDeclarations(".eventsCalendar .page--events--enter .card--month .pad__event");
+
+        expect(item.animation).toBe("page-entrance-rise 400ms cubic-bezier(0.23, 1, 0.32, 1) both");
+        expect(item["--rise"]).toBe("10px");
+        expect(item["animation-delay"]).toBe(chip["animation-delay"]);
+    });
+
+    it("plays the navbar and footer on Home's three beats, only when motion is allowed", () => {
+        expect(motionDeclarations(".site-navigation--enter .nav-logo")).toMatchObject({
+            animation: "page-entrance-rise 640ms cubic-bezier(0.23, 1, 0.32, 1) both",
+            "--rise": "20px",
+        });
+        expect(motionDeclarations(".site-navigation--enter .nav-primary-links")).toMatchObject({
+            "--rise": "14px",
+            "animation-delay": "110ms",
+        });
+        expect(motionDeclarations(".site-navigation--enter .nav-account")).toMatchObject({
+            "--rise": "10px",
+            "animation-delay": "180ms",
+        });
+        expect(motionDeclarations(".site-footer--enter .footerBrand")["--rise"]).toBe("20px");
+        expect(motionDeclarations(".site-footer--enter .footerSocials")).toMatchObject({
+            "--rise": "10px",
+            "animation-delay": "180ms",
+        });
+    });
+
+    it("scales overlays in from their trigger in 180ms, and out faster", () => {
+        const enter = motionDeclarations(".overlayEntrance");
+        const leave = motionDeclarations(".overlayEntrance--leave");
+
+        expect(enter.animation).toBe("overlay-entrance 180ms cubic-bezier(0.23, 1, 0.32, 1) both");
+        expect(enter["transform-origin"]).toBe("var(--overlay-origin, center)");
+        expect(enter["--overlay-scale"]).toBe("0.97");
+        expect(fromFrame("overlay-entrance")).toMatchObject({
+            opacity: "0",
+            transform: "scale(var(--overlay-scale, 0.97))",
+        });
+
+        expect(leave.animation).toBe("overlay-exit 140ms cubic-bezier(0.23, 1, 0.32, 1) both");
+    });
+});

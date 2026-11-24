@@ -162,3 +162,22 @@
         transition: none !important;
     }
 }
+
+// First load only: the bar itself does not remount on navigation. Logo, then
+// the links, then the account and cart, on Home's three beats.
+.site-navigation--enter {
+    .nav-logo {
+        @include page-entrance-on-step(1);
+    }
+
+    .nav-primary-links {
+        @include page-entrance-on-step(2);
+    }
+
+    .nav-account,
+    .nav-account-cart-slot,
+    .themeToggle,
+    .nav-mobile-menu {
+        @include page-entrance-on-step(3);
+    }
+}

@@ -1,4 +1,6 @@
+import { useContext } from "react";
 import { colorForLabels, dayLabel, formatFullDate } from "../../utils/calendar/calendar";
+import { FilterRevealContext } from "../../hooks/useFilterReveal";
 import useZoomOverlay from "../../hooks/useZoomOverlay";
 import Card from "./Card";
 import DayOverlay from "./DayOverlay";
@@ -7,6 +9,7 @@ import { entranceIndexStyle } from "../../utils/calendar/motion";
 // Shows a compact month whose event days open an animated detail overlay
 // without leaving the year view.
 function YearCard({ title, rows, onPickDay, isCurrentMonth = false, style }) {
+    const isFilterRevealing = useContext(FilterRevealContext);
     const { open: selectedDay, openFrom, close, onKeyDown, contentRef, backRef } = useZoomOverlay();
     const isDayOverlayOpen = Boolean(selectedDay);
 
@@ -42,6 +45,11 @@ function YearCard({ title, rows, onPickDay, isCurrentMonth = false, style }) {
 
         if (hasEvents) {
             dayClasses.push("pad--event");
+            // Only when this day just gained its first visible event. A day
+            // that already had another tag stays still.
+            if (cell.events.every((event) => event.id && isFilterRevealing(event.id))) {
+                dayClasses.push("pad--event--filter-reveal");
+            }
         }
 
         const dayNumber = cell.inMonth && <span className="pad__day">{cell.day}</span>;

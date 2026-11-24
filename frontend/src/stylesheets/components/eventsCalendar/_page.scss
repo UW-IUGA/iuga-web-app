@@ -27,6 +27,18 @@ $page-entrance-month-in-row-cap: 5;
 // prettier-ignore
 $page-entrance-month-chip-delay: calc(var(--entrance-row, 0) * #{$page-entrance-month-row-step} + #{$page-entrance-month-chip-base} + #{$page-entrance-month-in-row-step} * min(var(--entrance-i, 0), #{$page-entrance-month-in-row-cap}));
 
+// Newly shown events when a tag is turned on: a short, unstaggered rise, so
+// frequent filter clicks stay quick. Already-visible events stay still.
+$page-filter-reveal-duration: 180ms;
+$page-filter-reveal-rise: 6px;
+
+@keyframes filter-reveal-rise {
+    from {
+        opacity: 0;
+        transform: translateY($page-filter-reveal-rise);
+    }
+}
+
 .eventsCalendar {
     .page {
         width: 100%;
@@ -150,6 +162,17 @@ $page-entrance-month-chip-delay: calc(var(--entrance-row, 0) * #{$page-entrance-
             .pastEventCard {
                 @include page-entrance-nested-item;
             }
+        }
+    }
+
+    // Newly shown events after a tag is turned on, only while this class is
+    // on the item. No stagger, and reduced motion skips it. The class is not
+    // under `--enter`, so the first-visit wave is unchanged.
+    @media (prefers-reduced-motion: no-preference) {
+        .page--events .pad--event--filter-reveal,
+        .page--events .pad__event--filter-reveal,
+        .page--events .grid__event--filter-reveal {
+            animation: filter-reveal-rise $page-filter-reveal-duration $ease-out both;
         }
     }
 

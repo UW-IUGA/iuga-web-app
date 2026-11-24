@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { formatMonthYear } from "../utils/calendar/calendar";
+import { FILTER_REVEAL_MS } from "../hooks/useFilterReveal";
 import EventsPage from "./Events";
 
 let production = true;
@@ -317,6 +318,100 @@ describe("Events page: filtering by tag", () => {
         expect(screen.getByRole("button", { name: "Resume Clinic" })).toBeInTheDocument();
         expect(written().has("tags")).toBe(false);
         expect(within(showGroup()).queryByRole("button", { name: "Show all" })).not.toBeInTheDocument();
+    });
+
+    it("rises only the events a filter just brought back, once the arrival wave has ended", async () => {
+        vi.useFakeTimers();
+        try {
+            const { container } = await visit("/events?view=month&date=2026-10-20");
+            act(() => {
+                vi.advanceTimersByTime(1000);
+            });
+
+            fireEvent.click(tagBox("Career"));
+            expect(screen.queryByRole("button", { name: "Resume Clinic" })).not.toBeInTheDocument();
+            expect(screen.getByRole("button", { name: "Study Jam" })).not.toHaveClass("pad__event--filter-reveal");
+
+            fireEvent.click(tagBox("Career"));
+            const clinic = screen.getByRole("button", { name: "Resume Clinic" });
+            const jam = screen.getByRole("button", { name: "Study Jam" });
+            expect(clinic).toHaveClass("pad__event--filter-reveal");
+            expect(jam).not.toHaveClass("pad__event--filter-reveal");
+
+            act(() => {
+                vi.advanceTimersByTime(FILTER_REVEAL_MS - 1);
+            });
+            expect(clinic).toHaveClass("pad__event--filter-reveal");
+
+            act(() => {
+                vi.advanceTimersByTime(1);
+            });
+            expect(clinic).not.toHaveClass("pad__event--filter-reveal");
+            expect(container.querySelector(".page--events--enter")).toBeNull();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("does not rise events when the view or date changes", async () => {
+        vi.useFakeTimers();
+        try {
+            await visit("/events?view=month&date=2026-10-20");
+            act(() => {
+                vi.advanceTimersByTime(1000);
+            });
+
+            fireEvent.click(screen.getByRole("radio", { name: "Week" }));
+            expect(screen.getByRole("button", { name: /Study Jam/ })).not.toHaveClass("grid__event--filter-reveal");
+            expect(screen.getByRole("button", { name: /Resume Clinic/ })).not.toHaveClass("grid__event--filter-reveal");
+
+            fireEvent.click(screen.getByRole("button", { name: "Next week" }));
+            expect(document.querySelector(".grid__event--filter-reveal")).toBeNull();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("rises a newly shown week-view event, and leaves events that were already visible still", async () => {
+        vi.useFakeTimers();
+        try {
+            await visit("/events?view=week&date=2026-10-20");
+            act(() => {
+                vi.advanceTimersByTime(1000);
+            });
+
+            fireEvent.click(tagBox("Career"));
+            fireEvent.click(tagBox("Career"));
+
+            expect(screen.getByRole("button", { name: /Resume Clinic/ })).toHaveClass("grid__event--filter-reveal");
+            expect(screen.getByRole("button", { name: /Study Jam/ })).not.toHaveClass("grid__event--filter-reveal");
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("rises a year-view day only when that day just gained its first visible event", async () => {
+        vi.useFakeTimers();
+        try {
+            const { container } = await visit("/events?view=year&date=2026-10-20");
+            act(() => {
+                vi.advanceTimersByTime(1000);
+            });
+
+            fireEvent.click(tagBox("Career"));
+            fireEvent.click(tagBox("Career"));
+
+            const revealing = [...container.querySelectorAll(".pad--event--filter-reveal")];
+            expect(revealing.length).toBeGreaterThan(0);
+            expect(revealing.every((day) => day.classList.contains("pad--event"))).toBe(true);
+            // Study Jam's day was already visible as Academic, so it stays still.
+            const stillDays = [...container.querySelectorAll(".pad--event")].filter(
+                (day) => !day.classList.contains("pad--event--filter-reveal"),
+            );
+            expect(stillDays.length).toBeGreaterThan(0);
+        } finally {
+            vi.useRealTimers();
+        }
     });
 });
 

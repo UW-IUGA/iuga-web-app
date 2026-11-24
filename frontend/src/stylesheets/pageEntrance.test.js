@@ -189,3 +189,24 @@ describe("Events page entrance", () => {
         expect(more["animation-delay"]).toBe(chip["animation-delay"]);
     });
 });
+
+describe("Events filter reveal", () => {
+    const selectors = [
+        ".eventsCalendar .page--events .pad--event--filter-reveal",
+        ".eventsCalendar .page--events .pad__event--filter-reveal",
+        ".eventsCalendar .page--events .grid__event--filter-reveal",
+    ];
+
+    it("plays a short unstaggered rise only when the visitor allows motion", () => {
+        for (const selector of selectors) {
+            const declarations = motionDeclarations(selector);
+            expect(declarations.animation).toBe("filter-reveal-rise 180ms cubic-bezier(0.23, 1, 0.32, 1) both");
+            expect(declarations["animation-delay"]).toBeUndefined();
+        }
+
+        expect(fromFrame("filter-reveal-rise")).toEqual({
+            opacity: "0",
+            transform: "translateY(6px)",
+        });
+    });
+});

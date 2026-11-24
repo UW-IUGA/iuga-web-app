@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { colorForLabels, dayLabel, formatLongDay, isSameDay, zonedParts } from "../../utils/calendar/calendar";
 import Card from "./Card";
 import EventPopover from "./EventPopover";
+import { FilterRevealContext } from "../../hooks/useFilterReveal";
 import { entranceIndexStyle, entranceRowStyle } from "../../utils/calendar/motion";
 
 // Shows a full month with event popovers. Event chips open one event;
 // "+N more" opens the day's events. The day button navigates to the day view.
 function MonthCard({ title, rows, onPickDay }) {
+    const isFilterRevealing = useContext(FilterRevealContext);
     const [popoverSelection, setPopoverSelection] = useState(null);
     const today = new Date();
 
@@ -116,7 +118,7 @@ function MonthCard({ title, rows, onPickDay }) {
                         {cell.events.slice(0, 3).map((event) => (
                             <button
                                 {...getEventChipProps(event)}
-                                className="pad__event"
+                                className={`pad__event${isFilterRevealing(event.id) ? " pad__event--filter-reveal" : ""}`}
                                 key={event.id}
                                 style={entranceIndexStyle(chipIndexByKey.get(`${cell.id}|${event.id}`), {
                                     backgroundColor: colorForLabels(event.labels),

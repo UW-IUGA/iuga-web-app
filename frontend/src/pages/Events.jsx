@@ -25,6 +25,7 @@ import { useAuthContext } from "../context/AuthContext";
 import useCalendarView from "../hooks/useCalendarView";
 import useEventList from "../hooks/useEventList";
 import useSwipeStep from "../hooks/useSwipeStep";
+import useFilterReveal, { FilterRevealContext } from "../hooks/useFilterReveal";
 import useTagFilter from "../hooks/useTagFilter";
 import {
   buildMonthGrid,
@@ -139,6 +140,11 @@ function EventsPage() {
     () => filterByTags(allEvents, shownTags),
     [allEvents, shownTags],
   );
+  // After the first visit, events that a tag just brought back get a short
+  // rise. Already-visible ones stay still, and turning a tag off has none.
+  const isFilterRevealing = useFilterReveal(events, shownTags, {
+    active: !entering,
+  });
   const tagFilter = {
     isTagShown,
     onToggle: toggleTag,
@@ -218,7 +224,9 @@ function EventsPage() {
               className={`events__main${hasSidebar ? " events__main--swipe" : ""}${viewEntering ? " events__main--view-enter" : ""}`}
             >
               <ListStatus status={status} onRetry={retry} />
-              {view}
+              <FilterRevealContext.Provider value={isFilterRevealing}>
+                {view}
+              </FilterRevealContext.Provider>
             </div>
           </div>
 

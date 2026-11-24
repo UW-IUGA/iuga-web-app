@@ -128,4 +128,13 @@ Expected Response Information: A centred column holding the title, controls and 
             }
         }
     }
+
+    // Opt-in view-switch rise (`?motionViews`). A short 200ms ease-out on the
+    // new view only, no stagger, so it stays a tab-like swap rather than a
+    // second page arrival.
+    .events__main--view-enter > * {
+        @include page-entrance-rise($duration-fade) {
+            --rise: 8px;
+        }
+    }
 }

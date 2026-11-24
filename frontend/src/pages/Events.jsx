@@ -10,6 +10,7 @@ Expected Response Information: The controls and the chosen view, with the mini m
 */
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import EventOperations from "../components/EventOperations";
 import CalendarControls from "../components/eventsCalendar/CalendarControls";
 import DayView from "../components/eventsCalendar/DayView";
@@ -39,6 +40,10 @@ const SIDEBAR_MODES = ["month", "week", "day"];
 
 // 520ms rise plus the last wave's 120ms delay, Events' tighter window.
 const PAGE_ENTRANCE_WAVE_MS = 640;
+
+// Opt-in only: a short rise when switching year/month/week/day. Off unless
+// the URL has `motionViews`, so the default first-visit arrival is unchanged.
+const VIEW_SWITCH_MS = 200;
 
 // What the calendar says instead of its events while it has none to show.
 function ListStatus({ status, onRetry }) {
@@ -77,6 +82,21 @@ function EventsPage() {
 
   const { mode, selectedDate, goToDay, goToDate, goToToday, step, setMode } =
     useCalendarView();
+  const [searchParams] = useSearchParams();
+  const [viewEntering, setViewEntering] = useState(false);
+  const previousMode = useRef(mode);
+
+  useEffect(() => {
+    if (previousMode.current === mode) return;
+    previousMode.current = mode;
+    if (!searchParams.has("motionViews")) return;
+    setViewEntering(true);
+    const timeout = window.setTimeout(
+      () => setViewEntering(false),
+      VIEW_SWITCH_MS,
+    );
+    return () => window.clearTimeout(timeout);
+  }, [mode, searchParams]);
   const { can, isAuthenticated } = useAuthContext();
   const { records, status, retry } = useEventList({
     refreshKey: isAuthenticated,
@@ -145,9 +165,7 @@ function EventsPage() {
       <WeekView anchor={selectedDate} events={events} onSelectDay={goToDay} />
     );
   } else if (mode === "day") {
-    view = (
-      <DayView anchor={selectedDate} events={events} />
-    );
+    view = <DayView anchor={selectedDate} events={events} />;
   } else {
     view = (
       <MonthCard
@@ -196,7 +214,7 @@ function EventsPage() {
 
             <div
               ref={mainRef}
-              className={`events__main${hasSidebar ? " events__main--swipe" : ""}`}
+              className={`events__main${hasSidebar ? " events__main--swipe" : ""}${viewEntering ? " events__main--view-enter" : ""}`}
             >
               <ListStatus status={status} onRetry={retry} />
               {view}

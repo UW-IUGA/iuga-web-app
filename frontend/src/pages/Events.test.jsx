@@ -522,6 +522,33 @@ describe("Events page: views and navigation", () => {
         }
     });
 
+    it("does not play a view-switch rise unless motionViews is in the URL", async () => {
+        const { container } = await visit("/events?view=month&date=2026-10-20");
+        fireEvent.click(screen.getByRole("radio", { name: "Week" }));
+        expect(container.querySelector(".events__main--view-enter")).toBeNull();
+    });
+
+    it("plays a short view-switch rise when motionViews is in the URL", async () => {
+        vi.useFakeTimers();
+        try {
+            const { container } = await visit("/events?view=month&date=2026-10-20&motionViews");
+            fireEvent.click(screen.getByRole("radio", { name: "Week" }));
+            expect(container.querySelector(".events__main")).toHaveClass("events__main--view-enter");
+
+            act(() => {
+                vi.advanceTimersByTime(199);
+            });
+            expect(container.querySelector(".events__main")).toHaveClass("events__main--view-enter");
+
+            act(() => {
+                vi.advanceTimersByTime(1);
+            });
+            expect(container.querySelector(".events__main--view-enter")).toBeNull();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
     it("switches view from the toggle, keeping the date", async () => {
         const { container } = await visit("/events?view=month&date=2026-10-20");
 

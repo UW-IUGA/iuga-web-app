@@ -27,6 +27,7 @@ import { faArrowLeft, faArrowRight, faXmark } from "@fortawesome/free-solid-svg-
 import { useEffect, useRef } from "react";
 import { useModalDialog } from "../hooks/useModalDialog";
 import useSwipeStep from "../hooks/useSwipeStep";
+import { OverlayEntrance } from "./PageEntrance";
 
 // Start downloading the photos either side of the one shown, wrapping around
 // the set as the arrows do, so the next move finds its photo already here.
@@ -74,7 +75,7 @@ function PhotoLightbox({ photos = [], index = null, title, eyebrow, onIndexChang
             {...dialogProps}
         >
             {photo && (
-                <figure ref={frameRef} className="photoLightbox__frame">
+                <OverlayEntrance as="figure" ref={frameRef} className="photoLightbox__frame">
                     {/* A blurred copy of the photo fills the frame behind it. It is decoration, so assistive technology skips it. */}
                     <img
                         className="photoLightbox__backdrop"
@@ -106,7 +107,7 @@ function PhotoLightbox({ photos = [], index = null, title, eyebrow, onIndexChang
                     <button className="photoLightbox__next" type="button" aria-label="Next photo" onClick={() => step(1)}>
                         <FontAwesomeIcon icon={faArrowRight} aria-hidden="true" />
                     </button>
-                </figure>
+                </OverlayEntrance>
             )}
         </dialog>
     );

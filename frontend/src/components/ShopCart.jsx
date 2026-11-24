@@ -13,6 +13,7 @@ import { faCartShopping, faTrashCan } from "@fortawesome/free-solid-svg-icons";
 import { shopProducts } from "../assets/data/ShopData";
 import { cartTotal, isSkuAtLimit, limitForSku, MAX_QUANTITY } from "../utils/shopCart";
 import { formatCents, formatDate } from "../utils/shopFormat";
+import { OverlayEntrance } from "./PageEntrance";
 
 /**
  * @behavior Editable quantity control: step with −/+ buttons, or type 1–100 directly.
@@ -187,9 +188,11 @@ export function ShopCartDropdown({
             data-testid="shop-cart-dropdown"
         >
             <button type="button" className="shopCartDropdown__backdrop" aria-label="Dismiss cart preview" onClick={onClose} />
-            <div
+            <OverlayEntrance
                 id="shop-cart-dropdown"
                 className="shopCartDropdown__panel"
+                origin="top right"
+                leaving={leaving}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="shop-cart-dropdown-heading"
@@ -308,7 +311,7 @@ export function ShopCartDropdown({
                         </div>
                     </>
                 )}
-            </div>
+            </OverlayEntrance>
         </div>
     );
 }

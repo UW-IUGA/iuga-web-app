@@ -27,18 +27,6 @@ $page-entrance-month-in-row-cap: 5;
 // prettier-ignore
 $page-entrance-month-chip-delay: calc(var(--entrance-row, 0) * #{$page-entrance-month-row-step} + #{$page-entrance-month-chip-base} + #{$page-entrance-month-in-row-step} * min(var(--entrance-i, 0), #{$page-entrance-month-in-row-cap}));
 
-// Newly shown events when a tag is turned on: a short, unstaggered rise, so
-// frequent filter clicks stay quick. Already-visible events stay still.
-$page-filter-reveal-duration: 180ms;
-$page-filter-reveal-rise: 6px;
-
-@keyframes filter-reveal-rise {
-    from {
-        opacity: 0;
-        transform: translateY($page-filter-reveal-rise);
-    }
-}
-
 .eventsCalendar {
     .page {
         width: 100%;
@@ -165,15 +153,37 @@ $page-filter-reveal-rise: 6px;
         }
     }
 
-    // Newly shown events after a tag is turned on, only while this class is
-    // on the item. No stagger, and reduced motion skips it. The class is not
-    // under `--enter`, so the first-visit wave is unchanged.
-    @media (prefers-reduced-motion: no-preference) {
-        .page--events .pad--event--filter-reveal,
-        .page--events .pad__event--filter-reveal,
-        .page--events .grid__event--filter-reveal {
-            animation: filter-reveal-rise $page-filter-reveal-duration $ease-out both;
+    // Newly shown events after a date or tag change play the same staggered
+    // rise as the first visit, only on the items that just appeared. The class
+    // is not under `--enter`, so the first-visit wave is unchanged.
+    .page--events .card--month .pad--filter-reveal {
+        @include page-entrance-rise($page-entrance-item-duration) {
+            --rise: #{$page-entrance-item-rise};
+            animation-delay: calc(var(--entrance-row, 0) * #{$page-entrance-month-row-step});
         }
+    }
+
+    .page--events .card--month .pad__event--filter-reveal,
+    .page--events .card--month .pad__more--filter-reveal {
+        @include page-entrance-rise($page-entrance-item-duration) {
+            --rise: #{$page-entrance-item-rise};
+            animation-delay: $page-entrance-month-chip-delay;
+        }
+    }
+
+    .page--events .year > .card--filter-reveal {
+        @include page-entrance-item(
+            $page-entrance-events-duration,
+            0ms,
+            $page-entrance-item-step,
+            $page-entrance-item-cap,
+            14px
+        );
+    }
+
+    .page--events .pad--event--filter-reveal,
+    .page--events .grid__event--filter-reveal {
+        @include page-entrance-nested-item;
     }
 
     // Opt-in view-switch rise (`?motionViews`). A short 200ms ease-out on the

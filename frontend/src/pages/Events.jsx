@@ -33,7 +33,7 @@ import {
   MONTH_NAMES,
   normalizeEvent,
   toISODate,
-  visibleEventIds,
+  visibleRevealKeys,
   zonedParts,
 } from "../utils/calendar/calendar";
 
@@ -143,13 +143,14 @@ function EventsPage() {
     [allEvents, shownTags],
   );
   // After the first visit, events that a tag or a date change just brought
-  // on screen get a short rise. Already-visible ones stay still, and items
-  // that leave have none. A view switch is snapshotted, not animated.
-  const visibleIds = useMemo(
-    () => visibleEventIds(mode, selectedDate, events),
+  // on screen play the same left-to-right wave as the first visit.
+  // Already-visible ones stay still, and items that leave have none. A view
+  // switch is snapshotted, not animated.
+  const visibleKeys = useMemo(
+    () => visibleRevealKeys(mode, selectedDate, events),
     [mode, selectedDate, events],
   );
-  const isFilterRevealing = useFilterReveal(visibleIds, {
+  const isFilterRevealing = useFilterReveal(visibleKeys, {
     active: !entering,
     mode,
     dateKey: toISODate(selectedDate),

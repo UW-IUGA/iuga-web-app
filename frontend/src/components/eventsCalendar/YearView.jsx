@@ -1,4 +1,6 @@
+import { useContext } from "react";
 import { buildMonthGrid, groupByMonth, zonedParts } from "../../utils/calendar/calendar";
+import { FilterRevealContext } from "../../hooks/useFilterReveal";
 import YearCard from "./YearCard";
 import { entranceIndexStyle } from "../../utils/calendar/motion";
 
@@ -6,6 +8,7 @@ import { entranceIndexStyle } from "../../utils/calendar/motion";
 // year. Event days open within their month cards; "View day" navigates away.
 // `events` are normalized, and already through the tag filter.
 function YearView({ events, onPickDay }) {
+    const { isMonth } = useContext(FilterRevealContext);
     const months = groupByMonth(events);
     const today = zonedParts(new Date());
 
@@ -18,6 +21,7 @@ function YearView({ events, onPickDay }) {
                     rows={buildMonthGrid(month.year, month.month, month.events)}
                     onPickDay={onPickDay}
                     isCurrentMonth={month.year === today.year && month.month === today.month}
+                    revealing={isMonth(month.year, month.month)}
                     style={entranceIndexStyle(index)}
                 />
             ))}

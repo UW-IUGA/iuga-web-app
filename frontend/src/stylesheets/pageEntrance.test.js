@@ -191,22 +191,40 @@ describe("Events page entrance", () => {
 });
 
 describe("Events filter reveal", () => {
-    const selectors = [
-        ".eventsCalendar .page--events .pad--event--filter-reveal",
-        ".eventsCalendar .page--events .pad__event--filter-reveal",
-        ".eventsCalendar .page--events .grid__event--filter-reveal",
-    ];
+    it("replays the month view's week-row wave on newly shown pads and chips", () => {
+        const pad = motionDeclarations(".eventsCalendar .page--events .card--month .pad--filter-reveal");
+        const chip = motionDeclarations(".eventsCalendar .page--events .card--month .pad__event--filter-reveal");
+        const more = motionDeclarations(".eventsCalendar .page--events .card--month .pad__more--filter-reveal");
 
-    it("plays a short unstaggered rise only when the visitor allows motion", () => {
-        for (const selector of selectors) {
-            const declarations = motionDeclarations(selector);
-            expect(declarations.animation).toBe("filter-reveal-rise 180ms cubic-bezier(0.23, 1, 0.32, 1) both");
-            expect(declarations["animation-delay"]).toBeUndefined();
-        }
+        expect(pad.animation).toBe("page-entrance-rise 400ms cubic-bezier(0.23, 1, 0.32, 1) both");
+        expect(pad["--rise"]).toBe("10px");
+        expect(pad["animation-delay"]).toMatch(/var\(--entrance-row/);
+        expect(pad["animation-delay"]).toMatch(/80ms/);
 
-        expect(fromFrame("filter-reveal-rise")).toEqual({
-            opacity: "0",
-            transform: "translateY(6px)",
-        });
+        expect(chip.animation).toBe(pad.animation);
+        expect(chip["--rise"]).toBe("10px");
+        expect(chip["animation-delay"]).toMatch(/var\(--entrance-row/);
+        expect(chip["animation-delay"]).toMatch(/80ms/);
+        expect(chip["animation-delay"]).toMatch(/40ms/);
+        expect(chip["animation-delay"]).toMatch(/25ms/);
+        expect(chip["animation-delay"]).toMatch(/min\(var\(--entrance-i/);
+        expect(more.animation).toBe(chip.animation);
+        expect(more["animation-delay"]).toBe(chip["animation-delay"]);
+    });
+
+    it("replays the nested item wave on year days and week events", () => {
+        const yearCard = motionDeclarations(".eventsCalendar .page--events .year > .card--filter-reveal");
+        const yearDay = motionDeclarations(".eventsCalendar .page--events .pad--event--filter-reveal");
+        const gridEvent = motionDeclarations(".eventsCalendar .page--events .grid__event--filter-reveal");
+
+        expect(yearCard.animation).toBe("page-entrance-rise 520ms cubic-bezier(0.23, 1, 0.32, 1) both");
+        expect(yearCard["--rise"]).toBe("14px");
+        expect(yearCard["animation-delay"]).toBe("var(--entrance-delay)");
+
+        expect(yearDay.animation).toBe("page-entrance-rise 400ms cubic-bezier(0.23, 1, 0.32, 1) both");
+        expect(yearDay["--rise"]).toBe("10px");
+        expect(yearDay["animation-delay"]).toMatch(/min\(var\(--entrance-i/);
+        expect(gridEvent.animation).toBe(yearDay.animation);
+        expect(gridEvent["animation-delay"]).toBe(yearDay["animation-delay"]);
     });
 });

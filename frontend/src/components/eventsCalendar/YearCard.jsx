@@ -8,8 +8,8 @@ import { entranceIndexStyle } from "../../utils/calendar/motion";
 
 // Shows a compact month whose event days open an animated detail overlay
 // without leaving the year view.
-function YearCard({ title, rows, onPickDay, isCurrentMonth = false, style }) {
-    const isFilterRevealing = useContext(FilterRevealContext);
+function YearCard({ title, rows, onPickDay, isCurrentMonth = false, revealing = false, style }) {
+    const { isEvent } = useContext(FilterRevealContext);
     const { open: selectedDay, openFrom, close, onKeyDown, contentRef, backRef } = useZoomOverlay();
     const isDayOverlayOpen = Boolean(selectedDay);
 
@@ -47,7 +47,7 @@ function YearCard({ title, rows, onPickDay, isCurrentMonth = false, style }) {
             dayClasses.push("pad--event");
             // Only when this day just gained its first visible event. A day
             // that already had another tag stays still.
-            if (cell.events.every((event) => event.id && isFilterRevealing(event.id))) {
+            if (cell.events.every((event) => event.id && isEvent(event.id))) {
                 dayClasses.push("pad--event--filter-reveal");
             }
         }
@@ -76,7 +76,7 @@ function YearCard({ title, rows, onPickDay, isCurrentMonth = false, style }) {
             rows={rows}
             renderDay={renderDay}
             style={style}
-            className={isDayOverlayOpen ? "card--compact card--open" : "card--compact"}
+            className={`card--compact${isDayOverlayOpen ? " card--open" : ""}${revealing ? " card--filter-reveal" : ""}`}
             isCurrentMonth={isCurrentMonth}
             isDayOverlayOpen={isDayOverlayOpen}
         >

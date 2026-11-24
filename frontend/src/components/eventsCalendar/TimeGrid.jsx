@@ -29,7 +29,7 @@ function hourLabel(hour) {
  * presses are reported to the caller; the selected event stays the caller's.
  */
 function TimeGrid({ columns, onPickEvent, openEventKey = null, onPickColumn }) {
-    const isFilterRevealing = useContext(FilterRevealContext);
+    const { isEvent } = useContext(FilterRevealContext);
     const scrollRef = useRef(null);
     const now = useNow();
     const nowParts = zonedParts(now);
@@ -154,7 +154,7 @@ function TimeGrid({ columns, onPickEvent, openEventKey = null, onPickColumn }) {
                                 return (
                                     <Event
                                         key={key}
-                                        className={`grid__event${onPickEvent ? " grid__event--button" : ""}${isFilterRevealing(item.event.id) ? " grid__event--filter-reveal" : ""}`}
+                                        className={`grid__event${onPickEvent ? " grid__event--button" : ""}${isEvent(item.event.id) ? " grid__event--filter-reveal" : ""}`}
                                         {...eventButtonProps}
                                         style={entranceIndexStyle(entranceIndexByKey.get(key), {
                                             top: `${item.top}%`,

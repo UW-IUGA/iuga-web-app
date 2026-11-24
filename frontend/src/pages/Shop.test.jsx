@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { resetPageEntranceForTests } from "../utils/pageEntrance";
 import { MemoryRouter } from "react-router-dom";
 import ShopPage from "./Shop";
 import { ShopCartProvider } from "../context/ShopCartContext";
@@ -10,6 +11,7 @@ import infoBaseballTee from "../assets/shop/info-baseball-tee.png";
 import infoToteBag from "../assets/shop/info-tote-bag.png";
 
 beforeEach(() => {
+    resetPageEntranceForTests();
     sessionStorage.clear();
     vi.spyOn(window, "scrollTo").mockImplementation(() => {});
     vi.spyOn(globalThis, "fetch").mockResolvedValue({
@@ -158,4 +160,27 @@ describe("when the catalog cannot load", () => {
         }
         expect(globalThis.fetch).toHaveBeenCalledTimes(2);
     });
+});
+
+test("waves the product cards in on the first visit", async () => {
+    window.innerWidth = 1440;
+    render(
+        <MemoryRouter initialEntries={["/shop"]}>
+            <ShopCartProvider><ShopPage /></ShopCartProvider>
+        </MemoryRouter>,
+    );
+
+    const hoodie = await screen.findByRole("heading", { name: "Hoodie", exact: true });
+    const main = document.querySelector("main.shopPage");
+    const cards = [...document.querySelectorAll("article.shopCard")];
+
+    expect(main).toHaveClass("pageEntrance--enter");
+    expect(document.querySelector(".shopPage__heroVisual")).toHaveClass("pageEntrance__hero");
+    expect(cards).toHaveLength(4);
+    expect(cards[0]).toHaveClass("pageEntrance__item");
+    expect(cards[0].style.getPropertyValue("--entrance-row")).toBe("0");
+    expect(cards[0].style.getPropertyValue("--entrance-i")).toBe("0");
+    expect(cards[3].style.getPropertyValue("--entrance-row")).toBe("1");
+    expect(cards[3].style.getPropertyValue("--entrance-i")).toBe("0");
+    expect(hoodie).toBeInTheDocument();
 });

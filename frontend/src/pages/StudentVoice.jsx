@@ -1,8 +1,6 @@
 import { studentVoiceForms } from "../assets/data/StudentVoiceData";
 import PageHeader from "../components/PageHeader";
-import useEntranceColumns from "../hooks/useEntranceColumns";
-import usePageEntrance from "../hooks/usePageEntrance";
-import { entranceGridStyle } from "../utils/pageEntrance";
+import { EntranceGrid, PageRoot } from "../components/PageEntrance";
 
 // Matches .studentVoice__grid: 1 column below tablet, 2 from tablet up.
 const STUDENT_VOICE_ENTRANCE_COLUMNS = { 0: 1, 768: 2 };
@@ -38,12 +36,9 @@ function toEmbedUrl(href) {
 }
 
 function StudentVoicePage({ forms = studentVoiceForms }) {
-    const entering = usePageEntrance({ onceKey: "student-voice" });
-    const columns = useEntranceColumns(STUDENT_VOICE_ENTRANCE_COLUMNS);
-
     return (
         <div className="baseContainer">
-            <main className={`studentVoice${entering ? " pageEntrance--enter" : ""}`}>
+            <PageRoot className="studentVoice" onceKey="student-voice">
                 <PageHeader
                     title="Tell IUGA what you think."
                     intro="Your feedback helps IUGA advocate for Informatics students and plan its events and programs."
@@ -57,14 +52,14 @@ function StudentVoicePage({ forms = studentVoiceForms }) {
 
                     {forms.length > 0 ? (
                         <div className="studentVoice__grid">
-                            {forms.map((form, index) => {
+                            <EntranceGrid columns={STUDENT_VOICE_ENTRANCE_COLUMNS}>
+                            {forms.map((form) => {
                                 const canEmbed = isEmbeddableFormsUrl(form.href);
 
                                 return (
                                     <article
-                                        className={`studentVoiceCard editorial-card pageEntrance__item${canEmbed ? " studentVoiceCard--embed" : ""}`}
+                                        className={`studentVoiceCard editorial-card${canEmbed ? " studentVoiceCard--embed" : ""}`}
                                         key={form.href}
-                                        style={entranceGridStyle(index, columns)}
                                     >
                                         <div className="studentVoiceCard__meta">
                                             {form.topic && <span>{form.topic}</span>}
@@ -98,15 +93,18 @@ function StudentVoicePage({ forms = studentVoiceForms }) {
                                     </article>
                                 );
                             })}
+                            </EntranceGrid>
                         </div>
                     ) : (
-                        <div className="studentVoice__empty editorial-card pageEntrance__item">
+                        <EntranceGrid columns={1}>
+                        <div className="studentVoice__empty editorial-card">
                             <h2>No surveys are open right now.</h2>
                             <p>Check back soon for new ways to share your perspective with the IUGA executive board.</p>
                         </div>
+                        </EntranceGrid>
                     )}
                 </section>
-            </main>
+            </PageRoot>
         </div>
     );
 }

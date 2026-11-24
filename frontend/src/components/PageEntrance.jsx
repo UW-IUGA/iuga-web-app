@@ -17,13 +17,13 @@ Expected Response Information:
 - Children stamped with the shared item, list, or hero class and delay
   variables. An overlay that scales from its trigger.
 */
-import { Children, cloneElement, isValidElement } from "react";
+import { Children, cloneElement, forwardRef, isValidElement } from "react";
 import useEntranceColumns from "../hooks/useEntranceColumns";
 import usePageEntrance from "../hooks/usePageEntrance";
 import {
-    entranceGridStyle,
-    entranceIndexStyle,
-    overlayOriginStyle,
+    entranceGridOrder,
+    entranceOrder,
+    overlayOrigin,
 } from "../utils/pageEntrance";
 
 export { default as usePageEntrance, useChromeEntrance } from "../hooks/usePageEntrance";
@@ -61,12 +61,13 @@ const originValue = (origin) => {
 export function PageRoot({
     onceKey,
     duration,
+    ready = true,
     as: Tag = "main",
     className,
     children,
     ...rest
 }) {
-    const entering = usePageEntrance({ onceKey, duration });
+    const entering = usePageEntrance({ onceKey, duration, ready });
     return (
         <Tag className={classNames(className, entering && "pageEntrance--enter")} {...rest}>
             {children}
@@ -78,7 +79,7 @@ export function EntranceHero({ as: Tag = "div", index = 0, className, style, chi
     return (
         <Tag
             className={classNames(className, "pageEntrance__hero")}
-            style={entranceIndexStyle(index, style)}
+            style={entranceOrder(index, style)}
             {...rest}
         >
             {children}
@@ -89,17 +90,17 @@ export function EntranceHero({ as: Tag = "div", index = 0, className, style, chi
 export function EntranceGrid({ columns, startAt = 0, children }) {
     const count = useEntranceColumns(columnMap(columns));
     return Children.map(children, (child, index) =>
-        stamp(child, "pageEntrance__item", entranceGridStyle(startAt + index, count)),
+        stamp(child, "pageEntrance__item", entranceGridOrder(startAt + index, count)),
     );
 }
 
 export function EntranceList({ startAt = 0, children }) {
     return Children.map(children, (child, index) =>
-        stamp(child, "pageEntrance__listItem", entranceIndexStyle(startAt + index)),
+        stamp(child, "pageEntrance__listItem", entranceOrder(startAt + index)),
     );
 }
 
-export function OverlayEntrance({
+export const OverlayEntrance = forwardRef(function OverlayEntrance({
     origin,
     leaving = false,
     as: Tag = "div",
@@ -107,22 +108,23 @@ export function OverlayEntrance({
     style,
     children,
     ...rest
-}) {
+}, ref) {
     return (
         <Tag
+            ref={ref}
             className={classNames(className, "overlayEntrance", leaving && "overlayEntrance--leave")}
-            style={overlayOriginStyle(originValue(origin), style)}
+            style={overlayOrigin(originValue(origin), style)}
             {...rest}
         >
             {children}
         </Tag>
     );
-}
+});
 
 // For pages with several early returns, where a PageRoot wrapper would call the
 // first-visit hook a second time. Returns the page's class plus the entering
 // class on a first visit.
-export function usePageEntranceClass(className, options) {
+export function usePageEntranceClass(className, options = {}) {
     const entering = usePageEntrance(options);
     return classNames(className, entering && "pageEntrance--enter");
 }

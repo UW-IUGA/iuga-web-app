@@ -6,7 +6,10 @@
  * Expected Response Information: The entering class on a first visit, item
  *          delay variables that match the shared wave, and an overlay origin.
  */
-import { render, screen } from "@testing-library/react";
+import { createRef } from "react";
+import { vi } from "vitest";
+import { MemoryRouter } from "react-router-dom";
+import { act, render, screen } from "@testing-library/react";
 import {
     EntranceGrid,
     EntranceHero,
@@ -15,23 +18,33 @@ import {
     PageRoot,
     usePageEntranceClass,
 } from "./PageEntrance";
-import { entranceGridStyle, resetPageEntranceForTests } from "../utils/pageEntrance";
+import { ENTRANCE_WAVE_MS, entranceGridOrder, resetPageEntranceForTests } from "../utils/pageEntrance";
+
+const renderOnRoute = (ui) => render(<MemoryRouter>{ui}</MemoryRouter>);
 
 beforeEach(() => {
     resetPageEntranceForTests();
 });
 
+afterEach(() => {
+    vi.useRealTimers();
+});
+
 describe("PageRoot", () => {
     test("marks the page as entering on the first visit, then not on a later mount of the same key", () => {
-        const { unmount } = render(
+        vi.useFakeTimers();
+        const { unmount } = renderOnRoute(
             <PageRoot onceKey="shop" className="shopPage">
                 Shop
             </PageRoot>
         );
         expect(screen.getByText("Shop")).toHaveClass("shopPage", "pageEntrance--enter");
+        act(() => {
+            vi.advanceTimersByTime(ENTRANCE_WAVE_MS);
+        });
         unmount();
 
-        render(
+        renderOnRoute(
             <PageRoot onceKey="shop" className="shopPage">
                 Shop again
             </PageRoot>
@@ -43,7 +56,7 @@ describe("PageRoot", () => {
 
 describe("EntranceGrid", () => {
     test("stamps each child with the shared grid wave, using the page's column map", () => {
-        render(
+        renderOnRoute(
             <EntranceGrid columns={{ 0: 2 }}>
                 <article>One</article>
                 <article>Two</article>
@@ -53,8 +66,8 @@ describe("EntranceGrid", () => {
         const items = screen.getAllByRole("article");
         expect(items).toHaveLength(3);
         items.forEach((item) => expect(item).toHaveClass("pageEntrance__item"));
-        const first = entranceGridStyle(0, 2);
-        const third = entranceGridStyle(2, 2);
+        const first = entranceGridOrder(0, 2);
+        const third = entranceGridOrder(2, 2);
         expect(items[0].style.getPropertyValue("--entrance-i")).toBe(String(first["--entrance-i"]));
         expect(items[0].style.getPropertyValue("--entrance-row")).toBe(String(first["--entrance-row"]));
         expect(items[2].style.getPropertyValue("--entrance-i")).toBe(String(third["--entrance-i"]));
@@ -62,20 +75,20 @@ describe("EntranceGrid", () => {
     });
 
     test("continues the wave when the page already rendered earlier items", () => {
-        render(
+        renderOnRoute(
             <EntranceGrid columns={{ 0: 1 }} startAt={2}>
                 <article>Later</article>
             </EntranceGrid>
         );
         const item = screen.getByRole("article");
-        expect(item.style.getPropertyValue("--entrance-i")).toBe(String(entranceGridStyle(2, 1)["--entrance-i"]));
-        expect(item.style.getPropertyValue("--entrance-row")).toBe(String(entranceGridStyle(2, 1)["--entrance-row"]));
+        expect(item.style.getPropertyValue("--entrance-i")).toBe(String(entranceGridOrder(2, 1)["--entrance-i"]));
+        expect(item.style.getPropertyValue("--entrance-row")).toBe(String(entranceGridOrder(2, 1)["--entrance-row"]));
     });
 });
 
 describe("EntranceList", () => {
     test("stamps each child with the shared list wave", () => {
-        render(
+        renderOnRoute(
             <ul>
                 <EntranceList>
                     <li>First</li>
@@ -92,7 +105,7 @@ describe("EntranceList", () => {
 
 describe("EntranceHero", () => {
     test("marks a hero so it uses the shared hero beat, with an optional index", () => {
-        const { rerender } = render(<EntranceHero className="poster">Hero</EntranceHero>);
+        const { rerender } = renderOnRoute(<EntranceHero className="poster">Hero</EntranceHero>);
         const hero = screen.getByText("Hero");
         expect(hero).toHaveClass("poster", "pageEntrance__hero");
         expect(hero.style.getPropertyValue("--entrance-i")).toBe("0");
@@ -103,14 +116,18 @@ describe("EntranceHero", () => {
 
 describe("usePageEntranceClass", () => {
     test("returns the page class plus the entering class on a first visit only", () => {
+        vi.useFakeTimers();
         function Probe() {
             const className = usePageEntranceClass("shopCheckout", { onceKey: "checkout-probe" });
             return <main className={className}>Checkout</main>;
         }
-        const { unmount } = render(<Probe />);
+        const { unmount } = renderOnRoute(<Probe />);
         expect(screen.getByRole("main")).toHaveClass("shopCheckout", "pageEntrance--enter");
+        act(() => {
+            vi.advanceTimersByTime(ENTRANCE_WAVE_MS);
+        });
         unmount();
-        render(<Probe />);
+        renderOnRoute(<Probe />);
         expect(screen.getByRole("main")).toHaveClass("shopCheckout");
         expect(screen.getByRole("main")).not.toHaveClass("pageEntrance--enter");
     });
@@ -118,7 +135,7 @@ describe("usePageEntranceClass", () => {
 
 describe("OverlayEntrance", () => {
     test("sets the origin and the leaving class from the trigger, not from page code", () => {
-        const { rerender } = render(
+        const { rerender } = renderOnRoute(
             <OverlayEntrance origin={{ x: "12px", y: "40px" }}>Cart</OverlayEntrance>
         );
         const overlay = screen.getByText("Cart");
@@ -132,5 +149,12 @@ describe("OverlayEntrance", () => {
             </OverlayEntrance>
         );
         expect(screen.getByText("Cart")).toHaveClass("overlayEntrance", "overlayEntrance--leave");
+    });
+
+    test("forwards a ref to the overlay element, so a dialog can still open itself", () => {
+        const ref = createRef();
+        renderOnRoute(<OverlayEntrance as="dialog" ref={ref}>Hello</OverlayEntrance>);
+        expect(ref.current).toBeInstanceOf(HTMLDialogElement);
+        expect(ref.current).toHaveTextContent("Hello");
     });
 });

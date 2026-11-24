@@ -2,7 +2,7 @@
 // them so existing calendar imports keep working.
 export {
     prefersReducedMotion,
-    entranceIndexStyle,
-    entranceRowStyle,
-    entranceGridStyle,
+    entranceOrder,
+    entranceRow,
+    entranceGridOrder,
 } from "../pageEntrance";

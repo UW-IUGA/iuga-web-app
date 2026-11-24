@@ -3,7 +3,7 @@ import { EntranceWaveContext } from "../../hooks/useEntranceWave";
 import useNow from "../../hooks/useNow";
 import { colorForLabels, formatClockTime, formatWeekday, overlapBox, zonedParts } from "../../utils/calendar/calendar";
 import { firstEvent, scrollTopFor } from "../../utils/calendar/gridScroll";
-import { entranceIndexStyle } from "../../utils/calendar/motion";
+import { entranceOrder } from "../../utils/calendar/motion";
 
 // Where to land on a day or week with no events, other than today.
 // Mid-morning shows a likely stretch rather than six empty hours above it.
@@ -156,7 +156,7 @@ function TimeGrid({ columns, onPickEvent, openEventKey = null, onPickColumn }) {
                                         key={key}
                                         className={`grid__event${onPickEvent ? " grid__event--button" : ""}${isEvent(item.event.id) ? " grid__event--enter" : ""}`}
                                         {...eventButtonProps}
-                                        style={entranceIndexStyle(entranceIndexByKey.get(key), {
+                                        style={entranceOrder(entranceIndexByKey.get(key), {
                                             top: `${item.top}%`,
                                             height: `${item.height}%`,
                                             // A pixel in from each side, so the event never touches

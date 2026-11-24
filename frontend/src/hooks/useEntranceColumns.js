@@ -1,6 +1,6 @@
 /*
 Purpose: The column count a card grid is using at the current width, so
-         entranceGridStyle can number items left to right, then the next row.
+         entranceGridOrder can number items left to right, then the next row.
 
 Expected Request Information:
 - minWidths: a module-level map of minimum widths (px) to column counts,

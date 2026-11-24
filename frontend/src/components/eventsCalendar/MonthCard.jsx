@@ -3,7 +3,7 @@ import { colorForLabels, dayKeyOf, dayLabel, formatLongDay, isSameDay, zonedPart
 import Card from "./Card";
 import EventPopover from "./EventPopover";
 import { EntranceWaveContext } from "../../hooks/useEntranceWave";
-import { entranceIndexStyle, entranceRowStyle } from "../../utils/calendar/motion";
+import { entranceOrder, entranceRow } from "../../utils/calendar/motion";
 
 // Shows a full month with event popovers. Event chips open one event;
 // "+N more" opens the day's events. The day button navigates to the day view.
@@ -106,7 +106,7 @@ function MonthCard({ title, rows, onPickDay }) {
         }
 
         return (
-            <div className={dayClasses.join(" ")} style={entranceRowStyle(rowIndex)}>
+            <div className={dayClasses.join(" ")} style={entranceRow(rowIndex)}>
                 <button
                     type="button"
                     className="pad__open"
@@ -124,7 +124,7 @@ function MonthCard({ title, rows, onPickDay }) {
                                 {...getEventChipProps(event)}
                                 className={`pad__event${isEvent(event.id) ? " pad__event--enter" : ""}`}
                                 key={event.id}
-                                style={entranceIndexStyle(chipIndexByKey.get(`${cell.id}|${event.id}`), {
+                                style={entranceOrder(chipIndexByKey.get(`${cell.id}|${event.id}`), {
                                     backgroundColor: colorForLabels(event.labels),
                                 })}
                                 // The name is cut off with an ellipsis when it is longer than the
@@ -139,7 +139,7 @@ function MonthCard({ title, rows, onPickDay }) {
                             <button
                                 {...getEventChipProps(null)}
                                 className={`pad__more${isMore(dayKeyOf(cell.date)) ? " pad__more--enter" : ""}`}
-                                style={entranceIndexStyle(chipIndexByKey.get(`${cell.id}|more`))}
+                                style={entranceOrder(chipIndexByKey.get(`${cell.id}|more`))}
                                 // Says what is behind it and which day, where the visible "+2 more"
                                 // says neither. Starts with the visible text, so speaking it still
                                 // works (2.5.3).

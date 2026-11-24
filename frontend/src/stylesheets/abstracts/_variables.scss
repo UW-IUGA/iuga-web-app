@@ -164,8 +164,11 @@ $page-entrance-row-step: 80ms;
 $page-entrance-in-row-base: 40ms;
 $page-entrance-in-row-step: 25ms;
 $page-entrance-in-row-cap: 5;
+// Rows past the cap share the last row's delay so a long resources-style
+// list cannot outlast the wave or restart late items when the class comes off.
+$page-entrance-row-cap: 6;
 // prettier-ignore
-$page-entrance-grid-delay: calc(var(--entrance-row, 0) * #{$page-entrance-row-step} + #{$page-entrance-in-row-base} + #{$page-entrance-in-row-step} * min(var(--entrance-i, 0), #{$page-entrance-in-row-cap}));
+$page-entrance-grid-delay: calc(min(var(--entrance-row, 0), #{$page-entrance-row-cap}) * #{$page-entrance-row-step} + #{$page-entrance-in-row-base} + #{$page-entrance-in-row-step} * min(var(--entrance-i, 0), #{$page-entrance-in-row-cap}));
 
 // Overlays (cart, popovers, dialogs) scale in from their trigger. Faster than
 // a page wave: these are user-triggered and should feel immediate.

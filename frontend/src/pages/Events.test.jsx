@@ -9,6 +9,7 @@ import { act, cleanup, fireEvent, render, screen, within } from "@testing-librar
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { formatMonthYear } from "../utils/calendar/calendar";
 import { ENTRANCE_WAVE_MS } from "../hooks/useEntranceWave";
+import { resetPageEntranceForTests } from "../utils/pageEntrance";
 import EventsPage from "./Events";
 
 let production = true;
@@ -127,6 +128,7 @@ const miniLabel = (container) => container.querySelector(".mini__label").textCon
 let fetchSpy;
 
 beforeEach(() => {
+    resetPageEntranceForTests();
     production = true;
     isAuthenticated = false;
     permissions = new Set();

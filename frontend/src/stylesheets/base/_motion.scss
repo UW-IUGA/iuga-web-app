@@ -58,6 +58,11 @@
         opacity: 0;
         transform: translateY(var(--rise, 14px)) scale(0.98);
     }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 // User-triggered overlays: a small scale and fade from the trigger, not a rise.

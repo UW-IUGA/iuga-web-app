@@ -4,7 +4,7 @@ import { EntranceWaveContext } from "../../hooks/useEntranceWave";
 import useZoomOverlay from "../../hooks/useZoomOverlay";
 import Card from "./Card";
 import DayOverlay from "./DayOverlay";
-import { entranceIndexStyle } from "../../utils/calendar/motion";
+import { entranceOrder } from "../../utils/calendar/motion";
 
 // Shows a compact month whose event days open an animated detail overlay
 // without leaving the year view.
@@ -62,7 +62,7 @@ function YearCard({ title, rows, onPickDay, isCurrentMonth = false, entering = f
                 disabled={!hasEvents}
                 className={dayClasses.join(" ")}
                 aria-label={dayLabel(cell.date, cell.events.length)}
-                style={hasEvents ? entranceIndexStyle(eventDayIndexById.get(cell.id), { backgroundColor: colorForLabels(cell.events[0].labels) }) : undefined}
+                style={hasEvents ? entranceOrder(eventDayIndexById.get(cell.id), { backgroundColor: colorForLabels(cell.events[0].labels) }) : undefined}
                 onClick={(event) => openDay(cell.date, cell, event.currentTarget)}
             >
                 {dayNumber}

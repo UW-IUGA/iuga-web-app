@@ -50,6 +50,19 @@ function fromFrame(name) {
     return frame;
 }
 
+function toFrame(name) {
+    let frame;
+    root.walkAtRules("keyframes", (atRule) => {
+        if (atRule.params !== name) return;
+        atRule.walkRules((rule) => {
+            if (rule.selector !== "to" && rule.selector !== "100%") return;
+            frame = Object.fromEntries(rule.nodes.filter((node) => node.type === "decl").map((decl) => [decl.prop, decl.value]));
+        });
+    });
+    if (!frame) throw new Error(`no @keyframes ${name} to frame`);
+    return frame;
+}
+
 describe("Home hero entrance", () => {
     it("plays the rise only when the visitor allows motion", () => {
         const hero = motionDeclarations(".homeHeroPhotos li");
@@ -60,8 +73,11 @@ describe("Home hero entrance", () => {
         expect(motionDeclarations(".homeHeroPhotos li:nth-child(2)")).toMatchObject({ "--rise": "14px", "animation-delay": "110ms" });
         expect(motionDeclarations(".homeHeroPhotos li:nth-child(3)")).toMatchObject({ "--rise": "10px", "animation-delay": "180ms" });
 
+        expect(hero.opacity).toBe("0");
+        expect(hero.transform).toBe("translateY(var(--rise, 14px)) scale(0.98)");
         expect(fromFrame(name)).toMatchObject({ opacity: "0" });
         expect(fromFrame(name).transform).toMatch(/^translateY\(var\(--rise\b.*\)\) scale\(0\.98\)$/);
+        expect(toFrame(name)).toMatchObject({ opacity: "1", transform: "translateY(0) scale(1)" });
     });
 
     it("compiles the hero wave to the same rules as the original literals", () => {
@@ -76,6 +92,8 @@ describe("Home hero entrance", () => {
         expect(media[0]).toBe(
             `@media (prefers-reduced-motion: no-preference) {
   .homeHeroPhotos li {
+    opacity: 0;
+    transform: translateY(var(--rise, 14px)) scale(0.98);
     animation: page-entrance-rise 640ms cubic-bezier(0.23, 1, 0.32, 1) both;
   }
   .homeHeroPhotos li:nth-child(1) {
@@ -230,6 +248,14 @@ describe("Events entrance wave", () => {
 });
 
 describe("shared page entrance", () => {
+    it("staggers vertical list items with the shared item cap", () => {
+        const item = motionDeclarations(".pageEntrance--enter .pageEntrance__listItem");
+        expect(item.animation).toBe("page-entrance-rise 400ms cubic-bezier(0.23, 1, 0.32, 1) both");
+        expect(item["--rise"]).toBe("10px");
+        expect(item["animation-delay"]).toBe("var(--entrance-delay)");
+        expect(item["--entrance-delay"]).toMatch(/min\(var\(--entrance-i/);
+    });
+
     it("gives card-grid items the same row-then-column delay as the month view", () => {
         const item = motionDeclarations(".pageEntrance--enter .pageEntrance__item");
         const chip = motionDeclarations(".eventsCalendar .page--events--enter .card--month .pad__event");

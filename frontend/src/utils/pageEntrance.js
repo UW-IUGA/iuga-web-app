@@ -1,54 +1,54 @@
 /*
 Purpose: Shared helpers for the site's once-per-visit entrance wave and for
-         overlays that scale in from their trigger. One place sets the style
-         variables and the session flags; pages and chrome only call these.
+         overlays that scale in from their trigger. One place sets the entrance
+         order variables and the session clocks; pages and chrome only call these.
 
 Expected Request Information:
 - A 0-based reading-order index, and for a grid, the column count.
 - For columnsForWidth / useEntranceColumns, a map of minimum widths to column
   counts (a module-level object, so it stays stable across renders).
-- onceKey, when a route should play its wave at most once in the session
-  (Student Voice after sign-in).
+- onceKey, identifying a page or chrome so the wave plays at most once per
+  visit (and so a remount mid-wave does not start a second clock).
 
 Expected Response Information:
-- Style objects that set --entrance-i and --entrance-row.
-- Session flags for the first-visit hook and the navbar/footer.
+- Objects that set --entrance-i, --entrance-row, or --overlay-origin.
+- Whether the wave for a key is still playing.
 */
-
-export const ENTRANCE_WAVE_MS = 1000;
+export const ENTRANCE_WAVE_MS = 1200;
 
 // Read at the moment of an animation rather than once, so flipping the OS
 // setting applies to the next one without a reload.
 export const prefersReducedMotion = () =>
     window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
 
-// Style vars for the shared page-entrance item stagger. `index` is 0-based
-// reading order: left to right, then the next row.
-export const entranceIndexStyle = (index, style = {}) => ({
-    ...style,
+const nowMs = () => Date.now();
+
+// 0-based reading order: left to right, then the next row.
+export const entranceOrder = (index, extra = {}) => ({
+    ...extra,
     "--entrance-i": index,
 });
 
 // Row index for a row-by-row entrance. Items inside a row still use
 // --entrance-i for their place in that row.
-export const entranceRowStyle = (row, style = {}) => ({
-    ...style,
+export const entranceRow = (row, extra = {}) => ({
+    ...extra,
     "--entrance-row": row,
 });
 
 // Reading order on a fixed column grid: row, then the index in that row.
-export const entranceGridStyle = (index, columns, style = {}) => {
+export const entranceGridOrder = (index, columns, extra = {}) => {
     const count = Math.max(1, columns);
     return {
-        ...style,
+        ...extra,
         "--entrance-row": Math.floor(index / count),
         "--entrance-i": index % count,
     };
 };
 
 // Origin for an overlay that should scale in from its trigger, not from center.
-export const overlayOriginStyle = (origin, style = {}) => ({
-    ...style,
+export const overlayOrigin = (origin, extra = {}) => ({
+    ...extra,
     "--overlay-origin": origin,
 });
 
@@ -63,25 +63,42 @@ export const columnsForWidth = (minWidths, width) => {
     return columns;
 };
 
-// Session flags: chrome plays once per load, even if the bar remounts after
-// an admin visit. A onceKey (Student Voice) plays once per session too.
-let chromeHasEntered = false;
-const playedOnceKeys = new Set();
+// One clock per key. The clock starts on the first ready call and stays
+// active for ENTRANCE_WAVE_MS, so a remount mid-wave keeps entering without
+// starting over from a new start time (the new node will still play CSS
+// from the beginning, but a late remount after the wave will not replay).
+const waveStartedAt = new Map();
+const CHROME_KEY = "chrome";
 
-export const chromeShouldEnter = () => {
-    if (chromeHasEntered) return false;
-    chromeHasEntered = true;
-    return true;
+const startWave = (key) => {
+    if (!waveStartedAt.has(key)) waveStartedAt.set(key, nowMs());
 };
 
-export const pageShouldEnter = (onceKey) => {
-    if (!onceKey) return true;
-    if (playedOnceKeys.has(onceKey)) return false;
-    playedOnceKeys.add(onceKey);
-    return true;
+export const waveIsPlaying = (key, duration = ENTRANCE_WAVE_MS) => {
+    const started = waveStartedAt.get(key);
+    if (started == null) return false;
+    return nowMs() - started < duration;
+};
+
+export const waveRemainingMs = (key, duration = ENTRANCE_WAVE_MS) => {
+    const started = waveStartedAt.get(key);
+    if (started == null) return 0;
+    return Math.max(0, duration - (nowMs() - started));
+};
+
+export const chromeShouldEnter = (duration = ENTRANCE_WAVE_MS) => {
+    startWave(CHROME_KEY);
+    return waveIsPlaying(CHROME_KEY, duration);
+};
+
+export const pageShouldEnter = (onceKey, duration = ENTRANCE_WAVE_MS) => {
+    if (onceKey == null || onceKey === "") {
+        throw new Error("pageShouldEnter requires a onceKey so a remount cannot restart the wave");
+    }
+    startWave(onceKey);
+    return waveIsPlaying(onceKey, duration);
 };
 
 export const resetPageEntranceForTests = () => {
-    chromeHasEntered = false;
-    playedOnceKeys.clear();
+    waveStartedAt.clear();
 };

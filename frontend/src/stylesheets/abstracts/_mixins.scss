@@ -168,6 +168,10 @@
 // block holds any per-element distance or stagger.
 @mixin page-entrance-rise($duration: $page-entrance-duration) {
     @media (prefers-reduced-motion: no-preference) {
+        // Hidden in the first painted frame, not only once the keyframe starts.
+        // Without this, items draw fully and then jump back to the rise.
+        opacity: 0;
+        transform: translateY(var(--rise, 14px)) scale(0.98);
         animation: page-entrance-rise $duration $ease-out both;
         @content;
     }

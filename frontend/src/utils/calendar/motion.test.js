@@ -1,18 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { entranceIndexStyle, entranceRowStyle } from "./motion";
+import { entranceOrder, entranceRow } from "./motion";
 
-describe("entranceIndexStyle", () => {
+describe("entranceOrder", () => {
     it("sets a 0-based --entrance-i, keeping any other style", () => {
-        expect(entranceIndexStyle(3, { backgroundColor: "red" })).toEqual({
+        expect(entranceOrder(3, { backgroundColor: "red" })).toEqual({
             backgroundColor: "red",
             "--entrance-i": 3,
         });
     });
 });
 
-describe("entranceRowStyle", () => {
+describe("entranceRow", () => {
     it("sets --entrance-row, keeping any other style", () => {
-        expect(entranceRowStyle(2, { backgroundColor: "red" })).toEqual({
+        expect(entranceRow(2, { backgroundColor: "red" })).toEqual({
             backgroundColor: "red",
             "--entrance-row": 2,
         });

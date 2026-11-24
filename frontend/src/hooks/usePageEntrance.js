@@ -4,40 +4,52 @@ Purpose: The first-visit entrance flag shared by every page, and the matching
 
 Expected Request Information:
 - duration: how long the entering class stays on (the shared wave length).
-- onceKey: when set, the wave plays at most once in the session for that key.
+- onceKey: identifies the page so the wave plays at most once in the session.
+- ready: when false, the clock has not started and the class stays off, so
+  a later first paint of the real content can include the hidden start state.
 
 Expected Response Information:
 - true while the wave should play, then false after the duration, and false
-  from the first render when a onceKey or the chrome has already played.
+  from the first render when this onceKey has already played.
 */
 import { useEffect, useState } from "react";
 import {
     ENTRANCE_WAVE_MS,
     chromeShouldEnter,
     pageShouldEnter,
+    waveIsPlaying,
+    waveRemainingMs,
 } from "../utils/pageEntrance";
 
-function useEnteringFlag(shouldEnter, duration) {
-    const [entering, setEntering] = useState(shouldEnter);
+function useEnteringFlag(isEntering, duration, startKey) {
+    const [, tick] = useState(0);
 
     useEffect(() => {
-        if (!entering) return undefined;
-        const timeout = window.setTimeout(() => setEntering(false), duration);
+        if (!isEntering) return undefined;
+        const timeout = window.setTimeout(
+            () => tick((count) => count + 1),
+            waveRemainingMs(startKey, duration),
+        );
         return () => window.clearTimeout(timeout);
-    }, [entering, duration]);
+    }, [isEntering, duration, startKey]);
 
-    return entering;
+    return isEntering;
 }
 
 export default function usePageEntrance({
     onceKey,
     duration = ENTRANCE_WAVE_MS,
+    ready = true,
 } = {}) {
-    return useEnteringFlag(pageShouldEnter(onceKey), duration);
+    if (onceKey == null || onceKey === "") {
+        throw new Error("usePageEntrance requires a onceKey so a remount cannot restart the wave");
+    }
+    const entering = ready ? pageShouldEnter(onceKey, duration) : waveIsPlaying(onceKey, duration);
+    return useEnteringFlag(entering, duration, onceKey);
 }
 
 // The navbar and footer remount when moving between the public site and
-// admin, so a module flag keeps the wave to the first load of the visit.
+// admin, so a module clock keeps the wave to the first load of the visit.
 export function useChromeEntrance({ duration = ENTRANCE_WAVE_MS } = {}) {
-    return useEnteringFlag(chromeShouldEnter(), duration);
+    return useEnteringFlag(chromeShouldEnter(duration), duration, "chrome");
 }

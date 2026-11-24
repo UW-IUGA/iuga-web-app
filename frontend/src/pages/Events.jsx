@@ -69,7 +69,7 @@ function ListStatus({ status, onRetry }) {
 function EventsPage() {
   // On for the first visit's arrival wave only (see _page.scss), so a later
   // view, date, or filter change does not replay it.
-  const entering = usePageEntrance();
+  const entering = usePageEntrance({ onceKey: "events" });
 
   const { mode, selectedDate, goToDay, goToDate, goToToday, step, setMode } =
     useCalendarView();

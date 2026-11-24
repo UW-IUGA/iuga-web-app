@@ -201,3 +201,34 @@
         @include page-entrance-step($step, $delays, $rises);
     }
 }
+
+// A reading-order item in the shared rise. Set --entrance-i (0-based) on the
+// element. The computed delay is also published as --entrance-delay so nested
+// items can start after their parent.
+@mixin page-entrance-item(
+    $duration: $page-entrance-item-duration,
+    $base: 0ms,
+    $step: $page-entrance-item-step,
+    $cap: $page-entrance-item-cap,
+    $rise: $page-entrance-item-rise
+) {
+    @include page-entrance-rise($duration) {
+        --rise: #{$rise};
+        --entrance-delay: calc(#{$base} + #{$step} * min(var(--entrance-i, 0), #{$cap}));
+        animation-delay: var(--entrance-delay);
+    }
+}
+
+// The same rise, delayed by the parent item's --entrance-delay plus `$base`.
+@mixin page-entrance-nested-item(
+    $duration: $page-entrance-item-duration,
+    $base: $page-entrance-item-base,
+    $step: $page-entrance-item-step,
+    $cap: $page-entrance-item-cap,
+    $rise: $page-entrance-item-rise
+) {
+    @include page-entrance-rise($duration) {
+        --rise: #{$rise};
+        animation-delay: calc(var(--entrance-delay, 0ms) + #{$base} + #{$step} * min(var(--entrance-i, 0), #{$cap}));
+    }
+}

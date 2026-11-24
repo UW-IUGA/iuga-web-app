@@ -147,3 +147,13 @@ $page-entrance-rises: 20px, 14px, 10px;
 $page-entrance-events-duration: 520ms;
 $page-entrance-events-delays: 0ms, 70ms, 120ms;
 $page-entrance-events-rises: 20px, 14px, 10px;
+
+// Reading-order items inside a page-entrance wave (event chips, year cards).
+// Set --entrance-i (0-based) on the element. Items past the cap share the last
+// delay so a long list does not wait. Nested items start 60ms after their
+// parent, so the card and the chips overlap.
+$page-entrance-item-duration: 400ms;
+$page-entrance-item-step: 40ms;
+$page-entrance-item-cap: 6;
+$page-entrance-item-base: 60ms;
+$page-entrance-item-rise: 10px;

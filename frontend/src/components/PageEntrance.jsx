@@ -74,9 +74,13 @@ export function PageRoot({
     );
 }
 
-export function EntranceHero({ as: Tag = "div", className, children, ...rest }) {
+export function EntranceHero({ as: Tag = "div", index = 0, className, style, children, ...rest }) {
     return (
-        <Tag className={classNames(className, "pageEntrance__hero")} {...rest}>
+        <Tag
+            className={classNames(className, "pageEntrance__hero")}
+            style={entranceIndexStyle(index, style)}
+            {...rest}
+        >
             {children}
         </Tag>
     );

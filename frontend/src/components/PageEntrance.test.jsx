@@ -91,9 +91,13 @@ describe("EntranceList", () => {
 });
 
 describe("EntranceHero", () => {
-    test("marks a hero so it uses the shared hero beat", () => {
-        render(<EntranceHero className="poster">Hero</EntranceHero>);
-        expect(screen.getByText("Hero")).toHaveClass("poster", "pageEntrance__hero");
+    test("marks a hero so it uses the shared hero beat, with an optional index", () => {
+        const { rerender } = render(<EntranceHero className="poster">Hero</EntranceHero>);
+        const hero = screen.getByText("Hero");
+        expect(hero).toHaveClass("poster", "pageEntrance__hero");
+        expect(hero.style.getPropertyValue("--entrance-i")).toBe("0");
+        rerender(<EntranceHero className="poster" index={1}>Hero</EntranceHero>);
+        expect(screen.getByText("Hero").style.getPropertyValue("--entrance-i")).toBe("1");
     });
 });
 

@@ -13,11 +13,9 @@ import { useState, useEffect, useMemo } from "react";
 import { shopProducts } from "../assets/data/ShopData";
 import { useAuthContext } from "../context/AuthContext";
 import { useShopCart } from "../context/ShopCartContext";
-import useEntranceColumns from "../hooks/useEntranceColumns";
-import usePageEntrance from "../hooks/usePageEntrance";
 import { QuantityInput } from "../components/ShopCart";
+import { EntranceGrid, EntranceHero, PageRoot } from "../components/PageEntrance";
 import { isSkuAtLimit, limitForSku } from "../utils/shopCart";
-import { entranceGridStyle, entranceIndexStyle } from "../utils/pageEntrance";
 import { formatCents, formatDate } from "../utils/shopFormat";
 
 // Matches .shopPage__grid: 1 column, 2 from tablet, 3 from desktop.
@@ -40,7 +38,7 @@ function ShopHeroCarousel() {
 
     // The mockups are drawn on white, so the frame keeps the light palette in the dark theme too.
     return (
-        <div className="shopPage__heroVisual pageEntrance__hero" style={entranceIndexStyle(0)} data-theme="light">
+        <EntranceHero className="shopPage__heroVisual" data-theme="light">
             {outgoingIndex !== null && (
                 <div className="shopPage__heroSlide shopPage__heroSlide--outgoing" aria-hidden="true">
                     <img src={shopProducts[outgoingIndex].image} alt="" decoding="async" />
@@ -52,7 +50,7 @@ function ShopHeroCarousel() {
                 <img src={shopProducts[currentIndex].image} alt={`${shopProducts[currentIndex].name} product mockup`} decoding="async" />
                 <span className="shopPage__heroCaption">{shopProducts[currentIndex].name}</span>
             </div>
-        </div>
+        </EntranceHero>
     );
 }
 
@@ -109,8 +107,6 @@ function ShopPage() {
         reconcileNotice,
     } = useShopCart();
 
-    const entering = usePageEntrance();
-    const columns = useEntranceColumns(SHOP_ENTRANCE_COLUMNS);
     const [selectedSizes, setSelectedSizes] = useState({});
     const [awaitingSizeSku, setAwaitingSizeSku] = useState(null);
     const catalogUnavailable = Boolean(error) && !catalog;
@@ -143,7 +139,7 @@ function ShopPage() {
     return (
         <>
             <div className="baseContainer">
-                <main className={`shopPage${entering ? " pageEntrance--enter" : ""}`}>
+                <PageRoot className="shopPage">
                 {catalogUnavailable && (
                     <div className="shopPage__catalogNotice">
                         <p role="status">Ordering is unavailable right now. Products are shown as a preview.</p>
@@ -223,7 +219,8 @@ function ShopPage() {
                         </div>
 
                         <div className="shopPage__grid">
-                            {catalog && catalog.items.map((item, index) => {
+                            <EntranceGrid columns={SHOP_ENTRANCE_COLUMNS}>
+                            {catalog && catalog.items.map((item) => {
                                 const product = productBySku.get(item.sku);
                                 const formattedPrice = formatCents(item.unitPriceCents);
                                 // The catalog crosses the network, so one item missing its
@@ -238,8 +235,6 @@ function ShopPage() {
                                 return (
                                     <ShopCard
                                         key={item.sku}
-                                        className="pageEntrance__item"
-                                        style={entranceGridStyle(index, columns)}
                                         name={item.name}
                                         image={product?.image}
                                         material={product?.material}
@@ -294,11 +289,9 @@ function ShopPage() {
                                 );
                             })}
 
-                            {catalogUnavailable && shopProducts.map((product, index) => (
+                            {catalogUnavailable && shopProducts.map((product) => (
                                 <ShopCard
                                     key={product.sku}
-                                    className="pageEntrance__item"
-                                    style={entranceGridStyle(index, columns)}
                                     name={product.name}
                                     image={product.image}
                                     material={product.material}
@@ -309,10 +302,11 @@ function ShopPage() {
                                     </button>
                                 </ShopCard>
                             ))}
+                            </EntranceGrid>
                         </div>
                     </section>
                 )}
-                </main>
+                </PageRoot>
             </div>
         </>
     );

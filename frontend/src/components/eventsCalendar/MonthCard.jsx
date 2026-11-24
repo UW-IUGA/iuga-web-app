@@ -2,12 +2,31 @@ import { useState } from "react";
 import { colorForLabels, dayLabel, formatLongDay, isSameDay, zonedParts } from "../../utils/calendar/calendar";
 import Card from "./Card";
 import EventPopover from "./EventPopover";
+import { entranceIndexStyle } from "../../utils/calendar/motion";
 
 // Shows a full month with event popovers. Event chips open one event;
 // "+N more" opens the day's events. The day button navigates to the day view.
 function MonthCard({ title, rows, onPickDay }) {
     const [popoverSelection, setPopoverSelection] = useState(null);
     const today = new Date();
+
+    const chipIndexByKey = (() => {
+        const map = new Map();
+        let index = 0;
+        for (const row of rows) {
+            for (const cell of row) {
+                for (const event of cell.events.slice(0, 3)) {
+                    map.set(`${cell.id}|${event.id}`, index);
+                    index += 1;
+                }
+                if (cell.events.length > 3) {
+                    map.set(`${cell.id}|more`, index);
+                    index += 1;
+                }
+            }
+        }
+        return map;
+    })();
 
     // Stepping to another month unmounts the chip the popover is anchored to, so
     // the selection is dropped with it, during render so no frame shows it over
@@ -97,7 +116,9 @@ function MonthCard({ title, rows, onPickDay }) {
                                 {...getEventChipProps(event)}
                                 className="pad__event"
                                 key={event.id}
-                                style={{ backgroundColor: colorForLabels(event.labels) }}
+                                style={entranceIndexStyle(chipIndexByKey.get(`${cell.id}|${event.id}`), {
+                                    backgroundColor: colorForLabels(event.labels),
+                                })}
                                 // The name is cut off with an ellipsis when it is longer than the
                                 // day is wide. The tooltip shows it whole to a mouse; a screen
                                 // reader already reads the full text.
@@ -110,6 +131,7 @@ function MonthCard({ title, rows, onPickDay }) {
                             <button
                                 {...getEventChipProps(null)}
                                 className="pad__more"
+                                style={entranceIndexStyle(chipIndexByKey.get(`${cell.id}|more`))}
                                 // Says what is behind it and which day, where the visible "+2 more"
                                 // says neither. Starts with the visible text, so speaking it still
                                 // works (2.5.3).

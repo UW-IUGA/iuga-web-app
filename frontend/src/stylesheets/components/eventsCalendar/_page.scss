@@ -67,19 +67,16 @@ Expected Response Information: A centred column holding the title, controls and 
         // 0ms. The whole `.events__main` block is not animated, so a wide
         // month, week or day is not held invisible for a late third beat.
         &--enter {
-            // Year view: the month cards, a row at a time (the grid tops out
-            // at this many columns).
-            .year > :nth-child(-n + #{$calendar-year-max-columns}) {
-                @include events-entrance-step(1);
-            }
-
-            .year
-                > :nth-child(n + #{$calendar-year-max-columns + 1}):nth-child(-n + #{$calendar-year-max-columns * 2}) {
-                @include events-entrance-step(2);
-            }
-
-            .year > :nth-child(n + #{$calendar-year-max-columns * 2 + 1}) {
-                @include events-entrance-step(3);
+            // Year view: each month card pops in reading order, left to right
+            // and then the next row. --entrance-i is set on the card.
+            .year > * {
+                @include page-entrance-item(
+                    $page-entrance-events-duration,
+                    0ms,
+                    $page-entrance-item-step,
+                    $page-entrance-item-cap,
+                    14px
+                );
             }
 
             // The mini month and legend travel with the first two beats. They
@@ -125,6 +122,17 @@ Expected Response Information: A centred column holding the title, controls and 
             .grid__head > :nth-child(n + 7),
             .grid__body > :nth-child(n + 7) {
                 @include events-entrance-step(3);
+            }
+
+            // Chips and event blocks inside those frames, left to right then
+            // the next row. They start after their parent card, and share the
+            // last delay once the cap is reached.
+            .pad--event,
+            .pad__event,
+            .pad__more,
+            .grid__event,
+            .pastEventCard {
+                @include page-entrance-nested-item;
             }
         }
     }

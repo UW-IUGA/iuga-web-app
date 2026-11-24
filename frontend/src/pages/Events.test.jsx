@@ -506,7 +506,7 @@ describe("Events page: views and navigation", () => {
             expect(page).toHaveClass("page--events--enter");
 
             act(() => {
-                vi.advanceTimersByTime(639);
+                vi.advanceTimersByTime(959);
             });
             expect(page).toHaveClass("page--events--enter");
 

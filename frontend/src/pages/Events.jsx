@@ -38,8 +38,9 @@ import {
 // it is already every month at once, so another would only repeat the screen.
 const SIDEBAR_MODES = ["month", "week", "day"];
 
-// 520ms rise plus the last wave's 120ms delay, Events' tighter window.
-const PAGE_ENTRANCE_WAVE_MS = 640;
+// Long enough for the last nested item: a year card at the cap (6 × 40ms),
+// then a chip 60ms later at the cap, then its 400ms rise (940ms).
+const PAGE_ENTRANCE_WAVE_MS = 960;
 
 // Opt-in only: a short rise when switching year/month/week/day. Off unless
 // the URL has `motionViews`, so the default first-visit arrival is unchanged.

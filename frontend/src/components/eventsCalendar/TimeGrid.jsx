@@ -2,6 +2,7 @@ import { useLayoutEffect, useMemo, useRef } from "react";
 import useNow from "../../hooks/useNow";
 import { colorForLabels, formatClockTime, formatWeekday, overlapBox, zonedParts } from "../../utils/calendar/calendar";
 import { firstEvent, scrollTopFor } from "../../utils/calendar/gridScroll";
+import { entranceIndexStyle } from "../../utils/calendar/motion";
 
 // Where to land on a day or week with no events, other than today.
 // Mid-morning shows a likely stretch rather than six empty hours above it.
@@ -33,6 +34,19 @@ function TimeGrid({ columns, onPickEvent, openEventKey = null, onPickColumn }) {
 
     const nowFraction = ((nowParts.hour * 60 + nowParts.minute) / 1440) * 100;
     const anyToday = useMemo(() => columns.some((column) => column.isToday), [columns]);
+
+    // Left to right by day, then top to bottom in the day, for the entrance stagger.
+    const entranceIndexByKey = useMemo(() => {
+        const map = new Map();
+        let index = 0;
+        for (const column of columns) {
+            for (const item of column.events) {
+                map.set(`${item.event.id}-${item.startMinutes}`, index);
+                index += 1;
+            }
+        }
+        return map;
+    }, [columns]);
 
     // Each day or week opens with its first event at the top, so nobody has to
     // scroll to find what is on. With no events it opens two hours before now
@@ -140,7 +154,7 @@ function TimeGrid({ columns, onPickEvent, openEventKey = null, onPickColumn }) {
                                         key={key}
                                         className={`grid__event${onPickEvent ? " grid__event--button" : ""}`}
                                         {...eventButtonProps}
-                                        style={{
+                                        style={entranceIndexStyle(entranceIndexByKey.get(key), {
                                             top: `${item.top}%`,
                                             height: `${item.height}%`,
                                             // A pixel in from each side, so the event never touches
@@ -149,7 +163,7 @@ function TimeGrid({ columns, onPickEvent, openEventKey = null, onPickColumn }) {
                                             width: `calc(${box.width}% - 2px)`,
                                             zIndex: 2 + box.layer,
                                             backgroundColor: colorForLabels(item.event.labels),
-                                        }}
+                                        })}
                                     >
                                         {/* Spans, not paragraphs: a button may only hold phrasing
                         content. */}

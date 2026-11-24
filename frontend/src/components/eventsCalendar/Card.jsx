@@ -9,6 +9,7 @@ function Card({
     rows,
     renderDay,
     className,
+    style,
     isCurrentMonth = false,
     isDayOverlayOpen = false,
     children,
@@ -24,7 +25,7 @@ function Card({
     }
 
     return (
-        <div className={cardClasses.join(" ")} aria-current={isCurrentMonth ? "date" : undefined}>
+        <div className={cardClasses.join(" ")} style={style} aria-current={isCurrentMonth ? "date" : undefined}>
             {children}
 
             {/* While an overlay covers the grid, exclude it from keyboard

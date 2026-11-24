@@ -123,9 +123,11 @@ describe("Events page entrance", () => {
     }
 
     it("staggers every view with the shared rise on Events' tighter wave, leaving the heading still", () => {
-        const name = expectStep(`${rootSelector} .year > :nth-child(-n+4)`, 1);
-        expectStep(`${rootSelector} .year > :nth-child(n+5):nth-child(-n+8)`, 2);
-        expectStep(`${rootSelector} .year > :nth-child(n+9)`, 3);
+        const yearCard = motionDeclarations(`${rootSelector} .year > *`);
+        expect(yearCard.animation).toBe(`page-entrance-rise 520ms cubic-bezier(0.23, 1, 0.32, 1) both`);
+        expect(yearCard["--rise"]).toBe("14px");
+        expect(yearCard["--entrance-delay"]).toMatch(/min\(var\(--entrance-i/);
+        expect(yearCard["animation-delay"]).toBe("var(--entrance-delay)");
 
         expectStep(`${rootSelector} .events__sidebar .mini`, 1);
         expectStep(`${rootSelector} .events__legend`, 2);
@@ -143,6 +145,7 @@ describe("Events page entrance", () => {
         expectStep(`${rootSelector} .grid__head > :nth-child(n+7)`, 3);
         expectStep(`${rootSelector} .grid__body > :nth-child(n+7)`, 3);
 
+        const name = yearCard.animation.split(" ")[0];
         expect(fromFrame(name)).toMatchObject({ opacity: "0" });
         expect(fromFrame(name).transform).toBe("translateY(var(--rise, 14px)) scale(0.98)");
 
@@ -150,5 +153,21 @@ describe("Events page entrance", () => {
 
         const stillParts = animatedSelectors().filter((selector) => /page__title|toolbar|view-toggle|controls/i.test(selector));
         expect(stillParts).toEqual([]);
+    });
+
+    it("pops event chips and cards in reading order after their parent", () => {
+        for (const selector of [
+            `${rootSelector} .pad--event`,
+            `${rootSelector} .pad__event`,
+            `${rootSelector} .pad__more`,
+            `${rootSelector} .grid__event`,
+            `${rootSelector} .pastEventCard`,
+        ]) {
+            const declarations = motionDeclarations(selector);
+            expect(declarations.animation).toBe("page-entrance-rise 400ms cubic-bezier(0.23, 1, 0.32, 1) both");
+            expect(declarations["--rise"]).toBe("10px");
+            expect(declarations["animation-delay"]).toMatch(/var\(--entrance-delay/);
+            expect(declarations["animation-delay"]).toMatch(/min\(var\(--entrance-i/);
+        }
     });
 });

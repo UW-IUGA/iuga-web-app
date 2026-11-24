@@ -2,12 +2,27 @@ import { colorForLabels, dayLabel, formatFullDate } from "../../utils/calendar/c
 import useZoomOverlay from "../../hooks/useZoomOverlay";
 import Card from "./Card";
 import DayOverlay from "./DayOverlay";
+import { entranceIndexStyle } from "../../utils/calendar/motion";
 
 // Shows a compact month whose event days open an animated detail overlay
 // without leaving the year view.
-function YearCard({ title, rows, onPickDay, isCurrentMonth = false }) {
+function YearCard({ title, rows, onPickDay, isCurrentMonth = false, style }) {
     const { open: selectedDay, openFrom, close, onKeyDown, contentRef, backRef } = useZoomOverlay();
     const isDayOverlayOpen = Boolean(selectedDay);
+
+    const eventDayIndexById = (() => {
+        const map = new Map();
+        let index = 0;
+        for (const row of rows) {
+            for (const cell of row) {
+                if (cell.events.length > 0) {
+                    map.set(cell.id, index);
+                    index += 1;
+                }
+            }
+        }
+        return map;
+    })();
 
     // The pad is already painted with the day's label colour, so it grows as it is.
     const openDay = (date, cell, dayButton) => {
@@ -39,7 +54,7 @@ function YearCard({ title, rows, onPickDay, isCurrentMonth = false }) {
                 disabled={!hasEvents}
                 className={dayClasses.join(" ")}
                 aria-label={dayLabel(cell.date, cell.events.length)}
-                style={hasEvents ? { backgroundColor: colorForLabels(cell.events[0].labels) } : undefined}
+                style={hasEvents ? entranceIndexStyle(eventDayIndexById.get(cell.id), { backgroundColor: colorForLabels(cell.events[0].labels) }) : undefined}
                 onClick={(event) => openDay(cell.date, cell, event.currentTarget)}
             >
                 {dayNumber}
@@ -52,6 +67,7 @@ function YearCard({ title, rows, onPickDay, isCurrentMonth = false }) {
             title={title}
             rows={rows}
             renderDay={renderDay}
+            style={style}
             className={isDayOverlayOpen ? "card--compact card--open" : "card--compact"}
             isCurrentMonth={isCurrentMonth}
             isDayOverlayOpen={isDayOverlayOpen}

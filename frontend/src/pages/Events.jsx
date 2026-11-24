@@ -37,8 +37,8 @@ import {
 // it is already every month at once, so another would only repeat the screen.
 const SIDEBAR_MODES = ["month", "week", "day"];
 
-// 640ms rise plus the last wave's 180ms delay, the same window as Home.
-const PAGE_ENTRANCE_WAVE_MS = 820;
+// 520ms rise plus the last wave's 120ms delay, Events' tighter window.
+const PAGE_ENTRANCE_WAVE_MS = 640;
 
 // What the calendar says instead of its events while it has none to show.
 function ListStatus({ status, onRetry }) {

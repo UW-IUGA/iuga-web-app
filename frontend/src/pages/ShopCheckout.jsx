@@ -10,8 +10,7 @@ Expected Response Information: Hold details, the pending purchase, or a clear no
 
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import usePageEntrance from "../hooks/usePageEntrance";
-import { entranceIndexStyle } from "../utils/pageEntrance";
+import { EntranceList, usePageEntranceClass } from "../components/PageEntrance";
 import { useAuthContext } from "../context/AuthContext";
 import { useShopCart } from "../context/ShopCartContext";
 import { formatCents } from "../utils/shopFormat";
@@ -129,8 +128,7 @@ export default function ShopCheckoutPage() {
     const [notice, setNotice] = useState(null);
     const [isBusy, setIsBusy] = useState(false);
     const [nowMs, setNowMs] = useState(() => Date.now());
-    const entering = usePageEntrance();
-    const checkoutClass = `shopCheckout baseContainer${entering ? " pageEntrance--enter" : ""}`;
+    const checkoutClass = usePageEntranceClass("shopCheckout baseContainer");
 
     const loadHold = useCallback(async () => {
         setLoadState("loading");
@@ -389,8 +387,9 @@ export default function ShopCheckoutPage() {
             )}
 
             <ul className="shopCheckout__lines">
-                {hold.lines.map((line, index) => (
-                    <li key={`${line.sku}:${line.size}`} className="shopCheckout__line pageEntrance__listItem" style={entranceIndexStyle(index)}>
+                <EntranceList>
+                {hold.lines.map((line) => (
+                    <li key={`${line.sku}:${line.size}`} className="shopCheckout__line">
                         <span>{line.quantity} × {line.name}, size {line.size}</span>
                         <span>{formatCents(line.unitPriceCents * line.quantity)}</span>
                         {isOpen && (
@@ -406,6 +405,7 @@ export default function ShopCheckoutPage() {
                         )}
                     </li>
                 ))}
+                </EntranceList>
             </ul>
 
             <p className="shopCheckout__total">
@@ -413,7 +413,8 @@ export default function ShopCheckoutPage() {
             </p>
 
             {isOpen && (
-                <section className="shopCheckout__pay pageEntrance__listItem" style={entranceIndexStyle(hold.lines.length)} aria-labelledby="shopCheckoutPayTitle">
+                <EntranceList startAt={hold.lines.length}>
+                <section className="shopCheckout__pay" aria-labelledby="shopCheckoutPayTitle">
                     <h2 id="shopCheckoutPayTitle">Pay with Venmo</h2>
                     <div className="shopCheckout__payBody">
                         <figure className="shopCheckout__qr">
@@ -436,10 +437,7 @@ export default function ShopCheckoutPage() {
                         </div>
                     </div>
                 </section>
-            )}
-
-            {isOpen && (
-                <form className="pageEntrance__listItem" style={entranceIndexStyle(hold.lines.length + 1)} onSubmit={handleConfirm} noValidate>
+                <form onSubmit={handleConfirm} noValidate>
                     <div className="shopCheckout__fieldHeader">
                         <label htmlFor="shopCheckoutVenmo" className="shopCheckout__required">Venmo username</label>
                         <p className="shopCheckout__requiredNote" aria-hidden="true"><span>*</span> Required</p>
@@ -517,6 +515,7 @@ export default function ShopCheckoutPage() {
                         </button>
                     </div>
                 </form>
+                </EntranceList>
             )}
 
             {notice && <p role="status" className="shopCheckout__error">{notice}</p>}

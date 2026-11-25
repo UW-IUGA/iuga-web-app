@@ -11,6 +11,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock } from "@fortawesome/free-solid-svg-icons";
 import { useAuthContext } from "../context/AuthContext";
 import PageHeader from "./PageHeader";
+import { EntranceGrid, PageRoot } from "./PageEntrance";
 
 const previewRows = [0, 1, 2];
 const previewChoices = [0, 1, 2, 3, 4];
@@ -23,7 +24,7 @@ const previewChoices = [0, 1, 2, 3, 4];
 function LockedPreview({ onSignIn }) {
     return (
         <div className="baseContainer">
-            <main className="studentVoice">
+            <PageRoot className="studentVoice" onceKey="student-voice">
                 <PageHeader
                     title="Tell IUGA what you think."
                     intro="Your feedback helps IUGA advocate for Informatics students and plan its events and programs. Sign in with your UW NetID to share it."
@@ -34,6 +35,7 @@ function LockedPreview({ onSignIn }) {
                         <h2 id="open-feedback-heading">Open feedback</h2>
                     </div>
 
+                    <EntranceGrid columns={1}>
                     <div className="studentVoicePreview editorial-card">
                         <div className="studentVoicePreview__form" aria-hidden="true">
                             <span className="studentVoicePreview__title" />
@@ -58,8 +60,9 @@ function LockedPreview({ onSignIn }) {
                             </button>
                         </div>
                     </div>
+                    </EntranceGrid>
                 </section>
-            </main>
+            </PageRoot>
         </div>
     );
 }

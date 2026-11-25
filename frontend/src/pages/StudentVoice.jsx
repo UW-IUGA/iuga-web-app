@@ -1,5 +1,9 @@
 import { studentVoiceForms } from "../assets/data/StudentVoiceData";
 import PageHeader from "../components/PageHeader";
+import { EntranceGrid, PageRoot } from "../components/PageEntrance";
+
+// Matches .studentVoice__grid: 1 column below tablet, 2 from tablet up.
+const STUDENT_VOICE_ENTRANCE_COLUMNS = { 0: 1, 768: 2 };
 
 // Microsoft Forms responses live on these domains. Any other host is linked, never framed.
 const FORMS_HOSTS = new Set(["forms.cloud.microsoft", "forms.office.com"]);
@@ -34,7 +38,7 @@ function toEmbedUrl(href) {
 function StudentVoicePage({ forms = studentVoiceForms }) {
     return (
         <div className="baseContainer">
-            <main className="studentVoice">
+            <PageRoot className="studentVoice" onceKey="student-voice">
                 <PageHeader
                     title="Tell IUGA what you think."
                     intro="Your feedback helps IUGA advocate for Informatics students and plan its events and programs."
@@ -48,6 +52,7 @@ function StudentVoicePage({ forms = studentVoiceForms }) {
 
                     {forms.length > 0 ? (
                         <div className="studentVoice__grid">
+                            <EntranceGrid columns={STUDENT_VOICE_ENTRANCE_COLUMNS}>
                             {forms.map((form) => {
                                 const canEmbed = isEmbeddableFormsUrl(form.href);
 
@@ -88,15 +93,18 @@ function StudentVoicePage({ forms = studentVoiceForms }) {
                                     </article>
                                 );
                             })}
+                            </EntranceGrid>
                         </div>
                     ) : (
+                        <EntranceGrid columns={1}>
                         <div className="studentVoice__empty editorial-card">
                             <h2>No surveys are open right now.</h2>
                             <p>Check back soon for new ways to share your perspective with the IUGA executive board.</p>
                         </div>
+                        </EntranceGrid>
                     )}
                 </section>
-            </main>
+            </PageRoot>
         </div>
     );
 }

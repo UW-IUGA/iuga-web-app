@@ -110,7 +110,7 @@ describe("in the dark theme", () => {
     test("shows the hero carousel's product photo and name on a white frame in the light palette", async () => {
         renderShopInDarkTheme();
 
-        const hero = screen.getByRole("region", { name: "The Informatics Fall Collection." });
+        const hero = await screen.findByRole("region", { name: "The Informatics Fall Collection." });
         const photo = within(hero).getByRole("img", { name: `${shopProducts[0].name} product mockup` });
         expect(themeOf(photo)).toBe("light");
         expect(themeOf(within(hero).getByText(shopProducts[0].name))).toBe("light");

@@ -139,7 +139,15 @@ function ShopPage() {
     return (
         <>
             <div className="baseContainer">
-                <PageRoot className="shopPage">
+                {loading && !catalog && !catalogUnavailable && (
+                    <main className="shopPage">
+                        <div className="shopPage__loading" role="status">
+                            <p>Loading merchandise catalog...</p>
+                        </div>
+                    </main>
+                )}
+                {(catalog || catalogUnavailable) && (
+                <PageRoot className="shopPage" onceKey="shop">
                 {catalogUnavailable && (
                     <div className="shopPage__catalogNotice">
                         <p role="status">Ordering is unavailable right now. Products are shown as a preview.</p>
@@ -198,12 +206,6 @@ function ShopPage() {
                 {reconcileNotice && (
                     <div className="shopPage__banner shopPage__banner--warning" role="status">
                         <p>{reconcileNotice}</p>
-                    </div>
-                )}
-
-                {loading && !catalog && (
-                    <div className="shopPage__loading" role="status">
-                        <p>Loading merchandise catalog...</p>
                     </div>
                 )}
 
@@ -307,6 +309,7 @@ function ShopPage() {
                     </section>
                 )}
                 </PageRoot>
+                )}
             </div>
         </>
     );

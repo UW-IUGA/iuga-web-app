@@ -267,14 +267,30 @@ describe("shared page entrance", () => {
 
     it("plays the navbar and footer on Home's three beats, only when motion is allowed", () => {
         expect(motionDeclarations(".site-navigation--enter .nav-logo")).toMatchObject({
-            animation: "page-entrance-rise 640ms cubic-bezier(0.23, 1, 0.32, 1) both",
+            animation: "page-entrance-chrome 640ms cubic-bezier(0.23, 1, 0.32, 1) both",
             "--rise": "20px",
         });
-        expect(motionDeclarations(".site-navigation--enter .nav-primary-links")).toMatchObject({
+        // The desktop bar centers these links with transform: translate(-50%, -50%).
+        // The entrance must not set transform, or that centering is replaced and
+        // the links sit low and to the right for the length of the wave.
+        const links = motionDeclarations(".site-navigation--enter .nav-primary-links");
+        expect(links).toMatchObject({
+            animation: "page-entrance-chrome 640ms cubic-bezier(0.23, 1, 0.32, 1) both",
             "--rise": "14px",
             "animation-delay": "110ms",
+            translate: "0 var(--rise, 14px)",
+        });
+        expect(links).not.toHaveProperty("transform");
+        expect(fromFrame("page-entrance-chrome")).toMatchObject({
+            opacity: "0",
+            translate: "0 var(--rise, 14px)",
+        });
+        expect(toFrame("page-entrance-chrome")).toMatchObject({
+            opacity: "1",
+            translate: "0 0",
         });
         expect(motionDeclarations(".site-navigation--enter .nav-account")).toMatchObject({
+            animation: "page-entrance-chrome 640ms cubic-bezier(0.23, 1, 0.32, 1) both",
             "--rise": "10px",
             "animation-delay": "180ms",
         });

@@ -206,6 +206,30 @@
     }
 }
 
+// Opacity plus a small vertical translate only. Use this on chrome whose
+// resting layout already sets `transform` (the desktop nav centers its
+// links with translate(-50%, -50%)). Animating `transform` would replace
+// that and leave the links sitting low and to the right.
+@mixin page-entrance-chrome-rise($duration: $page-entrance-duration) {
+    @media (prefers-reduced-motion: no-preference) {
+        opacity: 0;
+        translate: 0 var(--rise, 14px);
+        animation: page-entrance-chrome $duration $ease-out both;
+        @content;
+    }
+}
+
+@mixin page-entrance-chrome-on-step(
+    $step,
+    $duration: $page-entrance-duration,
+    $delays: $page-entrance-delays,
+    $rises: $page-entrance-rises
+) {
+    @include page-entrance-chrome-rise($duration) {
+        @include page-entrance-step($step, $delays, $rises);
+    }
+}
+
 // A reading-order item in the shared rise. Set --entrance-i (0-based) on the
 // element. The computed delay is also published as --entrance-delay so nested
 // items can start after their parent.

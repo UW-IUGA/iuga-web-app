@@ -14,8 +14,12 @@ import { shopProducts } from "../assets/data/ShopData";
 import { useAuthContext } from "../context/AuthContext";
 import { useShopCart } from "../context/ShopCartContext";
 import { QuantityInput } from "../components/ShopCart";
+import { EntranceGrid, EntranceHero, PageRoot } from "../components/PageEntrance";
 import { isSkuAtLimit, limitForSku } from "../utils/shopCart";
 import { formatCents, formatDate } from "../utils/shopFormat";
+
+// Matches .shopPage__grid: 1 column, 2 from tablet, 3 from desktop.
+const SHOP_ENTRANCE_COLUMNS = { 0: 1, 768: 2, 1300: 3 };
 
 function ShopHeroCarousel() {
     const [{ currentIndex, outgoingIndex }, setSlide] = useState({ currentIndex: 0, outgoingIndex: null });
@@ -34,7 +38,7 @@ function ShopHeroCarousel() {
 
     // The mockups are drawn on white, so the frame keeps the light palette in the dark theme too.
     return (
-        <div className="shopPage__heroVisual" data-theme="light">
+        <EntranceHero className="shopPage__heroVisual" data-theme="light">
             {outgoingIndex !== null && (
                 <div className="shopPage__heroSlide shopPage__heroSlide--outgoing" aria-hidden="true">
                     <img src={shopProducts[outgoingIndex].image} alt="" decoding="async" />
@@ -46,15 +50,15 @@ function ShopHeroCarousel() {
                 <img src={shopProducts[currentIndex].image} alt={`${shopProducts[currentIndex].name} product mockup`} decoding="async" />
                 <span className="shopPage__heroCaption">{shopProducts[currentIndex].name}</span>
             </div>
-        </div>
+        </EntranceHero>
     );
 }
 
 // Shared card markup for the live catalog and the read-only preview. Callers pass the
 // price text and the controls that sit under the material.
-function ShopCard({ name, image, material, price, children }) {
+function ShopCard({ name, image, material, price, children, className, style }) {
     return (
-        <article className="shopCard">
+        <article className={className ? `shopCard ${className}` : "shopCard"} style={style}>
             {image && (
                 <div className="shopCard__imageWrap">
                     <img
@@ -135,7 +139,15 @@ function ShopPage() {
     return (
         <>
             <div className="baseContainer">
-                <main className="shopPage">
+                {loading && !catalog && !catalogUnavailable && (
+                    <main className="shopPage">
+                        <div className="shopPage__loading" role="status">
+                            <p>Loading merchandise catalog...</p>
+                        </div>
+                    </main>
+                )}
+                {(catalog || catalogUnavailable) && (
+                <PageRoot className="shopPage" onceKey="shop">
                 {catalogUnavailable && (
                     <div className="shopPage__catalogNotice">
                         <p role="status">Ordering is unavailable right now. Products are shown as a preview.</p>
@@ -197,12 +209,6 @@ function ShopPage() {
                     </div>
                 )}
 
-                {loading && !catalog && (
-                    <div className="shopPage__loading" role="status">
-                        <p>Loading merchandise catalog...</p>
-                    </div>
-                )}
-
                 {(catalog || catalogUnavailable) && (
                     <section className="shopPage__collection" aria-labelledby="collection-title">
                         <div className="shopPage__collectionHeader">
@@ -215,6 +221,7 @@ function ShopPage() {
                         </div>
 
                         <div className="shopPage__grid">
+                            <EntranceGrid columns={SHOP_ENTRANCE_COLUMNS}>
                             {catalog && catalog.items.map((item) => {
                                 const product = productBySku.get(item.sku);
                                 const formattedPrice = formatCents(item.unitPriceCents);
@@ -297,10 +304,12 @@ function ShopPage() {
                                     </button>
                                 </ShopCard>
                             ))}
+                            </EntranceGrid>
                         </div>
                     </section>
                 )}
-                </main>
+                </PageRoot>
+                )}
             </div>
         </>
     );

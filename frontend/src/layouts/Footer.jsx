@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
+import { useChromeEntrance } from "../hooks/usePageEntrance";
 
 function Footer() {
     const year = new Date().getFullYear();
+    const entering = useChromeEntrance();
 
     return (
-        <footer>
+        <footer className={entering ? "site-footer--enter" : undefined}>
             <div className="footerContainer">
                 <div className="footerBottomRow">
                     <Link className="footerBrand" to="/" aria-label="IUGA home">

@@ -8,6 +8,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { MemoryRouter } from "react-router-dom";
 import Navbar from "./Navbar";
+import { resetPageEntranceForTests } from "../utils/pageEntrance";
 
 const auth = vi.hoisted(() => {
     const auth = { isAuthenticated: true, user: { uFirstName: "Yonie", uType: "Member" }, permissions: [] };
@@ -18,6 +19,7 @@ vi.mock("../context/AuthContext", () => ({ useAuthContext: () => auth }));
 
 beforeEach(() => {
     auth.permissions = [];
+    resetPageEntranceForTests();
 });
 
 const renderNavigation = (path = "/") => render(

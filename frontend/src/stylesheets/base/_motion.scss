@@ -58,4 +58,38 @@
         opacity: 0;
         transform: translateY(var(--rise, 14px)) scale(0.98);
     }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+// Chrome (navbar, footer) uses the individual `translate` property so a
+// layout `transform` (the desktop nav's centering translate) is left alone.
+@keyframes page-entrance-chrome {
+    from {
+        opacity: 0;
+        translate: 0 var(--rise, 14px);
+    }
+
+    to {
+        opacity: 1;
+        translate: 0 0;
+    }
+}
+
+// User-triggered overlays: a small scale and fade from the trigger, not a rise.
+@keyframes overlay-entrance {
+    from {
+        opacity: 0;
+        transform: scale(var(--overlay-scale, 0.97));
+    }
+}
+
+@keyframes overlay-exit {
+    to {
+        opacity: 0;
+        transform: scale(var(--overlay-scale, 0.97));
+    }
 }

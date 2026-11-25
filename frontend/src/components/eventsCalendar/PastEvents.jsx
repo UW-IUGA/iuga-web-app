@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { pastEvents } from "../../assets/data/PastEventsData";
 import PastEventCard from "../PastEventCard";
 import PhotoLightbox from "../PhotoLightbox";
-import { entranceIndexStyle } from "../../utils/calendar/motion";
+import { entranceOrder } from "../../utils/calendar/motion";
 
 const pastEventEyebrow = (event) => [event.when, event.time, event.location].filter(Boolean).join(" · ");
 
@@ -26,7 +26,7 @@ function PastEvents() {
                         reversed={position % 2 === 1}
                         onOpenPhoto={(index) => setOpenPhoto({ event, index })}
                         viewPhotosClassName="pastEvents__viewPhotos"
-                        style={entranceIndexStyle(position)}
+                        style={entranceOrder(position)}
                     />
                 ))}
             </div>

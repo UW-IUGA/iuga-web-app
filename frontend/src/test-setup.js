@@ -11,3 +11,9 @@ if (!HTMLDialogElement.prototype.showModal) {
         this.dispatchEvent(new Event("close"));
     };
 }
+
+import { resetPageEntranceForTests } from "./utils/pageEntrance";
+
+beforeEach(() => {
+    resetPageEntranceForTests();
+});

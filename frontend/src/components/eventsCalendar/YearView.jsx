@@ -2,7 +2,7 @@ import { useContext } from "react";
 import { buildMonthGrid, groupByMonth, zonedParts } from "../../utils/calendar/calendar";
 import { EntranceWaveContext } from "../../hooks/useEntranceWave";
 import YearCard from "./YearCard";
-import { entranceIndexStyle } from "../../utils/calendar/motion";
+import { entranceOrder } from "../../utils/calendar/motion";
 
 // Shows every month with events across all years, rather than one selected
 // year. Event days open within their month cards; "View day" navigates away.
@@ -22,7 +22,7 @@ function YearView({ events, onPickDay }) {
                     onPickDay={onPickDay}
                     isCurrentMonth={month.year === today.year && month.month === today.month}
                     entering={isMonth(month.year, month.month)}
-                    style={entranceIndexStyle(index)}
+                    style={entranceOrder(index)}
                 />
             ))}
         </div>

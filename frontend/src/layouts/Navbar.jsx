@@ -9,6 +9,7 @@
 
 import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useChromeEntrance } from "../hooks/usePageEntrance";
 import { useAuthContext } from "../context/AuthContext";
 import { ADMIN_ROOT_PATH, visibleAdminSections } from "../adminSections";
 import ThemeToggle from "../components/ThemeToggle";
@@ -35,6 +36,7 @@ function NavDropdown({ menuId, label, toggleLabel, open, current, onToggle, onDi
 }
 
 function Navbar({ signIn, signOut }) {
+    const entering = useChromeEntrance();
     const [showMenu, setMenu] = useState(false);
     const [openDropdown, setOpenDropdown] = useState(null);
     const { pathname } = useLocation();
@@ -61,7 +63,7 @@ function Navbar({ signIn, signOut }) {
     }, [pathname]);
 
     return (
-        <nav className="site-navigation" aria-label="Primary navigation" onKeyDown={(event) => {
+        <nav className={`site-navigation${entering ? " site-navigation--enter" : ""}`} aria-label="Primary navigation" onKeyDown={(event) => {
             if (event.key === "Escape") closeMenu();
         }}>
             <div className="nav-container">

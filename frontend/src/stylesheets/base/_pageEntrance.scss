@@ -1,0 +1,31 @@
+@use "../abstracts" as *;
+
+// Shared card-grid items. Pages add .pageEntrance--enter on the root and .pageEntrance__item
+// plus --entrance-row / --entrance-i on each card.
+.pageEntrance--enter .pageEntrance__item {
+    @include page-entrance-rise($page-entrance-item-duration) {
+        --rise: #{$page-entrance-item-rise};
+        animation-delay: $page-entrance-grid-delay;
+    }
+}
+
+// Hero visuals beside a still title. Set --entrance-i for the stagger.
+.pageEntrance--enter .pageEntrance__hero {
+    @include page-entrance-item(
+        $page-entrance-item-duration,
+        0ms,
+        $page-entrance-item-step,
+        $page-entrance-item-cap,
+        14px
+    );
+}
+
+// User-triggered overlays. Set --overlay-origin on the element so it scales
+// in from its trigger. Add .overlayEntrance--leave when the overlay is closing.
+.overlayEntrance {
+    @include overlay-entrance;
+}
+
+.overlayEntrance--leave {
+    @include overlay-exit;
+}

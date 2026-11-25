@@ -1,10 +1,11 @@
 import { createContext, useCallback, useEffect, useRef, useState } from "react";
+import { ENTRANCE_WAVE_MS } from "../utils/pageEntrance";
 
 // How long the enter class stays on. Long enough for the last month-view
 // chip: week row 5 at 80ms each, then a 40ms start plus 5 × 25ms in the
 // row, then its 400ms rise (965ms). The first-visit page class uses this
 // same value, so both waves clear together.
-export const ENTRANCE_WAVE_MS = 1000;
+export { ENTRANCE_WAVE_MS };
 
 const EMPTY = new Set();
 

@@ -142,3 +142,18 @@ footer {
         gap: $space-2;
     }
 }
+
+// First load only, same three beats as the navbar.
+.site-footer--enter {
+    .footerBrand {
+        @include page-entrance-on-step(1);
+    }
+
+    .footerCopyright {
+        @include page-entrance-on-step(2);
+    }
+
+    .footerSocials {
+        @include page-entrance-on-step(3);
+    }
+}

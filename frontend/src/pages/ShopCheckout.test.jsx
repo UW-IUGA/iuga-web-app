@@ -9,6 +9,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testi
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { ShopCartProvider } from "../context/ShopCartContext";
 import ShopCheckoutPage from "./ShopCheckout";
+import { resetPageEntranceForTests } from "../utils/pageEntrance";
 
 const auth = vi.hoisted(() => ({ isAuthenticated: true, signIn: vi.fn() }));
 vi.mock("../context/AuthContext", () => ({ useAuthContext: () => auth }));
@@ -77,6 +78,7 @@ function storedCart() {
 }
 
 beforeEach(() => {
+    resetPageEntranceForTests();
     auth.isAuthenticated = true;
     auth.signIn.mockReset();
     vi.spyOn(window, "scrollTo").mockImplementation(() => {});
@@ -408,3 +410,20 @@ describe("ShopCheckoutPage", () => {
         expect(storedCart()).toHaveLength(2);
     });
 });
+
+    test("waves the checkout lines in on the first visit, leaving the title and timer still", async () => {
+        mockApi({
+            [`GET /api/v1/shop/holds/${holdId}`]: response({ status: "success", hold: hold() }),
+        });
+        renderCheckout();
+
+        expect(await screen.findByRole("heading", { name: "Checkout" })).toBeInTheDocument();
+        const main = document.querySelector("main.shopCheckout");
+        expect(main).toHaveClass("pageEntrance--enter");
+        const lines = [...document.querySelectorAll("li.shopCheckout__line")];
+        expect(lines).toHaveLength(2);
+        expect(lines[0]).toHaveClass("pageEntrance__listItem");
+        expect(lines[0].style.getPropertyValue("--entrance-i")).toBe("0");
+        expect(lines[1].style.getPropertyValue("--entrance-i")).toBe("1");
+        expect(document.querySelector(".shopCheckout__timer")).not.toHaveClass("pageEntrance__listItem");
+    });

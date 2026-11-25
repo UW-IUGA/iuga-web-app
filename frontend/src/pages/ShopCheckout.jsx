@@ -10,6 +10,7 @@ Expected Response Information: Hold details, the pending purchase, or a clear no
 
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { EntranceList, usePageEntranceClass } from "../components/PageEntrance";
 import { useAuthContext } from "../context/AuthContext";
 import { useShopCart } from "../context/ShopCartContext";
 import { formatCents } from "../utils/shopFormat";
@@ -127,6 +128,7 @@ export default function ShopCheckoutPage() {
     const [notice, setNotice] = useState(null);
     const [isBusy, setIsBusy] = useState(false);
     const [nowMs, setNowMs] = useState(() => Date.now());
+    const checkoutClass = usePageEntranceClass("shopCheckout baseContainer", { onceKey: "checkout", ready: loadState !== "loading" });
 
     const loadHold = useCallback(async () => {
         setLoadState("loading");
@@ -275,12 +277,12 @@ export default function ShopCheckoutPage() {
     }
 
     if (loadState === "loading") {
-        return <main className="shopCheckout baseContainer" role="status">Loading your checkout…</main>;
+        return <main className={checkoutClass} role="status">Loading your checkout…</main>;
     }
 
     if (loadState === "signin") {
         return (
-            <main className="shopCheckout baseContainer">
+            <main className={checkoutClass}>
                 <h1>Sign in to continue</h1>
                 <p>Sign in to see your held items and finish your purchase.</p>
                 <button type="button" className="shopCheckout__button" onClick={async () => {
@@ -295,7 +297,7 @@ export default function ShopCheckoutPage() {
 
     if (loadState === "missing") {
         return (
-            <main className="shopCheckout baseContainer">
+            <main className={checkoutClass}>
                 <h1>We couldn’t find this checkout</h1>
                 <p><Link to="/shop">Return to the shop</Link></p>
             </main>
@@ -304,7 +306,7 @@ export default function ShopCheckoutPage() {
 
     if (loadState === "closed") {
         return (
-            <main className="shopCheckout baseContainer">
+            <main className={checkoutClass}>
                 <h1>Checkout is unavailable</h1>
                 <p>{loadMessage ?? "Online checkout is temporarily unavailable. Your cart has not changed; please check back later."}</p>
                 <p><Link to="/shop">Return to the shop</Link></p>
@@ -314,7 +316,7 @@ export default function ShopCheckoutPage() {
 
     if (loadState === "error") {
         return (
-            <main className="shopCheckout baseContainer">
+            <main className={checkoutClass}>
                 <h1>Checkout could not load</h1>
                 <p>{GENERIC_FAILURE}</p>
                 <button type="button" className="shopCheckout__button" onClick={loadHold}>Try again</button>
@@ -324,7 +326,7 @@ export default function ShopCheckoutPage() {
 
     if (purchase) {
         return (
-            <main className="shopCheckout baseContainer">
+            <main className={checkoutClass}>
                 <h1>Your purchase is submitted</h1>
                 <section className="shopCheckout__submitted" aria-labelledby="shopCheckoutSubmittedTitle">
                     <h2 id="shopCheckoutSubmittedTitle">Thanks for buying Informatics merch!</h2>
@@ -343,7 +345,7 @@ export default function ShopCheckoutPage() {
     const secondsLeft = formatCountdown(remainingMs);
 
     return (
-        <main className="shopCheckout baseContainer">
+        <main className={checkoutClass}>
             <div className="shopCheckout__header">
                 <h1>Checkout</h1>
                 {isOpen && (
@@ -385,6 +387,7 @@ export default function ShopCheckoutPage() {
             )}
 
             <ul className="shopCheckout__lines">
+                <EntranceList>
                 {hold.lines.map((line) => (
                     <li key={`${line.sku}:${line.size}`} className="shopCheckout__line">
                         <span>{line.quantity} × {line.name}, size {line.size}</span>
@@ -402,6 +405,7 @@ export default function ShopCheckoutPage() {
                         )}
                     </li>
                 ))}
+                </EntranceList>
             </ul>
 
             <p className="shopCheckout__total">
@@ -409,6 +413,7 @@ export default function ShopCheckoutPage() {
             </p>
 
             {isOpen && (
+                <EntranceList startAt={hold.lines.length}>
                 <section className="shopCheckout__pay" aria-labelledby="shopCheckoutPayTitle">
                     <h2 id="shopCheckoutPayTitle">Pay with Venmo</h2>
                     <div className="shopCheckout__payBody">
@@ -432,9 +437,6 @@ export default function ShopCheckoutPage() {
                         </div>
                     </div>
                 </section>
-            )}
-
-            {isOpen && (
                 <form onSubmit={handleConfirm} noValidate>
                     <div className="shopCheckout__fieldHeader">
                         <label htmlFor="shopCheckoutVenmo" className="shopCheckout__required">Venmo username</label>
@@ -513,6 +515,7 @@ export default function ShopCheckoutPage() {
                         </button>
                     </div>
                 </form>
+                </EntranceList>
             )}
 
             {notice && <p role="status" className="shopCheckout__error">{notice}</p>}

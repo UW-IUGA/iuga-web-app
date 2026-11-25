@@ -26,14 +26,14 @@ Expected Response Information: A centred column holding the title, controls and 
 @mixin events-month-pad-enter {
     @include page-entrance-rise($page-entrance-item-duration) {
         --rise: #{$page-entrance-item-rise};
-        animation-delay: calc(var(--entrance-row, 0) * #{$page-entrance-month-row-step});
+        animation-delay: calc(min(var(--entrance-row, 0), #{$page-entrance-row-cap}) * #{$page-entrance-row-step});
     }
 }
 
 @mixin events-month-chip-enter {
     @include page-entrance-rise($page-entrance-item-duration) {
         --rise: #{$page-entrance-item-rise};
-        animation-delay: $page-entrance-month-chip-delay;
+        animation-delay: $page-entrance-grid-delay;
     }
 }
 

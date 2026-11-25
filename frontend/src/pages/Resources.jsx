@@ -3,6 +3,10 @@ import { useLocation, useSearchParams } from "react-router-dom";
 import ResourceCard from "../components/ResourceCard";
 import { resourceTagTones, resourceTags } from "../assets/data/Enum";
 import PageHeader from "../components/PageHeader";
+import { EntranceGrid, PageRoot } from "../components/PageEntrance";
+
+// Matches .resourceGrid: 1 column below tablet, 2 from tablet up.
+const RESOURCES_ENTRANCE_COLUMNS = { 0: 1, 768: 2 };
 
 const ALL_RESOURCES = "All resources";
 const categories = Object.values(resourceTags);
@@ -85,7 +89,7 @@ function ResourcesPage({ resources }) {
 
     return (
         <div className="baseContainer">
-            <main className="resourcesPage">
+            <PageRoot className="resourcesPage" onceKey="resources">
                 <PageHeader
                     title="Find support at the iSchool and UW."
                     intro="Academic, career, wellbeing, and community resources, plus student organizations. Each is run by its own group, not IUGA."
@@ -126,7 +130,11 @@ function ResourcesPage({ resources }) {
 
                     {visibleCategories.length > 0 ? (
                         <div className="resourceCategoryList">
-                            {visibleCategories.map(({ category, items }) => (
+                            {visibleCategories.map(({ category, items }, sectionIndex) => {
+                                const offset = visibleCategories
+                                    .slice(0, sectionIndex)
+                                    .reduce((count, section) => count + section.items.length, 0);
+                                return (
                                 <section className="resourceCategory" id={categoryId(category)} key={category}>
                                     <div className="resourceCategoryHeader">
                                         <h2>
@@ -152,15 +160,23 @@ function ResourcesPage({ resources }) {
                                     </div>
                                     {isOpen(category) && (
                                         <div className="resourceGrid" id={`${categoryId(category)}-panel`}>
+                                            <EntranceGrid columns={RESOURCES_ENTRANCE_COLUMNS} startAt={offset}>
                                             {items.map((resource) => (
-                                                <ResourceCard key={resource.rName} resource={resource} category={category} />
+                                                <ResourceCard
+                                                    key={resource.rName}
+                                                    resource={resource}
+                                                    category={category}
+                                                />
                                             ))}
+                                            </EntranceGrid>
                                         </div>
                                     )}
                                 </section>
-                            ))}
+                                );
+                            })}
                         </div>
                     ) : (
+                        <EntranceGrid columns={1}>
                         <div className="resourcesEmptyState editorial-card">
                             <h2>No resources match that search.</h2>
                             <p>Try a broader term or return to all resources.</p>
@@ -171,9 +187,10 @@ function ResourcesPage({ resources }) {
                                 Show all resources
                             </button>
                         </div>
+                        </EntranceGrid>
                     )}
                 </section>
-            </main>
+            </PageRoot>
         </div>
     );
 }

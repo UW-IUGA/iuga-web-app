@@ -128,7 +128,7 @@ export default function ShopCheckoutPage() {
     const [notice, setNotice] = useState(null);
     const [isBusy, setIsBusy] = useState(false);
     const [nowMs, setNowMs] = useState(() => Date.now());
-    const checkoutClass = usePageEntranceClass("shopCheckout baseContainer");
+    const checkoutClass = usePageEntranceClass("shopCheckout baseContainer", { onceKey: "checkout", ready: loadState !== "loading" });
 
     const loadHold = useCallback(async () => {
         setLoadState("loading");

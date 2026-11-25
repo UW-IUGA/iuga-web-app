@@ -20,6 +20,13 @@
     );
 }
 
+
+// A vertical list (committee rows, checkout lines). --entrance-i is 0-based;
+// items past the cap share the last delay.
+.pageEntrance--enter .pageEntrance__listItem {
+    @include page-entrance-item;
+}
+
 // User-triggered overlays. Set --overlay-origin on the element so it scales
 // in from its trigger. Add .overlayEntrance--leave when the overlay is closing.
 .overlayEntrance {

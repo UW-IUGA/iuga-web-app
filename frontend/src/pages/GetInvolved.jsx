@@ -4,6 +4,7 @@ import { team_2026 } from "../assets/data/teams/2026";
 import EmailContactDialog from "../components/EmailContactDialog";
 import StudentProfileCard from "../components/StudentProfileCard";
 import PageHeader from "../components/PageHeader";
+import { EntranceHero, EntranceList, PageRoot } from "../components/PageEntrance";
 
 const committeeLeaders = team_2026[groupType.OFFICERS];
 const getCommitteeLeader = (name) => committeeLeaders.find((leader) => leader.name === name);
@@ -122,18 +123,18 @@ function GetInvolvedPage() {
 
     return (
         <div className="baseContainer">
-            <main className="getInvolved">
+            <PageRoot className="getInvolved" onceKey="get-involved">
                 <PageHeader
                     title="Make your mark at IUGA."
                     intro="Join a student-led committee and help shape what happens in the Informatics community."
                     visual={
                         <div className="getInvolved__leaderProfileGrid" role="group" aria-label="Committee lead profiles">
-                            {leaderProfiles.map(({ profile, isFeatured }) => (
+                            {leaderProfiles.map(({ profile, isFeatured }, index) => (
                                 <div
                                     className={`getInvolved__leaderProfile${isFeatured ? " getInvolved__leaderProfile--featured" : ""}`}
                                     key={profile.name}
                                 >
-                                    <StudentProfileCard profile={profile} />
+                                    <EntranceHero as={StudentProfileCard} index={index} profile={profile} />
                                 </div>
                             ))}
                         </div>
@@ -145,6 +146,7 @@ function GetInvolvedPage() {
                         <h2 id="getInvolved-committees-heading">Find your way to contribute</h2>
                    </div>
                     <div className="getInvolved__committeeList">
+                        <EntranceList>
                         {committees.map((committee) => {
                             const hasCreativeApplication =
                                 committee.name === "Creative Committee" && creativeApplication !== null;
@@ -194,10 +196,11 @@ function GetInvolvedPage() {
                                 </article>
                             );
                         })}
+                        </EntranceList>
                     </div>
                 </section>
 
-            </main>
+            </PageRoot>
         </div>
     );
 }

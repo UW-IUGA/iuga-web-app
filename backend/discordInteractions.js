@@ -11,9 +11,10 @@ export const RESPONSE_AUTOCOMPLETE = 8;
 export const RESPONSE_MODAL = 9;
 
 const EPHEMERAL = 64;
-const COMPONENT_ACTION_ROW = 1;
+export const COMPONENT_ACTION_ROW = 1;
 const COMPONENT_BUTTON = 2;
 export const COMPONENT_STRING_SELECT = 3;
+export const COMPONENT_ROLE_SELECT = 6;
 export const COMPONENT_TEXT_INPUT = 4;
 export const COMPONENT_LABEL = 18;
 export const BUTTON_PRIMARY = 1;

@@ -139,6 +139,7 @@ function setup({ directoryFails = false } = {}) {
     config: {
       modRoleId: MOD_ROLE,
       iugaOfficerRoleId: IUGA_OFFICER_ROLE,
+      officerRoleId: OFFICER_ROLE,
       approvalChannelId: APPROVAL_CHANNEL,
       announcementChannelId: ANNOUNCEMENT_CHANNEL,
       guildId: GUILD_ID,
@@ -218,7 +219,17 @@ const officer = () => member(OFFICER_ID, [OFFICER_ROLE]);
 const mod = () => member(MOD_ID, [MOD_ROLE]);
 const multiOfficer = () => member(MULTI_RSO_OFFICER_ID, [OFFICER_ROLE]);
 
-const buttonIds = (response) => (response.data.components ?? []).flatMap((row) => row.components.map((button) => button.custom_id));
+const BUTTON = 2;
+
+function buttonIds(response) {
+  const ids = [];
+  for (const row of response.data.components ?? []) {
+    for (const part of row.components) {
+      if (part.type === BUTTON) ids.push(part.custom_id);
+    }
+  }
+  return ids;
+}
 const draftIdOf = (formResponse) => formResponse.data.custom_id.split(":")[1];
 
 async function openDraft(flow, who = officer(), options = []) {
@@ -826,5 +837,102 @@ describe("command definition", () => {
         `required option ${option.name} follows an optional option`,
       );
     }
+  });
+});
+
+describe("/event audience roles", () => {
+  const SWE_ROLE = "swe-role";
+  const UX_ROLE = "ux-role";
+  const role = (id, extra = {}) => ({ id, name: id, mentionable: true, managed: false, ...extra });
+
+  function audienceInteraction(who, draftId, roles) {
+    return {
+      type: 3,
+      member: who,
+      message: { id: "preview" },
+      data: {
+        custom_id: `event-audience:${draftId}`,
+        component_type: 6,
+        values: roles.map((picked) => picked.id),
+        resolved: { roles: Object.fromEntries(roles.map((picked) => [picked.id, picked])) },
+      },
+    };
+  }
+
+  const picker = (response) => response.data.components.flatMap((row) => row.components).find((part) => part.type === 6);
+  const notifies = (card) => card.fields.find((field) => field.name === "Notifies").value;
+
+  it("offers an optional role picker of up to three roles on the preview", async () => {
+    const { draftId, preview } = await previewEvent(setup().flow);
+
+    const select = picker(preview);
+    assert.equal(select.custom_id, `event-audience:${draftId}`);
+    assert.equal(select.min_values, 0);
+    assert.equal(select.max_values, 3);
+    assert.equal(notifies(preview.data.embeds[0]), "No role pings");
+  });
+
+  it("carries picked interest roles to the approval card and pings only them on approval", async () => {
+    const context = setup();
+    const { draftId } = await previewEvent(context.flow);
+
+    const picked = await context.flow.handle(audienceInteraction(officer(), draftId, [role(SWE_ROLE), role(UX_ROLE)]));
+    assert.equal(picked.type, UPDATE_MESSAGE);
+    assert.deepEqual(picked.data.allowed_mentions, { parse: [] });
+    assert.equal(notifies(picked.data.embeds[0]), `<@&${SWE_ROLE}> <@&${UX_ROLE}>`);
+    assert.deepEqual(picker(picked).default_values, [
+      { id: SWE_ROLE, type: "role" },
+      { id: UX_ROLE, type: "role" },
+    ]);
+
+    await context.flow.handle(componentInteraction(officer(), `event-send:${draftId}`));
+    const [row] = context.models.DiscordEventSubmissions.docs;
+    assert.deepEqual(row.interestRoleIds, [SWE_ROLE, UX_ROLE]);
+    const approvalCard = context.client.calls.find((call) => call.channelId === APPROVAL_CHANNEL).body;
+    assert.deepEqual(approvalCard.allowed_mentions, { parse: [] });
+    assert.equal(notifies(approvalCard.embeds[0]), `<@&${SWE_ROLE}> <@&${UX_ROLE}>`);
+
+    await context.flow.handle(componentInteraction(mod(), `approve:${row._id}`));
+    const announcement = context.client.calls.find((call) => call.channelId === ANNOUNCEMENT_CHANNEL).body;
+    assert.equal(announcement.content, `<@&${SWE_ROLE}> <@&${UX_ROLE}>`);
+    assert.deepEqual(announcement.allowed_mentions, { roles: [SWE_ROLE, UX_ROLE] });
+  });
+
+  it("drops @everyone, staff, bot-managed, and unmentionable roles and says which", async () => {
+    const context = setup();
+    const { draftId } = await previewEvent(context.flow);
+
+    for (const refused of [
+      role(GUILD_ID, { name: "@everyone" }),
+      role(MOD_ROLE),
+      role(IUGA_OFFICER_ROLE),
+      role(OFFICER_ROLE),
+      role("bot-role", { managed: true }),
+      role("winfo-role", { mentionable: false }),
+    ]) {
+      const response = await context.flow.handle(audienceInteraction(officer(), draftId, [refused, role(SWE_ROLE)]));
+      assert.match(response.data.content, new RegExp(`${refused.name.replace("@", "@​")} can't be notified`));
+      assert.equal(notifies(response.data.embeds[0]), `<@&${SWE_ROLE}>`);
+      assert.deepEqual(context.models.DiscordEventDrafts.docs[0].interestRoleIds, [SWE_ROLE]);
+    }
+  });
+
+  it("clears the roles when the officer empties the picker", async () => {
+    const context = setup();
+    const { draftId } = await previewEvent(context.flow);
+    await context.flow.handle(audienceInteraction(officer(), draftId, [role(SWE_ROLE)]));
+
+    const cleared = await context.flow.handle(audienceInteraction(officer(), draftId, []));
+    assert.equal(notifies(cleared.data.embeds[0]), "No role pings");
+    assert.deepEqual(context.models.DiscordEventDrafts.docs[0].interestRoleIds, []);
+  });
+
+  it("refuses to change roles on someone else's draft", async () => {
+    const context = setup();
+    const { draftId } = await previewEvent(context.flow);
+
+    const response = await context.flow.handle(audienceInteraction(multiOfficer(), draftId, [role(SWE_ROLE)]));
+    assert.match(response.data.content, /expired/);
+    assert.deepEqual(context.models.DiscordEventDrafts.docs[0].interestRoleIds ?? [], []);
   });
 });

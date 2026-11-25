@@ -16,6 +16,7 @@ export const discordEventDraftsSchema = new mongoose.Schema(
       description: { type: String, default: "", maxlength: 2000 },
       categories: { type: [String], default: [] },
     },
+    interestRoleIds: { type: [String], default: [] },
     expiresAt: { type: Date, required: true, index: { expires: 0 } },
   },
   { timestamps: true },

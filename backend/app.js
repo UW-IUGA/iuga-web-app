@@ -93,6 +93,7 @@ if (process.env.DISCORD_PUBLIC_KEY) {
       client: discordClient,
       config: {
         ...reviewerRoles,
+        officerRoleId: process.env.DISCORD_OFFICER_ROLE_ID,
         approvalChannelId: process.env.DISCORD_APPROVAL_CHANNEL_ID,
         announcementChannelId: process.env.DISCORD_ANNOUNCEMENT_CHANNEL_ID,
         guildId: process.env.DISCORD_GUILD_ID,

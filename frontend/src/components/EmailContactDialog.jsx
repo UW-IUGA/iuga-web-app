@@ -27,6 +27,7 @@ Expected Response Information:
 import { useEffect, useId, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
+import { OverlayEntrance } from "./PageEntrance";
 
 const getGmailComposeHref = ({ recipient, subject, body }) => {
     const params = new URLSearchParams({ view: "cm", fs: "1", to: recipient, su: subject, body });
@@ -83,7 +84,8 @@ function EmailContactDialog({
             >
                 {triggerLabel}
             </button>
-            <dialog
+            <OverlayEntrance
+                as="dialog"
                 className="emailContactDialog"
                 ref={dialogRef}
                 aria-labelledby={titleId}
@@ -184,7 +186,7 @@ function EmailContactDialog({
                         </div>
                     </>
                 )}
-            </dialog>
+            </OverlayEntrance>
         </>
     );
 }

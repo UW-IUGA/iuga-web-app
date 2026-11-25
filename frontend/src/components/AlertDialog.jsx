@@ -4,10 +4,13 @@
  * Expected Request: Content labels and an acknowledgment callback from the caller.
  * Expected Response: An accessible dialog that invokes onConfirm when acknowledged.
  */
+import { OverlayEntrance } from "./PageEntrance";
+
 function AlertDialog({ title, message, confirmLabel = "Okay", onConfirm }) {
     return (
         <div className="alert-dialog-overlay">
-            <section
+            <OverlayEntrance
+                as="section"
                 className="alert-dialog"
                 role="dialog"
                 aria-modal="true"
@@ -19,7 +22,7 @@ function AlertDialog({ title, message, confirmLabel = "Okay", onConfirm }) {
                 <button type="button" className="alert-dialog-confirm" autoFocus onClick={onConfirm}>
                     {confirmLabel}
                 </button>
-            </section>
+            </OverlayEntrance>
         </div>
     );
 }

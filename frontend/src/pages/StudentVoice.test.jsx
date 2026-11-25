@@ -1,5 +1,6 @@
-import { render, screen } from "@testing-library/react";
-import { resetPageEntranceForTests } from "../utils/pageEntrance";
+import { act, render, screen } from "@testing-library/react";
+import { vi } from "vitest";
+import { ENTRANCE_WAVE_MS, resetPageEntranceForTests } from "../utils/pageEntrance";
 import StudentVoicePage from "./StudentVoice";
 
 const forms = [
@@ -13,6 +14,7 @@ beforeEach(() => {
 });
 
 test("waves the survey cards in on the first visit, and not again in the same session", () => {
+    vi.useFakeTimers();
     const first = render(<StudentVoicePage forms={forms} />);
     const main = document.querySelector("main.studentVoice");
     const cards = [...document.querySelectorAll("article.studentVoiceCard")];
@@ -23,8 +25,12 @@ test("waves the survey cards in on the first visit, and not again in the same se
     expect(cards[0]).toHaveClass("pageEntrance__item");
     expect(cards[0].style.getPropertyValue("--entrance-i")).toBe("0");
     expect(cards[1].style.getPropertyValue("--entrance-i")).toBe("1");
+    act(() => {
+        vi.advanceTimersByTime(ENTRANCE_WAVE_MS);
+    });
     first.unmount();
 
     render(<StudentVoicePage forms={forms} />);
     expect(document.querySelector("main.studentVoice")).not.toHaveClass("pageEntrance--enter");
+    vi.useRealTimers();
 });

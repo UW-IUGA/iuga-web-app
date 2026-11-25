@@ -223,7 +223,6 @@ function LetterRail({ present, onJump }) {
 }
 
 export default function ShopPickupPage() {
-    const adminClass = usePageEntranceClass("shopAdmin shopPickup");
     const { isAuthenticated, authLoading, signIn } = useAuthContext();
     const searchRef = useRef(null);
     // One ready-list request runs at a time. A request asked for during another waits for it, and a list changed by
@@ -235,6 +234,10 @@ export default function ShopPickupPage() {
     const [accessDenied, setAccessDenied] = useState(null);
     const [board, setBoard] = useState(null);
     const [boardStatus, setBoardStatus] = useState("loading");
+    const adminClass = usePageEntranceClass("shopAdmin shopPickup", {
+        onceKey: "admin-pickup",
+        ready: !authLoading && (!isAuthenticated || accessDenied != null || boardStatus !== "loading" || board),
+    });
     const [boardStale, setBoardStale] = useState(false);
     const [search, setSearch] = useState(EMPTY_SEARCH);
     const [reloadKey, setReloadKey] = useState(0);

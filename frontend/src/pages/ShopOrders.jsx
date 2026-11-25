@@ -17,7 +17,7 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown, faEllipsis, faEnvelope, faMagnifyingGlass, faPhone, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { useAuthContext } from "../context/AuthContext";
-import { EntranceList, usePageEntranceClass } from "../components/PageEntrance";
+import { EntranceList, OverlayEntrance, usePageEntranceClass } from "../components/PageEntrance";
 import EmailContactDialog from "../components/EmailContactDialog";
 import AdminBar from "../components/AdminBar";
 import { usePopover } from "../hooks/usePopover";
@@ -485,14 +485,14 @@ function Modal({ open, title, onClose, children }) {
     }, [open, dialogProps.ref]);
 
     return (
-        <dialog className="shopAdmin__modal" aria-labelledby={titleId} {...dialogProps}>
+        <OverlayEntrance as="dialog" className="shopAdmin__modal" aria-labelledby={titleId} {...dialogProps}>
             {open && (
                 <>
                     <h2 id={titleId} className="shopAdmin__modalTitle">{title}</h2>
                     {children(close)}
                 </>
             )}
-        </dialog>
+        </OverlayEntrance>
     );
 }
 
@@ -1157,11 +1157,11 @@ function useLockPageScroll(locked) {
 }
 
 export default function ShopOrdersPage() {
-    const adminClass = usePageEntranceClass("shopAdmin");
     const { isAuthenticated, authLoading, user, signIn } = useAuthContext();
     const [filters, setFilters] = useState(INITIAL_FILTERS);
     const [searchText, setSearchText] = useState("");
     const [view, setView] = useState("loading");
+    const adminClass = usePageEntranceClass("shopAdmin", { onceKey: "admin-orders", ready: !authLoading && view !== "loading" });
     const [items, setItems] = useState([]);
     const [nextCursor, setNextCursor] = useState(null);
     const [loadingMore, setLoadingMore] = useState(false);

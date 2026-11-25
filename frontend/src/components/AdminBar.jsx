@@ -8,6 +8,7 @@ Expected Response Information: A header. The link to the open page carries aria-
 */
 
 import { Link, useLocation } from "react-router-dom";
+import { useChromeEntrance } from "../hooks/usePageEntrance";
 import { useAuthContext } from "../context/AuthContext";
 import { ADMIN_ROOT_PATH, visibleAdminSections } from "../adminSections";
 
@@ -17,9 +18,10 @@ export default function AdminBar() {
     const currentPath = pathname.replace(/\/+$/, "");
     const name = user?.uFirstName || user?.uDisplayName || user?.name || user?.email;
     const pages = visibleAdminSections(can).flatMap((section) => section.items);
+    const entering = useChromeEntrance();
 
     return (
-        <header className="adminBar">
+        <header className={entering ? "adminBar adminBar--enter" : "adminBar"}>
             <Link className="adminBar__brand" to={ADMIN_ROOT_PATH}>IUGA Admin</Link>
             <nav className="adminBar__pages" aria-label="Admin pages">
                 {pages.map((page) => {

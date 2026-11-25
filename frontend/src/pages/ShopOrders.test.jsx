@@ -10,6 +10,7 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import ShopOrdersPage from "./ShopOrders";
+import { resetPageEntranceForTests } from "../utils/pageEntrance";
 
 const auth = vi.hoisted(() => ({
     isAuthenticated: true,
@@ -155,6 +156,7 @@ function gmailDraft(field) {
 }
 
 beforeEach(() => {
+    resetPageEntranceForTests();
     auth.isAuthenticated = true;
     auth.authLoading = false;
     auth.user = { _id: "officer-1", uFirstName: "Olive" };
@@ -1999,5 +2001,16 @@ describe("orders changed after pickup", () => {
 
         await expectAnnounced("Marked paid: Example Student, $72.00");
         expect(screen.queryByRole("button", { name: "Undo mark paid for Example Student" })).not.toBeInTheDocument();
+    });
+});
+
+describe("first-visit entrance", () => {
+    it("waves the sign-in panel in, leaving the title still", () => {
+        auth.isAuthenticated = false;
+        renderPage();
+
+        expect(document.querySelector(".shopAdmin")).toHaveClass("pageEntrance--enter");
+        expect(screen.getByRole("heading", { name: "Orders" })).not.toHaveClass("pageEntrance__listItem");
+        expect(screen.getByRole("heading", { name: "Sign in to review orders" }).closest("section")).toHaveClass("pageEntrance__listItem");
     });
 });

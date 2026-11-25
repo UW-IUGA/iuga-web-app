@@ -153,3 +153,18 @@
         display: none;
     }
 }
+
+// First load only, shared with the public navbar: brand, then page links, then the end actions.
+.adminBar--enter {
+    .adminBar__brand {
+        @include page-entrance-on-step(1);
+    }
+
+    .adminBar__pages {
+        @include page-entrance-on-step(2);
+    }
+
+    .adminBar__end {
+        @include page-entrance-on-step(3);
+    }
+}

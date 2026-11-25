@@ -14,7 +14,7 @@ function AboutPage({ teams }) {
 
     return (
         <div className="baseContainer">
-            <PageRoot className="about">
+            <PageRoot className="about" onceKey="about">
                 <PageHeader
                     title="Meet the students behind IUGA."
                     intro="IUGA is a student-led association run by Informatics undergraduates, for Informatics undergraduates."

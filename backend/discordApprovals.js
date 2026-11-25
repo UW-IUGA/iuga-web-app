@@ -2,6 +2,7 @@ import { EVENT_COMMAND } from "./discordCommandDefinition.js";
 import { DRAFT_LIFETIME_MS } from "./discordEventDrafts.js";
 import { EVENT_FORM_ACTION, eventForm, readEventForm } from "./discordEventForm.js";
 import { createEventAnnouncements } from "./discordAnnouncements.js";
+import { AUDIENCE_ACTION, allowedAudience, audienceField, audiencePicker } from "./discordAudience.js";
 import { categoriesOf, eventCardBase } from "./discordEventCard.js";
 import { canReview } from "./discordReviewers.js";
 import {
@@ -41,6 +42,7 @@ const NOT_VERIFIED = "Only verified RSO officers can submit events. Use /rso-ver
 const NOT_YOUR_RSO = "You can only submit events for an RSO you're verified for. Pick one from the rso list.";
 const DRAFT_EXPIRED = "This draft expired. Run /event again.";
 const PREVIEW_STATUS = "Preview: not sent yet. Reviewers see this card once you send it.";
+const PREVIEW_PROMPT = "Here's your event. Check the date and time, pick any interest roles to notify, then send it for review.";
 const SEND_ACTION = "event-send";
 const EDIT_ACTION = "event-edit";
 const ENTRY_LIMITS = { name: 200, when: 200, location: 200, description: 2000 };
@@ -61,7 +63,7 @@ const ENTRY_LABELS = [
  * @param models — provides DiscordEventDrafts, DiscordEventSubmissions, and Events
  * @param directory — the RSO directory; rsosOf(member) gives the RSOs a member represents
  * @param client — Discord REST client with postMessage and sendDirectMessage
- * @param config — { modRoleId, iugaOfficerRoleId, approvalChannelId, announcementChannelId, guildId }
+ * @param config — { modRoleId, iugaOfficerRoleId, officerRoleId, approvalChannelId, announcementChannelId, guildId }
  * @param now — returns the current Date
  */
 export function createDiscordApprovals({ models, directory, client, config, now = () => new Date() }) {
@@ -87,6 +89,7 @@ export function createDiscordApprovals({ models, directory, client, config, now 
       const [action, id] = parseCustomId(interaction.data?.custom_id);
       if (action === SEND_ACTION) return handleSend(interaction, id);
       if (action === EDIT_ACTION) return handleEdit(interaction, id);
+      if (action === AUDIENCE_ACTION) return handleAudience(interaction, id);
       if (action === "approve") return handleApprove(interaction, id);
       if (action === "deny") return handleDenyStart(interaction, id);
     }
@@ -176,14 +179,26 @@ export function createDiscordApprovals({ models, directory, client, config, now 
 
     const checked = validateSubmission(saved, now());
     if (!checked.ok) return reply(problemNote(checked.errors), { components: fixButton(draftId) });
-    const card = cardEmbed({ rsoName: rso.rsoName, ...checked.value }, { color: COLOR_PENDING, statusText: PREVIEW_STATUS });
-    return reply("Here's your event. Check the date and time, then send it for review.", {
-      embeds: [card],
-      components: buttonRow([
-        { label: "Send for review", customId: `${SEND_ACTION}:${draftId}`, style: BUTTON_SUCCESS },
-        { label: "Edit", customId: `${EDIT_ACTION}:${draftId}`, style: BUTTON_SECONDARY },
-      ]),
+    return reply(PREVIEW_PROMPT, preview(draftId, rso, checked.value, audienceOf(draft)));
+  }
+
+  async function handleAudience(interaction, draftId) {
+    const { draft, rso, refusal } = await ownDraft(interaction.member, draftId);
+    if (refusal) return refusal;
+
+    const checked = validateSubmission(entriesOf(draft), now());
+    if (!checked.ok) return updateMessage(problemNote(checked.errors), { components: fixButton(draftId) });
+
+    const { roleIds, refused } = allowedAudience(interaction.data?.values ?? [], interaction.data?.resolved?.roles, {
+      guildId: config.guildId,
+      blockedRoleIds: [config.modRoleId, config.iugaOfficerRoleId, config.officerRoleId],
     });
+    await drafts().updateOne({ _id: draft._id }, { $set: { interestRoleIds: roleIds, expiresAt: draftExpiry() } });
+
+    const note = refused.length
+      ? `${neutralizeMentions(refused.join(", "))} can't be notified. Only interest roles that anyone can mention are allowed.`
+      : PREVIEW_PROMPT;
+    return updateMessage(note, preview(draftId, rso, checked.value, roleIds));
   }
 
   async function handleEdit(interaction, draftId) {
@@ -211,6 +226,7 @@ export function createDiscordApprovals({ models, directory, client, config, now 
       rsoKey: rso.rsoKey,
       rsoName: rso.rsoName,
       ...checked.value,
+      interestRoleIds: audienceOf(claimed),
       status: "pending",
     });
     const id = String(row._id);
@@ -338,6 +354,7 @@ export function createDiscordApprovals({ models, directory, client, config, now 
 
 function cardEmbed(row, { color, statusText }) {
   const card = eventCardBase(row);
+  card.fields.push(audienceField(row.interestRoleIds));
   if (row.denyReason) card.fields.push({ name: "Denial reason", value: row.denyReason });
   return { ...card, color, footer: { text: statusText } };
 }
@@ -369,7 +386,28 @@ function entriesOf(draft) {
 
 function restorableDraft(draft) {
   const { _id, submitterDiscordId, rsoKey, rsoName, expiresAt } = draft;
-  return { _id, submitterDiscordId, rsoKey, rsoName, entries: entriesOf(draft), expiresAt };
+  return { _id, submitterDiscordId, rsoKey, rsoName, entries: entriesOf(draft), interestRoleIds: audienceOf(draft), expiresAt };
+}
+
+function audienceOf(draft) {
+  return [...(draft.interestRoleIds ?? [])].map(String);
+}
+
+function preview(draftId, rso, value, roleIds) {
+  const card = cardEmbed(
+    { rsoName: rso.rsoName, ...value, interestRoleIds: roleIds },
+    { color: COLOR_PENDING, statusText: PREVIEW_STATUS },
+  );
+  return {
+    embeds: [card],
+    components: [
+      ...audiencePicker(draftId, roleIds),
+      ...buttonRow([
+        { label: "Send for review", customId: `${SEND_ACTION}:${draftId}`, style: BUTTON_SUCCESS },
+        { label: "Edit", customId: `${EDIT_ACTION}:${draftId}`, style: BUTTON_SECONDARY },
+      ]),
+    ],
+  };
 }
 
 function problemNote(errors) {

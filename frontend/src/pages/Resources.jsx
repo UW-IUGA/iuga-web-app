@@ -89,7 +89,7 @@ function ResourcesPage({ resources }) {
 
     return (
         <div className="baseContainer">
-            <PageRoot className="resourcesPage">
+            <PageRoot className="resourcesPage" onceKey="resources">
                 <PageHeader
                     title="Find support at the iSchool and UW."
                     intro="Academic, career, wellbeing, and community resources, plus student organizations. Each is run by its own group, not IUGA."

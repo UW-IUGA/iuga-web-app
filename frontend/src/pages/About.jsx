@@ -2,6 +2,10 @@ import { useState } from "react";
 import StudentProfileCard from "../components/StudentProfileCard";
 import { groupType } from "../assets/data/Enum";
 import PageHeader from "../components/PageHeader";
+import { EntranceGrid, PageRoot } from "../components/PageEntrance";
+
+// Matches .about__teamGrid: 1 column, 2 from tablet, 3 from sm-desktop.
+const ABOUT_ENTRANCE_COLUMNS = { 0: 1, 768: 2, 1024: 3 };
 
 function AboutPage({ teams }) {
     const years = Object.keys(teams);
@@ -10,7 +14,7 @@ function AboutPage({ teams }) {
 
     return (
         <div className="baseContainer">
-            <main className="about">
+            <PageRoot className="about" onceKey="about">
                 <PageHeader
                     title="Meet the students behind IUGA."
                     intro="IUGA is a student-led association run by Informatics undergraduates, for Informatics undergraduates."
@@ -32,12 +36,17 @@ function AboutPage({ teams }) {
                         ))}
                     </div>
                     <div className="about__teamGrid">
+                        <EntranceGrid columns={ABOUT_ENTRANCE_COLUMNS}>
                         {officers.map((member, index) => (
-                            <StudentProfileCard key={`${member.position}-${index}`} profile={member} />
+                            <StudentProfileCard
+                                key={`${member.position}-${index}`}
+                                profile={member}
+                            />
                         ))}
+                        </EntranceGrid>
                     </div>
                 </section>
-            </main>
+            </PageRoot>
         </div>
     );
 }

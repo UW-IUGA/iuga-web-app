@@ -123,7 +123,7 @@ function GetInvolvedPage() {
 
     return (
         <div className="baseContainer">
-            <PageRoot className="getInvolved">
+            <PageRoot className="getInvolved" onceKey="get-involved">
                 <PageHeader
                     title="Make your mark at IUGA."
                     intro="Join a student-led committee and help shape what happens in the Informatics community."

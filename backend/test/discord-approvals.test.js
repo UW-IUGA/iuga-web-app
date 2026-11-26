@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createDiscordApprovals } from "../discord/events/approvals.js";
 import { EVENT_COMMAND } from "../discord/commandDefinition.js";
+import { createServerRoles } from "../discord/roles.js";
 
 const NOW = new Date("2026-11-12T20:00:00Z");
 const APPROVAL_CHANNEL = "approvals-channel";
@@ -136,10 +137,8 @@ function setup({ directoryFails = false } = {}) {
     models,
     directory: createDirectory(rsosByUser, { fails: directoryFails }),
     client,
+    roles: createServerRoles({ modRoleId: MOD_ROLE, iugaOfficerRoleId: IUGA_OFFICER_ROLE, officerRoleId: OFFICER_ROLE }),
     config: {
-      modRoleId: MOD_ROLE,
-      iugaOfficerRoleId: IUGA_OFFICER_ROLE,
-      officerRoleId: OFFICER_ROLE,
       approvalChannelId: APPROVAL_CHANNEL,
       announcementChannelId: ANNOUNCEMENT_CHANNEL,
       guildId: GUILD_ID,
@@ -898,7 +897,7 @@ describe("/event audience roles", () => {
     assert.deepEqual(announcement.allowed_mentions, { roles: [SWE_ROLE, UX_ROLE] });
   });
 
-  it("drops @everyone, staff, bot-managed, and unmentionable roles and says which", async () => {
+  it("drops @everyone, staff, officer, bot-managed, and unmentionable roles and says which", async () => {
     const context = setup();
     const { draftId } = await previewEvent(context.flow);
 
@@ -909,6 +908,8 @@ describe("/event audience roles", () => {
       role(OFFICER_ROLE),
       role("bot-role", { managed: true }),
       role("winfo-role", { mentionable: false }),
+      role("old-admins", { permissions: String(1n << 5n) }),
+      role("WINFO Officer"),
     ]) {
       const response = await context.flow.handle(audienceInteraction(officer(), draftId, [refused, role(SWE_ROLE)]));
       assert.match(response.data.content, new RegExp(`${refused.name.replace("@", "@​")} can't be notified`));

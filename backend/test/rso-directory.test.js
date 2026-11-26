@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createRsoDirectory } from "../discord/rsos/directory.js";
+import { createServerRoles } from "../discord/roles.js";
 import { createFakeCollection } from "./fakeCollection.js";
 
 const GUILD = "guild-1";
@@ -50,9 +51,7 @@ function setup(guildOptions) {
   const directory = createRsoDirectory({
     models,
     client: guild,
-    officerRoleId: OFFICER_ROLE,
-    staffRoleIds: [MOD_ROLE, IUGA_OFFICER_ROLE],
-    iugaOfficerRoleId: IUGA_OFFICER_ROLE,
+    roles: createServerRoles({ modRoleId: MOD_ROLE, iugaOfficerRoleId: IUGA_OFFICER_ROLE, officerRoleId: OFFICER_ROLE }),
     now: () => clock,
   });
   return { models, guild, directory, advance: (ms) => (clock += ms) };

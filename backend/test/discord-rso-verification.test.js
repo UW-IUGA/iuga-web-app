@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { RSO_VERIFY_COMMAND } from "../discord/commandDefinition.js";
 import { createDiscordDispatcher } from "../discord/dispatcher.js";
 import { createRsoVerification } from "../discord/rsos/verification.js";
+import { createServerRoles } from "../discord/roles.js";
 import { createFakeCollection } from "./fakeCollection.js";
 
 const NOW = new Date("2026-11-16T20:00:00Z");
@@ -85,7 +86,8 @@ function setup() {
     models,
     directory,
     client,
-    config: { modRoleId: MOD_ROLE, iugaOfficerRoleId: IUGA_OFFICER_ROLE, rsoApprovalChannelId: RSO_CHANNEL },
+    roles: createServerRoles({ modRoleId: MOD_ROLE, iugaOfficerRoleId: IUGA_OFFICER_ROLE }),
+    config: { rsoApprovalChannelId: RSO_CHANNEL },
     now: () => now,
   });
   return { models, client, directory, flow, advance: (ms) => (now = new Date(now.getTime() + ms)) };

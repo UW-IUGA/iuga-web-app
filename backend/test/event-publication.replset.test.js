@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import { eventRequestsSchema, eventsSchema, usersSchema } from "../schemas/schemas.js";
 import eventRequestsRouter from "../routes/api/v1/controllers/eventRequests.js";
 import { createDiscordApprovals } from "../discord/events/approvals.js";
+import { createServerRoles } from "../discord/roles.js";
 import { discordSubmissionsSchema } from "../discord/events/submissions.js";
 import { makeTestApi, roleAssignmentsGranting } from "./testApi.js";
 
@@ -79,7 +80,8 @@ describe("event approval against a MongoDB replica set", { skip: !uri }, () => {
     });
     const flow = createDiscordApprovals({
       models,
-      config: { modRoleId, announcementChannelId: "123" },
+      roles: createServerRoles({ modRoleId }),
+      config: { announcementChannelId: "123" },
       client: { async postMessage() { announcementCount++; return { id: "456" }; } },
     });
     const approve = (reviewer = reviewerDiscordId) => flow.handle({

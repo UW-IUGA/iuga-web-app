@@ -20,6 +20,7 @@ import { createDiscordClient } from "./discord/platform/client.js";
 import { createRsoDirectory } from "./discord/rsos/directory.js";
 import { createRsoVerification } from "./discord/rsos/verification.js";
 import { createDiscordDispatcher } from "./discord/dispatcher.js";
+import { createServerRoles } from "./discord/roles.js";
 import { httpErrorHandler } from "./http/errors.js";
 import {
   isAllowedOrigin,
@@ -75,25 +76,19 @@ Expected Response Information:
 */
 if (process.env.DISCORD_PUBLIC_KEY) {
   const discordClient = createDiscordClient({ botToken: process.env.DISCORD_BOT_TOKEN });
-  const rsoDirectory = createRsoDirectory({
-    models,
-    client: discordClient,
-    officerRoleId: process.env.DISCORD_OFFICER_ROLE_ID,
-    staffRoleIds: [process.env.DISCORD_MOD_ROLE_ID, process.env.DISCORD_IUGA_OFFICER_ROLE_ID],
-    iugaOfficerRoleId: process.env.DISCORD_IUGA_OFFICER_ROLE_ID,
-  });
-  const reviewerRoles = {
+  const serverRoles = createServerRoles({
     modRoleId: process.env.DISCORD_MOD_ROLE_ID,
     iugaOfficerRoleId: process.env.DISCORD_IUGA_OFFICER_ROLE_ID,
-  };
+    officerRoleId: process.env.DISCORD_OFFICER_ROLE_ID,
+  });
+  const rsoDirectory = createRsoDirectory({ models, client: discordClient, roles: serverRoles });
   const discordFlows = createDiscordDispatcher({
     events: createDiscordApprovals({
       models,
       directory: rsoDirectory,
       client: discordClient,
+      roles: serverRoles,
       config: {
-        ...reviewerRoles,
-        officerRoleId: process.env.DISCORD_OFFICER_ROLE_ID,
         approvalChannelId: process.env.DISCORD_APPROVAL_CHANNEL_ID,
         announcementChannelId: process.env.DISCORD_ANNOUNCEMENT_CHANNEL_ID,
         guildId: process.env.DISCORD_GUILD_ID,
@@ -103,7 +98,8 @@ if (process.env.DISCORD_PUBLIC_KEY) {
       models,
       directory: rsoDirectory,
       client: discordClient,
-      config: { ...reviewerRoles, rsoApprovalChannelId: process.env.DISCORD_RSO_APPROVAL_CHANNEL_ID },
+      roles: serverRoles,
+      config: { rsoApprovalChannelId: process.env.DISCORD_RSO_APPROVAL_CHANNEL_ID },
     }),
   });
   app.use(

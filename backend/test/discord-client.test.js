@@ -140,10 +140,10 @@ function recordingClient(responses = []) {
 }
 
 describe("Discord client roles", () => {
-  it("creates a role with no permissions, not mentionable, not hoisted", async () => {
+  it("creates a role with the settings it is given", async () => {
     const { requests, client } = recordingClient([{ status: 200, body: { id: "r1", name: "HCI Club" } }]);
 
-    const role = await client.createRole("g1", { name: "HCI Club" });
+    const role = await client.createRole("g1", { name: "HCI Club", permissions: "0", mentionable: false, hoist: false });
 
     assert.equal(role.id, "r1");
     assert.equal(requests[0].method, "POST");

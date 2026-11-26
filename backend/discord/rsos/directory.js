@@ -1,12 +1,10 @@
 import { cleanName, officerRoleName } from "../roles.js";
+import { DISCORD_ERROR } from "../platform/client.js";
 
 const NAME_LIMIT = 80;
 const SUGGESTION_LIMIT = 25;
 const ROLE_CACHE_MS = 60_000;
 const DUPLICATE_KEY = 11000;
-const UNKNOWN_ROLE = 10011;
-const UNKNOWN_MEMBER = 10007;
-const MISSING_PERMISSIONS = 50013;
 const LEAN = { lean: true };
 
 function keyOf(name) {
@@ -120,7 +118,13 @@ export function createRsoDirectory({
   // When two approvals create a role at once, the first stored role wins and the other is deleted.
   async function roleFor(guildId, rso) {
     if (rso.discordRoleId) return rso.discordRoleId;
-    const role = await client.createRole(guildId, { name: officerRoleName(rso.name) });
+    // Officer roles only mark who represents an RSO: no permissions, no pings, not listed separately.
+    const role = await client.createRole(guildId, {
+      name: officerRoleName(rso.name),
+      permissions: "0",
+      mentionable: false,
+      hoist: false,
+    });
     roleCache.delete(guildId);
     const stored = await rsos().findOneAndUpdate(
       { rsoKey: rso.rsoKey, discordRoleId: null },
@@ -140,7 +144,7 @@ export function createRsoDirectory({
     try {
       await client.addMemberRole(guildId, userId, roleId);
     } catch (error) {
-      if (error?.discordCode !== UNKNOWN_ROLE) throw error;
+      if (error?.discordCode !== DISCORD_ERROR.UNKNOWN_ROLE) throw error;
       const cleared = await rsos().findOneAndUpdate(
         { rsoKey: rso.rsoKey, discordRoleId: roleId },
         { $set: { discordRoleId: null } },
@@ -166,8 +170,8 @@ export function createRsoDirectory({
       if (roles.officerRoleId) await client.addMemberRole(guildId, userId, roles.officerRoleId);
       return { ok: true, rso: { rsoKey: found.rso.rsoKey, rsoName: found.rso.name }, created: found.created };
     } catch (error) {
-      if (error?.discordCode === UNKNOWN_MEMBER) return { ok: false, reason: "member-gone" };
-      if (error?.discordCode === MISSING_PERMISSIONS) return { ok: false, reason: "bot-cannot-manage-roles" };
+      if (error?.discordCode === DISCORD_ERROR.UNKNOWN_MEMBER) return { ok: false, reason: "member-gone" };
+      if (error?.discordCode === DISCORD_ERROR.MISSING_PERMISSIONS) return { ok: false, reason: "bot-cannot-manage-roles" };
       throw error;
     }
   }

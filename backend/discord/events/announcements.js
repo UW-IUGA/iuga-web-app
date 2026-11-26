@@ -1,13 +1,11 @@
 import { eventCardBase } from "./card.js";
 import { neutralizeMentions } from "../platform/interactions.js";
+import { DISCORD_ERROR } from "../platform/client.js";
 
 const EVENTS_PAGE_URL = "https://iuga.info/events";
 const EXTERNAL_ENTITY_TYPE = 3;
 const GUILD_ONLY_PRIVACY_LEVEL = 2;
 const DISCORD_TEXT_LIMIT = 100;
-const UNKNOWN_MESSAGE = 10008;
-const UNKNOWN_CHANNEL = 10003;
-const UNKNOWN_SCHEDULED_EVENT = 10070;
 
 function failureText(summary, error) {
   return error.likelyCause ? `${summary}: ${error.likelyCause}.` : `${summary}.`;
@@ -106,12 +104,12 @@ export function createEventAnnouncements({ client, channelId, guildId, now }) {
 
   async function withdraw(submission) {
     if (submission.announcementMessageId) {
-      await ignoringGone([UNKNOWN_MESSAGE, UNKNOWN_CHANNEL], () =>
+      await ignoringGone([DISCORD_ERROR.UNKNOWN_MESSAGE, DISCORD_ERROR.UNKNOWN_CHANNEL], () =>
         client.deleteMessage(submission.announcementChannelId, submission.announcementMessageId),
       );
     }
     if (submission.scheduledEventId) {
-      await ignoringGone([UNKNOWN_SCHEDULED_EVENT], () =>
+      await ignoringGone([DISCORD_ERROR.UNKNOWN_SCHEDULED_EVENT], () =>
         client.deleteScheduledEvent(guildId, submission.scheduledEventId),
       );
     }

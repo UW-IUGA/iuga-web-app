@@ -366,8 +366,17 @@ describe("Events page: officer event operations", () => {
 });
 
 describe("Events page: views and navigation", () => {
-    it("opens on the year view with no params", async () => {
+    it("opens on the month view with no params", async () => {
         const { container } = await visit("/events");
+
+        expect(container.querySelector(".card--month")).toBeTruthy();
+        expect(container.querySelector(".year")).toBeNull();
+        expect(screen.getByRole("radio", { name: "Month" })).toHaveAttribute("aria-checked", "true");
+        expect(container.querySelector(".mini")).toBeTruthy();
+    });
+
+    it("still opens the year view from an explicit year link", async () => {
+        const { container } = await visit("/events?view=year");
 
         expect(container.querySelector(".year")).toBeTruthy();
         expect(screen.getByRole("radio", { name: "Year" })).toHaveAttribute("aria-checked", "true");
@@ -443,7 +452,9 @@ describe("Events page: views and navigation", () => {
 
             fireEvent.click(day);
 
-            expect(written().get("view")).toBe(view);
+            // Month is the default, so it is omitted from the URL.
+            if (view === "month") expect(written().has("view")).toBe(false);
+            else expect(written().get("view")).toBe(view);
             expect(written().get("date")).toBe("2026-10-28");
             expect(range(container)).toBe(expected);
             unmount();
@@ -491,9 +502,13 @@ describe("Events page: views and navigation", () => {
         expect(container.querySelectorAll(".grid__col")).toHaveLength(7);
 
         fireEvent.click(screen.getByRole("radio", { name: "Year" }));
-        // Year is the default, so it leaves the URL rather than being written.
-        expect(written().has("view")).toBe(false);
+        expect(written().get("view")).toBe("year");
         expect(container.querySelector(".mini")).toBeNull();
+
+        fireEvent.click(screen.getByRole("radio", { name: "Month" }));
+        // Month is the default, so it leaves the URL rather than being written.
+        expect(written().has("view")).toBe(false);
+        expect(container.querySelector(".card--month")).toBeTruthy();
     });
 
     it("opens a day when a month pad is clicked", async () => {
@@ -507,7 +522,7 @@ describe("Events page: views and navigation", () => {
     it("takes the month and week views to the current period from Today", async () => {
         const month = await visit("/events?view=month&date=2024-04-08");
         fireEvent.click(screen.getByRole("button", { name: "Today" }));
-        expect(written().get("view")).toBe("month");
+        expect(written().has("view")).toBe(false);
         expect(range(month.container)).toBe(formatMonthYear(new Date()));
         month.unmount();
 
@@ -547,8 +562,7 @@ describe("Events page: keyboard", () => {
         expect(document.activeElement).toBe(screen.getByRole("radio", { name: "Week" }));
 
         fireEvent.keyDown(document.activeElement, { key: "Home" });
-        // Year is the default, so landing on it drops the view from the URL.
-        expect(written().has("view")).toBe(false);
+        expect(written().get("view")).toBe("year");
 
         // Wraps from the first view to the last.
         fireEvent.keyDown(document.activeElement, { key: "ArrowLeft" });

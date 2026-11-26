@@ -133,6 +133,23 @@
     li {
         min-width: 0;
         min-height: 0;
+
+        // The hero is seen once per visit, so its photos enter as one wave: the lead
+        // photo rises furthest, the other two follow with shorter moves and shrinking gaps.
+        // The copy is not animated, so it is readable and clickable from the first frame.
+        @include page-entrance-rise {
+            &:nth-child(1) {
+                @include page-entrance-step(1);
+            }
+
+            &:nth-child(2) {
+                @include page-entrance-step(2);
+            }
+
+            &:nth-child(3) {
+                @include page-entrance-step(3);
+            }
+        }
     }
 
     li:first-child {
@@ -174,36 +191,6 @@
             grid-row: auto;
             grid-column: 1 / -1;
         }
-    }
-}
-
-// The hero is seen once per visit, so its photos enter as one wave: the lead
-// photo rises furthest, the other two follow with shorter moves and shrinking gaps.
-// The copy is not animated, so it is readable and clickable from the first frame.
-@media (prefers-reduced-motion: no-preference) {
-    .homeHeroPhotos li {
-        animation: homeHeroRise 640ms $ease-out both;
-
-        &:nth-child(1) {
-            --rise: 20px;
-        }
-
-        &:nth-child(2) {
-            --rise: 14px;
-            animation-delay: 110ms;
-        }
-
-        &:nth-child(3) {
-            --rise: 10px;
-            animation-delay: 180ms;
-        }
-    }
-}
-
-@keyframes homeHeroRise {
-    from {
-        opacity: 0;
-        transform: translateY(var(--rise)) scale(0.98);
     }
 }
 

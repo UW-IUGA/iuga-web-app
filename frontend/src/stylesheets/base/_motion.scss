@@ -50,3 +50,12 @@
         opacity: 0;
     }
 }
+
+// The once-per-visit rise behind the page-entrance-rise mixin. --rise sets how
+// far the element travels; 14px when the caller sets none.
+@keyframes page-entrance-rise {
+    from {
+        opacity: 0;
+        transform: translateY(var(--rise, 14px)) scale(0.98);
+    }
+}

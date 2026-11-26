@@ -132,3 +132,28 @@ $breakpoints: (
 $ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 $duration-press: 160ms;
 $duration-fade: 200ms;
+
+// The once-per-visit page-entrance wave. Home's three hero photos set these
+// values; other pages reuse them so arrivals stay in one family. The last
+// piece still finishes at the third delay plus the duration (820ms).
+$page-entrance-duration: 640ms;
+$page-entrance-delays: 0ms, 110ms, 180ms;
+$page-entrance-rises: 20px, 14px, 10px;
+
+// Events uses the same three beats and distances, on a slightly tighter first-visit
+// wave: its pieces are much larger than Home's photos, so Home's 640ms rise and
+// 180ms last delay make the calendar feel late and heavy. 520ms, with shrinking
+// gaps of 70ms then 50ms, still finishes in one family as Home's 640ms photo rise.
+$page-entrance-events-duration: 520ms;
+$page-entrance-events-delays: 0ms, 70ms, 120ms;
+$page-entrance-events-rises: 20px, 14px, 10px;
+
+// Reading-order items inside a page-entrance wave (event chips, year cards).
+// Set --entrance-i (0-based) on the element. Items past the cap share the last
+// delay so a long list does not wait. Nested items start 60ms after their
+// parent, so the card and the chips overlap.
+$page-entrance-item-duration: 400ms;
+$page-entrance-item-step: 40ms;
+$page-entrance-item-cap: 6;
+$page-entrance-item-base: 60ms;
+$page-entrance-item-rise: 10px;

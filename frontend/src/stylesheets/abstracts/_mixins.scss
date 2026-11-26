@@ -1,3 +1,4 @@
+@use "sass:list";
 @use "variables" as *;
 @use "theme" as *;
 
@@ -158,5 +159,76 @@
         @media (prefers-reduced-motion: reduce) {
             content: none;
         }
+    }
+}
+
+// The shared page-arrival rise (keyframes in base/_motion). Duration and easing
+// come from the page-entrance tokens. Pass a duration to use a tighter wave;
+// the default is Home's. Callers may set --rise (14px by default); the content
+// block holds any per-element distance or stagger.
+@mixin page-entrance-rise($duration: $page-entrance-duration) {
+    @media (prefers-reduced-motion: no-preference) {
+        animation: page-entrance-rise $duration $ease-out both;
+        @content;
+    }
+}
+
+// One beat of that wave: the rise distance and, after the first step, the
+// delay. Use it inside `page-entrance-rise`'s content block so this does not
+// open a second media query. Step 1 leaves animation-delay unset, matching
+// Home's lead photo. Pass `$delays` and `$rises` to use a tighter wave; the
+// defaults are Home's.
+@mixin page-entrance-step($step, $delays: $page-entrance-delays, $rises: $page-entrance-rises) {
+    @if $step < 1 or $step > list.length($rises) {
+        @error "page-entrance-step expects 1-#{list.length($rises)}, got #{$step}.";
+    }
+
+    --rise: #{list.nth($rises, $step)};
+
+    @if $step > 1 {
+        animation-delay: list.nth($delays, $step);
+    }
+}
+
+// The shared rise already on one beat of the wave, with optional Events timings.
+@mixin page-entrance-on-step(
+    $step,
+    $duration: $page-entrance-duration,
+    $delays: $page-entrance-delays,
+    $rises: $page-entrance-rises
+) {
+    @include page-entrance-rise($duration) {
+        @include page-entrance-step($step, $delays, $rises);
+    }
+}
+
+// A reading-order item in the shared rise. Set --entrance-i (0-based) on the
+// element. The computed delay is also published as --entrance-delay so nested
+// items can start after their parent.
+@mixin page-entrance-item(
+    $duration: $page-entrance-item-duration,
+    $base: 0ms,
+    $step: $page-entrance-item-step,
+    $cap: $page-entrance-item-cap,
+    $rise: $page-entrance-item-rise
+) {
+    @include page-entrance-rise($duration) {
+        --rise: #{$rise};
+        --entrance-delay: calc(#{$base} + #{$step} * min(var(--entrance-i, 0), #{$cap}));
+        animation-delay: var(--entrance-delay);
+    }
+}
+
+// The same rise, delayed by the parent item's --entrance-delay plus `$base`.
+@mixin page-entrance-nested-item(
+    $duration: $page-entrance-item-duration,
+    $base: $page-entrance-item-base,
+    $step: $page-entrance-item-step,
+    $cap: $page-entrance-item-cap,
+    $rise: $page-entrance-item-rise
+) {
+    @include page-entrance-rise($duration) {
+        --rise: #{$rise};
+        animation-delay: calc(var(--entrance-delay, 0ms) + #{$base} + #{$step} * min(var(--entrance-i, 0), #{$cap}));
     }
 }

@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { RSO_VERIFY_COMMAND } from "../discordCommandDefinition.js";
-import { createDiscordDispatcher } from "../discordDispatcher.js";
-import { createRsoVerification } from "../discordRsoVerification.js";
+import { RSO_VERIFY_COMMAND } from "../discord/commandDefinition.js";
+import { createDiscordDispatcher } from "../discord/dispatcher.js";
+import { createRsoVerification } from "../discord/rsos/verification.js";
 import { createFakeCollection } from "./fakeCollection.js";
 
 const NOW = new Date("2026-11-16T20:00:00Z");

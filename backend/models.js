@@ -19,10 +19,10 @@ import {
   shopSettingsSchema,
 } from "./schemas/schemas.js";
 import { committeeRecruitmentSchema } from "./committeeRecruitment.js";
-import { discordSubmissionsSchema } from "./discordSubmissions.js";
-import { discordEventDraftsSchema } from "./discordEventDrafts.js";
-import { discordRsosSchema } from "./discordRsos.js";
-import { discordRsoRequestsSchema } from "./discordRsoRequests.js";
+import { discordSubmissionsSchema } from "./discord/events/submissions.js";
+import { discordEventDraftsSchema } from "./discord/events/drafts.js";
+import { discordRsosSchema } from "./discord/rsos/rsos.js";
+import { discordRsoRequestsSchema } from "./discord/rsos/requests.js";
 
 // Preserve the Mongoose 6 unknown-filter behavior during the staged upgrade.
 mongoose.set("strictQuery", true);

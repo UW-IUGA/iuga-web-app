@@ -1,4 +1,4 @@
-import { RESPONSE_MESSAGE, RESPONSE_UPDATE_MESSAGE } from "./discordInteractions.js";
+import { RESPONSE_MESSAGE, RESPONSE_UPDATE_MESSAGE } from "./interactions.js";
 
 const DISCORD_API = "https://discord.com/api/v10";
 const MAX_NON_JSON_EXCERPT_LENGTH = 200;

@@ -60,8 +60,8 @@ const startupStartedAt = Date.now();
 
   async function registerDiscordCommands() {
     if (!process.env.DISCORD_PUBLIC_KEY || !process.env.DISCORD_BOT_TOKEN) return;
-    const { createDiscordClient } = await import('../discordClient.js');
-    const { syncDiscordCommands } = await import('../discordCommandSync.js');
+    const { createDiscordClient } = await import('../discord/platform/client.js');
+    const { syncDiscordCommands } = await import('../discord/commandSync.js');
     await syncDiscordCommands({
       client: createDiscordClient({ botToken: process.env.DISCORD_BOT_TOKEN }),
       applicationId: process.env.DISCORD_APP_ID,

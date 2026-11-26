@@ -1,5 +1,5 @@
-import { RSO_VERIFY_COMMAND } from "./discordCommandDefinition.js";
-import { INTERACTION_AUTOCOMPLETE, INTERACTION_COMMAND } from "./discordInteractions.js";
+import { RSO_VERIFY_COMMAND } from "./commandDefinition.js";
+import { INTERACTION_AUTOCOMPLETE, INTERACTION_COMMAND } from "./platform/interactions.js";
 
 function isRsoVerification(interaction) {
   if (interaction.type === INTERACTION_COMMAND || interaction.type === INTERACTION_AUTOCOMPLETE) {

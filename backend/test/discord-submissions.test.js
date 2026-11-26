@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { validateSubmission, pacificToUtc } from "../discordSubmissionRules.js";
+import { validateSubmission, pacificToUtc } from "../discord/events/submissionRules.js";
 
 const NOW = new Date("2027-01-01T00:00:00Z");
 const UNREADABLE = /Couldn't read When\. Try "Dec 1, 6-8pm" or "Fri 6:30-8pm"\./;

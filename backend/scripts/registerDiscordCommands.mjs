@@ -2,8 +2,8 @@
 // The server does this itself on startup; run this by hand only when testing locally.
 // Usage: DISCORD_APP_ID=... DISCORD_BOT_TOKEN=... DISCORD_GUILD_ID=... node scripts/registerDiscordCommands.mjs
 
-import { createDiscordClient } from "../discordClient.js";
-import { DISCORD_COMMANDS } from "../discordCommandDefinition.js";
+import { createDiscordClient } from "../discord/platform/client.js";
+import { DISCORD_COMMANDS } from "../discord/commandDefinition.js";
 
 const required = ["DISCORD_APP_ID", "DISCORD_BOT_TOKEN", "DISCORD_GUILD_ID"];
 const missing = required.filter((name) => !process.env[name]);

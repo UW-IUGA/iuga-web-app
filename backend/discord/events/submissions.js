@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { CATEGORIES } from "./discordSubmissionRules.js";
+import { CATEGORIES } from "./submissionRules.js";
 
 // Pending Discord event requests. Events is public with no status field, so requests wait here until approved.
 export const discordSubmissionsSchema = new mongoose.Schema(

@@ -1,8 +1,8 @@
 import express from "express";
-import { INTERACTION_COMPONENT, OBJECT_ID, parseCustomId, reply } from "../../../../discordInteractions.js";
+import { INTERACTION_COMPONENT, OBJECT_ID, parseCustomId, reply } from "../../../../discord/platform/interactions.js";
 import { REQUEST_BODY_LIMIT } from "../../../../http/boundary.js";
 import { sendError } from "../helpers/sendError.js";
-import { verifyDiscordSignature } from "../utils/discordSignature.js";
+import { verifyDiscordSignature } from "../../../../discord/platform/signature.js";
 
 const INTERACTION_PING = 1;
 const INTERACTION_RESPONSE_PONG = 1;

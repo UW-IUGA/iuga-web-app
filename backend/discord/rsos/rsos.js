@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-// RSOs known to the Discord bot and the role that marks each one's verified officers. Only rsoDirectory reads or writes it.
+// RSOs known to the Discord bot and the role that marks each one's verified officers. Only directory.js reads or writes it.
 export const discordRsosSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, maxlength: 80 },

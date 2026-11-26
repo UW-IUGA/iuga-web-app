@@ -1,4 +1,4 @@
-import { COMPONENT_ACTION_ROW, COMPONENT_ROLE_SELECT } from "./discordInteractions.js";
+import { COMPONENT_ACTION_ROW, COMPONENT_ROLE_SELECT } from "../platform/interactions.js";
 
 export const AUDIENCE_ACTION = "event-audience";
 export const AUDIENCE_PICK_LIMIT = 3;

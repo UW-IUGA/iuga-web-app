@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createRsoDirectory } from "../rsoDirectory.js";
+import { createRsoDirectory } from "../discord/rsos/directory.js";
 import { createFakeCollection } from "./fakeCollection.js";
 
 const GUILD = "guild-1";

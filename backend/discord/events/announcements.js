@@ -1,5 +1,5 @@
-import { eventCardBase } from "./discordEventCard.js";
-import { neutralizeMentions } from "./discordInteractions.js";
+import { eventCardBase } from "./card.js";
+import { neutralizeMentions } from "../platform/interactions.js";
 
 const EVENTS_PAGE_URL = "https://iuga.info/events";
 const EXTERNAL_ENTITY_TYPE = 3;

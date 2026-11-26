@@ -4,8 +4,8 @@ import { after, before, beforeEach, describe, it } from "node:test";
 import mongoose from "mongoose";
 import { eventRequestsSchema, eventsSchema, usersSchema } from "../schemas/schemas.js";
 import eventRequestsRouter from "../routes/api/v1/controllers/eventRequests.js";
-import { createDiscordApprovals } from "../discordApprovals.js";
-import { discordSubmissionsSchema } from "../discordSubmissions.js";
+import { createDiscordApprovals } from "../discord/events/approvals.js";
+import { discordSubmissionsSchema } from "../discord/events/submissions.js";
 import { makeTestApi, roleAssignmentsGranting } from "./testApi.js";
 
 const uri = process.env.SHOP_REPLSET_URI;

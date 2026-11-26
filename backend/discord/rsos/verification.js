@@ -1,4 +1,4 @@
-import { canReview } from "./discordReviewers.js";
+import { canReview } from "../reviewers.js";
 import {
   COLOR_APPROVED,
   COLOR_DENIED,
@@ -21,7 +21,7 @@ import {
   reply,
   reviewButtons,
   updateCard,
-} from "./discordInteractions.js";
+} from "../platform/interactions.js";
 
 const POSITION_LIMIT = 60;
 const REASON_LIMIT = 500;

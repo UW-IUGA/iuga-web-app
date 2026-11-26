@@ -6,12 +6,13 @@ Purpose: Two rows of student-organization logos drifting in opposite directions,
 */
 
 import { resources } from "../assets/data/ResourcesData";
+import { resourceTypes } from "../assets/data/resourceTaxonomy";
 
 // One tile per organization with a logo; two clubs that share a logo show it once.
 const RSO_LOGOS = [
   ...new Map(
     resources
-      .filter((resource) => resource.type === "RSO" && resource.rImage)
+      .filter((resource) => resource.type === resourceTypes.CLUB && resource.rImage)
       .map((rso) => [rso.rImage, rso]),
   ).values(),
 ].map((rso) => ({

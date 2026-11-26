@@ -7,7 +7,7 @@ const careerServices = resource("iSchool Career Services", {
     tags: ["Career"],
     summary: ["One-on-one advising for the job search"],
 });
-const dubsTech = resource("DubsTech", { type: "RSO", summary: ["Covers design and software engineering"] });
+const dubsTech = resource("DubsTech", { type: "Student clubs", summary: ["Covers design and software engineering"] });
 
 describe("tokenize", () => {
     test("splits on any whitespace and lowercases", () => {

@@ -48,7 +48,7 @@ const DESTINATIONS = [
     detail:
       "Find clubs and communities across the iSchool, from design to data to gaming.",
     cta: "Browse organizations",
-    to: "/resources?category=Community",
+    to: "/resources?tags=Student+clubs",
     image: winfoTable,
     Preview: RsoMarquee,
   },

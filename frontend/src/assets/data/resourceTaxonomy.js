@@ -2,23 +2,32 @@
 Purpose: The Resources page's filter tags and search words.
 
 Expected Response Information:
+- resourceTypes: who runs a resource, the value of each record's `type`.
 - tagGroups and allTags: the filter tags, by group.
 - labelsOf(resource): a resource's type followed by its tags, as the filters and search see them.
 - searchSynonyms: search-only alternate words.
-- tagForCategory: the tag each of the original page's ?category= values opens (still linked from Home).
+- tagForCategory: the tag each of the original page's ?category= values opens, so older bookmarks and shared links
+  keep their filter.
 */
 
 import { resourceTags } from "./Enum";
 
-// Type says who runs a resource; Support and Interests are topics.
+export const resourceTypes = {
+    CLUB: "Student clubs",
+    ISCHOOL: "iSchool",
+    UW: "UW",
+};
+
+// "Who runs it" holds each record's type; the other groups hold its tags. Social, Career and Community are left
+// out on purpose: every club is social, and those labels belong to Events.
 export const tagGroups = [
     {
-        label: "Type",
-        tags: ["RSO", "iSchool", "UW"],
+        label: "Who runs it",
+        tags: Object.values(resourceTypes),
     },
     {
-        label: "Support",
-        tags: ["Academic", "Career", "Social", "Mental Health", "DEI"],
+        label: "What it helps with",
+        tags: ["Academic", "Jobs & internships", "Mental Health", "DEI"],
     },
     {
         label: "Interests",
@@ -38,7 +47,8 @@ export const labelsOf = (resource) => [resource.type, ...resource.tags];
 export const searchSynonyms = {
     job: ["career"],
     internship: ["career"],
-    resume: ["career"],
+    resume: ["career", "jobs"],
+    career: ["jobs", "internships"],
     therapy: ["therapist", "counseling", "mental health"],
     therapist: ["counseling", "mental health"],
     counselor: ["counseling", "mental health"],
@@ -61,18 +71,19 @@ export const searchSynonyms = {
     consulting: ["consult"],
     startup: ["entrepreneurship"],
     founder: ["entrepreneurship"],
-    community: ["social"],
+    community: ["club"],
+    social: ["club"],
     diversity: ["dei"],
-    club: ["rso"],
-    org: ["rso"],
-    organization: ["rso"],
+    rso: ["club"],
+    org: ["club"],
+    organization: ["club"],
     international: ["f-1"],
 };
 
 export const tagForCategory = {
     [resourceTags.ACADEMIC]: "Academic",
-    [resourceTags.CAREER]: "Career",
-    [resourceTags.COMMUNITY]: "Social",
+    [resourceTags.CAREER]: "Jobs & internships",
+    [resourceTags.COMMUNITY]: resourceTypes.CLUB,
     [resourceTags.MENTAL_HEALTH]: "Mental Health",
     [resourceTags.DEI]: "DEI",
 };

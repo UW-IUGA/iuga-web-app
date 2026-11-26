@@ -217,6 +217,29 @@ describe("MonthCard", () => {
             expect(cell.querySelector(".pad__more").textContent).toBe("+2 more");
         });
 
+        it("tags each week row and restarts the chip wave at the start of the next row", () => {
+            const events = [
+                at("sun-a", "Sunday A", 17, 18),
+                at("sun-b", "Sunday B", 18, 18),
+                at("thu", "Thursday", 17, 22),
+                at("next", "Next Sunday", 17, 25),
+            ];
+            const { container } = renderMonth(events);
+            const sunday = padAt(container, dayIndex(2026, 9, 18));
+            const thursday = padAt(container, dayIndex(2026, 9, 22));
+            const nextSunday = padAt(container, dayIndex(2026, 9, 25));
+
+            expect(sunday.style.getPropertyValue("--entrance-row")).toBe("3");
+            expect(thursday.style.getPropertyValue("--entrance-row")).toBe("3");
+            expect(nextSunday.style.getPropertyValue("--entrance-row")).toBe("4");
+
+            const sundayChips = sunday.querySelectorAll(".pad__event");
+            expect(sundayChips[0].style.getPropertyValue("--entrance-i")).toBe("0");
+            expect(sundayChips[1].style.getPropertyValue("--entrance-i")).toBe("1");
+            expect(thursday.querySelector(".pad__event").style.getPropertyValue("--entrance-i")).toBe("2");
+            expect(nextSunday.querySelector(".pad__event").style.getPropertyValue("--entrance-i")).toBe("0");
+        });
+
         it("dims the days spilling in from adjacent months", () => {
             const { container } = renderMonth();
 

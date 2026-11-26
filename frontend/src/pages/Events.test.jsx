@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { formatMonthYear } from "../utils/calendar/calendar";
+import { ENTRANCE_WAVE_MS } from "../hooks/useEntranceWave";
 import EventsPage from "./Events";
 
 let production = true;
@@ -44,6 +45,27 @@ const RESUME_CLINIC = {
     eLabels: ["Career"],
 };
 
+const WELCOME_NIGHT = {
+    eId: "welcome-night",
+    eName: "Welcome Night",
+    eStartDate: "2026-10-01T18:00:00.000Z",
+    eLabels: ["Social"],
+};
+
+const HACK_NIGHT = {
+    eId: "hack-night",
+    eName: "Hack Night",
+    eStartDate: "2026-10-27T01:00:00.000Z",
+    eLabels: ["Academic"],
+};
+
+const OPEN_HOUSE = {
+    eId: "open-house",
+    eName: "Open House",
+    eStartDate: "2026-11-15T18:00:00.000Z",
+    eLabels: ["Social"],
+};
+
 const GAME_NIGHT_2024 = {
     eId: "game-night",
     eName: "IUGA Game Night",
@@ -58,7 +80,7 @@ const SOCIAL_2020 = {
     eLabels: ["Social"],
 };
 
-const EVENTS = [STUDY_JAM, RESUME_CLINIC, GAME_NIGHT_2024, SOCIAL_2020];
+const EVENTS = [STUDY_JAM, RESUME_CLINIC, WELCOME_NIGHT, HACK_NIGHT, OPEN_HOUSE, GAME_NIGHT_2024, SOCIAL_2020];
 
 const jsonResponse = (body, { ok = true, status = 200, statusText = "OK" } = {}) => ({
     ok,
@@ -318,6 +340,224 @@ describe("Events page: filtering by tag", () => {
         expect(written().has("tags")).toBe(false);
         expect(within(showGroup()).queryByRole("button", { name: "Show all" })).not.toBeInTheDocument();
     });
+
+    it("rises only the events a filter just brought back, once the arrival wave has ended", async () => {
+        vi.useFakeTimers();
+        try {
+            const { container } = await visit("/events?view=month&date=2026-10-20");
+            act(() => {
+                vi.advanceTimersByTime(ENTRANCE_WAVE_MS);
+            });
+
+            fireEvent.click(tagBox("Career"));
+            expect(screen.queryByRole("button", { name: "Resume Clinic" })).not.toBeInTheDocument();
+            expect(screen.getByRole("button", { name: "Study Jam" })).not.toHaveClass("pad__event--enter");
+
+            fireEvent.click(tagBox("Career"));
+            const clinic = screen.getByRole("button", { name: "Resume Clinic" });
+            const jam = screen.getByRole("button", { name: "Study Jam" });
+            expect(clinic).toHaveClass("pad__event--enter");
+            expect(jam).not.toHaveClass("pad__event--enter");
+
+            act(() => {
+                vi.advanceTimersByTime(ENTRANCE_WAVE_MS - 1);
+            });
+            expect(clinic).toHaveClass("pad__event--enter");
+
+            act(() => {
+                vi.advanceTimersByTime(1);
+            });
+            expect(clinic).not.toHaveClass("pad__event--enter");
+            expect(container.querySelector(".page--events--enter")).toBeNull();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("waves every event in the new view when switching views", async () => {
+        vi.useFakeTimers();
+        try {
+            await visit("/events?view=month&date=2026-10-20");
+            act(() => {
+                vi.advanceTimersByTime(ENTRANCE_WAVE_MS);
+            });
+
+            fireEvent.click(screen.getByRole("radio", { name: "Week" }));
+            expect(screen.getByRole("button", { name: /Study Jam/ })).toHaveClass("grid__event--enter");
+            expect(screen.getByRole("button", { name: /Resume Clinic/ })).toHaveClass("grid__event--enter");
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("waves year-view month cards when switching to year view", async () => {
+        vi.useFakeTimers();
+        try {
+            const { container } = await visit("/events?view=month&date=2026-10-20");
+            act(() => {
+                vi.advanceTimersByTime(ENTRANCE_WAVE_MS);
+            });
+
+            fireEvent.click(screen.getByRole("radio", { name: "Year" }));
+            const cards = [...container.querySelectorAll(".year > .card")];
+            expect(cards.length).toBeGreaterThan(0);
+            expect(cards.every((card) => card.classList.contains("card--enter"))).toBe(true);
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("rises events that a month change just brought on screen, all at once", async () => {
+        vi.useFakeTimers();
+        try {
+            await visit("/events?view=month&date=2026-10-20");
+            act(() => {
+                vi.advanceTimersByTime(ENTRANCE_WAVE_MS);
+            });
+
+            fireEvent.click(screen.getByRole("button", { name: "Next month" }));
+
+            const openHouse = screen.getByRole("button", { name: "Open House" });
+            expect(openHouse).toHaveClass("pad__event--enter");
+            expect(screen.queryByRole("button", { name: "Study Jam" })).not.toBeInTheDocument();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("leaves an event still when it was already visible on an outside day of the previous month", async () => {
+        vi.useFakeTimers();
+        try {
+            await visit("/events?view=month&date=2026-09-15");
+            act(() => {
+                vi.advanceTimersByTime(ENTRANCE_WAVE_MS);
+            });
+            expect(screen.getByRole("button", { name: "Welcome Night" })).not.toHaveClass("pad__event--enter");
+
+            fireEvent.click(screen.getByRole("button", { name: "Next month" }));
+
+            expect(screen.getByRole("button", { name: "Welcome Night" })).not.toHaveClass("pad__event--enter");
+            expect(screen.getByRole("button", { name: "Study Jam" })).toHaveClass("pad__event--enter");
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("rises a week-view event that the next week just brought on screen", async () => {
+        vi.useFakeTimers();
+        try {
+            await visit("/events?view=week&date=2026-10-20");
+            act(() => {
+                vi.advanceTimersByTime(ENTRANCE_WAVE_MS);
+            });
+
+            fireEvent.click(screen.getByRole("button", { name: "Next week" }));
+
+            expect(screen.getByRole("button", { name: /Hack Night/ })).toHaveClass("grid__event--enter");
+            expect(screen.queryByRole("button", { name: /Study Jam/ })).not.toBeInTheDocument();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("rises a day-view event when the next day is opened", async () => {
+        vi.useFakeTimers();
+        try {
+            await visit("/events?view=day&date=2026-10-20");
+            act(() => {
+                vi.advanceTimersByTime(ENTRANCE_WAVE_MS);
+            });
+            expect(screen.getByRole("button", { name: /Study Jam/ })).toBeInTheDocument();
+
+            fireEvent.click(screen.getByRole("button", { name: "Next day" }));
+
+            expect(screen.getByRole("button", { name: /Resume Clinic/ })).toHaveClass("grid__event--enter");
+            expect(screen.queryByRole("button", { name: /Study Jam/ })).not.toBeInTheDocument();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("rises events Today just brought on screen", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-10-20T17:00:00.000Z"));
+        try {
+            await visit("/events?view=month&date=2026-11-15");
+            act(() => {
+                vi.advanceTimersByTime(ENTRANCE_WAVE_MS);
+            });
+            expect(screen.getByRole("button", { name: "Open House" })).toBeInTheDocument();
+
+            fireEvent.click(screen.getByRole("button", { name: "Today" }));
+
+            expect(screen.getByRole("button", { name: "Study Jam" })).toHaveClass("pad__event--enter");
+            expect(screen.queryByRole("button", { name: "Open House" })).not.toBeInTheDocument();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("rises events that picking a date just brought on screen", async () => {
+        vi.useFakeTimers();
+        try {
+            const { container } = await visit("/events?view=week&date=2026-10-20");
+            act(() => {
+                vi.advanceTimersByTime(ENTRANCE_WAVE_MS);
+            });
+
+            const day = [...container.querySelectorAll(".mini__day:not(.mini__day--out)")].find((cell) =>
+                cell.textContent.startsWith("28"),
+            );
+            fireEvent.click(day);
+
+            expect(screen.getByRole("button", { name: /Hack Night/ })).toHaveClass("grid__event--enter");
+            expect(screen.queryByRole("button", { name: /Study Jam/ })).not.toBeInTheDocument();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("rises a newly shown week-view event, and leaves events that were already visible still", async () => {
+        vi.useFakeTimers();
+        try {
+            await visit("/events?view=week&date=2026-10-20");
+            act(() => {
+                vi.advanceTimersByTime(ENTRANCE_WAVE_MS);
+            });
+
+            fireEvent.click(tagBox("Career"));
+            fireEvent.click(tagBox("Career"));
+
+            expect(screen.getByRole("button", { name: /Resume Clinic/ })).toHaveClass("grid__event--enter");
+            expect(screen.getByRole("button", { name: /Study Jam/ })).not.toHaveClass("grid__event--enter");
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("rises a year-view day only when that day just gained its first visible event", async () => {
+        vi.useFakeTimers();
+        try {
+            const { container } = await visit("/events?view=year&date=2026-10-20");
+            act(() => {
+                vi.advanceTimersByTime(ENTRANCE_WAVE_MS);
+            });
+
+            fireEvent.click(tagBox("Career"));
+            fireEvent.click(tagBox("Career"));
+
+            const enteringDays = [...container.querySelectorAll(".pad--event--enter")];
+            expect(enteringDays.length).toBeGreaterThan(0);
+            expect(enteringDays.every((day) => day.classList.contains("pad--event"))).toBe(true);
+            // Study Jam's day was already visible as Academic, so it stays still.
+            const stillDays = [...container.querySelectorAll(".pad--event")].filter(
+                (day) => !day.classList.contains("pad--event--enter"),
+            );
+            expect(stillDays.length).toBeGreaterThan(0);
+        } finally {
+            vi.useRealTimers();
+        }
+    });
 });
 
 describe("Events page: officer event operations", () => {
@@ -480,6 +720,62 @@ describe("Events page: views and navigation", () => {
 
         const day = await visit("/events?view=day&date=2026-10-20");
         expect(day.container.querySelectorAll(".grid__col")).toHaveLength(1);
+    });
+
+    it("keeps the calendar body mounted when the view, date, or filters change", async () => {
+        const { container } = await visit("/events?view=month&date=2026-10-20");
+        const body = container.querySelector(".page--events .events");
+
+        fireEvent.click(screen.getByRole("radio", { name: "Week" }));
+        expect(container.querySelector(".page--events .events")).toBe(body);
+
+        fireEvent.click(screen.getByRole("button", { name: "Next week" }));
+        expect(container.querySelector(".page--events .events")).toBe(body);
+
+        const filter = screen.getAllByRole("group", { name: "Filter" })[0];
+        fireEvent.click(within(filter).getByRole("checkbox", { name: "Academic" }));
+        expect(container.querySelector(".page--events .events")).toBe(body);
+    });
+
+    it("drops the arrival class after the shared wave, so a later view change does not replay it", async () => {
+        vi.useFakeTimers();
+        try {
+            const { container } = await visit("/events?view=month&date=2026-10-20");
+            const page = container.querySelector(".page--events");
+
+            expect(page).toHaveClass("page--events--enter");
+
+            act(() => {
+                vi.advanceTimersByTime(ENTRANCE_WAVE_MS - 1);
+            });
+            expect(page).toHaveClass("page--events--enter");
+
+            act(() => {
+                vi.advanceTimersByTime(1);
+            });
+            expect(page).not.toHaveClass("page--events--enter");
+
+            fireEvent.click(screen.getByRole("radio", { name: "Year" }));
+            expect(page).not.toHaveClass("page--events--enter");
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("does not play the old motionViews container rise, even when motionViews is in the URL", async () => {
+        vi.useFakeTimers();
+        try {
+            const { container } = await visit("/events?view=month&date=2026-10-20&motionViews");
+            act(() => {
+                vi.advanceTimersByTime(ENTRANCE_WAVE_MS);
+            });
+
+            fireEvent.click(screen.getByRole("radio", { name: "Week" }));
+            expect(container.querySelector(".events__main--view-enter")).toBeNull();
+            expect(screen.getByRole("button", { name: /Study Jam/ })).toHaveClass("grid__event--enter");
+        } finally {
+            vi.useRealTimers();
+        }
     });
 
     it("switches view from the toggle, keeping the date", async () => {

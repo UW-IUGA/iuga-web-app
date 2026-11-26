@@ -38,14 +38,14 @@ function PhotoButton({ photo, className = "", isCover = false, onOpen, children 
     );
 }
 
-function PastEventCard({ event, reversed = false, onOpenPhoto, viewPhotosClassName = "pill-button pill-button--fill" }) {
+function PastEventCard({ event, reversed = false, onOpenPhoto, viewPhotosClassName = "pill-button pill-button--fill", style }) {
     const headingId = useId();
     const [cover, ...otherPhotos] = event.photos;
     const thumbnails = otherPhotos.slice(0, MAX_THUMBNAILS);
     const hiddenCount = otherPhotos.length - thumbnails.length;
 
     return (
-        <article className={`pastEventCard${reversed ? " pastEventCard--reversed" : ""}`} aria-labelledby={headingId}>
+        <article className={`pastEventCard${reversed ? " pastEventCard--reversed" : ""}`} style={style} aria-labelledby={headingId}>
             <PhotoButton className="pastEventCard__cover" photo={cover} isCover onOpen={() => onOpenPhoto(0)} />
             <div className="pastEventCard__body">
                 <h3 id={headingId}>{event.name}</h3>

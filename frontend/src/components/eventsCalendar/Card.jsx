@@ -2,13 +2,14 @@ import { Fragment } from "react";
 import { WEEKDAY_ABBREVIATIONS } from "../../utils/calendar/calendar";
 
 // Draws one month's frame: its title, its weekday header, and its weeks. Each
-// day is drawn by `renderDay(cell, columnIndex)`, so the caller decides what a
+// day is drawn by `renderDay(cell, columnIndex, rowIndex)`, so the caller decides what a
 // day looks like and what happens when it is used.
 function Card({
     title,
     rows,
     renderDay,
     className,
+    style,
     isCurrentMonth = false,
     isDayOverlayOpen = false,
     children,
@@ -24,7 +25,7 @@ function Card({
     }
 
     return (
-        <div className={cardClasses.join(" ")} aria-current={isCurrentMonth ? "date" : undefined}>
+        <div className={cardClasses.join(" ")} style={style} aria-current={isCurrentMonth ? "date" : undefined}>
             {children}
 
             {/* While an overlay covers the grid, exclude it from keyboard
@@ -47,10 +48,10 @@ function Card({
                     ))}
                 </div>
 
-                {rows.map((row) => (
+                {rows.map((row, rowIndex) => (
                     <div className="row" key={row[0].id}>
                         {row.map((cell, columnIndex) => (
-                            <Fragment key={cell.id}>{renderDay(cell, columnIndex)}</Fragment>
+                            <Fragment key={cell.id}>{renderDay(cell, columnIndex, rowIndex)}</Fragment>
                         ))}
                     </div>
                 ))}

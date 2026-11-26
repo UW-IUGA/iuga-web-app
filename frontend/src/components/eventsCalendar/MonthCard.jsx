@@ -1,13 +1,36 @@
-import { useState } from "react";
-import { colorForLabels, dayLabel, formatLongDay, isSameDay, zonedParts } from "../../utils/calendar/calendar";
+import { useContext, useState } from "react";
+import { colorForLabels, dayKeyOf, dayLabel, formatLongDay, isSameDay, zonedParts } from "../../utils/calendar/calendar";
 import Card from "./Card";
 import EventPopover from "./EventPopover";
+import { EntranceWaveContext } from "../../hooks/useEntranceWave";
+import { entranceIndexStyle, entranceRowStyle } from "../../utils/calendar/motion";
 
 // Shows a full month with event popovers. Event chips open one event;
 // "+N more" opens the day's events. The day button navigates to the day view.
 function MonthCard({ title, rows, onPickDay }) {
+    const { isEvent, isDay, isMore } = useContext(EntranceWaveContext);
     const [popoverSelection, setPopoverSelection] = useState(null);
     const today = new Date();
+
+    // Per week row, then left to right in that row, so the month entrance can
+    // read as one row after another rather than one long list of chips.
+    const chipIndexByKey = (() => {
+        const map = new Map();
+        rows.forEach((row) => {
+            let index = 0;
+            for (const cell of row) {
+                for (const event of cell.events.slice(0, 3)) {
+                    map.set(`${cell.id}|${event.id}`, index);
+                    index += 1;
+                }
+                if (cell.events.length > 3) {
+                    map.set(`${cell.id}|more`, index);
+                    index += 1;
+                }
+            }
+        });
+        return map;
+    })();
 
     // Stepping to another month unmounts the chip the popover is anchored to, so
     // the selection is dropped with it, during render so no frame shows it over
@@ -35,7 +58,7 @@ function MonthCard({ title, rows, onPickDay }) {
 
     // Keep event buttons beside the day button: HTML forbids nested buttons. The
     // day button fills the cell behind the chips.
-    const renderDay = (cell, columnIndex) => {
+    const renderDay = (cell, columnIndex, rowIndex) => {
         const hasEvents = cell.events.length > 0;
 
         // Circled in the month view, as the week view's header circles it.
@@ -78,8 +101,12 @@ function MonthCard({ title, rows, onPickDay }) {
                 }),
         });
 
+        if (isDay(dayKeyOf(cell.date))) {
+            dayClasses.push("pad--enter");
+        }
+
         return (
-            <div className={dayClasses.join(" ")}>
+            <div className={dayClasses.join(" ")} style={entranceRowStyle(rowIndex)}>
                 <button
                     type="button"
                     className="pad__open"
@@ -95,9 +122,11 @@ function MonthCard({ title, rows, onPickDay }) {
                         {cell.events.slice(0, 3).map((event) => (
                             <button
                                 {...getEventChipProps(event)}
-                                className="pad__event"
+                                className={`pad__event${isEvent(event.id) ? " pad__event--enter" : ""}`}
                                 key={event.id}
-                                style={{ backgroundColor: colorForLabels(event.labels) }}
+                                style={entranceIndexStyle(chipIndexByKey.get(`${cell.id}|${event.id}`), {
+                                    backgroundColor: colorForLabels(event.labels),
+                                })}
                                 // The name is cut off with an ellipsis when it is longer than the
                                 // day is wide. The tooltip shows it whole to a mouse; a screen
                                 // reader already reads the full text.
@@ -109,7 +138,8 @@ function MonthCard({ title, rows, onPickDay }) {
                         {cell.events.length > 3 && (
                             <button
                                 {...getEventChipProps(null)}
-                                className="pad__more"
+                                className={`pad__more${isMore(dayKeyOf(cell.date)) ? " pad__more--enter" : ""}`}
+                                style={entranceIndexStyle(chipIndexByKey.get(`${cell.id}|more`))}
                                 // Says what is behind it and which day, where the visible "+2 more"
                                 // says neither. Starts with the visible text, so speaking it still
                                 // works (2.5.3).

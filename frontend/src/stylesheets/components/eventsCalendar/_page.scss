@@ -6,6 +6,53 @@ Expected Response Information: A centred column holding the title, controls and 
 @use "../../abstracts" as *;
 @use "../../abstracts/eventsCalendar" as *;
 
+// One beat of Events' tighter wave, still the shared rise and Home's three
+// distances. Local so the page can name its pieces without repeating the include.
+@mixin events-entrance-step($step) {
+    @include page-entrance-on-step(
+        $step,
+        $page-entrance-events-duration,
+        $page-entrance-events-delays,
+        $page-entrance-events-rises
+    );
+}
+
+// Month view: one beat per week row, then a quick left-to-right chip wave in
+// that row, so the grid reads top to bottom without feeling slower than the
+// other views. The chip's own rise stays the shared 400ms / 10px pop.
+$page-entrance-month-row-step: 80ms;
+$page-entrance-month-chip-base: 40ms;
+$page-entrance-month-in-row-step: 25ms;
+$page-entrance-month-in-row-cap: 5;
+// prettier-ignore
+$page-entrance-month-chip-delay: calc(var(--entrance-row, 0) * #{$page-entrance-month-row-step} + #{$page-entrance-month-chip-base} + #{$page-entrance-month-in-row-step} * min(var(--entrance-i, 0), #{$page-entrance-month-in-row-cap}));
+
+// First visit and later view, date, or filter enters share these so a delay
+// or rise change stays in one place.
+@mixin events-month-pad-enter {
+    @include page-entrance-rise($page-entrance-item-duration) {
+        --rise: #{$page-entrance-item-rise};
+        animation-delay: calc(var(--entrance-row, 0) * #{$page-entrance-month-row-step});
+    }
+}
+
+@mixin events-month-chip-enter {
+    @include page-entrance-rise($page-entrance-item-duration) {
+        --rise: #{$page-entrance-item-rise};
+        animation-delay: $page-entrance-month-chip-delay;
+    }
+}
+
+@mixin events-year-card-enter {
+    @include page-entrance-item(
+        $page-entrance-events-duration,
+        0ms,
+        $page-entrance-item-step,
+        $page-entrance-item-cap,
+        14px
+    );
+}
+
 .eventsCalendar {
     .page {
         width: 100%;
@@ -46,5 +93,98 @@ Expected Response Information: A centred column holding the title, controls and 
         .page__title {
             margin-bottom: 0;
         }
+
+        // The heading and controls stay still, like Home's copy, so they are
+        // usable from the first frame. The calendar's pieces use the shared
+        // rise on Events' tighter three-beat wave, only while
+        // `page--events--enter` is on the page. That class comes off after the
+        // wave, so a later view, date, or filter change does not replay it.
+        // The lead is the calendar itself: its columns and year cards start at
+        // 0ms. The whole `.events__main` block is not animated, so a wide
+        // month, week or day is not held invisible for a late third beat.
+        &--enter {
+            // Year view: each month card pops in reading order, left to right
+            // and then the next row. --entrance-i is set on the card.
+            .year > * {
+                @include events-year-card-enter;
+            }
+
+            // The mini month and legend travel with the first two beats. They
+            // are hidden on a phone, so they only read on a wide screen.
+            .events__sidebar .mini {
+                @include events-entrance-step(1);
+            }
+
+            .events__legend {
+                @include events-entrance-step(2);
+            }
+
+            // Month view: the title stays with the first beat. Day cells arrive
+            // a week row at a time, so the grid does not flash in by column.
+            // Chips in that row follow quickly, left to right.
+            .card--month .card-title {
+                @include events-entrance-step(1);
+            }
+
+            .card--month .pad {
+                @include events-month-pad-enter;
+            }
+
+            .card--month .pad__event,
+            .card--month .pad__more {
+                @include events-month-chip-enter;
+            }
+
+            // Week and day: the columns themselves, left to right, on every
+            // width. Day view has one column, so it takes the first beat.
+            // The first child of the head and body is the time gutter, so the
+            // day columns start at the second child.
+            .grid__head > :nth-child(n + 2):nth-child(-n + 4),
+            .grid__body > :nth-child(n + 2):nth-child(-n + 4) {
+                @include events-entrance-step(1);
+            }
+
+            .grid__head > :nth-child(n + 5):nth-child(-n + 6),
+            .grid__body > :nth-child(n + 5):nth-child(-n + 6) {
+                @include events-entrance-step(2);
+            }
+
+            .grid__head > :nth-child(n + 7),
+            .grid__body > :nth-child(n + 7) {
+                @include events-entrance-step(3);
+            }
+
+            // Chips and event blocks inside those frames, left to right then
+            // the next row. They start after their parent card, and share the
+            // last delay once the cap is reached.
+            .pad--event,
+            .pad__event,
+            .pad__more,
+            .grid__event,
+            .pastEventCard {
+                @include page-entrance-nested-item;
+            }
+        }
+    }
+
+    // After the first visit, the same staggered rise plays on items that just
+    // appeared after a view, date, or filter change. These classes are not
+    // under `&--enter`, so the first-visit wave is unchanged.
+    .page--events .card--month .pad--enter {
+        @include events-month-pad-enter;
+    }
+
+    .page--events .card--month .pad__event--enter,
+    .page--events .card--month .pad__more--enter {
+        @include events-month-chip-enter;
+    }
+
+    .page--events .year > .card--enter {
+        @include events-year-card-enter;
+    }
+
+    .page--events .pad--event--enter,
+    .page--events .grid__event--enter {
+        @include page-entrance-nested-item;
     }
 }

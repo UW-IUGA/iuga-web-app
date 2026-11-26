@@ -24,12 +24,19 @@ import { useAuthContext } from "../context/AuthContext";
 import useCalendarView from "../hooks/useCalendarView";
 import useEventList from "../hooks/useEventList";
 import useSwipeStep from "../hooks/useSwipeStep";
+import useEntranceWave, {
+  ENTRANCE_WAVE_MS,
+  EntranceWaveContext,
+  entranceContentKey,
+} from "../hooks/useEntranceWave";
 import useTagFilter from "../hooks/useTagFilter";
 import {
   buildMonthGrid,
   filterByTags,
   MONTH_NAMES,
   normalizeEvent,
+  toISODate,
+  visibleEntranceKeys,
   zonedParts,
 } from "../utils/calendar/calendar";
 
@@ -60,6 +67,18 @@ function ListStatus({ status, onRetry }) {
 }
 
 function EventsPage() {
+  // On for the first visit's arrival wave only (see _page.scss), so a later
+  // view, date, or filter change does not replay it.
+  const [entering, setEntering] = useState(true);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(
+      () => setEntering(false),
+      ENTRANCE_WAVE_MS,
+    );
+    return () => window.clearTimeout(timeout);
+  }, []);
+
   const { mode, selectedDate, goToDay, goToDate, goToToday, step, setMode } =
     useCalendarView();
   const { can, isAuthenticated } = useAuthContext();
@@ -103,6 +122,22 @@ function EventsPage() {
     () => filterByTags(allEvents, shownTags),
     [allEvents, shownTags],
   );
+  // After the first visit, a change of view, date, or filter plays the same
+  // left-to-right wave. A new view waves in full; a date or filter change
+  // only rises what just appeared. Items that leave have none.
+  const visibleKeys = useMemo(
+    () => visibleEntranceKeys(mode, selectedDate, events),
+    [mode, selectedDate, events],
+  );
+  const contentKey = entranceContentKey(
+    mode,
+    toISODate(selectedDate),
+    shownTags,
+  );
+  const entranceWave = useEntranceWave(visibleKeys, {
+    active: !entering,
+    contentKey,
+  });
   const tagFilter = {
     isTagShown,
     onToggle: toggleTag,
@@ -130,9 +165,7 @@ function EventsPage() {
       <WeekView anchor={selectedDate} events={events} onSelectDay={goToDay} />
     );
   } else if (mode === "day") {
-    view = (
-      <DayView anchor={selectedDate} events={events} />
-    );
+    view = <DayView anchor={selectedDate} events={events} />;
   } else {
     view = (
       <MonthCard
@@ -146,7 +179,9 @@ function EventsPage() {
   const calendar = (
     <>
       <div className="eventsCalendar eventsCalendar--page">
-        <section className="page page--events">
+        <section
+          className={`page page--events${entering ? " page--events--enter" : ""}`}
+        >
           <h1 className="page__title">Events</h1>
 
           <CalendarControls
@@ -182,7 +217,9 @@ function EventsPage() {
               className={`events__main${hasSidebar ? " events__main--swipe" : ""}`}
             >
               <ListStatus status={status} onRetry={retry} />
-              {view}
+              <EntranceWaveContext.Provider value={entranceWave}>
+                {view}
+              </EntranceWaveContext.Provider>
             </div>
           </div>
 

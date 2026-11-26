@@ -585,4 +585,71 @@ export function buildDayColumns(dates, events, timeZone = TIMEZONE) {
     });
 }
 
+
+// Event ids currently drawn in `mode` around `selectedDate`, after the tag
+// filter has already been applied. Used to rise only events that just
+// appeared after a date or tag change.
+export function visibleEventIds(mode, selectedDate, events) {
+    const ids = new Set();
+    const add = (id) => {
+        if (id) ids.add(id);
+    };
+
+    if (mode === "year") {
+        for (const event of events) add(event.id);
+        return ids;
+    }
+
+    if (mode === "month") {
+        const { year, month } = zonedParts(selectedDate);
+        for (const row of buildMonthGrid(year, month, events, { withOutside: true })) {
+            for (const cell of row) {
+                for (const event of cell.events) add(event.id);
+            }
+        }
+        return ids;
+    }
+
+    const dates = mode === "week" ? buildWeekDates(selectedDate) : [selectedDate];
+    for (const column of buildDayColumns(dates, events)) {
+        for (const item of column.events) add(item.event.id);
+    }
+    return ids;
+}
+
+
+// Keys for everything currently drawn in `mode` around `selectedDate`, after
+// the tag filter has already been applied. Event, day, and year-month keys
+// let a later view, date, or filter change wave only what just appeared, or
+// the whole view when the mode itself changes.
+export function visibleEntranceKeys(mode, selectedDate, events) {
+    const keys = new Set();
+    for (const id of visibleEventIds(mode, selectedDate, events)) {
+        keys.add(`event:${id}`);
+    }
+
+    if (mode === "year") {
+        for (const month of groupByMonth(events)) {
+            keys.add(`month:${month.year}-${month.month}`);
+        }
+        return keys;
+    }
+
+    if (mode === "month") {
+        const { year, month } = zonedParts(selectedDate);
+        for (const row of buildMonthGrid(year, month, events, { withOutside: true })) {
+            for (const cell of row) {
+                const day = dayKeyOf(cell.date);
+                keys.add(`day:${day}`);
+                if (cell.events.length > 3) keys.add(`more:${day}`);
+            }
+        }
+        return keys;
+    }
+
+    const dates = mode === "week" ? buildWeekDates(selectedDate) : [selectedDate];
+    for (const date of dates) keys.add(`day:${dayKeyOf(date)}`);
+    return keys;
+}
+
 export { buildMonthGrid as default, colorForLabels, MONTH_NAMES, TIMEZONE, WEEKDAY_ABBREVIATIONS, zonedParts };

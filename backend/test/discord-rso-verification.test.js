@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { RSO_VERIFY_COMMAND } from "../discord/commandDefinition.js";
 import { createDiscordDispatcher } from "../discord/dispatcher.js";
-import { createDiscordApprovals } from "../discord/events/approvals.js";
+import { createEventFlow } from "../discord/events/flow.js";
 import { createRsoVerification } from "../discord/rsos/verification.js";
 import { createServerRoles } from "../discord/roles.js";
 import { createFakeCollection } from "./fakeCollection.js";
@@ -443,7 +443,7 @@ describe("Discord dispatcher", () => {
     const seen = [];
     const roles = createServerRoles({ modRoleId: MOD_ROLE });
     const recording = (label, flow) => ({ ...flow, handle: async (interaction) => seen.push([label, interaction.label]) });
-    const events = createDiscordApprovals({ models: {}, directory: {}, client: {}, roles, config: {} });
+    const events = createEventFlow({ models: {}, directory: {}, client: {}, roles, config: {} });
     const rso = createRsoVerification({ models: {}, directory: {}, client: {}, roles, config: {} });
     const dispatcher = createDiscordDispatcher({ flows: [recording("events", events), recording("rso", rso)] });
     return { dispatcher, seen };

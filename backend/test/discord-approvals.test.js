@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createDiscordApprovals } from "../discord/events/approvals.js";
+import { createEventFlow } from "../discord/events/flow.js";
 import { EVENT_COMMAND } from "../discord/commandDefinition.js";
 import { createServerRoles } from "../discord/roles.js";
 
@@ -133,7 +133,7 @@ function setup({ directoryFails = false } = {}) {
     ],
   };
   const clock = { now: NOW };
-  const flow = createDiscordApprovals({
+  const flow = createEventFlow({
     models,
     directory: createDirectory(rsosByUser, { fails: directoryFails }),
     client,

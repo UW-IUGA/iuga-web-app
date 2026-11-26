@@ -1,3 +1,5 @@
+import { audienceField } from "./audience.js";
+
 const PACIFIC = "America/Los_Angeles";
 
 const dateFormat = new Intl.DateTimeFormat("en-US", {
@@ -30,4 +32,15 @@ export function eventCardBase(row) {
   ];
   if (row.rsvpUrl) fields.push({ name: "RSVP", value: row.rsvpUrl });
   return { title: row.eName, description: row.eDescription, fields };
+}
+
+/*
+ * @behavior The card officers and moderators see for one submission: the event card plus who it notifies,
+ *           any denial reason, a color for its status, and a status line.
+ */
+export function statusCard(row, { color, statusText }) {
+  const card = eventCardBase(row);
+  card.fields.push(audienceField(row.interestRoleIds));
+  if (row.denyReason) card.fields.push({ name: "Denial reason", value: row.denyReason });
+  return { ...card, color, footer: { text: statusText } };
 }

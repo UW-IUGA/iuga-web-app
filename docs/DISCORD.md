@@ -168,11 +168,13 @@ Discord code lives in `backend/discord/`, grouped by what each part knows. `plat
 - `signature.js`: verifies that a request came from Discord
 
 `backend/discord/events/`
-- `approvals.js`: event submission, approve, deny, and publish
+- `flow.js`: owns `/event` and every `event-` button and form, and sends each to drafting or reviewing
+- `drafting.js`: an officer opens the form, previews the card, picks roles to notify, and sends it for review
+- `reviewing.js`: a moderator approves (publish, then announce) or denies with a reason
 - `form.js`, `drafts.js`: the `/event` form and the drafts it saves
 - `submissionRules.js`: input rules and time conversion
 - `submissions.js`: the pending event schema
-- `card.js`: the event card shown in previews, approvals, and announcements
+- `card.js`: the event card, and the status card shown in previews and on approval cards
 - `audience.js`: which interest roles an event may ping
 - `announcements.js`: the `#rso-events` post and Discord Scheduled Event
 

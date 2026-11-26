@@ -1,3 +1,4 @@
+import { readdirSync, statSync } from "node:fs";
 import { resources } from "./ResourcesData";
 import { allTags, clubAreas, resourceTypes, tagGroups } from "./resourceTaxonomy";
 
@@ -41,10 +42,69 @@ describe("resource records", () => {
         expect(empty).toEqual([]);
     });
 
-    test("files every club under exactly one club area, and nothing else under one", () => {
+    test("files every club under exactly one club area, and anything else under one at most", () => {
         resources.forEach(({ rName, type, tags }) => {
             const areas = tags.filter((tag) => clubAreas.includes(tag));
-            expect(areas.length, `${rName} is in ${areas.join(", ") || "no area"}`).toBe(type === resourceTypes.CLUB ? 1 : 0);
+            expect(areas.length, `${rName} is in ${areas.join(", ") || "no area"}`)
+                .toBe(type === resourceTypes.CLUB ? 1 : Math.min(areas.length, 1));
+        });
+    });
+
+    // The iSchool student club list this page is built from, by area, plus the four the page already had (marked).
+    test("lists every club on the club list under its area", () => {
+        const clubsByArea = {
+            iOrgs: [
+                "Black in Informatics (Binfo)", "Women in Informatics (Winfo)", "iQueeries", "iMuslims", "iJournal",
+            ],
+            "PM/Consulting": [
+                "Product Management Club @ UW", "Product Space @ UW", "Montlake Consulting Group",
+                "UW Consulting Association (UWCA)", "Technology Consulting Association @ UW",
+                "Business Impact Group (BIG)", "Information Consulting Group (ICG)",
+            ],
+            Entrepreneurship: ["DubHacks", "DubHacksNext", "iStartup Lab", "CSeed"],
+            "Software Engineering": [
+                "Husky Coding Project", "Society of Women Engineers UW (SWE UW)",
+                "Software Engineering Career Club (SWECC)", "Web Impact UW",
+                "AWS Student Builder Group @ UW", // not on the club list
+            ],
+            "DS/ML": [
+                "DubsTech", "Data Science Society at UW", "interactive intelligence (i2)",
+                "Claude Builder Club @ UW", "Comet @ UW", // not on the club list
+            ],
+            "UI/UX": ["UX @ UW Club", "Women in UX", "UX Health @ UW", "Figma @ UW"], // Figma is not on the club list
+            Cybersecurity: ["ThinkCyber UW", "Batman's Kitchen", "ISACA", "WiCyS UW"],
+        };
+        Object.entries(clubsByArea).forEach(([area, names]) => {
+            const inArea = resources.filter(({ tags }) => tags.includes(area)).map(({ rName }) => rName);
+            expect(inArea.sort(), area).toEqual([...names].sort());
+        });
+    });
+
+    // Identity-based clubs also count as DEI support.
+    test("files the identity-based clubs under DEI too", () => {
+        const dei = resources.filter(({ type, tags }) => type === resourceTypes.CLUB && tags.includes("DEI"));
+        expect(dei.map(({ rName }) => rName).sort()).toEqual([
+            "Black in Informatics (Binfo)", "Society of Women Engineers UW (SWE UW)", "WiCyS UW", "Women in Informatics (Winfo)",
+            "Women in UX", "iMuslims", "iQueeries",
+        ].sort());
+    });
+
+    test("links every resource over https", () => {
+        resources.filter(({ rLink }) => rLink).forEach(({ rName, rLink }) => expect(rLink, rName).toMatch(/^https:\/\//));
+    });
+
+    test("gives every club a logo", () => {
+        resources
+            .filter(({ type }) => type === resourceTypes.CLUB)
+            .forEach(({ rName, rImage }) => expect(rImage, rName).toBeTruthy());
+    });
+
+    // Logos load on a page of 40+ cards, so each stays small.
+    test("keeps WebP logos at 30 KB or less and every logo under 100 KB", () => {
+        const dir = "src/assets/logos";
+        readdirSync(dir).forEach((file) => {
+            const size = statSync(`${dir}/${file}`).size;
+            expect(size, file).toBeLessThanOrEqual(file.endsWith(".webp") ? 30 * 1024 : 100 * 1024);
         });
     });
 

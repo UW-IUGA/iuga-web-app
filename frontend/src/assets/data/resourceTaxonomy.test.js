@@ -27,15 +27,17 @@ describe("resource tags", () => {
         Object.values(tagForCategory).forEach((tag) => expect(allTags).toContain(tag));
     });
 
-    test("lists support, then clubs by area, then any club still without an area", () => {
+    test("lists support, then each club area (with any iSchool or UW group in it), then any club without an area", () => {
         const uw = { rName: "Health", type: "UW", tags: [] };
         const ux = { rName: "UX Club", type: "Student clubs", tags: ["UI/UX"] };
         const orgs = { rName: "Org", type: "Student clubs", tags: ["iOrgs"] };
         const loose = { rName: "New Club", type: "Student clubs", tags: [] };
+        const lab = { rName: "Startup Lab", type: "iSchool", tags: ["Entrepreneurship"] };
 
-        expect(sectionsOf([ux, loose, uw, orgs])).toEqual([
+        expect(sectionsOf([ux, loose, lab, uw, orgs])).toEqual([
             { heading: "Support", resources: [uw] },
             { heading: "iOrgs", resources: [orgs] },
+            { heading: "Entrepreneurship", resources: [lab] },
             { heading: "UI/UX", resources: [ux] },
             { heading: "More clubs", resources: [loose] },
         ]);

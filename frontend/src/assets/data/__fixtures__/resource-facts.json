@@ -16,10 +16,27 @@
       "inset": false
     },
     {
+      "name": "Batman's Kitchen",
+      "tags": [
+        "Student clubs",
+        "Cybersecurity"
+      ],
+      "bullets": [
+        "Cybersecurity club open to every level of experience",
+        "Weekly talks and Capture the Flag (CTF) nights",
+        "Runs BKCTF and prepares students for the MITRE eCTF competition"
+      ],
+      "description": "Batman's Kitchen is UW's cybersecurity club, open to every level of experience.",
+      "link": "https://www.batmans.kitchen/",
+      "hasLogo": true,
+      "inset": false
+    },
+    {
       "name": "Black in Informatics (Binfo)",
       "tags": [
         "Student clubs",
-        "iOrgs"
+        "iOrgs",
+        "DEI"
       ],
       "bullets": [
         "Community-driven organization fostering the professional, academic, and personal development of Black students in Informatics",
@@ -28,6 +45,22 @@
       ],
       "description": "Black in Informatics is a community-driven organization dedicated to fostering the professional, academic, and personal development of Black students within the Informatics program. Its mission is to amplify the presence and successes of Black students in Informatics, guiding them throughout their journey at UW with resources, mentorship, and specialized learning experiences.",
       "link": "https://linktr.ee/binfouw",
+      "hasLogo": true,
+      "inset": false
+    },
+    {
+      "name": "Business Impact Group (BIG)",
+      "tags": [
+        "Student clubs",
+        "PM/Consulting"
+      ],
+      "bullets": [
+        "Student consulting teams work 8 weeks alongside a small business client",
+        "Clients across Washington State, the Pacific Northwest, and beyond",
+        "New members start in CORE, a quarter of weekly consulting workshops"
+      ],
+      "description": "Business Impact Group's student consulting teams work with small business clients across Washington State and beyond.",
+      "link": "https://www.uwbig.com/",
       "hasLogo": true,
       "inset": false
     },
@@ -87,6 +120,22 @@
       ],
       "description": "Curricular Practical Training (CPT) is an opportunity for students on F-1 visas to learn practical skills related to their majors while studying at the University of Washington. CPT serves as a work authorization as students engage in different types of activities related to their major.",
       "link": "https://iss.washington.edu/f1-employment/off-campus-employment-f1/cpt/",
+      "hasLogo": true,
+      "inset": false
+    },
+    {
+      "name": "Data Science Society at UW",
+      "tags": [
+        "Student clubs",
+        "DS/ML"
+      ],
+      "bullets": [
+        "Makes data science accessible to students from all disciplines",
+        "Open to all UW students at any experience level",
+        "Events, workshops, and a network of data science peers"
+      ],
+      "description": "The Data Science Society at UW makes data science accessible to students from all disciplines.",
+      "link": "https://data-science-society-at-uw.github.io/club-website/",
       "hasLogo": true,
       "inset": false
     },
@@ -202,6 +251,22 @@
       "inset": false
     },
     {
+      "name": "iJournal",
+      "tags": [
+        "Student clubs",
+        "iOrgs"
+      ],
+      "bullets": [
+        "Student-run publication of the UW Information School",
+        "Publishes student thought pieces, research, opinions, and creative works",
+        "Takes submissions every quarter from undergraduates in any major"
+      ],
+      "description": "iJournal is the UW Information School's student-run publication for thought pieces, research, opinions, and creative works about technology, information, and society.",
+      "link": "https://www.ijournaluw.com/",
+      "hasLogo": true,
+      "inset": false
+    },
+    {
       "name": "iMentorship",
       "tags": [
         "iSchool",
@@ -221,7 +286,8 @@
       "name": "iMuslims",
       "tags": [
         "Student clubs",
-        "iOrgs"
+        "iOrgs",
+        "DEI"
       ],
       "bullets": [
         "Student-led resources and community to help Muslim students at the iSchool thrive at UW and beyond",
@@ -234,10 +300,43 @@
       "inset": false
     },
     {
+      "name": "Information Consulting Group (ICG)",
+      "tags": [
+        "Student clubs",
+        "PM/Consulting"
+      ],
+      "bullets": [
+        "Student-run technology consulting club at the iSchool, founded in 2025",
+        "Members deliver technology and strategy projects for real organizations",
+        "Focus groups in software engineering, data science, UI/UX design, and cybersecurity"
+      ],
+      "description": "Information Consulting Group is a student-run consulting club at the iSchool that delivers technology and strategy projects for real organizations.",
+      "link": "https://www.linkedin.com/company/washingtonicg",
+      "hasLogo": true,
+      "inset": false
+    },
+    {
+      "name": "interactive intelligence (i2)",
+      "tags": [
+        "Student clubs",
+        "DS/ML"
+      ],
+      "bullets": [
+        "Student-led NeuroAI education and research organization",
+        "Intro course on machine learning and neuroscience, no background needed",
+        "Research Room, a two-quarter program for joining real research projects"
+      ],
+      "description": "interactive intelligence (i2) is UW's student-led NeuroAI education and research organization.",
+      "link": "https://uw-i2.org/",
+      "hasLogo": true,
+      "inset": false
+    },
+    {
       "name": "iQueeries",
       "tags": [
         "Student clubs",
-        "iOrgs"
+        "iOrgs",
+        "DEI"
       ],
       "bullets": [
         "Safe, positive, and nurturing space for LGBTQIA+ and supportive ally students in the iSchool",
@@ -326,6 +425,22 @@
       "inset": false
     },
     {
+      "name": "iStartup Lab",
+      "tags": [
+        "iSchool",
+        "Entrepreneurship"
+      ],
+      "bullets": [
+        "Courses and community events about entrepreneurship",
+        "Micro grants to help iSchool startup teams with upfront costs",
+        "Open to students in every iSchool program"
+      ],
+      "description": "The iSchool's iStartup Lab helps students learn about entrepreneurship, meet other founders, and launch new businesses and organizations.",
+      "link": "https://startup.ischool.uw.edu/",
+      "hasLogo": true,
+      "inset": false
+    },
+    {
       "name": "Leigh Eisele, LMHC, LCPC, NCC",
       "tags": [
         "UW",
@@ -337,6 +452,22 @@
       ],
       "description": "Clinical Mental Health Therapist and Liaison to the College of Built Environments and iSchool.",
       "link": "https://wellbeing.uw.edu/staff/leigh-eisele-lmhc-lcpc-ncc/",
+      "hasLogo": true,
+      "inset": false
+    },
+    {
+      "name": "Montlake Consulting Group",
+      "tags": [
+        "Student clubs",
+        "PM/Consulting"
+      ],
+      "bullets": [
+        "Quarter-long strategy projects for Fortune 500 companies and startups",
+        "Teams of 4 to 5 consultants led by a student project manager",
+        "New members train for a quarter, ending in a pitch deck competition"
+      ],
+      "description": "Montlake Consulting Group members consult on quarter-long strategy projects for Fortune 500 companies and startups.",
+      "link": "https://montlakeconsulting.com/",
       "hasLogo": true,
       "inset": false
     },
@@ -371,6 +502,22 @@
       "inset": false
     },
     {
+      "name": "Product Management Club @ UW",
+      "tags": [
+        "Student clubs",
+        "PM/Consulting"
+      ],
+      "bullets": [
+        "Workshop-style community for students interested in product management",
+        "Resources, mentorship, and opportunities for a career in PM",
+        "Events such as a Careers in Tech panel"
+      ],
+      "description": "Product Management Club @ UW is a workshop-style community that offers resources, mentorship, and opportunities to students interested in a career in product management.",
+      "link": "https://webimpactuw.github.io/pmclub-uw/",
+      "hasLogo": true,
+      "inset": false
+    },
+    {
       "name": "Product Space @ UW",
       "tags": [
         "Student clubs",
@@ -386,6 +533,39 @@
       "inset": true
     },
     {
+      "name": "Society of Women Engineers UW (SWE UW)",
+      "tags": [
+        "Student clubs",
+        "Software Engineering",
+        "DEI"
+      ],
+      "bullets": [
+        "Supports women and nonbinary engineers in their careers",
+        "Programs and events for more than 500 students",
+        "UW section of the Society of Women Engineers"
+      ],
+      "description": "SWE UW helps women and nonbinary engineers succeed in their careers, with programs and events for more than 500 students.",
+      "link": "https://sweuw.org/",
+      "hasLogo": true,
+      "inset": false
+    },
+    {
+      "name": "Software Engineering Career Club (SWECC)",
+      "tags": [
+        "Student clubs",
+        "Software Engineering"
+      ],
+      "bullets": [
+        "Student-led community for aspiring software engineers",
+        "Hands-on projects, mentorship, workshops, and a peer network",
+        "SWECC Labs guides members through open-source contributions"
+      ],
+      "description": "SWECC is a student-led community that helps aspiring software engineers build the skills, experience, and connections to succeed in tech.",
+      "link": "https://www.swecc.org/",
+      "hasLogo": true,
+      "inset": false
+    },
+    {
       "name": "Technology Consulting Association @ UW",
       "tags": [
         "Student clubs",
@@ -396,6 +576,21 @@
       ],
       "description": "The premier technology consultancy.",
       "link": "https://linktr.ee/tca_uw?utm_source=ig&utm_medium=social&utm_content=link_in_bio",
+      "hasLogo": true,
+      "inset": false
+    },
+    {
+      "name": "ThinkCyber UW",
+      "tags": [
+        "Student clubs",
+        "Cybersecurity"
+      ],
+      "bullets": [
+        "Inclusive, hands-on cybersecurity community for all backgrounds",
+        "Study groups and panels, such as a Security+ study group"
+      ],
+      "description": "ThinkCyber UW is an inclusive, hands-on cybersecurity community for students of all backgrounds.",
+      "link": "https://linktr.ee/thinkcyberuw",
       "hasLogo": true,
       "inset": false
     },
@@ -415,6 +610,22 @@
       "inset": false
     },
     {
+      "name": "UW Consulting Association (UWCA)",
+      "tags": [
+        "Student clubs",
+        "PM/Consulting"
+      ],
+      "bullets": [
+        "Weekly meetings with speaker panels, firm events, and interview prep workshops",
+        "PIVOT pairs new members with an upperclass mentor for 7 weeks of training",
+        "3 to 5 client engagements every quarter"
+      ],
+      "description": "UWCA helps members build consulting knowledge and professional skills through weekly meetings, new member training, and client engagements.",
+      "link": "https://www.uwconsulting.org/",
+      "hasLogo": true,
+      "inset": false
+    },
+    {
       "name": "UX @ UW Club",
       "tags": [
         "Student clubs",
@@ -430,10 +641,56 @@
       "inset": false
     },
     {
+      "name": "UX Health @ UW",
+      "tags": [
+        "Student clubs",
+        "UI/UX"
+      ],
+      "bullets": [
+        "Explores UX design and research in healthcare",
+        "Design teams run Winter to Spring, with applications at the end of Fall"
+      ],
+      "description": "UX Health is a student-led organization exploring the role of UX design and research in healthcare.",
+      "link": "https://www.instagram.com/uxhealthuw/",
+      "hasLogo": true,
+      "inset": false
+    },
+    {
+      "name": "Web Impact UW",
+      "tags": [
+        "Student clubs",
+        "Software Engineering"
+      ],
+      "bullets": [
+        "Weekly web design and development workshops for all skill levels",
+        "Student teams build free websites for Seattle organizations starting in Winter"
+      ],
+      "description": "Web Impact teaches web design and development and builds free websites for local communities and organizations in Seattle.",
+      "link": "https://webimpactuw.org/",
+      "hasLogo": true,
+      "inset": false
+    },
+    {
+      "name": "WiCyS UW",
+      "tags": [
+        "Student clubs",
+        "Cybersecurity",
+        "DEI"
+      ],
+      "bullets": [
+        "UW Seattle student chapter of Women in CyberSecurity"
+      ],
+      "description": "WiCyS UW is the University of Washington Seattle student chapter of Women in CyberSecurity.",
+      "link": "https://www.instagram.com/wicys.uw/",
+      "hasLogo": true,
+      "inset": false
+    },
+    {
       "name": "Women in Informatics (Winfo)",
       "tags": [
         "Student clubs",
-        "iOrgs"
+        "iOrgs",
+        "DEI"
       ],
       "bullets": [
         "Empowers women to thrive as producers of technology",
@@ -441,7 +698,24 @@
         "Mentorship, resources, and support for career development and academic pursuits"
       ],
       "description": "Women in Informatics supports ways to empower women to thrive as producers of technology. Winfo is a supportive network of women in technology fields who provide students with mentorship, resources and support toward career development and academic pursuits.",
-      "link": "http://winfo.ischool.uw.edu/",
+      "link": "https://ischool.uw.edu/diversity/resources/student-groups/winfo",
+      "hasLogo": true,
+      "inset": false
+    },
+    {
+      "name": "Women in UX",
+      "tags": [
+        "Student clubs",
+        "UI/UX",
+        "DEI"
+      ],
+      "bullets": [
+        "Community for women and gender-expansive designers",
+        "An annual conference, industry networking, and portfolio reviews",
+        "Open to undergraduate and graduate students of any gender"
+      ],
+      "description": "Women in UX connects women at UW in user experience and related fields through community and career-building events.",
+      "link": "https://students.washington.edu/wiux/",
       "hasLogo": true,
       "inset": false
     }

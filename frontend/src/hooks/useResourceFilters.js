@@ -3,7 +3,7 @@ Purpose: Search, tag filtering, and search suggestions for the Resources page, k
          view can be shared or reloaded.
 
 Expected Request Information:
-- resources: tagged resources (from tagResources), each with `tags` and `highlights`.
+- resources: resource records (ResourcesData), each with a `type`, `tags`, and a `summary`.
 - The URL's ?q= and ?tags= (comma-separated), or the original page's ?category=, read as its matching tag.
 
 Expected Response Information:
@@ -15,7 +15,7 @@ Expected Response Information:
 
 import { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { allTags, searchSynonyms, tagForCategory, tagGroups } from "../assets/data/ResourceTagData";
+import { allTags, labelsOf, searchSynonyms, tagForCategory, tagGroups } from "../assets/data/resourceTaxonomy";
 import { buildHighlightPattern, resourceMatchesTokens, textMatchesTokens, tokenize } from "../utils/resourceSearch";
 
 const MAX_TAG_SUGGESTIONS = 4;
@@ -33,12 +33,12 @@ function matchesTagGroups(resource, selectedTags, skippedGroup) {
     return tagGroups.every((group) => {
         if (group === skippedGroup) return true;
         const groupSelection = group.tags.filter((tag) => selectedTags.includes(tag));
-        return groupSelection.length === 0 || groupSelection.some((tag) => resource.tags.includes(tag));
+        return groupSelection.length === 0 || groupSelection.some((tag) => labelsOf(resource).includes(tag));
     });
 }
 
 const compareNames = (first, second) =>
-    first.rName.trim().localeCompare(second.rName.trim(), "en", { sensitivity: "base" });
+    first.rName.localeCompare(second.rName, "en", { sensitivity: "base" });
 
 export default function useResourceFilters(resources) {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -74,7 +74,7 @@ export default function useResourceFilters(resources) {
     };
     // Picking a suggested tag turns the typed words into that filter.
     const applyTagSuggestion = (tag) => updateParams({ q: "", tags: [...selectedTags, tag].join(",") });
-    const applyResourceSuggestion = (resource) => updateParams({ q: resource.rName.trim() });
+    const applyResourceSuggestion = (resource) => updateParams({ q: resource.rName });
 
     const resourcesMatchingSearch = useMemo(() => {
         if (!hasQuery) return resources;
@@ -89,7 +89,7 @@ export default function useResourceFilters(resources) {
     // A tag's count is how many results there would be with it selected, given the other groups' selections.
     const tagCounts = useMemo(() => Object.fromEntries(tagGroups.flatMap((group) => group.tags.map((tag) => {
         const resultsWithTag = resourcesMatchingSearch.filter((resource) =>
-            resource.tags.includes(tag) && matchesTagGroups(resource, selectedTags, group)).length;
+            labelsOf(resource).includes(tag) && matchesTagGroups(resource, selectedTags, group)).length;
         return [tag, resultsWithTag];
     }))), [resourcesMatchingSearch, selectedTags]);
 

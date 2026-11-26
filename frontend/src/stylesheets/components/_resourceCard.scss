@@ -47,7 +47,7 @@ Expected Response Information: A card with the icon above its tags, name, bullet
     @extend %pageKicker;
 }
 
-.resourceCard__highlights {
+.resourceCard__summary {
     display: grid;
     gap: 6px;
     margin: 0 0 $space-5;

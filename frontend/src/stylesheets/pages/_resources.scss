@@ -1,146 +1,304 @@
+/*
+Purpose: Style the Resources page: Start Here beside the page title, then the filter sidebar beside the resource
+         cards.
+Expected Request Information: Classes emitted by the Resources page.
+Expected Response Information: Start Here lines up with the title and intro on desktops and moves under them on
+         smaller screens; the sidebar stays beside the cards on laptops and above them on tablets and phones.
+*/
 @use "../abstracts" as *;
 @use "../base/misc";
 
-.resourcesPage {
+.resources {
     @extend %pageFrame;
     margin-bottom: $space-24;
-}
 
-.resourcesDirectory {
-    padding-top: 10px;
-}
+    // Browsers give buttons their own font; use the site's like the links beside them.
+    button {
+        font-family: inherit;
+    }
 
-.resourcesControls {
-    display: grid;
-    grid-template-columns: minmax(250px, 350px) 1fr;
-    gap: $grid-gap;
-    align-items: end;
-    padding: $space-6;
-}
-
-.resourcesSearch {
-    display: grid;
-    gap: $space-2;
-    color: theme(heading);
-    font-size: $font-size-label;
-    font-weight: $font-weight-medium;
-    letter-spacing: $letter-spacing-label;
-    text-transform: uppercase;
-
-    input {
-        width: 100%;
-        padding: 11px 14px;
-        border: 1px solid theme-alpha(brand, 0.25);
-        border-radius: $radius-pill;
-        color: theme(text);
-        font: #{$font-size-body} $font-family-base;
-
-        &:focus {
-            outline: 2px solid theme(accent);
-            outline-offset: 2px;
-        }
+    // Search-term highlight in names, tags, and bullets.
+    mark {
+        padding: 0 2px;
+        border-radius: 3px;
+        background: theme(academic-secondary);
+        color: inherit;
     }
 }
 
-.resourceFilters {
+.resources__startHereLabel {
+    @extend %pageKicker;
+}
+
+// Start Here: the text column is only as wide as the title and intro need (36rem), and Start Here fills the rest
+// of the row, stretching so its top and bottom line up with the title and the end of the intro.
+.resources .pageHeader--withVisual {
+    grid-template-columns: minmax(0, 36rem) minmax(0, 1fr);
+    gap: $space-8;
+    align-items: stretch;
+}
+
+.resources .pageHeader__visual {
     display: flex;
-    flex-wrap: wrap;
-    gap: $space-2;
 }
 
-.resourceResultCount {
-    margin: $space-6 0 34px;
-    color: theme(text-muted);
-    font-size: $font-size-small;
-    text-align: right;
-}
+.resources__startHere {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: $space-3;
 
-.resourceCategory {
-    margin-bottom: 18px;
-    border-bottom: 2px solid theme(text);
-}
-
-.resourceCategoryHeader {
     h2 {
-        margin: 0;
+        margin: 2px 0 0;
+        font-size: $font-size-subheading;
     }
 }
 
-.resourcesPage .resourceCategoryHeader::after {
-    content: none;
+.resources__startList {
+    display: grid;
+    flex: 1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: 1fr;
+    gap: $space-2;
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
 
-.resourceCategoryToggle {
+// Each icon is sized from the name's font size, so the two grow and shrink together.
+.resources__startLink {
     display: flex;
-    width: 100%;
-    align-items: center;
-    justify-content: space-between;
-    gap: $space-5;
-    padding: 18px 0;
-    color: inherit;
-    font: $font-weight-bold #{$font-size-section}/#{$line-height-heading} $font-family-base;
-    text-align: left;
-    background: transparent;
-    border: 0;
-    cursor: pointer;
-
-    &:hover > span:first-child {
-        color: theme(accent);
-    }
-
-    &:focus-visible {
-        outline: 2px solid theme(accent);
-        outline-offset: 4px;
-    }
-
-    &[aria-expanded="true"] .resourceCategoryChevron {
-        transform: rotate(180deg);
-    }
-}
-
-.resourceCategoryMeta {
-    display: flex;
-    flex: 0 0 auto;
+    height: 100%;
+    box-sizing: border-box;
     align-items: center;
     gap: $space-3;
-}
+    padding: $space-3 $space-4;
+    border: 1px solid theme-alpha(brand, 0.12);
+    border-radius: $radius-card-media;
+    background: theme(surface);
+    box-shadow: 0 2px 10px theme-alpha(brand, 0.08);
+    color: theme(text);
+    font-size: $font-size-subheading;
+    font-weight: $font-weight-bold;
+    line-height: 1.25;
+    text-decoration: none;
+    transition:
+        box-shadow 150ms ease,
+        transform 150ms ease;
+    @include focus-ring;
 
-.resourceCategoryCount {
-    color: theme(text-muted);
-    font: $font-weight-medium #{$font-size-label}/ 1 $font-family-base;
-    letter-spacing: $letter-spacing-label;
-    text-transform: uppercase;
-}
+    .resourceIcon {
+        width: calc(#{$font-size-subheading} * 2.25);
+        height: calc(#{$font-size-subheading} * 2.25);
+        flex-basis: calc(#{$font-size-subheading} * 2.25);
+    }
 
-.resourceCategoryChevron {
-    display: grid;
-    width: 28px;
-    height: 28px;
-    place-items: center;
-    color: theme(accent);
-    border: 1px solid theme-alpha(brand, 0.2);
-    border-radius: 50%;
-    transition: transform 180ms ease;
-
-    &::before {
-        width: 8px;
-        height: 8px;
-        margin-top: -4px;
-        content: "";
-        border-right: 2px solid currentcolor;
-        border-bottom: 2px solid currentcolor;
-        transform: rotate(45deg);
+    &:hover {
+        box-shadow: 0 8px 20px theme-alpha(brand, 0.13);
+        color: theme(accent);
+        transform: translateY(-2px);
     }
 }
 
-.resourceGrid {
+.resources__keepOnOneLine {
+    white-space: nowrap;
+}
+
+// Below desktop width Start Here is too narrow beside the title, so it moves under the intro.
+@include media("<desktop") {
+    .resources .pageHeader--withVisual {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+// The results header sits over the cards' column only, so the sidebar starts level with the first row of cards.
+.resources__directory {
+    display: grid;
+    grid-template-areas:
+        ". header"
+        "sidebar results";
+    // Wide enough for the longest tag ("Entrepreneurship") beside its checkbox, count, and the scrollbar.
+    grid-template-columns: 292px minmax(0, 1fr);
+    gap: 0 $space-8;
+    align-items: start;
+}
+
+.resources__resultsHeader {
+    grid-area: header;
+    margin-bottom: $space-6;
+    padding-bottom: $space-3;
+    border-bottom: 1px solid theme(border-subtle);
+}
+
+.resources__resultsTitle {
+    margin: 0 0 6px;
+    // Paging lands here; keep it clear of the sticky navbar.
+    scroll-margin-top: $space-24;
+
+    &:focus {
+        outline: none;
+    }
+}
+
+// One line, so picking tags never changes the header's height.
+.resources__resultCount {
+    overflow: hidden;
+    margin: 0;
+    color: theme(text-muted);
+    font: $font-weight-medium #{$font-size-label}/ 1.4 $font-family-base;
+    letter-spacing: $letter-spacing-label;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+// Taller than the sidebar can be, so after a filter change the results can always be scrolled to the top of the
+// view (see Resources.jsx). The scroll margin matches the sidebar's sticky offset.
+.resources__resultsBody {
+    grid-area: results;
+    min-height: calc(100vh - #{$space-24});
+    scroll-margin-top: $space-24;
+}
+
+// Stays in view below the navbar and scrolls on its own when taller than the window. Right-to-left puts the
+// scrollbar on the left edge; the items inside are set back to left-to-right.
+.resources__sidebar {
+    grid-area: sidebar;
+    position: sticky;
+    top: $space-24;
+    display: grid;
+    max-height: calc(100vh - #{$space-24 + $space-6});
+    box-sizing: border-box;
+    gap: 18px;
+    overflow: hidden auto;
+    padding: $space-5;
+    direction: rtl;
+
+    > * {
+        direction: ltr;
+    }
+
+    fieldset {
+        margin: 0 0 $space-3;
+        padding: 0;
+        border: 0;
+    }
+
+    legend {
+        @extend %pageKicker;
+        margin-bottom: 6px;
+        padding: 0;
+    }
+}
+
+.resources__sidebarHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    h2 {
+        margin: 0;
+        font-size: $font-size-subheading;
+    }
+}
+
+.resources__sidebarHeader .resources__filtersToggle {
+    display: none;
+}
+
+// Text-only, styled like the "Search" label above it. The selector matches the specificity of the shared rule in
+// components/_buttons.scss that pads buttons between 1024px and 1299px, and loads later, so it keeps its own padding.
+.resources .resources__sidebar button.resources__clearButton {
+    @extend %pageKicker;
+    justify-self: center;
+    margin-top: -$space-1;
+    padding: $space-1 $space-2;
+    border-radius: $radius;
+    background: transparent;
+    @include focus-ring;
+
+    &:hover {
+        color: theme(heading);
+    }
+
+    &::before {
+        content: none;
+    }
+
+    &:disabled {
+        border: 0;
+        background: transparent;
+        color: theme(text-muted);
+        opacity: 0.7;
+    }
+}
+
+.resources__filterOption {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px $space-2;
+    border-radius: $radius;
+    color: theme(text);
+    font-size: $font-size-body;
+    cursor: pointer;
+
+    &:hover {
+        background: theme(surface-light-gray);
+    }
+
+    input {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+        accent-color: theme(accent);
+    }
+}
+
+// A tag name too long for its row wraps rather than widening the sidebar.
+.resources__filterName {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.resources__filterCount {
+    min-width: 22px;
+    padding: 2px 6px;
+    border-radius: $radius-pill;
+    background: theme(surface-gray);
+    color: theme(text-muted);
+    font-size: $font-size-label;
+    font-weight: $font-weight-medium;
+    text-align: center;
+}
+
+.resources__cardGrid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: $grid-gap;
     padding: 2px 0 $space-7;
 }
 
-.resourcesEmptyState {
+.resourcePagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-3;
+    font-size: $font-size-body;
+
+    p {
+        margin: 0;
+    }
+}
+
+.resourcePagination__button:disabled {
+    opacity: 0.4;
+    background: theme(surface);
+    color: theme(text);
+}
+
+.resources__emptyState {
     display: grid;
     justify-items: center;
     gap: $space-3;
@@ -157,38 +315,73 @@
     }
 }
 
+@include media(">=desktop") {
+    .resources__cardGrid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+// The sidebar moves above the results, no longer sticky or scrolling, with its tags behind the Show button.
+@include media("<sm-desktop") {
+    .resources__directory {
+        grid-template-areas:
+            "sidebar"
+            "header"
+            "results";
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .resources__resultsBody {
+        min-height: 0;
+    }
+
+    .resources__sidebar {
+        position: static;
+        max-height: none;
+        margin-bottom: $space-8;
+        overflow: visible;
+        direction: ltr;
+    }
+
+    .resources__sidebarHeader .resources__filtersToggle {
+        display: inline-flex;
+        height: 36px;
+        padding: 6px $space-4;
+        font-size: $font-size-small;
+    }
+
+    .resources__filterGroups {
+        display: none;
+    }
+
+    .resources__filterGroups--open {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0 $space-4;
+    }
+}
+
 @include media("<tablet") {
-    .resourcesPage {
+    .resources {
         width: 100%;
         margin-bottom: $space-16;
     }
 
-    .resourcesControls {
-        grid-template-columns: 1fr;
-        padding: 18px;
-    }
-
-    .resourceResultCount {
-        text-align: left;
-    }
-
-    .resourceGrid {
+    .resources__startList,
+    .resources__filterGroups--open,
+    .resources__cardGrid {
         grid-template-columns: 1fr;
     }
 
-    .resourceCategoryToggle {
-        gap: $space-3;
-    }
+    .resourcePagination {
+        flex-wrap: wrap;
+        justify-content: center;
+        text-align: center;
 
-    .resourceCategoryMeta {
-        gap: $space-2;
+        // The page text gets its own line above the two buttons.
+        p {
+            flex-basis: 100%;
+            order: -1;
+        }
     }
-}
-
-// Names the chips as filters, so they read as a choice rather than links.
-.resourceFilters__label {
-    flex-basis: 100%;
-    color: theme(text-muted);
-    font-size: $font-size-small;
-    font-weight: $font-weight-medium;
 }

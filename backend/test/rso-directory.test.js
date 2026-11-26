@@ -24,9 +24,9 @@ function createGuild({ roles = [], members = ["u1", "u2"] } = {}) {
       if (guild.fail.listRoles) throw guild.fail.listRoles;
       return guild.roles.map((role) => ({ ...role }));
     },
-    async createRole(_guildId, { name }) {
+    async createRole(_guildId, settings) {
       if (guild.fail.createRole) throw guild.fail.createRole;
-      const role = { id: `role-${++sequence}`, name, permissions: "0" };
+      const role = { id: `role-${++sequence}`, ...settings };
       guild.roles.push(role);
       return { ...role };
     },
@@ -162,7 +162,7 @@ describe("rsoDirectory.suggest", () => {
 });
 
 describe("rsoDirectory.grantOfficer", () => {
-  it("creates the RSO and a no-permission role, then grants it and the officer role", async () => {
+  it("creates the RSO and a no-permission, unpingable role, then grants it and the officer role", async () => {
     const { directory, guild } = setup();
 
     const result = await grant(directory);
@@ -172,6 +172,8 @@ describe("rsoDirectory.grantOfficer", () => {
     assert.deepEqual(result.rso, { rsoKey: "hci club", rsoName: "HCI Club" });
     const role = officerRole(guild, "HCI Club");
     assert.equal(role.permissions, "0");
+    assert.equal(role.mentionable, false);
+    assert.equal(role.hoist, false);
     assert.deepEqual([...guild.members.get("u1")].sort(), [OFFICER_ROLE, role.id].sort());
   });
 

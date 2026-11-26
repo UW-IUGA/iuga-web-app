@@ -3,11 +3,23 @@ import { RESPONSE_MESSAGE, RESPONSE_UPDATE_MESSAGE } from "./interactions.js";
 const DISCORD_API = "https://discord.com/api/v10";
 const MAX_NON_JSON_EXCERPT_LENGTH = 200;
 
+// Discord's numeric error codes the bot reacts to. Failed calls carry the code as error.discordCode.
+export const DISCORD_ERROR = Object.freeze({
+  UNKNOWN_CHANNEL: 10003,
+  UNKNOWN_MEMBER: 10007,
+  UNKNOWN_MESSAGE: 10008,
+  UNKNOWN_ROLE: 10011,
+  UNKNOWN_SCHEDULED_EVENT: 10070,
+  MISSING_ACCESS: 50001,
+  CANNOT_MESSAGE_USER: 50007,
+  MISSING_PERMISSIONS: 50013,
+});
+
 const LIKELY_CAUSE_BY_DISCORD_CODE = {
-  10003: "the channel ID is wrong or the channel was deleted",
-  50001: "the bot is not in the server or cannot view this channel",
-  50007: "the user does not accept direct messages from the bot",
-  50013: "the bot is missing a permission in this channel, such as Send Messages or Embed Links",
+  [DISCORD_ERROR.UNKNOWN_CHANNEL]: "the channel ID is wrong or the channel was deleted",
+  [DISCORD_ERROR.MISSING_ACCESS]: "the bot is not in the server or cannot view this channel",
+  [DISCORD_ERROR.CANNOT_MESSAGE_USER]: "the user does not accept direct messages from the bot",
+  [DISCORD_ERROR.MISSING_PERMISSIONS]: "the bot is missing a permission in this channel, such as Send Messages or Embed Links",
 };
 const LIKELY_CAUSE_UNAUTHORIZED = "the bot token is invalid";
 
@@ -116,8 +128,8 @@ export function createDiscordClient({ botToken, fetchImpl = fetch }) {
     listRoles(guildId) {
       return call("GET", `/guilds/${guildId}/roles`);
     },
-    createRole(guildId, { name }) {
-      return call("POST", `/guilds/${guildId}/roles`, { name, permissions: "0", mentionable: false, hoist: false });
+    createRole(guildId, role) {
+      return call("POST", `/guilds/${guildId}/roles`, role);
     },
     addMemberRole(guildId, userId, roleId) {
       return call("PUT", `/guilds/${guildId}/members/${userId}/roles/${roleId}`);

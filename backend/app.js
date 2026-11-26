@@ -83,24 +83,26 @@ if (process.env.DISCORD_PUBLIC_KEY) {
   });
   const rsoDirectory = createRsoDirectory({ models, client: discordClient, roles: serverRoles });
   const discordFlows = createDiscordDispatcher({
-    events: createDiscordApprovals({
-      models,
-      directory: rsoDirectory,
-      client: discordClient,
-      roles: serverRoles,
-      config: {
-        approvalChannelId: process.env.DISCORD_APPROVAL_CHANNEL_ID,
-        announcementChannelId: process.env.DISCORD_ANNOUNCEMENT_CHANNEL_ID,
-        guildId: process.env.DISCORD_GUILD_ID,
-      },
-    }),
-    rsoVerification: createRsoVerification({
-      models,
-      directory: rsoDirectory,
-      client: discordClient,
-      roles: serverRoles,
-      config: { rsoApprovalChannelId: process.env.DISCORD_RSO_APPROVAL_CHANNEL_ID },
-    }),
+    flows: [
+      createDiscordApprovals({
+        models,
+        directory: rsoDirectory,
+        client: discordClient,
+        roles: serverRoles,
+        config: {
+          approvalChannelId: process.env.DISCORD_APPROVAL_CHANNEL_ID,
+          announcementChannelId: process.env.DISCORD_ANNOUNCEMENT_CHANNEL_ID,
+          guildId: process.env.DISCORD_GUILD_ID,
+        },
+      }),
+      createRsoVerification({
+        models,
+        directory: rsoDirectory,
+        client: discordClient,
+        roles: serverRoles,
+        config: { rsoApprovalChannelId: process.env.DISCORD_RSO_APPROVAL_CHANNEL_ID },
+      }),
+    ],
   });
   app.use(
     "/api/v1/discord",

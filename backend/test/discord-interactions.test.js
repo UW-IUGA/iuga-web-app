@@ -24,6 +24,7 @@ describe("Discord interactions endpoint", () => {
   before(async () => {
     const app = express();
     const flow = {
+      shouldAcknowledgeFirst: (interaction) => String(interaction.data?.custom_id).startsWith("approve:"),
       async handle(interaction) {
         handled.push(interaction);
         if (interaction.data?.custom_id?.startsWith("approve:")) return approval.promise;

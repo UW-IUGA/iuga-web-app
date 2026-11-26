@@ -1,5 +1,5 @@
 import express from "express";
-import { INTERACTION_COMPONENT, OBJECT_ID, parseCustomId, reply } from "../../../../discord/platform/interactions.js";
+import { reply } from "../../../../discord/platform/interactions.js";
 import { REQUEST_BODY_LIMIT } from "../../../../http/boundary.js";
 import { sendError } from "../helpers/sendError.js";
 import { verifyDiscordSignature } from "../../../../discord/platform/signature.js";
@@ -9,18 +9,14 @@ const INTERACTION_RESPONSE_PONG = 1;
 const DEFERRED_UPDATE_MESSAGE = 6;
 const GENERIC_FAILURE = "Something went wrong. Try again in a few minutes.";
 
-function isEventApproval(interaction) {
-  const [action, id] = parseCustomId(interaction.data?.custom_id);
-  return interaction.type === INTERACTION_COMPONENT && action === "approve" && OBJECT_ID.test(id);
-}
-
 /*
  * @behavior Receive Discord interaction requests. Rejects unsigned requests, answers PING, and
- *           hands every other verified interaction to the flow. A thrown flow error becomes a
- *           private generic reply, and only the error message is logged.
+ *           hands every other verified interaction to the flow. When the flow says an interaction
+ *           is slow, Discord is acknowledged right away and the outcome follows. A thrown flow error
+ *           becomes a private generic reply, and only the error message is logged.
  * @param publicKey — the application's Ed25519 public key, as hex
- * @param flow — { handle(interaction) } returning a Discord interaction response
- * @param client — sends the outcome of approvals acknowledged before their database work runs
+ * @param flow — { handle(interaction), shouldAcknowledgeFirst(interaction) }
+ * @param client — sends the outcome of interactions acknowledged before their work finished
  */
 export function createDiscordRouter({ publicKey, flow, client }) {
   const router = express.Router();
@@ -60,14 +56,14 @@ export function createDiscordRouter({ publicKey, flow, client }) {
         }
       }
 
-      if (!isEventApproval(interaction)) return res.json(await handle());
+      if (!flow.shouldAcknowledgeFirst(interaction)) return res.json(await handle());
 
       res.json({ type: DEFERRED_UPDATE_MESSAGE });
       const result = await handle();
       try {
         await client.completeDeferredInteraction(interaction, result);
       } catch (error) {
-        console.error("Discord could not deliver the deferred approval result:", error.message);
+        console.error("Discord could not deliver the deferred interaction result:", error.message);
       }
     },
   );

@@ -42,8 +42,14 @@ const NOT_YOUR_RSO = "You can only submit events for an RSO you're verified for.
 const DRAFT_EXPIRED = "This draft expired. Run /event again.";
 const PREVIEW_STATUS = "Preview: not sent yet. Reviewers see this card once you send it.";
 const PREVIEW_PROMPT = "Here's your event. Check the date and time, pick any interest roles to notify, then send it for review.";
+const ACTION_PREFIX = "event-";
 const SEND_ACTION = "event-send";
 const EDIT_ACTION = "event-edit";
+const APPROVE_ACTION = "event-approve";
+const DENY_ACTION = "event-deny";
+const DENY_REASON_ACTION = "event-deny-reason";
+// Approval cards posted before review buttons carried the event- prefix still use these names.
+const EARLIER_ACTION_NAMES = { approve: APPROVE_ACTION, deny: DENY_ACTION, "deny-reason": DENY_REASON_ACTION };
 const ENTRY_LIMITS = { name: 200, when: 200, location: 200, description: 2000 };
 const CATEGORY_PICK_LIMIT = 10;
 const ENTRY_LABELS = [
@@ -76,23 +82,40 @@ export function createDiscordApprovals({ models, directory, client, roles, confi
     now,
   });
 
+  function isCommand(interaction) {
+    const named = interaction.type === INTERACTION_COMMAND || interaction.type === INTERACTION_AUTOCOMPLETE;
+    return named && interaction.data?.name === EVENT_COMMAND.name;
+  }
+
+  function actionOf(interaction) {
+    const [name, id] = parseCustomId(interaction.data?.custom_id);
+    return [Object.hasOwn(EARLIER_ACTION_NAMES, name) ? EARLIER_ACTION_NAMES[name] : name, id];
+  }
+
+  function owns(interaction) {
+    return isCommand(interaction) || actionOf(interaction)[0].startsWith(ACTION_PREFIX);
+  }
+
+  // Approving publishes to the website and posts to Discord, which can outlast Discord's reply deadline.
+  function shouldAcknowledgeFirst(interaction) {
+    return interaction.type === INTERACTION_COMPONENT && actionOf(interaction)[0] === APPROVE_ACTION;
+  }
+
   async function handle(interaction) {
-    if (interaction.data?.name === EVENT_COMMAND.name) {
-      if (interaction.type === INTERACTION_COMMAND) return handleCommand(interaction);
-      if (interaction.type === INTERACTION_AUTOCOMPLETE) return handleAutocomplete(interaction);
+    if (isCommand(interaction)) {
+      return interaction.type === INTERACTION_COMMAND ? handleCommand(interaction) : handleAutocomplete(interaction);
     }
+    const [action, id] = actionOf(interaction);
     if (interaction.type === INTERACTION_COMPONENT) {
-      const [action, id] = parseCustomId(interaction.data?.custom_id);
       if (action === SEND_ACTION) return handleSend(interaction, id);
       if (action === EDIT_ACTION) return handleEdit(interaction, id);
       if (action === AUDIENCE_ACTION) return handleAudience(interaction, id);
-      if (action === "approve") return handleApprove(interaction, id);
-      if (action === "deny") return handleDenyStart(interaction, id);
+      if (action === APPROVE_ACTION) return handleApprove(interaction, id);
+      if (action === DENY_ACTION) return handleDenyStart(interaction, id);
     }
     if (interaction.type === INTERACTION_MODAL_SUBMIT) {
-      const [action, id] = parseCustomId(interaction.data?.custom_id);
       if (action === EVENT_FORM_ACTION) return handleFormSubmit(interaction);
-      if (action === "deny-reason") return handleDenySubmit(interaction, id);
+      if (action === DENY_REASON_ACTION) return handleDenySubmit(interaction, id);
     }
     return reply("This command is not available yet.");
   }
@@ -236,7 +259,7 @@ export function createDiscordApprovals({ models, directory, client, roles, confi
       message = await client.postMessage(config.approvalChannelId, {
         allowed_mentions: NO_MENTIONS,
         embeds: [card],
-        components: reviewButtons("", id),
+        components: reviewButtons(ACTION_PREFIX, id),
       });
     } catch (error) {
       console.error(`Approval card post failed: ${error.message}`);
@@ -304,7 +327,7 @@ export function createDiscordApprovals({ models, directory, client, roles, confi
     if (row.submitterDiscordId === reviewer.user.id) return reply("You cannot deny your own event.");
 
     return reasonModal({
-      customId: `deny-reason:${id}`,
+      customId: `${DENY_REASON_ACTION}:${id}`,
       title: "Deny event",
       label: "Reason (optional)",
       required: false,
@@ -345,7 +368,7 @@ export function createDiscordApprovals({ models, directory, client, roles, confi
     );
   }
 
-  return { handle };
+  return { owns, shouldAcknowledgeFirst, handle };
 }
 
 function cardEmbed(row, { color, statusText }) {

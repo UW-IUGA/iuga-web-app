@@ -87,7 +87,7 @@ describe("event approval against a MongoDB replica set", { skip: !uri }, () => {
     const approve = (reviewer = reviewerDiscordId) => flow.handle({
       type: 3,
       member: { user: { id: reviewer, username: "Reviewer" }, roles: [modRoleId] },
-      data: { custom_id: `approve:${request.id}` },
+      data: { custom_id: `event-approve:${request.id}` },
     });
     return { request, approve };
   }

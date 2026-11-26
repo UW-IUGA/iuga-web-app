@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { RSO_VERIFY_COMMAND } from "../discord/commandDefinition.js";
 import { createDiscordDispatcher } from "../discord/dispatcher.js";
+import { createDiscordApprovals } from "../discord/events/approvals.js";
 import { createRsoVerification } from "../discord/rsos/verification.js";
 import { createServerRoles } from "../discord/roles.js";
 import { createFakeCollection } from "./fakeCollection.js";
@@ -437,33 +438,68 @@ describe("RSO verification review", () => {
 });
 
 describe("Discord dispatcher", () => {
-  it("sends /rso-verify, its autocomplete, and rso- buttons to verification, and everything else to /event", async () => {
+  // The real flows decide what they own; only their handlers are replaced to record where each went.
+  function dispatcherWithRealOwnership() {
     const seen = [];
-    const dispatcher = createDiscordDispatcher({
-      events: { handle: async (interaction) => seen.push(["events", interaction.label]) },
-      rsoVerification: { handle: async (interaction) => seen.push(["rso", interaction.label]) },
-    });
+    const roles = createServerRoles({ modRoleId: MOD_ROLE });
+    const recording = (label, flow) => ({ ...flow, handle: async (interaction) => seen.push([label, interaction.label]) });
+    const events = createDiscordApprovals({ models: {}, directory: {}, client: {}, roles, config: {} });
+    const rso = createRsoVerification({ models: {}, directory: {}, client: {}, roles, config: {} });
+    const dispatcher = createDiscordDispatcher({ flows: [recording("events", events), recording("rso", rso)] });
+    return { dispatcher, seen };
+  }
 
-    for (const interaction of [
-      { label: "rso command", type: 2, data: { name: "rso-verify" } },
-      { label: "rso autocomplete", type: 4, data: { name: "rso-verify" } },
-      { label: "rso approve", type: 3, data: { custom_id: "rso-approve:1" } },
-      { label: "rso deny reason", type: 5, data: { custom_id: "rso-deny-reason:1" } },
-      { label: "event command", type: 2, data: { name: "event" } },
-      { label: "event approve", type: 3, data: { custom_id: "approve:1" } },
-      { label: "event deny reason", type: 5, data: { custom_id: "deny-reason:1" } },
-    ]) {
-      await dispatcher.handle(interaction);
-    }
+  const interactions = {
+    rsoCommand: { label: "rso command", type: 2, data: { name: "rso-verify" } },
+    rsoAutocomplete: { label: "rso autocomplete", type: 4, data: { name: "rso-verify" } },
+    rsoApprove: { label: "rso approve", type: 3, data: { custom_id: "rso-approve:1" } },
+    rsoDeny: { label: "rso deny", type: 3, data: { custom_id: "rso-deny:1" } },
+    rsoDenyReason: { label: "rso deny reason", type: 5, data: { custom_id: "rso-deny-reason:1" } },
+    eventCommand: { label: "event command", type: 2, data: { name: "event" } },
+    eventAutocomplete: { label: "event autocomplete", type: 4, data: { name: "event" } },
+    eventSend: { label: "event send", type: 3, data: { custom_id: "event-send:1" } },
+    eventForm: { label: "event form", type: 5, data: { custom_id: "event-form:1" } },
+    eventApprove: { label: "event approve", type: 3, data: { custom_id: "event-approve:1" } },
+    eventDeny: { label: "event deny", type: 3, data: { custom_id: "event-deny:1" } },
+    earlierApprove: { label: "earlier approve", type: 3, data: { custom_id: "approve:1" } },
+    earlierDenyReason: { label: "earlier deny reason", type: 5, data: { custom_id: "deny-reason:1" } },
+  };
+
+  it("sends each interaction to the flow that owns it, including review buttons posted before the event- prefix", async () => {
+    const { dispatcher, seen } = dispatcherWithRealOwnership();
+    for (const interaction of Object.values(interactions)) await dispatcher.handle(interaction);
 
     assert.deepEqual(seen, [
       ["rso", "rso command"],
       ["rso", "rso autocomplete"],
       ["rso", "rso approve"],
+      ["rso", "rso deny"],
       ["rso", "rso deny reason"],
       ["events", "event command"],
+      ["events", "event autocomplete"],
+      ["events", "event send"],
+      ["events", "event form"],
       ["events", "event approve"],
-      ["events", "event deny reason"],
+      ["events", "event deny"],
+      ["events", "earlier approve"],
+      ["events", "earlier deny reason"],
     ]);
+  });
+
+  it("refuses an interaction no flow owns instead of guessing", async () => {
+    const { dispatcher, seen } = dispatcherWithRealOwnership();
+    const response = await dispatcher.handle({ type: 3, data: { custom_id: "mystery:1" } });
+
+    assert.deepEqual(seen, []);
+    assert.equal(response.data.content, "This command is not available yet.");
+  });
+
+  it("acknowledges Discord first only for approvals, which do slow work", () => {
+    const { dispatcher } = dispatcherWithRealOwnership();
+    const acknowledgedFirst = Object.entries(interactions)
+      .filter(([, interaction]) => dispatcher.shouldAcknowledgeFirst(interaction))
+      .map(([name]) => name);
+
+    assert.deepEqual(acknowledgedFirst, ["rsoApprove", "eventApprove", "earlierApprove"]);
   });
 });

@@ -450,7 +450,7 @@ describe("/event preview buttons", () => {
     const [post] = context.client.calls;
     assert.equal(post.channelId, APPROVAL_CHANNEL);
     assert.deepEqual(post.body.allowed_mentions, { parse: [] });
-    assert.deepEqual(buttonIds({ data: post.body }), [`approve:${row._id}`, `deny:${row._id}`]);
+    assert.deepEqual(buttonIds({ data: post.body }), [`event-approve:${row._id}`, `event-deny:${row._id}`]);
     assert.deepEqual(post.body.embeds[0].fields.find((field) => field.name === "Categories"), {
       name: "Categories",
       value: "Social, Career",
@@ -561,7 +561,7 @@ describe("approval announces the event", () => {
   it("posts one announcement to the announcement channel and saves the IDs", async () => {
     const { id, models, flow, client } = await pendingSubmission();
 
-    await flow.handle(componentInteraction(mod(), `approve:${id}`));
+    await flow.handle(componentInteraction(mod(), `event-approve:${id}`));
 
     assert.equal(announcementPosts(client).length, 1);
     assert.equal(client.calls.filter((call) => call.method === "createScheduledEvent").length, 1);
@@ -575,7 +575,7 @@ describe("approval announces the event", () => {
     const { id, models, flow, client } = await pendingSubmission();
     client.failPost = true;
 
-    const response = await flow.handle(componentInteraction(mod(), `approve:${id}`));
+    const response = await flow.handle(componentInteraction(mod(), `event-approve:${id}`));
 
     assert.equal(models.Events.docs.length, 1);
     assert.match(response.data.embeds[0].footer.text, /Published to the Events page\. Discord announcement failed\./);
@@ -587,8 +587,8 @@ describe("approval announces the event", () => {
   it("announces once when Approve is clicked twice", async () => {
     const { id, flow, client } = await pendingSubmission();
 
-    await flow.handle(componentInteraction(mod(), `approve:${id}`));
-    await flow.handle(componentInteraction(mod(), `approve:${id}`));
+    await flow.handle(componentInteraction(mod(), `event-approve:${id}`));
+    await flow.handle(componentInteraction(mod(), `event-approve:${id}`));
 
     assert.equal(announcementPosts(client).length, 1);
   });
@@ -597,8 +597,8 @@ describe("approval announces the event", () => {
     const { id, flow, client } = await pendingSubmission();
 
     await Promise.all([
-      flow.handle(componentInteraction(mod(), `approve:${id}`)),
-      flow.handle(componentInteraction(mod(), `approve:${id}`)),
+      flow.handle(componentInteraction(mod(), `event-approve:${id}`)),
+      flow.handle(componentInteraction(mod(), `event-approve:${id}`)),
     ]);
 
     assert.equal(announcementPosts(client).length, 1);
@@ -613,7 +613,7 @@ describe("approval announces the event", () => {
       return saveSubmission(filter, update);
     };
 
-    const response = await flow.handle(componentInteraction(mod(), `approve:${id}`));
+    const response = await flow.handle(componentInteraction(mod(), `event-approve:${id}`));
 
     assert.equal(models.Events.docs.length, 1);
     assert.equal(announcementPosts(client).length, 1);
@@ -625,7 +625,7 @@ describe("approval announces the event", () => {
 describe("approval", () => {
   it("refuses approval from a non-moderator and changes nothing", async () => {
     const { id, models, flow } = await pendingSubmission();
-    const response = await flow.handle(componentInteraction(member(OTHER_ID, []), `approve:${id}`));
+    const response = await flow.handle(componentInteraction(member(OTHER_ID, []), `event-approve:${id}`));
 
     assert.equal(response.data.flags, EPHEMERAL);
     assert.equal(models.DiscordEventSubmissions.docs[0].status, "pending");
@@ -634,7 +634,7 @@ describe("approval", () => {
 
   it("publishes exactly one Events row for a moderator approval and updates the card", async () => {
     const { id, models, flow } = await pendingSubmission();
-    const response = await flow.handle(componentInteraction(mod(), `approve:${id}`));
+    const response = await flow.handle(componentInteraction(mod(), `event-approve:${id}`));
 
     assert.equal(response.type, UPDATE_MESSAGE);
     assert.deepEqual(response.data.components, []);
@@ -662,7 +662,7 @@ describe("approval", () => {
     const { id, models, flow } = await pendingSubmission();
     await models.DiscordEventSubmissions.updateOne({ _id: id }, { $set: { rsvpUrl: "https://example.com/rsvp" } });
 
-    await flow.handle(componentInteraction(mod(), `approve:${id}`));
+    await flow.handle(componentInteraction(mod(), `event-approve:${id}`));
 
     assert.equal(models.Events.docs.length, 1);
     assert.deepEqual(models.Events.docs[0].eAltLink, { title: "RSVP", url: "https://example.com/rsvp" });
@@ -674,15 +674,15 @@ describe("approval", () => {
     delete row.eLabels;
     row.eLabel = "Academic";
 
-    await flow.handle(componentInteraction(mod(), `approve:${id}`));
+    await flow.handle(componentInteraction(mod(), `event-approve:${id}`));
 
     assert.deepEqual(models.Events.docs[0].eLabels, ["Academic"]);
   });
 
   it("does not publish a second time when approval is clicked again", async () => {
     const { id, models, flow } = await pendingSubmission();
-    await flow.handle(componentInteraction(mod(), `approve:${id}`));
-    const response = await flow.handle(componentInteraction(mod(), `approve:${id}`));
+    await flow.handle(componentInteraction(mod(), `event-approve:${id}`));
+    const response = await flow.handle(componentInteraction(mod(), `event-approve:${id}`));
 
     assert.equal(models.Events.docs.length, 1);
     assert.equal(response.data.flags, EPHEMERAL);
@@ -692,7 +692,7 @@ describe("approval", () => {
   it("refuses self-approval", async () => {
     const { id, models, flow } = await pendingSubmission();
     const selfReviewer = member(OFFICER_ID, [OFFICER_ROLE, MOD_ROLE]);
-    const response = await flow.handle(componentInteraction(selfReviewer, `approve:${id}`));
+    const response = await flow.handle(componentInteraction(selfReviewer, `event-approve:${id}`));
 
     assert.equal(response.data.flags, EPHEMERAL);
     assert.match(response.data.content, /cannot approve your own event/);
@@ -703,7 +703,7 @@ describe("approval", () => {
   it("lets an IUGA officer approve", async () => {
     const { id, models, flow } = await pendingSubmission();
     const iugaOfficer = member(ADMIN_ID, [IUGA_OFFICER_ROLE]);
-    const response = await flow.handle(componentInteraction(iugaOfficer, `approve:${id}`));
+    const response = await flow.handle(componentInteraction(iugaOfficer, `event-approve:${id}`));
 
     assert.equal(response.type, UPDATE_MESSAGE);
     assert.equal(models.Events.docs.length, 1);
@@ -712,7 +712,7 @@ describe("approval", () => {
   it("lets an IUGA officer open the denial", async () => {
     const { id, flow } = await pendingSubmission();
     const iugaOfficer = member(ADMIN_ID, [IUGA_OFFICER_ROLE]);
-    const response = await flow.handle(componentInteraction(iugaOfficer, `deny:${id}`));
+    const response = await flow.handle(componentInteraction(iugaOfficer, `event-deny:${id}`));
 
     assert.equal(response.type, MODAL);
   });
@@ -720,7 +720,7 @@ describe("approval", () => {
   it("lets a server administrator approve", async () => {
     const { id, models, flow } = await pendingSubmission();
     const admin = member(ADMIN_ID, [], { permissions: "8" });
-    const response = await flow.handle(componentInteraction(admin, `approve:${id}`));
+    const response = await flow.handle(componentInteraction(admin, `event-approve:${id}`));
 
     assert.equal(response.type, UPDATE_MESSAGE);
     assert.equal(models.Events.docs.length, 1);
@@ -731,7 +731,7 @@ describe("approval", () => {
     const { id, models, flow } = await pendingSubmission();
     models.Events.failCreate = true;
 
-    const response = await flow.handle(componentInteraction(mod(), `approve:${id}`));
+    const response = await flow.handle(componentInteraction(mod(), `event-approve:${id}`));
 
     assert.equal(response.data.flags, EPHEMERAL);
     assert.match(response.data.content, /Couldn't confirm publication/);
@@ -746,7 +746,7 @@ describe("approval", () => {
     const { id, models, flow } = await pendingSubmission();
     models.Events.failCreate = true;
 
-    const response = await flow.handle(componentInteraction(mod(), `approve:${id}`));
+    const response = await flow.handle(componentInteraction(mod(), `event-approve:${id}`));
 
     assert.match(logged.mock.calls[0].arguments.join(" "), /simulated insert failure/);
     assert.doesNotMatch(response.data.content, /simulated insert failure/);
@@ -756,17 +756,17 @@ describe("approval", () => {
 describe("denial", () => {
   it("opens a reason modal without changing the row", async () => {
     const { id, models, flow } = await pendingSubmission();
-    const response = await flow.handle(componentInteraction(mod(), `deny:${id}`));
+    const response = await flow.handle(componentInteraction(mod(), `event-deny:${id}`));
 
     assert.equal(response.type, MODAL);
-    assert.equal(response.data.custom_id, `deny-reason:${id}`);
+    assert.equal(response.data.custom_id, `event-deny-reason:${id}`);
     assert.equal(models.DiscordEventSubmissions.docs[0].status, "pending");
   });
 
   it("records the denial and reason, updates the card, and DMs the submitter", async () => {
     const { id, models, client, flow } = await pendingSubmission();
     const response = await flow.handle(
-      modalSubmitInteraction(mod(), `deny-reason:${id}`, "Conflicts with finals"),
+      modalSubmitInteraction(mod(), `event-deny-reason:${id}`, "Conflicts with finals"),
     );
 
     assert.equal(response.type, UPDATE_MESSAGE);
@@ -784,7 +784,7 @@ describe("denial", () => {
   it("keeps the denial when the submitter DM fails", async () => {
     const { id, models, client, flow } = await pendingSubmission();
     client.failDm = true;
-    const response = await flow.handle(modalSubmitInteraction(mod(), `deny-reason:${id}`, ""));
+    const response = await flow.handle(modalSubmitInteraction(mod(), `event-deny-reason:${id}`, ""));
 
     assert.equal(response.type, UPDATE_MESSAGE);
     assert.equal(models.DiscordEventSubmissions.docs[0].status, "denied");
@@ -793,7 +793,7 @@ describe("denial", () => {
 
   it("refuses denial from a non-moderator", async () => {
     const { id, models, flow } = await pendingSubmission();
-    const response = await flow.handle(componentInteraction(member(OTHER_ID, []), `deny:${id}`));
+    const response = await flow.handle(componentInteraction(member(OTHER_ID, []), `event-deny:${id}`));
 
     assert.equal(response.data.flags, EPHEMERAL);
     assert.equal(models.DiscordEventSubmissions.docs[0].status, "pending");
@@ -811,11 +811,34 @@ describe("interaction dispatch", () => {
 
   it("treats a malformed id as stale and never looks it up", async () => {
     const { models, flow } = await pendingSubmission();
-    const response = await flow.handle(componentInteraction(mod(), "approve:not-an-id"));
+    const response = await flow.handle(componentInteraction(mod(), "event-approve:not-an-id"));
 
     assert.equal(response.data.flags, EPHEMERAL);
     assert.equal(models.DiscordEventSubmissions.docs[0].status, "pending");
     assert.equal(models.Events.docs.length, 0);
+  });
+
+  it("still approves from a card posted before review buttons had the event- prefix", async () => {
+    const { models, flow, id } = await pendingSubmission();
+    assert.ok(flow.owns(componentInteraction(mod(), `approve:${id}`)));
+    assert.ok(flow.shouldAcknowledgeFirst(componentInteraction(mod(), `approve:${id}`)));
+
+    await flow.handle(componentInteraction(mod(), `approve:${id}`));
+    assert.equal(models.DiscordEventSubmissions.docs[0].status, "approved");
+  });
+
+  it("still denies from a deny-reason form opened before the event- prefix", async () => {
+    const { models, flow, id } = await pendingSubmission();
+    await flow.handle(modalSubmitInteraction(mod(), `deny-reason:${id}`, "Conflicts with finals"));
+
+    assert.equal(models.DiscordEventSubmissions.docs[0].status, "denied");
+  });
+
+  it("doesn't claim a button named after a built-in object property", () => {
+    const { flow } = setup();
+    for (const name of ["constructor", "toString", "__proto__"]) {
+      assert.equal(flow.owns(componentInteraction(mod(), `${name}:abc`)), false);
+    }
   });
 });
 
@@ -891,7 +914,7 @@ describe("/event audience roles", () => {
     assert.deepEqual(approvalCard.allowed_mentions, { parse: [] });
     assert.equal(notifies(approvalCard.embeds[0]), `<@&${SWE_ROLE}> <@&${UX_ROLE}>`);
 
-    await context.flow.handle(componentInteraction(mod(), `approve:${row._id}`));
+    await context.flow.handle(componentInteraction(mod(), `event-approve:${row._id}`));
     const announcement = context.client.calls.find((call) => call.channelId === ANNOUNCEMENT_CHANNEL).body;
     assert.equal(announcement.content, `<@&${SWE_ROLE}> <@&${UX_ROLE}>`);
     assert.deepEqual(announcement.allowed_mentions, { roles: [SWE_ROLE, UX_ROLE] });

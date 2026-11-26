@@ -1,3 +1,4 @@
+import { RSO_VERIFY_COMMAND } from "../commandDefinition.js";
 import {
   COLOR_APPROVED,
   COLOR_DENIED,
@@ -55,6 +56,17 @@ export function createRsoVerification({ models, directory, client, roles, config
   function openFilter() {
     const staleBefore = new Date(now().getTime() - STALE_CLAIM_MS);
     return { $or: [{ status: "pending" }, { status: "approving", claimedAt: { $lt: staleBefore } }] };
+  }
+
+  function owns(interaction) {
+    const named = interaction.type === INTERACTION_COMMAND || interaction.type === INTERACTION_AUTOCOMPLETE;
+    if (named) return interaction.data?.name === RSO_VERIFY_COMMAND.name;
+    return String(interaction.data?.custom_id ?? "").startsWith("rso-");
+  }
+
+  // Approving can create a role and grant two, which can outlast Discord's reply deadline.
+  function shouldAcknowledgeFirst(interaction) {
+    return interaction.type === INTERACTION_COMPONENT && parseCustomId(interaction.data?.custom_id)[0] === "rso-approve";
   }
 
   async function handle(interaction) {
@@ -241,7 +253,7 @@ export function createRsoVerification({ models, directory, client, roles, config
     }
   }
 
-  return { handle };
+  return { owns, shouldAcknowledgeFirst, handle };
 }
 
 function cardEmbed(row, { color, statusText, isNew = false }) {

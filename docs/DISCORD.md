@@ -186,6 +186,7 @@ Shared by events and RSOs, at the top of `backend/discord/`:
 - `commandSync.js`: registers those commands with Discord on deploy
 - `dispatcher.js`: sends each interaction to the flow that owns it, and asks that flow whether Discord must be acknowledged first
 - `roles.js`: what each server role means: who may review, which roles are staff or officer roles, and which roles officers may ping
+- `review.js`: how both review flows look and answer: card colors, Approve and Deny buttons, the deny-reason pop-up, and the "already reviewed" replies
 
 Outside the folder:
 - `backend/routes/api/v1/controllers/discord.js`: the HTTP route Discord calls

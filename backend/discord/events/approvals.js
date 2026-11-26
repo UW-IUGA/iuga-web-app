@@ -8,30 +8,32 @@ import {
   BUTTON_PRIMARY,
   BUTTON_SECONDARY,
   BUTTON_SUCCESS,
-  COLOR_APPROVED,
-  COLOR_DENIED,
-  COLOR_PENDING,
   INTERACTION_AUTOCOMPLETE,
   INTERACTION_COMMAND,
   INTERACTION_COMPONENT,
   INTERACTION_MODAL_SUBMIT,
   NO_MENTIONS,
-  OBJECT_ID,
   RESPONSE_AUTOCOMPLETE,
-  REVIEWED_MESSAGE,
-  STALE_MESSAGE,
   buttonRow,
   commandOptions,
   displayName,
   modalText,
   neutralizeMentions,
   parseCustomId,
-  reasonModal,
   reply,
-  reviewButtons,
   updateCard,
   updateMessage,
 } from "../platform/interactions.js";
+import {
+  COLOR_APPROVED,
+  COLOR_DENIED,
+  COLOR_PENDING,
+  isRecordId,
+  reasonModal,
+  reviewButtons,
+  REVIEWED_MESSAGE,
+  STALE_MESSAGE,
+} from "../review.js";
 import { validateSubmission } from "./submissionRules.js";
 import { publishApprovedEvent } from "../../eventPublication.js";
 
@@ -179,7 +181,7 @@ export function createDiscordApprovals({ models, directory, client, roles, confi
    */
   async function ownDraft(who, draftId) {
     if (!who?.user) return { refusal: reply("Use /event inside the IUGA server.") };
-    const draft = OBJECT_ID.test(draftId) ? await drafts().findById(draftId) : null;
+    const draft = isRecordId(draftId) ? await drafts().findById(draftId) : null;
     if (!draft || draft.submitterDiscordId !== who.user.id || new Date(draft.expiresAt) <= now()) {
       return { refusal: reply(DRAFT_EXPIRED) };
     }
@@ -275,7 +277,7 @@ export function createDiscordApprovals({ models, directory, client, roles, confi
   async function handleApprove(interaction, id) {
     const reviewer = interaction.member;
     if (!roles.canReview(reviewer)) return reply("Only moderators or IUGA officers can approve events.");
-    if (!OBJECT_ID.test(id)) return reply(STALE_MESSAGE);
+    if (!isRecordId(id)) return reply(STALE_MESSAGE);
 
     let result;
     try {
@@ -319,7 +321,7 @@ export function createDiscordApprovals({ models, directory, client, roles, confi
   async function handleDenyStart(interaction, id) {
     const reviewer = interaction.member;
     if (!roles.canReview(reviewer)) return reply("Only moderators or IUGA officers can deny events.");
-    if (!OBJECT_ID.test(id)) return reply(STALE_MESSAGE);
+    if (!isRecordId(id)) return reply(STALE_MESSAGE);
 
     const row = await submissions().findById(id);
     if (!row) return reply(STALE_MESSAGE);
@@ -338,7 +340,7 @@ export function createDiscordApprovals({ models, directory, client, roles, confi
   async function handleDenySubmit(interaction, id) {
     const reviewer = interaction.member;
     if (!roles.canReview(reviewer)) return reply("Only moderators or IUGA officers can deny events.");
-    if (!OBJECT_ID.test(id)) return reply(STALE_MESSAGE);
+    if (!isRecordId(id)) return reply(STALE_MESSAGE);
 
     const existing = await submissions().findById(id);
     if (!existing) return reply(STALE_MESSAGE);

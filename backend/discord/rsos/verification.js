@@ -1,27 +1,29 @@
 import { RSO_VERIFY_COMMAND } from "../commandDefinition.js";
 import {
-  COLOR_APPROVED,
-  COLOR_DENIED,
-  COLOR_PENDING,
   INTERACTION_AUTOCOMPLETE,
   INTERACTION_COMMAND,
   INTERACTION_COMPONENT,
   INTERACTION_MODAL_SUBMIT,
   NO_MENTIONS,
-  OBJECT_ID,
   RESPONSE_AUTOCOMPLETE,
-  REVIEWED_MESSAGE,
-  STALE_MESSAGE,
   commandOptions,
   displayName,
   modalText,
   neutralizeMentions,
   parseCustomId,
-  reasonModal,
   reply,
-  reviewButtons,
   updateCard,
 } from "../platform/interactions.js";
+import {
+  COLOR_APPROVED,
+  COLOR_DENIED,
+  COLOR_PENDING,
+  isRecordId,
+  reasonModal,
+  reviewButtons,
+  REVIEWED_MESSAGE,
+  STALE_MESSAGE,
+} from "../review.js";
 
 const POSITION_LIMIT = 60;
 const REASON_LIMIT = 500;
@@ -141,7 +143,7 @@ export function createRsoVerification({ models, directory, client, roles, config
   async function reviewable(interaction, id, ownMessage) {
     const reviewer = interaction.member;
     if (!roles.canReview(reviewer)) return { response: reply(NOT_REVIEWER) };
-    if (!OBJECT_ID.test(id)) return { response: reply(STALE_MESSAGE) };
+    if (!isRecordId(id)) return { response: reply(STALE_MESSAGE) };
     const row = await requests().findById(id);
     if (!row) return { response: reply(STALE_MESSAGE) };
     if (row.requesterDiscordId === reviewer.user.id) return { response: reply(ownMessage) };

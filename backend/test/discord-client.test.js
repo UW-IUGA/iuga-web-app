@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createDiscordClient } from "../discordClient.js";
+import { createDiscordClient } from "../discord/platform/client.js";
 
 const BOT_TOKEN = "test-bot-token";
 

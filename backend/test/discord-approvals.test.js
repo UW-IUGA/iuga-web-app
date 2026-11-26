@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createDiscordApprovals } from "../discordApprovals.js";
-import { EVENT_COMMAND } from "../discordCommandDefinition.js";
+import { createDiscordApprovals } from "../discord/events/approvals.js";
+import { EVENT_COMMAND } from "../discord/commandDefinition.js";
 
 const NOW = new Date("2026-11-12T20:00:00Z");
 const APPROVAL_CHANNEL = "approvals-channel";

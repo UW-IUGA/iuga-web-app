@@ -1,4 +1,4 @@
-import { neutralizeMentions } from "./discordInteractions.js";
+import { neutralizeMentions } from "../platform/interactions.js";
 
 const NAME_LIMIT = 80;
 const SUGGESTION_LIMIT = 25;

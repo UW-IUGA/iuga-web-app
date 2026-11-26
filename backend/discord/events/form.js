@@ -1,4 +1,4 @@
-import { CATEGORIES, WHEN_EXAMPLE } from "./discordSubmissionRules.js";
+import { CATEGORIES, WHEN_EXAMPLE } from "./submissionRules.js";
 import {
   COMPONENT_LABEL,
   COMPONENT_STRING_SELECT,
@@ -7,7 +7,7 @@ import {
   TEXT_INPUT_PARAGRAPH,
   TEXT_INPUT_SHORT,
   parseCustomId,
-} from "./discordInteractions.js";
+} from "../platform/interactions.js";
 
 export const EVENT_FORM_ACTION = "event-form";
 

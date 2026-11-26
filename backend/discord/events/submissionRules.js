@@ -1,5 +1,5 @@
 import * as chrono from "chrono-node";
-import { neutralizeMentions } from "./discordInteractions.js";
+import { neutralizeMentions } from "../platform/interactions.js";
 
 export const CATEGORIES = ["Academic", "Social", "Career"];
 

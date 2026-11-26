@@ -1,10 +1,10 @@
-import { EVENT_COMMAND } from "./discordCommandDefinition.js";
-import { DRAFT_LIFETIME_MS } from "./discordEventDrafts.js";
-import { EVENT_FORM_ACTION, eventForm, readEventForm } from "./discordEventForm.js";
-import { createEventAnnouncements } from "./discordAnnouncements.js";
-import { AUDIENCE_ACTION, allowedAudience, audienceField, audiencePicker } from "./discordAudience.js";
-import { categoriesOf, eventCardBase } from "./discordEventCard.js";
-import { canReview } from "./discordReviewers.js";
+import { EVENT_COMMAND } from "../commandDefinition.js";
+import { DRAFT_LIFETIME_MS } from "./drafts.js";
+import { EVENT_FORM_ACTION, eventForm, readEventForm } from "./form.js";
+import { createEventAnnouncements } from "./announcements.js";
+import { AUDIENCE_ACTION, allowedAudience, audienceField, audiencePicker } from "./audience.js";
+import { categoriesOf, eventCardBase } from "./card.js";
+import { canReview } from "../reviewers.js";
 import {
   BUTTON_PRIMARY,
   BUTTON_SECONDARY,
@@ -32,9 +32,9 @@ import {
   reviewButtons,
   updateCard,
   updateMessage,
-} from "./discordInteractions.js";
-import { validateSubmission } from "./discordSubmissionRules.js";
-import { publishApprovedEvent } from "./eventPublication.js";
+} from "../platform/interactions.js";
+import { validateSubmission } from "./submissionRules.js";
+import { publishApprovedEvent } from "../../eventPublication.js";
 
 const REASON_LIMIT = 500;
 const AUTOCOMPLETE_LIMIT = 25;

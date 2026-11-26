@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { syncDiscordCommands } from "../discordCommandSync.js";
-import { DISCORD_COMMANDS } from "../discordCommandDefinition.js";
+import { syncDiscordCommands } from "../discord/commandSync.js";
+import { DISCORD_COMMANDS } from "../discord/commandDefinition.js";
 
 function quietLog() {
   const lines = { info: [], warn: [], error: [] };

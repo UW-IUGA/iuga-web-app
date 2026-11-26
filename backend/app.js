@@ -15,11 +15,11 @@ import {
   createRateLimiter,
 } from "./routes/api/v1/utils/rateLimit.js";
 import { createDiscordRouter } from "./routes/api/v1/controllers/discord.js";
-import { createDiscordApprovals } from "./discordApprovals.js";
-import { createDiscordClient } from "./discordClient.js";
-import { createRsoDirectory } from "./rsoDirectory.js";
-import { createRsoVerification } from "./discordRsoVerification.js";
-import { createDiscordDispatcher } from "./discordDispatcher.js";
+import { createDiscordApprovals } from "./discord/events/approvals.js";
+import { createDiscordClient } from "./discord/platform/client.js";
+import { createRsoDirectory } from "./discord/rsos/directory.js";
+import { createRsoVerification } from "./discord/rsos/verification.js";
+import { createDiscordDispatcher } from "./discord/dispatcher.js";
 import { httpErrorHandler } from "./http/errors.js";
 import {
   isAllowedOrigin,

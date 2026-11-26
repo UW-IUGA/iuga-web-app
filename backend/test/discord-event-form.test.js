@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { EVENT_FORM_ACTION, eventForm, readEventForm } from "../discordEventForm.js";
+import { EVENT_FORM_ACTION, eventForm, readEventForm } from "../discord/events/form.js";
 
 const MODAL = 9;
 const LABEL = 18;

@@ -32,7 +32,7 @@ What the board might see:
 
 Each member can have one open request per RSO. To take someone's officer status away, remove their RSO role in Discord; the bot reads roles every time, so nothing else needs changing.
 
-The RSO list and each RSO's officer role live in the `DiscordRsos` collection, and requests live in `DiscordRsoRequests`. `backend/rsoDirectory.js` is the only code that reads or writes RSOs or gives RSO roles.
+The RSO list and each RSO's officer role live in the `DiscordRsos` collection, and requests live in `DiscordRsoRequests`. `backend/discord/rsos/directory.js` is the only code that reads or writes RSOs or gives RSO roles.
 
 ## Event approval
 
@@ -124,7 +124,7 @@ Save this only after the route is deployed and `DISCORD_PUBLIC_KEY` is set on th
 
 ## Slash command registration
 
-Discord keeps its own copy of each slash command's name, description, and options, and deploying the bot doesn't change that copy. So the server registers `/event` and `/rso-verify` itself every time it starts, replacing whatever the IUGA server showed before. Changes to `backend/discordCommandDefinition.js` show up right after the deploy, with no manual step.
+Discord keeps its own copy of each slash command's name, description, and options, and deploying the bot doesn't change that copy. So the server registers `/event` and `/rso-verify` itself every time it starts, replacing whatever the IUGA server showed before. Changes to `backend/discord/commandDefinition.js` show up right after the deploy, with no manual step.
 
 Registration runs in the background after the server starts listening, so a Discord problem never delays startup or fails the deploy. Only the container that goes live registers: the deploy's trial container doesn't get the IDs, so a build that fails its health check never changes Discord, and a rollback re-registers the last good build's commands. Check the container log for `Discord commands registered: /event, /rso-verify`. If `DISCORD_APP_ID` or `DISCORD_GUILD_ID` is missing, the log says so and the commands Discord already has stay as they were.
 
@@ -160,18 +160,36 @@ When Discord rejects a card's content, the log lists the invalid fields by path 
 
 ## Code map
 
-- `backend/discordDispatcher.js`: sends each interaction to the flow that owns it
-- `backend/discordRsoVerification.js`: `/rso-verify` request, approve, and deny
-- `backend/rsoDirectory.js`: RSOs, their roles, and who represents each one
-- `backend/discordRsos.js`, `backend/discordRsoRequests.js`: RSO and verification request schemas
-- `backend/discordApprovals.js`: event submission, approve, deny, and publish
-- `backend/discordReviewers.js`: who may approve or deny
-- `backend/discordInteractions.js`: shared Discord protocol values and reply shapes
-- `backend/discordSubmissionRules.js`: input rules and time conversion
-- `backend/discordSubmissions.js`: the pending event schema
-- `backend/discordClient.js`: REST calls as the bot
-- `backend/discordCommandDefinition.js`: the `/event` and `/rso-verify` command shapes
-- `backend/routes/api/v1/controllers/discord.js`: signature check and routing
-- `backend/scripts/registerDiscordCommands.mjs`: command registration
+Discord code lives in `backend/discord/`, grouped by what each part knows. `platform/` talks to Discord's API and holds no IUGA rules; `events/` and `rsos/` hold IUGA's rules and use `platform/` to talk to Discord.
+
+`backend/discord/platform/`
+- `client.js`: REST calls as the bot
+- `interactions.js`: shared Discord protocol values and reply shapes
+- `signature.js`: verifies that a request came from Discord
+
+`backend/discord/events/`
+- `approvals.js`: event submission, approve, deny, and publish
+- `form.js`, `drafts.js`: the `/event` form and the drafts it saves
+- `submissionRules.js`: input rules and time conversion
+- `submissions.js`: the pending event schema
+- `card.js`: the event card shown in previews, approvals, and announcements
+- `audience.js`: which interest roles an event may ping
+- `announcements.js`: the `#rso-events` post and Discord Scheduled Event
+
+`backend/discord/rsos/`
+- `verification.js`: `/rso-verify` request, approve, and deny
+- `directory.js`: RSOs, their roles, and who represents each one
+- `rsos.js`, `requests.js`: RSO and verification request schemas
+
+Shared by events and RSOs, at the top of `backend/discord/`:
+- `commandDefinition.js`: the `/event` and `/rso-verify` command shapes
+- `commandSync.js`: registers those commands with Discord on deploy
+- `dispatcher.js`: sends each interaction to the flow that owns it
+- `reviewers.js`: who may approve or deny
+
+Outside the folder:
+- `backend/routes/api/v1/controllers/discord.js`: the HTTP route Discord calls
+- `backend/scripts/registerDiscordCommands.mjs`: manual command registration
+- `backend/eventPublication.js`: publishes an approved event to the website
 
 Run the tests from `backend/` with `npm test`. `test/discord-approvals.test.js`, `test/discord-rso-verification.test.js`, and `test/rso-directory.test.js` cover the flows with in-memory fakes.

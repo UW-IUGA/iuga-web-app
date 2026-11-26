@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createEventAnnouncements } from "../discordAnnouncements.js";
+import { createEventAnnouncements } from "../discord/events/announcements.js";
 
 const NOW = new Date("2026-11-20T12:00:00-08:00");
 const CHANNEL = "900000000000000001";

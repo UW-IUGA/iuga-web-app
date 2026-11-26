@@ -1,4 +1,4 @@
-import { DISCORD_COMMANDS } from "./discordCommandDefinition.js";
+import { DISCORD_COMMANDS } from "./commandDefinition.js";
 
 /*
  * @behavior Make the Discord server show the bot's current slash commands, replacing whatever it

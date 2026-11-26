@@ -13,7 +13,7 @@ Expected Response Information:
 - buildHighlightPattern(tokens, synonyms) returns a one-group RegExp for String.split, or null with no words.
 */
 
-import { labelsOf } from "../assets/data/resourceTaxonomy";
+import { labelsOf, offersOf } from "../assets/data/resourceTaxonomy";
 
 const escapeRegExp = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -34,7 +34,8 @@ export const textMatchesTokens = (text, tokens, synonyms = {}) =>
 
 // Each word may match a different part of the resource, so the parts are searched as one text.
 export const resourceMatchesTokens = (resource, tokens, synonyms = {}) => textMatchesTokens(
-    [resource.rName, ...labelsOf(resource), ...resource.summary, resource.rDescription].join("\n"),
+    [resource.rName, ...labelsOf(resource), ...offersOf(resource), ...resource.summary, resource.rDescription]
+        .join("\n"),
     tokens,
     synonyms
 );

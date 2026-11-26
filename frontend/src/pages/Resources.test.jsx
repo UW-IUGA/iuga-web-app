@@ -123,6 +123,26 @@ describe("ResourcesPage", () => {
             .toHaveAttribute("href", "https://ischool.uw.edu/career");
     });
 
+    test("shows what a club offers under its name, in a fixed order", () => {
+        renderResourcesPage([club("Hack Club", { offers: ["Career panels", "Hackathon"] }), club("Quiet Club")]);
+
+        const card = screen.getByRole("heading", { name: "Hack Club" }).closest("article");
+        const offers = within(card).getByRole("list", { name: "Hack Club offers" });
+        expect(within(offers).getAllByRole("listitem").map(({ textContent }) => textContent))
+            .toEqual(["Hackathon", "Career panels"]);
+        const quiet = screen.getByRole("heading", { name: "Quiet Club" }).closest("article");
+        expect(within(quiet).queryByRole("list", { name: /offers/ })).not.toBeInTheDocument();
+    });
+
+    test("finds clubs by what they offer", () => {
+        renderResourcesPage([club("Hack Club", { offers: ["Hackathon"] }), club("Quiet Club")]);
+
+        fireEvent.change(screen.getByRole("combobox", { name: "Search" }), { target: { value: "hackathons" } });
+
+        expect(resultCards()).toHaveLength(1);
+        expect(within(resultCards()[0]).getByText("Hackathon", { selector: "mark" })).toBeInTheDocument();
+    });
+
     test("falls back to the description and a pending note", () => {
         renderResourcesPage();
 

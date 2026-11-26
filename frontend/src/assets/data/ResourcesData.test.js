@@ -1,6 +1,6 @@
 import { readdirSync, statSync } from "node:fs";
 import { resources } from "./ResourcesData";
-import { allTags, clubAreas, resourceTypes, tagGroups } from "./resourceTaxonomy";
+import { allTags, clubAreas, offerings, resourceTypes, tagGroups } from "./resourceTaxonomy";
 
 const typeTags = tagGroups.find((group) => group.label === "Who runs it").tags;
 
@@ -87,6 +87,25 @@ describe("resource records", () => {
             "Black in Informatics (Binfo)", "Society of Women Engineers UW (SWE UW)", "WiCyS UW", "Women in Informatics (Winfo)",
             "Women in UX", "iMuslims", "iQueeries",
         ].sort());
+    });
+
+    // From each club's own site or posts; a club with no offering found has none listed.
+    test("lists offerings only on clubs, each spelled as in the taxonomy and listed once", () => {
+        resources.filter(({ offers }) => offers).forEach(({ rName, type, offers }) => {
+            expect(type, rName).toBe(resourceTypes.CLUB);
+            offers.forEach((offer) => expect(offerings, `${rName} offers "${offer}"`).toContain(offer));
+            expect(new Set(offers).size, rName).toBe(offers.length);
+        });
+    });
+
+    // Reviewed against each club's own pages: MCG's training ends in a pitch deck competition, DSS advertises team
+    // projects, and neither ICG nor i2 runs career panels.
+    test("lists the reviewed offerings for MCG, ICG, i2 and the Data Science Society", () => {
+        const offersOf = (name) => resources.find(({ rName }) => rName === name).offers;
+        expect(offersOf("Montlake Consulting Group")).toEqual(["Project teams", "Competition"]);
+        expect(offersOf("Information Consulting Group (ICG)")).toEqual(["Project teams"]);
+        expect(offersOf("interactive intelligence (i2)")).toEqual(["Project teams"]);
+        expect(offersOf("Data Science Society at UW")).toEqual(["Project teams"]);
     });
 
     test("links every resource over https", () => {

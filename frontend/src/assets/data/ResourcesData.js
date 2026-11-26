@@ -2,10 +2,12 @@
 Purpose: Every resource on the Resources page, one record each. A record holds everything the page shows about it.
 
 Expected Response Information:
-- resources: a list of { rName, rDescription, rLink, rImage, rImageInset?, type, tags, summary }.
+- resources: a list of { rName, rDescription, rLink, rImage, rImageInset?, type, tags, offers?, summary }.
   - type: who runs it, one of resourceTypes in resourceTaxonomy.
   - tags: the record's other filter tags, each spelled as in resourceTaxonomy.
   - summary: one to three short bullets for the card, restating rDescription.
+  - offers (clubs only, optional): what the club offers, from offerings in resourceTaxonomy, taken from the club's
+    own site or posts.
 */
 import uw_logo from "../logos/uw-logo.png";
 import ischool_logo from "../logos/ischool-logo.png";
@@ -252,6 +254,7 @@ export const resources = [
     "rImage": winfo_logo,
     "type": "Student clubs",
     "tags": ["iOrgs", "DEI"],
+    "offers": ["Hackathon", "Career panels"],
     "summary": [
       "Empowers women to thrive as producers of technology",
       "Supportive network of women in technology fields",
@@ -265,6 +268,7 @@ export const resources = [
     "rImage": dubhacks_logo,
     "type": "Student clubs",
     "tags": ["Entrepreneurship"],
+    "offers": ["Hackathon"],
     "summary": [
       "Student built, community-driven, and future-focused",
       "Tech and entrepreneurship nonprofit in Seattle run by UW students",
@@ -278,6 +282,7 @@ export const resources = [
     "rImage": dubhacksnext_logo,
     "type": "Student clubs",
     "tags": ["Entrepreneurship"],
+    "offers": ["Project teams"],
     "summary": [
       "Building tomorrow's founders",
       "16-week program turning exceptional UW students into funded startup founders",
@@ -291,6 +296,7 @@ export const resources = [
     "rImage": claude_builder_club_logo,
     "type": "Student clubs",
     "tags": ["DS/ML"],
+    "offers": ["Hackathon"],
     "summary": [
       "Learn and build with AI",
       "Backed by Claude",
@@ -328,6 +334,7 @@ export const resources = [
     "rImageInset": true,
     "type": "Student clubs",
     "tags": ["PM/Consulting"],
+    "offers": ["Project teams", "Competition"],
     "summary": [
       "Cultivating tomorrow's product leaders",
       "Part of a nationwide family of students in product",
@@ -364,6 +371,7 @@ export const resources = [
     "rImage": dubstech_logo,
     "type": "Student clubs",
     "tags": ["DS/ML"],
+    "offers": ["Hackathon"],
     "summary": [
       "UW's largest tech community",
       "Hosts workshops, hackathons, and talks",
@@ -377,6 +385,7 @@ export const resources = [
     "rImage": cseed_logo,
     "type": "Student clubs",
     "tags": ["Entrepreneurship"],
+    "offers": ["Project teams"],
     "summary": [
       "Inspiring engineering and design students at UW to build what they care about",
     ],
@@ -388,6 +397,7 @@ export const resources = [
     "rImage": husky_coding_project_logo,
     "type": "Student clubs",
     "tags": ["Software Engineering"],
+    "offers": ["Project teams"],
     "summary": [
       "Your launchpad for tech teamwork at UW",
       "A space to gain group project work experience in the tech field",
@@ -401,6 +411,7 @@ export const resources = [
     "rImage": tca_logo,
     "type": "Student clubs",
     "tags": ["PM/Consulting"],
+    "offers": ["Project teams", "Career panels"],
     "summary": [
       "The premier technology consultancy",
     ],
@@ -425,6 +436,7 @@ export const resources = [
     "rImage": pm_club_logo,
     "type": "Student clubs",
     "tags": ["PM/Consulting"],
+    "offers": ["Career panels"],
     "summary": [
       "Workshop-style community for students interested in product management",
       "Resources, mentorship, and opportunities for a career in PM",
@@ -438,6 +450,7 @@ export const resources = [
     "rImage": montlake_consulting_group_logo,
     "type": "Student clubs",
     "tags": ["PM/Consulting"],
+    "offers": ["Project teams", "Competition"],
     "summary": [
       "Quarter-long strategy projects for Fortune 500 companies and startups",
       "Teams of 4 to 5 consultants led by a student project manager",
@@ -451,6 +464,7 @@ export const resources = [
     "rImage": uw_consulting_association_logo,
     "type": "Student clubs",
     "tags": ["PM/Consulting"],
+    "offers": ["Project teams", "Competition", "Career panels"],
     "summary": [
       "Weekly meetings with speaker panels, firm events, and interview prep workshops",
       "PIVOT pairs new members with an upperclass mentor for 7 weeks of training",
@@ -464,6 +478,7 @@ export const resources = [
     "rImage": business_impact_group_logo,
     "type": "Student clubs",
     "tags": ["PM/Consulting"],
+    "offers": ["Project teams"],
     "summary": [
       "Student consulting teams work 8 weeks alongside a small business client",
       "Clients across Washington State, the Pacific Northwest, and beyond",
@@ -477,6 +492,7 @@ export const resources = [
     "rImage": information_consulting_group_logo,
     "type": "Student clubs",
     "tags": ["PM/Consulting"],
+    "offers": ["Project teams"],
     "summary": [
       "Student-run technology consulting club at the iSchool, founded in 2025",
       "Members deliver technology and strategy projects for real organizations",
@@ -503,6 +519,7 @@ export const resources = [
     "rImage": swe_uw_logo,
     "type": "Student clubs",
     "tags": ["Software Engineering", "DEI"],
+    "offers": ["Hackathon"],
     "summary": [
       "Supports women and nonbinary engineers in their careers",
       "Programs and events for more than 500 students",
@@ -516,6 +533,7 @@ export const resources = [
     "rImage": swecc_logo,
     "type": "Student clubs",
     "tags": ["Software Engineering"],
+    "offers": ["Project teams"],
     "summary": [
       "Student-led community for aspiring software engineers",
       "Hands-on projects, mentorship, workshops, and a peer network",
@@ -529,6 +547,7 @@ export const resources = [
     "rImage": web_impact_logo,
     "type": "Student clubs",
     "tags": ["Software Engineering"],
+    "offers": ["Project teams"],
     "summary": [
       "Weekly web design and development workshops for all skill levels",
       "Student teams build free websites for Seattle organizations starting in Winter",
@@ -541,6 +560,7 @@ export const resources = [
     "rImage": data_science_society_logo,
     "type": "Student clubs",
     "tags": ["DS/ML"],
+    "offers": ["Project teams"],
     "summary": [
       "Makes data science accessible to students from all disciplines",
       "Open to all UW students at any experience level",
@@ -554,6 +574,7 @@ export const resources = [
     "rImage": interactive_intelligence_logo,
     "type": "Student clubs",
     "tags": ["DS/ML"],
+    "offers": ["Project teams"],
     "summary": [
       "Student-led NeuroAI education and research organization",
       "Intro course on machine learning and neuroscience, no background needed",
@@ -580,6 +601,7 @@ export const resources = [
     "rImage": ux_health_logo,
     "type": "Student clubs",
     "tags": ["UI/UX"],
+    "offers": ["Project teams", "Career panels"],
     "summary": [
       "Explores UX design and research in healthcare",
       "Design teams run Winter to Spring, with applications at the end of Fall",
@@ -604,6 +626,7 @@ export const resources = [
     "rImage": batmans_kitchen_logo,
     "type": "Student clubs",
     "tags": ["Cybersecurity"],
+    "offers": ["Competition"],
     "summary": [
       "Cybersecurity club open to every level of experience",
       "Weekly talks and Capture the Flag (CTF) nights",

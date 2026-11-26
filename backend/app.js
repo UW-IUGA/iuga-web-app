@@ -15,7 +15,7 @@ import {
   createRateLimiter,
 } from "./routes/api/v1/utils/rateLimit.js";
 import { createDiscordRouter } from "./routes/api/v1/controllers/discord.js";
-import { createDiscordApprovals } from "./discord/events/approvals.js";
+import { createEventFlow } from "./discord/events/flow.js";
 import { createDiscordClient } from "./discord/platform/client.js";
 import { createRsoDirectory } from "./discord/rsos/directory.js";
 import { createRsoVerification } from "./discord/rsos/verification.js";
@@ -84,7 +84,7 @@ if (process.env.DISCORD_PUBLIC_KEY) {
   const rsoDirectory = createRsoDirectory({ models, client: discordClient, roles: serverRoles });
   const discordFlows = createDiscordDispatcher({
     flows: [
-      createDiscordApprovals({
+      createEventFlow({
         models,
         directory: rsoDirectory,
         client: discordClient,

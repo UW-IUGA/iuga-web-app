@@ -4,7 +4,7 @@ import { after, before, beforeEach, describe, it } from "node:test";
 import mongoose from "mongoose";
 import { eventRequestsSchema, eventsSchema, usersSchema } from "../schemas/schemas.js";
 import eventRequestsRouter from "../routes/api/v1/controllers/eventRequests.js";
-import { createDiscordApprovals } from "../discord/events/approvals.js";
+import { createEventFlow } from "../discord/events/flow.js";
 import { createServerRoles } from "../discord/roles.js";
 import { discordSubmissionsSchema } from "../discord/events/submissions.js";
 import { makeTestApi, roleAssignmentsGranting } from "./testApi.js";
@@ -78,7 +78,7 @@ describe("event approval against a MongoDB replica set", { skip: !uri }, () => {
       submitterDiscordId, rsoKey: "iuga", rsoName: "IUGA", eName: "Workshop",
       eStartDate: start, eDescription: "Practice together", eLocation: "Mary Gates Hall", eLabels: ["Academic"],
     });
-    const flow = createDiscordApprovals({
+    const flow = createEventFlow({
       models,
       roles: createServerRoles({ modRoleId }),
       config: { announcementChannelId: "123" },

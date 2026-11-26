@@ -1,5 +1,5 @@
 import { resources } from "./ResourcesData";
-import { allTags, tagGroups } from "./resourceTaxonomy";
+import { allTags, clubAreas, resourceTypes, tagGroups } from "./resourceTaxonomy";
 
 const typeTags = tagGroups.find((group) => group.label === "Who runs it").tags;
 
@@ -33,6 +33,19 @@ describe("resource records", () => {
             "iMentorship",
             "iSchool Career Services (Canvas)",
         ]);
+    });
+
+    // An empty filter only ever leads to "No resources match".
+    test("has at least one resource for every filter", () => {
+        const empty = allTags.filter((tag) => !resources.some(({ type, tags }) => type === tag || tags.includes(tag)));
+        expect(empty).toEqual([]);
+    });
+
+    test("files every club under exactly one club area, and nothing else under one", () => {
+        resources.forEach(({ rName, type, tags }) => {
+            const areas = tags.filter((tag) => clubAreas.includes(tag));
+            expect(areas.length, `${rName} is in ${areas.join(", ") || "no area"}`).toBe(type === resourceTypes.CLUB ? 1 : 0);
+        });
     });
 
     // A typo in a tag would otherwise drop the resource from that filter without any sign.

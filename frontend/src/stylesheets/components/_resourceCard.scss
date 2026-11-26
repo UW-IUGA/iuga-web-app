@@ -1,7 +1,7 @@
 /*
 Purpose: Style the resource cards and the round resource icon they share with Start Here and search.
 Expected Request Information: Classes emitted by ResourceCard (and .resourceIcon wherever it is used).
-Expected Response Information: A card with the icon above its tags, name, bullets, and link.
+Expected Response Information: A card with the icon above its name, bullets, and link.
 */
 @use "../abstracts" as *;
 @use "../base/misc";
@@ -28,23 +28,19 @@ Expected Response Information: A card with the icon above its tags, name, bullet
     flex: 1;
     flex-direction: column;
 
-    h3 {
+    .resourceCard__name {
         margin: $space-1 0 $space-2;
         color: theme(text);
         font-size: $font-size-subheading;
         line-height: 1.25;
     }
 
-    > p:not(.resourceCard__category) {
+    > p {
         margin: 0 0 $space-5;
         color: theme(text-muted);
         font-size: $font-size-body;
         line-height: 1.55;
     }
-}
-
-.resourceCard__category {
-    @extend %pageKicker;
 }
 
 .resourceCard__summary {

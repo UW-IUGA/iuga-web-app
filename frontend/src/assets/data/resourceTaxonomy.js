@@ -3,8 +3,11 @@ Purpose: The Resources page's filter tags and search words.
 
 Expected Response Information:
 - resourceTypes: who runs a resource, the value of each record's `type`.
+- clubAreas: the club areas, in the order the page lists them.
 - tagGroups and allTags: the filter tags, by group.
 - labelsOf(resource): a resource's type followed by its tags, as the filters and search see them.
+- sectionsOf(resources): the unfiltered page's sections, each { heading, resources }, keeping the given order
+  within each; empty sections are left out.
 - searchSynonyms: search-only alternate words.
 - tagForCategory: the tag each of the original page's ?category= values opens, so older bookmarks and shared links
   keep their filter.
@@ -18,6 +21,17 @@ export const resourceTypes = {
     UW: "UW",
 };
 
+// The areas the page files the iSchool's student clubs under, in the order it lists them. Each club sits in one.
+export const clubAreas = [
+    "iOrgs",
+    "PM/Consulting",
+    "Entrepreneurship",
+    "Software Engineering",
+    "DS/ML",
+    "UI/UX",
+    "Cybersecurity",
+];
+
 // "Who runs it" holds each record's type; the other groups hold its tags. Social, Career and Community are left
 // out on purpose: every club is social, and those labels belong to Events.
 export const tagGroups = [
@@ -30,17 +44,25 @@ export const tagGroups = [
         tags: ["Academic", "Jobs & internships", "Mental Health", "DEI"],
     },
     {
-        label: "Interests",
-        tags: [
-            "SWE", "Cybersecurity", "Product Management", "AI/ML", "Data", "Design", "Consulting", "Entrepreneurship",
-            "Projects", "Leadership",
-        ],
+        label: "Club area",
+        tags: clubAreas,
     },
 ];
 
 export const allTags = tagGroups.flatMap((group) => group.tags);
 
 export const labelsOf = (resource) => [resource.type, ...resource.tags];
+
+// Support services first, then the clubs by area. "More clubs" catches a club added without an area, so it still
+// shows; the data tests keep it empty.
+export const sectionsOf = (resources) => {
+    const clubs = resources.filter(({ type }) => type === resourceTypes.CLUB);
+    return [
+        { heading: "Support", resources: resources.filter(({ type }) => type !== resourceTypes.CLUB) },
+        ...clubAreas.map((area) => ({ heading: area, resources: clubs.filter(({ tags }) => tags.includes(area)) })),
+        { heading: "More clubs", resources: clubs.filter(({ tags }) => !tags.some((tag) => clubAreas.includes(tag))) },
+    ].filter((section) => section.resources.length > 0);
+};
 
 // Search-only alternate words: typing a key also finds resources matching its values (plurals are handled
 // automatically). These are never shown on the page.
@@ -61,13 +83,19 @@ export const searchSynonyms = {
     programming: ["coding", "swe", "software engineering"],
     software: ["swe"],
     developer: ["swe", "software engineering"],
+    swe: ["software engineering"],
     ux: ["design"],
     ui: ["ux", "design"],
+    design: ["ui/ux"],
+    ai: ["ds/ml"],
+    data: ["ds/ml"],
+    machine: ["ds/ml"],
+    product: ["pm/consulting"],
     security: ["cybersecurity"],
     cybersecurity: ["security"],
     cyber: ["security"],
     infosec: ["cybersecurity", "information security"],
-    pm: ["product management"],
+    pm: ["product management", "pm/consulting"],
     consulting: ["consult"],
     startup: ["entrepreneurship"],
     founder: ["entrepreneurship"],

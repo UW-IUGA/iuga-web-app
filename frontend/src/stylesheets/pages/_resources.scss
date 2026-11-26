@@ -26,10 +26,6 @@ Expected Response Information: Start Here lines up with the title and intro on d
     }
 }
 
-.resources__startHereLabel {
-    @extend %pageKicker;
-}
-
 // Start Here: the text column is only as wide as the title and intro need (36rem), and Start Here fills the rest
 // of the row, stretching so its top and bottom line up with the title and the end of the intro.
 .resources .pageHeader--withVisual {
@@ -48,9 +44,10 @@ Expected Response Information: Start Here lines up with the title and intro on d
     flex-direction: column;
     gap: $space-3;
 
+    // The section size, so the heading reads above the picks' names (#390).
     h2 {
-        margin: 2px 0 0;
-        font-size: $font-size-subheading;
+        margin: 0;
+        font-size: $font-size-section;
     }
 }
 
@@ -185,7 +182,7 @@ Expected Response Information: Start Here lines up with the title and intro on d
     }
 
     legend {
-        @extend %pageKicker;
+        width: 100%;
         margin-bottom: 6px;
         padding: 0;
     }
@@ -194,42 +191,71 @@ Expected Response Information: Start Here lines up with the title and intro on d
 .resources__sidebarHeader {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: $space-2;
 
     h2 {
-        margin: 0;
+        margin: 0 auto 0 0;
         font-size: $font-size-subheading;
     }
+}
+
+// Takes focus only from code, after Clear all, so it shows no ring.
+.resources__filtersTitle:focus {
+    outline: none;
 }
 
 .resources__sidebarHeader .resources__filtersToggle {
     display: none;
 }
 
-// Text-only, styled like the "Search" label above it. The selector matches the specificity of the shared rule in
-// components/_buttons.scss that pads buttons between 1024px and 1299px, and loads later, so it keeps its own padding.
+// Text-only, styled like the "Search" label. The selectors match the specificity of the shared rule in
+// components/_buttons.scss that pads buttons between 1024px and 1299px, and load later, so they keep their padding.
 .resources .resources__sidebar button.resources__clearButton {
     @extend %pageKicker;
-    justify-self: center;
-    margin-top: -$space-1;
     padding: $space-1 $space-2;
     border-radius: $radius;
     background: transparent;
     @include focus-ring;
 
     &:hover {
-        color: theme(heading);
+        color: theme(text);
     }
 
     &::before {
         content: none;
     }
+}
 
-    &:disabled {
-        border: 0;
-        background: transparent;
-        color: theme(text-muted);
-        opacity: 0.7;
+// A group's name opens and closes it; the chevron points down while it is open.
+.resources .resources__sidebar button.resources__groupToggle {
+    @extend %pageKicker;
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    padding: $space-1 0;
+    border-radius: $radius;
+    background: transparent;
+    text-align: left;
+    @include focus-ring;
+
+    &::before {
+        content: none;
+    }
+
+    &::after {
+        width: 6px;
+        height: 6px;
+        margin-right: $space-1;
+        border-right: 1.5px solid currentcolor;
+        border-bottom: 1.5px solid currentcolor;
+        content: "";
+        transform: rotate(-45deg);
+        transition: transform 150ms ease;
+    }
+
+    &[aria-expanded="true"]::after {
+        transform: rotate(45deg);
     }
 }
 
@@ -271,6 +297,19 @@ Expected Response Information: Start Here lines up with the title and intro on d
     font-size: $font-size-label;
     font-weight: $font-weight-medium;
     text-align: center;
+}
+
+// With no filter on, the list runs in sections: support, then each club area. Card names sit one step below the
+// section headings in the type scale.
+.resources__section + .resources__section {
+    margin-top: $space-6;
+}
+
+.resources__sectionTitle {
+    margin: 0 0 $space-4;
+    color: theme(heading);
+    font-size: $font-size-section;
+    letter-spacing: $letter-spacing-heading;
 }
 
 .resources__cardGrid {

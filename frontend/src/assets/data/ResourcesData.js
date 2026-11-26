@@ -183,7 +183,7 @@ export const resources = [
     "rLink": "https://linktr.ee/binfouw",
     "rImage": binfo_logo,
     "type": "Student clubs",
-    "tags": [],
+    "tags": ["iOrgs"],
     "summary": [
       "Community-driven organization fostering the professional, academic, and personal development of Black students in Informatics",
       "Its mission is to amplify the presence and successes of Black students in Informatics",
@@ -196,7 +196,7 @@ export const resources = [
     "rLink": "https://www.instagram.com/imuslims.uw/",
     "rImage": imuslims_logo,
     "type": "Student clubs",
-    "tags": [],
+    "tags": ["iOrgs"],
     "summary": [
       "Student-led resources and community to help Muslim students at the iSchool thrive at UW and beyond",
       "Empowers students to be information and technology leaders through events that promote connection, establish networks, and build professional skills",
@@ -209,7 +209,7 @@ export const resources = [
     "rLink": "https://depts.washington.edu/ischoolq/",
     "rImage": iqueeries_logo,
     "type": "Student clubs",
-    "tags": [],
+    "tags": ["iOrgs"],
     "summary": [
       "Safe, positive, and nurturing space for LGBTQIA+ and supportive ally students in the iSchool",
       "Fosters a strong, supportive queer community in the iSchool and UW at large, and promotes positive change and social justice in the information sciences",
@@ -222,7 +222,7 @@ export const resources = [
     "rLink": "https://www.instagram.com/isacauw/",
     "rImage": isaca_logo,
     "type": "Student clubs",
-    "tags": [],
+    "tags": ["Cybersecurity"],
     "summary": [
       "For students interested in learning about information security and risk",
       "Workshops and events on basic information security procedures and best practices",
@@ -234,7 +234,7 @@ export const resources = [
     "rLink": "http://winfo.ischool.uw.edu/",
     "rImage": winfo_logo,
     "type": "Student clubs",
-    "tags": [],
+    "tags": ["iOrgs"],
     "summary": [
       "Empowers women to thrive as producers of technology",
       "Supportive network of women in technology fields",
@@ -247,7 +247,7 @@ export const resources = [
     "rLink": "https://dubhacks.co/",
     "rImage": dubhacks_logo,
     "type": "Student clubs",
-    "tags": [],
+    "tags": ["Entrepreneurship"],
     "summary": [
       "Student built, community-driven, and future-focused",
       "Tech and entrepreneurship nonprofit in Seattle run by UW students",
@@ -260,7 +260,7 @@ export const resources = [
     "rLink": "https://next.dubhacks.co/",
     "rImage": dubhacksnext_logo,
     "type": "Student clubs",
-    "tags": [],
+    "tags": ["Entrepreneurship"],
     "summary": [
       "Building tomorrow's founders",
       "16-week program turning exceptional UW students into funded startup founders",
@@ -273,7 +273,7 @@ export const resources = [
     "rLink": "https://linktr.ee/claudeatuofwa?utm_source=ig&utm_medium=social&utm_content=link_in_bio",
     "rImage": claude_builder_club_logo,
     "type": "Student clubs",
-    "tags": [],
+    "tags": ["DS/ML"],
     "summary": [
       "Learn and build with AI",
       "Backed by Claude",
@@ -285,7 +285,7 @@ export const resources = [
     "rLink": "https://uxuw.framer.website/?utm_source=ig&utm_medium=social&utm_content=link_in_bio",
     "rImage": ux_uw_logo,
     "type": "Student clubs",
-    "tags": [],
+    "tags": ["UI/UX"],
     "summary": [
       "Community for students who want to grow their UX skills",
       "Open to students of all levels",
@@ -297,7 +297,7 @@ export const resources = [
     "rLink": "https://bio.site/awssbguw?utm_source=ig&utm_medium=social&utm_content=link_in_bio",
     "rImage": aws_student_builder_group_logo,
     "type": "Student clubs",
-    "tags": [],
+    "tags": ["Software Engineering"],
     "summary": [
       "Helping Huskies explore, build, and connect through cloud tech",
       "Powered by AWS",
@@ -310,7 +310,7 @@ export const resources = [
     "rImage": product_space_logo,
     "rImageInset": true,
     "type": "Student clubs",
-    "tags": [],
+    "tags": ["PM/Consulting"],
     "summary": [
       "Cultivating tomorrow's product leaders",
       "Part of a nationwide family of students in product",
@@ -322,7 +322,7 @@ export const resources = [
     "rLink": "https://www.instagram.com/figmaatuw/",
     "rImage": figma_uw_logo,
     "type": "Student clubs",
-    "tags": [],
+    "tags": ["UI/UX"],
     "summary": [
       "Making design accessible for everyone",
       "Bringing Figma closer to UW",
@@ -334,7 +334,7 @@ export const resources = [
     "rLink": "https://www.instagram.com/uwcomet/",
     "rImage": comet_logo,
     "type": "Student clubs",
-    "tags": [],
+    "tags": ["DS/ML"],
     "summary": [
       "Browse at the speed of thought",
       "Managed by Perplexity Campus Ambassadors",
@@ -346,7 +346,7 @@ export const resources = [
     "rLink": "https://linktr.ee/dubstech?utm_source=ig&utm_medium=social&utm_content=link_in_bio",
     "rImage": dubstech_logo,
     "type": "Student clubs",
-    "tags": [],
+    "tags": ["DS/ML"],
     "summary": [
       "UW's largest tech community",
       "Hosts workshops, hackathons, and talks",
@@ -359,7 +359,7 @@ export const resources = [
     "rLink": "https://www.cseed.co/cseed-teams",
     "rImage": cseed_logo,
     "type": "Student clubs",
-    "tags": [],
+    "tags": ["Entrepreneurship"],
     "summary": [
       "Inspiring engineering and design students at UW to build what they care about",
     ],
@@ -370,7 +370,7 @@ export const resources = [
     "rLink": "https://hcp-uw.com/",
     "rImage": husky_coding_project_logo,
     "type": "Student clubs",
-    "tags": [],
+    "tags": ["Software Engineering"],
     "summary": [
       "Your launchpad for tech teamwork at UW",
       "A space to gain group project work experience in the tech field",
@@ -383,7 +383,7 @@ export const resources = [
     "rLink": "https://linktr.ee/tca_uw?utm_source=ig&utm_medium=social&utm_content=link_in_bio",
     "rImage": tca_logo,
     "type": "Student clubs",
-    "tags": [],
+    "tags": ["PM/Consulting"],
     "summary": [
       "The premier technology consultancy",
     ],

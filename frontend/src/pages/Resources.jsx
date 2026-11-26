@@ -1,6 +1,7 @@
 /*
 Purpose: The Resources page: Start Here links to the main iSchool resources beside the page title, then every
-         resource, A–Z, beside a search and tag filter sidebar.
+         resource beside a search and tag filter sidebar. With no filter on, the resources sit in sections (support,
+         then each club area); with one on, they form one A–Z list in pages.
 
 Expected Request Information:
 - resources: the resource records (ResourcesData).
@@ -11,9 +12,10 @@ Expected Response Information:
 */
 
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import { tagGroups } from "../assets/data/resourceTaxonomy";
+import { sectionsOf } from "../assets/data/resourceTaxonomy";
 import PageHeader from "../components/PageHeader";
 import ResourceCard from "../components/ResourceCard";
+import ResourceFilterGroups from "../components/ResourceFilterGroups";
 import ResourcePagination from "../components/ResourcePagination";
 import ResourceSearchBox from "../components/ResourceSearchBox";
 import usePagination from "../hooks/usePagination";
@@ -45,6 +47,7 @@ function ResourcesPage({ resources }) {
     const pagination = usePagination(filteredResources, useResourcePageSize());
     const resultsHeadingRef = useRef(null);
     const resultsRef = useRef(null);
+    const filtersHeadingRef = useRef(null);
     const shownResources = useRef(filteredResources);
 
     // When the results change while the reader is scrolled into the cards, start the new results at the top of the
@@ -60,6 +63,12 @@ function ResourcesPage({ resources }) {
         if (offset < 0) window.scrollTo({ top: Math.ceil(window.scrollY + offset), behavior: "instant" });
     }, [filteredResources]);
 
+    // Clear all removes itself, so focus moves to the sidebar's heading instead of falling to the top of the page.
+    const clearAllFilters = () => {
+        clearFilters();
+        filtersHeadingRef.current?.focus({ preventScroll: true });
+    };
+
     // Focus moves to the results heading so screen readers follow the page change.
     const goToPage = (page) => {
         pagination.setPage(page);
@@ -69,8 +78,7 @@ function ResourcesPage({ resources }) {
 
     const startHereSection = startHere.length > 0 && (
         <section className="resources__startHere" aria-labelledby="resources-start-here">
-            <p className="resources__startHereLabel">New to the iSchool?</p>
-            <h2 id="resources-start-here">Start Here</h2>
+            <h2 id="resources-start-here">New to the iSchool? Start here</h2>
             <ul className="resources__startList">
                 {startHere.map((resource) => (
                     <li key={resource.rName}>
@@ -108,7 +116,21 @@ function ResourcesPage({ resources }) {
 
                     <aside className="resources__sidebar editorial-card" aria-label="Filters">
                         <div className="resources__sidebarHeader">
-                            <h2>Filters</h2>
+                            <h2 className="resources__filtersTitle" ref={filtersHeadingRef} tabIndex={-1}>Filters</h2>
+                            {/* Only while something is on, and in this row, so it never pushes the filters down. */}
+                            {isFiltering && (
+                                <button
+                                    className="resources__clearButton"
+                                    type="button"
+                                    onClick={clearAllFilters}
+                                    aria-label={selectedTags.length > 0
+                                        ? `Clear all ${selectedTags.length} filter${selectedTags.length === 1 ? "" : "s"}`
+                                        : undefined}
+                                >
+                                    Clear all
+                                    {selectedTags.length > 0 && ` (${selectedTags.length})`}
+                                </button>
+                            )}
                             <button
                                 className="pill-button resources__filtersToggle"
                                 type="button"
@@ -131,40 +153,38 @@ function ResourcesPage({ resources }) {
                             onPickResource={applyResourceSuggestion}
                             highlightPattern={highlightPattern}
                         />
-                        {/* Disabled rather than hidden when there is nothing to clear, so the filters never shift. */}
-                        <button
-                            className="resources__clearButton"
-                            type="button"
-                            onClick={clearFilters}
-                            disabled={!isFiltering}
-                        >
-                            Clear All Filters
-                        </button>
                         <div
                             className={`resources__filterGroups${filtersOpen ? " resources__filterGroups--open" : ""}`}
                             id="resource-filter-groups"
                         >
-                            {tagGroups.map((group) => (
-                                <fieldset key={group.label}>
-                                    <legend>{group.label}</legend>
-                                    {group.tags.map((tag) => (
-                                        <label key={tag} className="resources__filterOption">
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedTags.includes(tag)}
-                                                onChange={() => toggleTag(tag)}
-                                            />
-                                            <span className="resources__filterName">{tag}</span>
-                                            <span className="resources__filterCount">{tagCounts[tag]}</span>
-                                        </label>
-                                    ))}
-                                </fieldset>
-                            ))}
+                            <ResourceFilterGroups
+                                selectedTags={selectedTags}
+                                tagCounts={tagCounts}
+                                onToggleTag={toggleTag}
+                            />
                         </div>
                     </aside>
 
                     <div className="resources__resultsBody" ref={resultsRef}>
-                        {filteredResources.length > 0 ? (
+                        {!isFiltering ? (
+                            sectionsOf(filteredResources).map((section) => {
+                                const headingId = `resources-section-${section.heading.replace(/\W+/g, "-")}`;
+                                return (
+                                    <section
+                                        key={section.heading}
+                                        className="resources__section"
+                                        aria-labelledby={headingId}
+                                    >
+                                        <h3 className="resources__sectionTitle" id={headingId}>{section.heading}</h3>
+                                        <div className="resources__cardGrid">
+                                            {section.resources.map((resource) => (
+                                                <ResourceCard key={resource.rName} resource={resource} headingLevel={4} />
+                                            ))}
+                                        </div>
+                                    </section>
+                                );
+                            })
+                        ) : filteredResources.length > 0 ? (
                             <>
                                 <div className="resources__cardGrid">
                                     {pagination.pageItems.map((resource) => (
@@ -184,7 +204,7 @@ function ResourcesPage({ resources }) {
                         ) : (
                             <div className="resources__emptyState editorial-card">
                                 <h2>No resources match those filters.</h2>
-                                <p>Some interest tags have no resources yet. Try another tag or clear your filters.</p>
+                                <p>Try another filter or clear your filters.</p>
                                 <button className="pill-button pill-button--fill" type="button" onClick={clearFilters}>
                                     Clear All Filters
                                 </button>

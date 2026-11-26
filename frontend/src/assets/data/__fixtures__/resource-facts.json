@@ -3,7 +3,8 @@
     {
       "name": "AWS Student Builder Group @ UW",
       "tags": [
-        "Student clubs"
+        "Student clubs",
+        "Software Engineering"
       ],
       "bullets": [
         "Helping Huskies explore, build, and connect through cloud tech",
@@ -17,7 +18,8 @@
     {
       "name": "Black in Informatics (Binfo)",
       "tags": [
-        "Student clubs"
+        "Student clubs",
+        "iOrgs"
       ],
       "bullets": [
         "Community-driven organization fostering the professional, academic, and personal development of Black students in Informatics",
@@ -32,7 +34,8 @@
     {
       "name": "Claude Builder Club @ UW",
       "tags": [
-        "Student clubs"
+        "Student clubs",
+        "DS/ML"
       ],
       "bullets": [
         "Learn and build with AI",
@@ -46,7 +49,8 @@
     {
       "name": "Comet @ UW",
       "tags": [
-        "Student clubs"
+        "Student clubs",
+        "DS/ML"
       ],
       "bullets": [
         "Browse at the speed of thought",
@@ -60,7 +64,8 @@
     {
       "name": "CSeed",
       "tags": [
-        "Student clubs"
+        "Student clubs",
+        "Entrepreneurship"
       ],
       "bullets": [
         "Inspiring engineering and design students at UW to build what they care about"
@@ -104,7 +109,8 @@
     {
       "name": "DubHacks",
       "tags": [
-        "Student clubs"
+        "Student clubs",
+        "Entrepreneurship"
       ],
       "bullets": [
         "Student built, community-driven, and future-focused",
@@ -119,7 +125,8 @@
     {
       "name": "DubHacksNext",
       "tags": [
-        "Student clubs"
+        "Student clubs",
+        "Entrepreneurship"
       ],
       "bullets": [
         "Building tomorrow's founders",
@@ -134,7 +141,8 @@
     {
       "name": "DubsTech",
       "tags": [
-        "Student clubs"
+        "Student clubs",
+        "DS/ML"
       ],
       "bullets": [
         "UW's largest tech community",
@@ -149,7 +157,8 @@
     {
       "name": "Figma @ UW",
       "tags": [
-        "Student clubs"
+        "Student clubs",
+        "UI/UX"
       ],
       "bullets": [
         "Making design accessible for everyone",
@@ -163,7 +172,8 @@
     {
       "name": "Husky Coding Project",
       "tags": [
-        "Student clubs"
+        "Student clubs",
+        "Software Engineering"
       ],
       "bullets": [
         "Your launchpad for tech teamwork at UW",
@@ -210,7 +220,8 @@
     {
       "name": "iMuslims",
       "tags": [
-        "Student clubs"
+        "Student clubs",
+        "iOrgs"
       ],
       "bullets": [
         "Student-led resources and community to help Muslim students at the iSchool thrive at UW and beyond",
@@ -225,7 +236,8 @@
     {
       "name": "iQueeries",
       "tags": [
-        "Student clubs"
+        "Student clubs",
+        "iOrgs"
       ],
       "bullets": [
         "Safe, positive, and nurturing space for LGBTQIA+ and supportive ally students in the iSchool",
@@ -240,7 +252,8 @@
     {
       "name": "ISACA",
       "tags": [
-        "Student clubs"
+        "Student clubs",
+        "Cybersecurity"
       ],
       "bullets": [
         "For students interested in learning about information security and risk",
@@ -360,7 +373,8 @@
     {
       "name": "Product Space @ UW",
       "tags": [
-        "Student clubs"
+        "Student clubs",
+        "PM/Consulting"
       ],
       "bullets": [
         "Cultivating tomorrow's product leaders",
@@ -374,7 +388,8 @@
     {
       "name": "Technology Consulting Association @ UW",
       "tags": [
-        "Student clubs"
+        "Student clubs",
+        "PM/Consulting"
       ],
       "bullets": [
         "The premier technology consultancy"
@@ -402,7 +417,8 @@
     {
       "name": "UX @ UW Club",
       "tags": [
-        "Student clubs"
+        "Student clubs",
+        "UI/UX"
       ],
       "bullets": [
         "Community for students who want to grow their UX skills",
@@ -416,7 +432,8 @@
     {
       "name": "Women in Informatics (Winfo)",
       "tags": [
-        "Student clubs"
+        "Student clubs",
+        "iOrgs"
       ],
       "bullets": [
         "Empowers women to thrive as producers of technology",

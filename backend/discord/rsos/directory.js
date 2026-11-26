@@ -1,32 +1,19 @@
-import { neutralizeMentions } from "../platform/interactions.js";
+import { cleanName, officerRoleName } from "../roles.js";
 
 const NAME_LIMIT = 80;
 const SUGGESTION_LIMIT = 25;
 const ROLE_CACHE_MS = 60_000;
-const OFFICER_SUFFIX = " Officer";
 const DUPLICATE_KEY = 11000;
 const UNKNOWN_ROLE = 10011;
 const UNKNOWN_MEMBER = 10007;
 const MISSING_PERMISSIONS = 50013;
 const LEAN = { lean: true };
 
-// Kick, Ban, Administrator, Manage Channels, Manage Server, Manage Messages, Manage Roles, Timeout.
-// Mention Everyone is left out because Discord's default role permissions include it.
-const STAFF_PERMISSIONS = [1n, 2n, 3n, 4n, 5n, 13n, 28n, 40n].reduce((bits, bit) => bits | (1n << bit), 0n);
-
-function cleanName(text) {
-  return neutralizeMentions(String(text ?? "").trim().replace(/\s+/g, " "));
-}
-
 function keyOf(name) {
   return name.toLowerCase();
 }
 
 const IUGA = { rsoKey: keyOf("IUGA"), rsoName: "IUGA" };
-
-function officerRoleName(rsoName) {
-  return `${rsoName}${OFFICER_SUFFIX}`;
-}
 
 /*
  * @behavior Know which RSOs exist, who represents each one, and make someone a representative.
@@ -36,41 +23,29 @@ function officerRoleName(rsoName) {
  *           never build it.
  * @param models — provides DiscordRsos
  * @param client — Discord REST adapter with listRoles, createRole, addMemberRole, deleteRole
- * @param officerRoleId — the general RSO officer role granted with every RSO officer role
- * @param staffRoleIds — reviewer roles that are never RSOs
- * @param iugaOfficerRoleId — IUGA board members, who represent IUGA itself without RSO verification
+ * @param roles — server roles: the general RSO officer role, the IUGA officer role, and which roles are special
  * @param now — returns the current time in milliseconds
  */
 export function createRsoDirectory({
   models,
   client,
-  officerRoleId,
-  staffRoleIds = [],
-  iugaOfficerRoleId,
+  roles,
   now = () => Date.now(),
 }) {
   const rsos = () => models.DiscordRsos;
-  const notRsoRoleIds = new Set([officerRoleId, ...staffRoleIds].filter(Boolean));
   const roleCache = new Map();
 
   async function serverRoles(guildId, { fresh = false } = {}) {
     const cached = roleCache.get(guildId);
     if (!fresh && cached && now() - cached.at < ROLE_CACHE_MS) return cached.roles;
-    const roles = await client.listRoles(guildId);
-    roleCache.set(guildId, { at: now(), roles });
-    return roles;
-  }
-
-  // A role that marks staff or something other than RSO membership: never suggested, never an RSO name.
-  function isNonRsoRole(role, guildId) {
-    if (role.id === guildId || role.managed || notRsoRoleIds.has(role.id)) return true;
-    if (cleanName(role.name).endsWith(OFFICER_SUFFIX)) return true;
-    return (BigInt(role.permissions ?? 0) & STAFF_PERMISSIONS) !== 0n;
+    const listed = await client.listRoles(guildId);
+    roleCache.set(guildId, { at: now(), roles: listed });
+    return listed;
   }
 
   async function membershipRoleNames(guildId) {
-    const roles = await serverRoles(guildId);
-    return roles.filter((role) => !isNonRsoRole(role, guildId)).map((role) => cleanName(role.name));
+    const listed = await serverRoles(guildId);
+    return listed.filter((role) => !roles.isSpecialRole(role, guildId)).map((role) => cleanName(role.name));
   }
 
   /*
@@ -115,16 +90,16 @@ export function createRsoDirectory({
     if (roleIds.length === 0) return [];
     const found = await rsos().find({ discordRoleId: { $in: roleIds } }, null, LEAN);
     const represented = found.map((rso) => ({ rsoKey: rso.rsoKey, rsoName: rso.name }));
-    if (!iugaOfficerRoleId || !roleIds.includes(iugaOfficerRoleId)) return represented;
+    if (!roles.iugaOfficerRoleId || !roleIds.includes(roles.iugaOfficerRoleId)) return represented;
     return [IUGA, ...represented.filter((rso) => rso.rsoKey !== IUGA.rsoKey)];
   }
 
   async function nameTaken(guildId, rsoKey, rsoName) {
     const officerKey = keyOf(officerRoleName(rsoName));
-    const roles = await serverRoles(guildId, { fresh: true });
-    return roles.some((role) => {
+    const listed = await serverRoles(guildId, { fresh: true });
+    return listed.some((role) => {
       const key = keyOf(cleanName(role.name));
-      return key === officerKey || (key === rsoKey && isNonRsoRole(role, guildId));
+      return key === officerKey || (key === rsoKey && roles.isSpecialRole(role, guildId));
     });
   }
 
@@ -188,7 +163,7 @@ export function createRsoDirectory({
       const found = await findOrCreateRso({ guildId, rsoKey, rsoName, grantedBy });
       if (found.nameTaken) return { ok: false, reason: "name-taken" };
       await addRsoRole(guildId, userId, found.rso);
-      if (officerRoleId) await client.addMemberRole(guildId, userId, officerRoleId);
+      if (roles.officerRoleId) await client.addMemberRole(guildId, userId, roles.officerRoleId);
       return { ok: true, rso: { rsoKey: found.rso.rsoKey, rsoName: found.rso.name }, created: found.created };
     } catch (error) {
       if (error?.discordCode === UNKNOWN_MEMBER) return { ok: false, reason: "member-gone" };

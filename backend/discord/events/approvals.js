@@ -4,7 +4,6 @@ import { EVENT_FORM_ACTION, eventForm, readEventForm } from "./form.js";
 import { createEventAnnouncements } from "./announcements.js";
 import { AUDIENCE_ACTION, allowedAudience, audienceField, audiencePicker } from "./audience.js";
 import { categoriesOf, eventCardBase } from "./card.js";
-import { canReview } from "../reviewers.js";
 import {
   BUTTON_PRIMARY,
   BUTTON_SECONDARY,
@@ -63,10 +62,11 @@ const ENTRY_LABELS = [
  * @param models — provides DiscordEventDrafts, DiscordEventSubmissions, and Events
  * @param directory — the RSO directory; rsosOf(member) gives the RSOs a member represents
  * @param client — Discord REST client with postMessage and sendDirectMessage
- * @param config — { modRoleId, iugaOfficerRoleId, officerRoleId, approvalChannelId, announcementChannelId, guildId }
+ * @param roles — server roles; decides who may review and which roles officers may ping
+ * @param config — { approvalChannelId, announcementChannelId, guildId }
  * @param now — returns the current Date
  */
-export function createDiscordApprovals({ models, directory, client, config, now = () => new Date() }) {
+export function createDiscordApprovals({ models, directory, client, roles, config, now = () => new Date() }) {
   const submissions = () => models.DiscordEventSubmissions;
   const drafts = () => models.DiscordEventDrafts;
   const announcements = createEventAnnouncements({
@@ -75,10 +75,6 @@ export function createDiscordApprovals({ models, directory, client, config, now 
     guildId: config.guildId,
     now,
   });
-
-  function isReviewer(member) {
-    return canReview(member, config);
-  }
 
   async function handle(interaction) {
     if (interaction.data?.name === EVENT_COMMAND.name) {
@@ -191,7 +187,7 @@ export function createDiscordApprovals({ models, directory, client, config, now 
 
     const { roleIds, refused } = allowedAudience(interaction.data?.values ?? [], interaction.data?.resolved?.roles, {
       guildId: config.guildId,
-      blockedRoleIds: [config.modRoleId, config.iugaOfficerRoleId, config.officerRoleId],
+      roles,
     });
     await drafts().updateOne({ _id: draft._id }, { $set: { interestRoleIds: roleIds, expiresAt: draftExpiry() } });
 
@@ -255,7 +251,7 @@ export function createDiscordApprovals({ models, directory, client, config, now 
 
   async function handleApprove(interaction, id) {
     const reviewer = interaction.member;
-    if (!isReviewer(reviewer)) return reply("Only moderators or IUGA officers can approve events.");
+    if (!roles.canReview(reviewer)) return reply("Only moderators or IUGA officers can approve events.");
     if (!OBJECT_ID.test(id)) return reply(STALE_MESSAGE);
 
     let result;
@@ -299,7 +295,7 @@ export function createDiscordApprovals({ models, directory, client, config, now 
 
   async function handleDenyStart(interaction, id) {
     const reviewer = interaction.member;
-    if (!isReviewer(reviewer)) return reply("Only moderators or IUGA officers can deny events.");
+    if (!roles.canReview(reviewer)) return reply("Only moderators or IUGA officers can deny events.");
     if (!OBJECT_ID.test(id)) return reply(STALE_MESSAGE);
 
     const row = await submissions().findById(id);
@@ -318,7 +314,7 @@ export function createDiscordApprovals({ models, directory, client, config, now 
 
   async function handleDenySubmit(interaction, id) {
     const reviewer = interaction.member;
-    if (!isReviewer(reviewer)) return reply("Only moderators or IUGA officers can deny events.");
+    if (!roles.canReview(reviewer)) return reply("Only moderators or IUGA officers can deny events.");
     if (!OBJECT_ID.test(id)) return reply(STALE_MESSAGE);
 
     const existing = await submissions().findById(id);

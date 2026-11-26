@@ -1,4 +1,3 @@
-import { canReview } from "../reviewers.js";
 import {
   COLOR_APPROVED,
   COLOR_DENIED,
@@ -45,12 +44,12 @@ const REFUSAL_MESSAGES = {
  * @param models — provides DiscordRsoRequests
  * @param directory — the RSO directory (suggest, identify, grantOfficer)
  * @param client — Discord REST client with postMessage and sendDirectMessage
- * @param config — { modRoleId, iugaOfficerRoleId, rsoApprovalChannelId }
+ * @param roles — server roles; decides who may review
+ * @param config — { rsoApprovalChannelId }
  * @param now — returns the current Date
  */
-export function createRsoVerification({ models, directory, client, config, now = () => new Date() }) {
+export function createRsoVerification({ models, directory, client, roles, config, now = () => new Date() }) {
   const requests = () => models.DiscordRsoRequests;
-  const isReviewer = (member) => canReview(member, config);
 
   // An approval left in progress longer than STALE_CLAIM_MS (for example after a crash) is open again.
   function openFilter() {
@@ -129,7 +128,7 @@ export function createRsoVerification({ models, directory, client, config, now =
 
   async function reviewable(interaction, id, ownMessage) {
     const reviewer = interaction.member;
-    if (!isReviewer(reviewer)) return { response: reply(NOT_REVIEWER) };
+    if (!roles.canReview(reviewer)) return { response: reply(NOT_REVIEWER) };
     if (!OBJECT_ID.test(id)) return { response: reply(STALE_MESSAGE) };
     const row = await requests().findById(id);
     if (!row) return { response: reply(STALE_MESSAGE) };

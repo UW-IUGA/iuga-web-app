@@ -5,20 +5,19 @@ export const AUDIENCE_PICK_LIMIT = 3;
 
 /*
  * @behavior Keep only the roles an officer may ping with an event: roles a server admin has marked
- *           "Allow anyone to @mention this role", never @everyone, bot-managed roles, or staff roles.
- *           Admins control the audience list from Discord's role settings, with no bot config.
+ *           "Allow anyone to @mention this role", never a staff, officer, or bot role. Admins control the
+ *           audience list from Discord's role settings, with no bot config.
  * @param picked — role ids chosen in the picker; untrusted
  * @param resolvedRoles — the interaction's resolved role objects, keyed by role id
- * @param rules — { guildId, blockedRoleIds }
+ * @param rules — { guildId, roles } where roles decides which roles can be pinged
  * @returns { roleIds, refused } where refused names each picked role that can't be pinged
  */
-export function allowedAudience(picked, resolvedRoles, { guildId, blockedRoleIds = [] }) {
-  const blocked = new Set([guildId, ...blockedRoleIds].filter(Boolean));
+export function allowedAudience(picked, resolvedRoles, { guildId, roles }) {
   const roleIds = [];
   const refused = [];
   for (const id of picked.map(String).slice(0, AUDIENCE_PICK_LIMIT)) {
     const role = resolvedRoles?.[id];
-    if (role?.mentionable && !role.managed && !blocked.has(id)) roleIds.push(id);
+    if (role && roles.canBePinged({ ...role, id }, guildId)) roleIds.push(id);
     else refused.push(role?.name ?? "Unknown role");
   }
   return { roleIds, refused };

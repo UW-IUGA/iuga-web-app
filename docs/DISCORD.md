@@ -185,7 +185,7 @@ Shared by events and RSOs, at the top of `backend/discord/`:
 - `commandDefinition.js`: the `/event` and `/rso-verify` command shapes
 - `commandSync.js`: registers those commands with Discord on deploy
 - `dispatcher.js`: sends each interaction to the flow that owns it
-- `reviewers.js`: who may approve or deny
+- `roles.js`: what each server role means: who may review, which roles are staff or officer roles, and which roles officers may ping
 
 Outside the folder:
 - `backend/routes/api/v1/controllers/discord.js`: the HTTP route Discord calls

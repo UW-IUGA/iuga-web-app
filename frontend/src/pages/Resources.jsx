@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useLocation, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import ResourceCard from "../components/ResourceCard";
 import { resourceTagTones, resourceTags } from "../assets/data/Enum";
 import PageHeader from "../components/PageHeader";
@@ -11,7 +11,6 @@ const categoryId = (category) =>
     `resource-${category.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`;
 
 function ResourcesPage({ resources }) {
-    const { pathname } = useLocation();
     const [searchParams, setSearchParams] = useSearchParams();
     const requestedCategory = searchParams.get("category");
     const initialCategory = categories.includes(requestedCategory) ? requestedCategory : ALL_RESOURCES;
@@ -19,9 +18,6 @@ function ResourcesPage({ resources }) {
     const [selectedCategory, setSelectedCategory] = useState(initialCategory);
     const [collapsedCategories, setCollapsedCategories] = useState(new Set());
 
-    useEffect(() => {
-        window.scrollTo(0, 0);
-    }, [pathname]);
     useEffect(() => {
         setSelectedCategory(initialCategory);
     }, [initialCategory]);

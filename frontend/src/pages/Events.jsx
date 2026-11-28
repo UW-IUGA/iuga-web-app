@@ -9,7 +9,7 @@ Expected Response Information: The controls and the chosen view, with the mini m
   Below it, the previous events. Event operations call /api/v1/event-requests (see EventOperations).
 */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import EventOperations from "../components/EventOperations";
 import CalendarControls from "../components/eventsCalendar/CalendarControls";
 import DayView from "../components/eventsCalendar/DayView";
@@ -66,10 +66,6 @@ function EventsPage() {
   const { records, status, retry } = useEventList({
     refreshKey: isAuthenticated,
   });
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
 
   // Bumped by the controls' Today and arrows, so the mini month returns to the
   // selected date's month even when the press leaves the date unchanged.

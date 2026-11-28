@@ -1,5 +1,3 @@
-import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
 import capstoneNight from "../assets/gallery/past-events/capstone-formation-night.webp";
 import fairFriends from "../assets/gallery/past-events/fair-friends-small.webp";
 import accenturePanel from "../assets/gallery/past-events/accenture-panel-small.webp";
@@ -27,12 +25,6 @@ const HERO_PHOTOS = [
 ];
 
 function HomePage() {
-  const { pathname } = useLocation();
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
-
   return (
     <main className="baseContainer homePage">
       <header className="homeOpening">
